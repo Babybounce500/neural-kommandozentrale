@@ -268,8 +268,8 @@
           </div>
           <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded text-xs">
             <div class="flex justify-between font-medium mb-1">
-              <span>Transition Matrix (Auszug):</span>
-              <span class="text-gray-400">k = <span id="markovHorizonDisp">12</span> Monate</span>
+              <span>1-Monats-Übergangsmatrix P (Auszug):</span>
+              <span class="text-gray-400">P<sup>k</sup>, k = <span id="markovHorizonDisp">12</span> Monate, für Prognose</span>
             </div>
             <div id="markovMatrix" class="overflow-x-auto"><pre class="text-gray-500">—</pre></div>
           </div>
@@ -657,13 +657,32 @@
       else if (distPct < 0.80) currentState = 2;  // S2: Accumulation
       else currentState = 1;                        // S1: Deep Distress
 
-      // Build transition matrix from empirical data
+      // Build transition matrix from empirical data -- MONTHLY granularity, one state sample per
+      // calendar month (last trading day), not one per trading day. BUG FIX: this previously sampled
+      // every consecutive daily bar (365+ transitions for a 2y lookback), but the priors below
+      // (e.g. P[1][0]=0.12 "12% chance of delisting") are calibrated for a MONTHLY step and the
+      // comment right below always assumed "<5 real observations" -- exactly what a ~24-month
+      // lookback gives at monthly granularity, not what daily sampling gives. Raising a matrix with
+      // monthly-scale prior magnitudes to a 63-DAY power (the old k) compounded that mismatch into
+      // nonsensical long-horizon outputs (e.g. a stock 3.7% off its ATH showing a ~23% chance of
+      // reaching the absorbing "delisted" state within 63 trading days).
+      const monthlyHighs = [];
+      let curMonthKey = null, curMonthHigh = -Infinity;
+      for (let i = 0; i < candles.length; i++) {
+        const mk = candles[i].date.slice(0, 7); // YYYY-MM
+        if (mk !== curMonthKey) {
+          if (curMonthKey !== null) monthlyHighs.push(curMonthHigh);
+          curMonthKey = mk; curMonthHigh = highs[i];
+        } else {
+          curMonthHigh = Math.max(curMonthHigh, highs[i]);
+        }
+      }
+      if (curMonthKey !== null) monthlyHighs.push(curMonthHigh);
+
       const transitions = Array.from({ length: 6 }, () => Array(6).fill(0));
-      for (let i = 1; i < closes.length; i++) {
-        const prevDist = (ath - highs[i-1]) / ath;
-        const currDist = (ath - highs[i]) / ath;
-        const prevState = distToState(prevDist);
-        const currState = distToState(currDist);
+      for (let i = 1; i < monthlyHighs.length; i++) {
+        const prevState = distToState((ath - monthlyHighs[i-1]) / ath);
+        const currState = distToState((ath - monthlyHighs[i]) / ath);
         if (prevState >= 0 && currState >= 0) {
           transitions[prevState][currState]++;
         }
@@ -693,10 +712,11 @@
       P[0][0] = 1;
       for (let j = 1; j < 6; j++) P[0][j] = 0;
 
-      // Matrix power P^k for given horizon months
-      // Cap k at 60 (≈ 3 months) to avoid 100% saturation in long horizons
-      const kRaw = Math.round(horizon * 21);
-      const k = Math.min(kRaw, 63);
+      // Matrix power P^k -- P is now a 1-MONTH step matrix, so k = horizon directly (in months),
+      // no day conversion needed. (Old code did kRaw=horizon*21 capped at 63 -- a day-count applied
+      // to what was nominally a monthly-calibrated matrix; that mismatch is what's fixed above.)
+      // Generous safety cap only, never binds for the 3/6/12/24/36-month dropdown options.
+      const k = Math.min(Math.max(1, Math.round(horizon)), 120);
       let Pk = matrixPower(P, k);
       
       // Bounce probability: if at S5, probability of STAYING in S4/S5 (i.e. not crashing)
