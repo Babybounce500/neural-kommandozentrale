@@ -39,26 +39,25 @@ h2{font-family:var(--head);font-size:12px;letter-spacing:2px;color:var(--gold);m
 <div class="wrap">
   <header>
     <div class="h-title">⬡ NEURAL KOMMANDOZENTRALE</div>
-    <div class="h-sub">Zwei neue KI-Tool-Calling-Apps über 8 kuratierte Finance-Tools -- kein Client-seitiger API-Key,
-    kein Freitext-Regex-Hack, echtes OpenAI-Tool-Calling über den etablierten Proxy. Gebaut aus den besten Stücken
-    eines größeren Replit-Exports, nicht die ganze Sammlung.</div>
+    <div class="h-sub">Die originalen COMMANDO-ZENTRALE/IFRAME-BOT-Dateien, 1:1 übernommen (24 Tabs bzw. volles
+    [[CMD:*]]-Befehlsprotokoll bleiben erhalten) -- nur URLs auf same-origin umgebogen und die eine echte
+    Sicherheitslücke (Claude-API-Key im Browser-localStorage) entfernt. Kein Rewrite, kein Feature-Verlust.</div>
   </header>
 
-  <h2>🧠 Die 2 neuen Apps</h2>
+  <h2>🧠 Die 2 Apps (Original-Logik, minimal gepatcht)</h2>
   <div class="hero-grid">
     <a class="card hero" href="trading/KOMMANDOZENTRALE-V2.html">
-      <div class="c-badge new">NEU · ECHTES TOOL-CALLING</div>
+      <div class="c-badge new">ORIGINAL · 24 TABS</div>
       <div class="c-title">⬡ KOMMANDOZENTRALE-V2</div>
-      <div class="c-desc">8 Tool-Tabs + persistentes KI-Chat-Panel. Die KI ruft die fertigen Analysen als echte
-      Funktionen auf (<code>run_tool_analysis</code>, <code>extract_data</code>) und zeigt Charts direkt inline im
-      Chat -- kein Tab-Wechsel nötig.</div>
+      <div class="c-desc">Die volle originale Commando-Zentrale (24 Tabs inkl. Computer-Use mit eigener
+      Bookmark-Registry über alle Tools) -- Bookmarks/Iframes same-origin gefixt, Rest unverändert.</div>
     </a>
     <a class="card hero" href="trading/IFRAME-BOT-V2.html">
-      <div class="c-badge new">NEU · SICHER NEUGEBAUT</div>
+      <div class="c-badge new">ORIGINAL · SICHERHEITSFIX</div>
       <div class="c-title">⬡ IFRAME-BOT-V2</div>
-      <div class="c-desc">KI steuert ein eingebettetes Tool direkt per DOM (klicken, ausfüllen, scrollen), liest
-      Daten aus und exportiert Reports -- über echtes Tool-Calling statt Freitext-Befehle, ganz ohne API-Key im
-      Browser (die Sicherheitslücke der Vorversion ist komplett entfernt).</div>
+      <div class="c-desc">Der originale Iframe-Bot mit vollem [[CMD:*]]-Befehlsvokabular (WRITE, CLICK, SELECT,
+      FORM_FILL, SCROLL, NAVIGATE, AUTO-Loop) -- Claude läuft jetzt über den sicheren Proxy statt Browser-API-Key,
+      sonst unverändert.</div>
     </a>
   </div>
 
