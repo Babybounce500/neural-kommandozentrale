@@ -66,6 +66,136 @@
   </style>
 </head>
 <body>
+<!-- ============== SMART-TARGET ENHANCEMENT (added, does not touch existing logic) ============== -->
+<div id="st_panel" style="max-width:900px;margin:14px auto;padding:14px 16px;background:#fff;border:1px solid #d6e2ea;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#1c2e34;">
+  <div style="font-weight:700;letter-spacing:1px;margin-bottom:6px;">🎯 SMART-TARGET ENHANCEMENT</div>
+  <div id="st_intro" style="font-size:11px;color:#5f7277;line-height:1.6;margin-bottom:10px;"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <input id="st_symbolInput" type="text" placeholder="Symbol(e), Komma-getrennt" style="flex:1;min-width:200px;height:34px;padding:0 10px;border:1px solid #d6e2ea;border-radius:4px;font-family:inherit;font-size:12px;">
+    <button id="st_scanBtn" onclick="st_runScan()" style="height:34px;padding:0 16px;background:#0e7490;color:#fff;border:none;border-radius:4px;font-weight:700;cursor:pointer;">SMART-SCAN</button>
+  </div>
+  <div id="st_status" style="font-size:10px;color:#9aa5a9;margin-top:6px;"></div>
+  <div id="st_results" style="margin-top:8px;"></div>
+</div>
+<script>
+(function(){
+  window.ST_BASE = 'https://glow-up-gemini.replit.app';
+  async function st_getJSON(p, params) {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    const res = await fetch(ST_BASE + p + qs);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+  window.ST_API = { eod: { historical: (s,p) => st_getJSON('/eod/historical/'+s, p) } };
+  window.st_isoDaysAgo = function(n) { const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
+
+  window.st_normCDF = function(x) {
+    const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+    const sign=x<0?-1:1; const z=Math.abs(x)/Math.sqrt(2); const t=1/(1+p*z);
+    const erf=1-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-z*z);
+    return 0.5*(1+sign*erf);
+  };
+  window.st_estimateSigmaMu = function(prices) {
+    const lr=[]; for(let i=1;i<prices.length;i++) if(prices[i]>0&&prices[i-1]>0) lr.push(Math.log(prices[i]/prices[i-1]));
+    if (lr.length<20) return null;
+    const mean=lr.reduce((a,b)=>a+b,0)/lr.length;
+    const variance=lr.reduce((a,b)=>a+Math.pow(b-mean,2),0)/(lr.length-1);
+    const sigma=Math.sqrt(variance*252); const mu=mean*252+0.5*sigma*sigma;
+    return { sigma, mu };
+  };
+  window.st_probHitTarget = function(S,K,mu,sigma,T) {
+    if (S===K) return 1.0; if (sigma<=0||T<=0) return 0.0;
+    const v=mu-0.5*sigma*sigma, b=Math.abs(Math.log(K/S)), sst=sigma*Math.sqrt(T);
+    const d1=(-b+v*T)/sst, d2=(-b-v*T)/sst;
+    return Math.min(Math.max(st_normCDF(d1)+Math.exp((2*v*b)/(sigma*sigma))*st_normCDF(d2),0),1);
+  };
+  window.st_volBucketOf = function(p){ return p<0.40?'far_lowP':p<0.70?'mid_P':'near_highP'; };
+  window.ST_VOL_LABEL = { far_lowP:'🔴 Ruhiges Regime', mid_P:'🟡 Mittleres Regime', near_highP:'🟢 Volatiles Regime' };
+  window.ST_STOP_PCT = 4; window.ST_HOLD_DAYS = 10; window.ST_T_YEARS = 10/252;
+
+  window.st_getVolRegime = async function(symbol, price, direction) {
+    try {
+      const hist = await ST_API.eod.historical(symbol, { from: st_isoDaysAgo(400) });
+      const closes = (Array.isArray(hist)?hist:[]).map(h=>h.close).filter(c=>c>0);
+      if (closes.length < 20) return null;
+      const params = st_estimateSigmaMu(closes);
+      if (!params) return null;
+      const stopLevel = direction==='LONG' ? price*(1-ST_STOP_PCT/100) : price*(1+ST_STOP_PCT/100);
+      const pTouchStop = st_probHitTarget(price, stopLevel, params.mu, params.sigma, ST_T_YEARS);
+      return { pTouchStop, sigma: params.sigma, bucket: st_volBucketOf(pTouchStop) };
+    } catch(e) { console.error('st_getVolRegime failed', e); return null; }
+  };
+})();
+</script>
+
+<script>
+const ST_BACKTEST = { n: 444, avgRet: 0.5815, winRate: 50, sharpeLike: 2.262, bestBucket: 'far_lowP', status: 'warning', buckets: { far_lowP: 0.5815, mid_P: 0.3282, near_highP: null } };
+document.getElementById('st_intro').innerHTML = "<b style=\"color:#b91c1c;\">Audit-Ergebnis: Body-Slam ist NICHT robust, trotz spektakulärer Headline-Sharpe (2.262)</b> -- die ältere Hälfte zeigt Sharpe 3.545, die neuere nur noch 0.467 (n ebenfalls klein: 444 Trades total). Klassisches Beispiel, warum der Zweiperioden-Check Pflicht ist. Reale Zahlen unten, explizit als Warnung markiert.";
+
+function st_smartStopTarget(price, direction, bucket) {
+  const sign = direction==='LONG'?1:-1;
+  const bucketAvgRet = ST_BACKTEST.buckets[bucket] != null ? ST_BACKTEST.buckets[bucket] : ST_BACKTEST.avgRet;
+  const target = price*(1+sign*(bucketAvgRet/100));
+  const stop = price*(1-sign*(ST_STOP_PCT/100));
+  return { target: target.toFixed(2), stop: stop.toFixed(2), bucketAvgRet };
+}
+
+function st_renderCard(sym, price, direction, vts, volRegime) {
+  const container = document.getElementById('st_results');
+  const card = document.createElement('div');
+  card.style.cssText = 'background:#eaf1f6;border:1px solid #d6e2ea;border-radius:6px;padding:10px;margin-bottom:8px;';
+  const statusBadge = ST_BACKTEST.status === 'validated'
+    ? '<span style="color:#15803d;font-weight:700;">✅ validiert, robust</span>'
+    : ST_BACKTEST.status === 'warning'
+      ? '<span style="color:#b91c1c;font-weight:700;">⚠️ geprüft, NICHT robust (reale Zahlen, aber Edge schwächt stark ab)</span>'
+      : '<span style="color:#b45309;font-weight:700;">ℹ️ informativ, kein eigener Backtest für dieses Signal</span>';
+  card.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><b>' + sym + '</b><span style="font-weight:700;color:' + (direction==='LONG'?'#15803d':'#b91c1c') + ';">' + direction + '</span></div>' +
+    '<div>Entry: <b>' + price.toFixed(2) + '</b> &nbsp; Smart Target: <b style="color:#0e7490;">' + vts.target + '</b> &nbsp; Smart Stop (-4%): <b style="color:#b45309;">' + vts.stop + '</b></div>' +
+    (volRegime ? '<div style="margin-top:4px;font-size:10.5px;color:#5f7277;">P(Touch Stop in 10d) = ' + (volRegime.pTouchStop*100).toFixed(0) + '% (σ=' + (volRegime.sigma*100).toFixed(1) + '%) · ' + ST_VOL_LABEL[volRegime.bucket] + '</div>' : '') +
+    '<div style="margin-top:4px;font-size:10px;color:#9aa5a9;">' + statusBadge + ' -- n=' + ST_BACKTEST.n.toLocaleString('de-DE') + ', Ø' + ST_BACKTEST.avgRet + '%, Sharpe ' + ST_BACKTEST.sharpeLike + ' (Bucket: ' + ST_BACKTEST.bestBucket + ')</div>';
+  container.appendChild(card);
+}
+
+async function st_detectSignal(symbol) {
+
+  const data = await ST_API.eod.historical(symbol, { from: st_isoDaysAgo(45) });
+  data.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if (data.length < 21) throw new Error('Zu wenige Daten');
+  const closes = data.map(d=>d.close);
+  const n = closes.length;
+  const sma20 = closes.slice(n-20,n).reduce((a,b)=>a+b,0)/20;
+  const stretchPct = ((closes[n-1]-sma20)/sma20)*100;
+  if (Math.abs(stretchPct) < 6) throw new Error('Kein Signal (Stretch ' + stretchPct.toFixed(1) + '%, Schwelle ±6%)');
+  return { price: closes[n-1], direction: stretchPct <= -6 ? 'LONG' : 'SHORT' };
+  
+}
+
+async function st_runScan() {
+  const symbols = document.getElementById('st_symbolInput').value.split(',').map(s=>s.trim()).filter(Boolean);
+  document.getElementById('st_scanBtn').disabled = true;
+  document.getElementById('st_results').innerHTML = '';
+  const status = document.getElementById('st_status');
+  for (const sym of symbols) {
+    status.textContent = 'Scanne ' + sym + '...';
+    try {
+      const { price, direction } = await st_detectSignal(sym);
+      const volRegime = await st_getVolRegime(sym, price, direction);
+      const vts = st_smartStopTarget(price, direction, volRegime ? volRegime.bucket : ST_BACKTEST.bestBucket);
+      st_renderCard(sym, price, direction, vts, volRegime);
+    } catch (e) {
+      const container = document.getElementById('st_results');
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#f4f7fb;border-radius:4px;padding:6px 10px;margin-bottom:4px;font-size:10.5px;color:#9aa5a9;';
+      card.textContent = sym + ': ' + e.message;
+      container.appendChild(card);
+    }
+  }
+  status.textContent = 'Fertig: ' + symbols.length + ' Symbole geprüft.';
+  document.getElementById('st_scanBtn').disabled = false;
+}
+document.getElementById('st_symbolInput').value = 'TSLA.US, NVDA.US, GME.US, RHM.XETRA';
+</script>
+
 
   <div class="header">
     <div class="title">BODY_SLAM // COCKPIT v4.1</div>
