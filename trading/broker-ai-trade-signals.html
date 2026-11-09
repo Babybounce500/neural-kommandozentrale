@@ -1014,6 +1014,35 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
       return d.toISOString().slice(0, 10);
     }
 
+    // ==================== BACKTEST-VALIDIERTE EXIT-REGELN ====================
+    // Vorher: jede der 4 Signalfunktionen hatte einen frei erfundenen Target/Stop
+    // (±1%/±4%/±8%/±20%, je Funktion unterschiedlich, nie validiert). Jetzt: alle 4
+    // Signale wurden 1:1 über 52 Standardwerte / 3 Jahre lookahead-frei rückgetestet
+    // (Entry = Open(T+1), Exit-Regel-Sweep, Zweiperioden-Robustheitssplit -- siehe
+    // genitus-midpoint-terminal/scripts/broker-ai-signals-backtest.js +
+    // broker-ai-signals-backtest.html für die volle Methodik). Für alle 4 Signale war
+    // "stop4pct_10d" (bis 10 Handelstage halten, -4%-Stop) die beste Regel nach
+    // Sharpe-like -- Target/Stop unten kommen jetzt aus diesen echten Zahlen statt
+    // Raten. WICHTIG: 3 von 4 Signalen zeigen im Zweiperioden-Split eine deutlich
+    // schwächere zweite Hälfte (fading edge) -- siehe "robustness" unten, wird auch
+    // in der Karte angezeigt.
+    const BACKTEST_STATS = {
+      monthly:   { n: 38220, avgRet: 0.1764, medianRet: -1.4631, winRate: 42.31, sharpeLike: 0.522, olderSharpe: 0.125, newerSharpe: 0.869, robustness: 'improving' },
+      spread:    { n: 38847, avgRet: 0.1939, medianRet: -1.3538, winRate: 42.64, sharpeLike: 0.582, olderSharpe: 0.838, newerSharpe: 0.346, robustness: 'fading' },
+      midpoint:  { n: 38956, avgRet: 0.1925, medianRet: -1.3634, winRate: 42.93, sharpeLike: 0.582, olderSharpe: 0.852, newerSharpe: 0.328, robustness: 'fading' },
+      weeklySma: { n: 38779, avgRet: 0.1779, medianRet: -1.4129, winRate: 42.56, sharpeLike: 0.533, olderSharpe: 0.753, newerSharpe: 0.33,  robustness: 'fading' }
+    };
+    const VALIDATED_STOP_PCT = 4; // stop4pct_10d, identisch für alle 4 Signale
+    // Validiertes Target: Entry * (1 +/- historischer avgRet der stop4pct_10d-Regel),
+    // statt eines frei erfundenen Round-Number-Prozentsatzes.
+    function validatedTargetStop(price, direction, statsKey) {
+      const stats = BACKTEST_STATS[statsKey];
+      const sign = direction === 'LONG' ? 1 : -1;
+      const target = price * (1 + sign * (stats.avgRet / 100));
+      const stop = price * (1 - sign * (VALIDATED_STOP_PCT / 100));
+      return { target: target.toFixed(2), stop: stop.toFixed(2), stats };
+    }
+
     async function getMonthlyAnalysis(stockSymbol) {
       const today = new Date();
       let lastMonth = today.getMonth();
@@ -1043,13 +1072,15 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
         if (!latestClose) throw new Error("No current data available");
 
         const position = latestClose > lastMonthClose ? "LONG" : "SHORT";
+        const vts = validatedTargetStop(latestClose, position, 'monthly');
 
         return {
           symbol: stockSymbol,
           recommendation: position,
           price: latestClose.toFixed(2),
-          target: position === "LONG" ? (latestClose * 1.20).toFixed(2) : (latestClose * 0.80).toFixed(2),
-          stop: position === "LONG" ? (latestClose * 0.90).toFixed(2) : (latestClose * 1.10).toFixed(2),
+          target: vts.target,
+          stop: vts.stop,
+          backtest: vts.stats,
           timestamp: new Date().getTime() / 1000,
           size: "10%"
         };
@@ -1072,13 +1103,15 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
 
           const spread = latestClose / thirdLatestClose;
           const position = spread > 1 ? "LONG" : "SHORT";
+          const vts = validatedTargetStop(latestClose, position, 'spread');
 
           return {
             symbol: stockSymbol,
             recommendation: position,
             price: latestClose.toFixed(2),
-            target: position === "LONG" ? (latestClose * 1.04).toFixed(2) : (latestClose * 0.96).toFixed(2),
-            stop: position === "LONG" ? (latestClose * 0.98).toFixed(2) : (latestClose * 1.02).toFixed(2),
+            target: vts.target,
+            stop: vts.stop,
+            backtest: vts.stats,
             timestamp: new Date(latestCloseDate).getTime() / 1000,
             size: "50%"
           };
@@ -1101,15 +1134,16 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
         let recommendation = 'Neutral';
         let trailingStop = '';
         let target = '';
+        let backtest = null;
 
         if (realtimePrice > averagePrice) {
           recommendation = 'LONG';
-          trailingStop = (realtimePrice * 0.99).toFixed(2);
-          target = (realtimePrice * 1.01).toFixed(2);
+          const vts = validatedTargetStop(realtimePrice, 'LONG', 'midpoint');
+          target = vts.target; trailingStop = vts.stop; backtest = vts.stats;
         } else if (realtimePrice < averagePrice) {
           recommendation = 'SHORT';
-          trailingStop = (realtimePrice * 1.01).toFixed(2);
-          target = (realtimePrice * 0.99).toFixed(2);
+          const vts = validatedTargetStop(realtimePrice, 'SHORT', 'midpoint');
+          target = vts.target; trailingStop = vts.stop; backtest = vts.stats;
         }
 
         return {
@@ -1118,6 +1152,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           price: realtimePrice.toFixed(2),
           target,
           stop: trailingStop,
+          backtest,
           timestamp: data.timestamp,
           size: "100%"
         };
@@ -1140,13 +1175,15 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           const spread = sma1 / sma3;
           const position = spread > 1 ? "LONG" : "SHORT";
           const latestClose = data[0].close;
+          const vts = validatedTargetStop(latestClose, position, 'weeklySma');
 
           return {
             symbol: stockSymbol,
             recommendation: position,
             price: latestClose.toFixed(2),
-            target: position === "LONG" ? (latestClose * 1.08).toFixed(2) : (latestClose * 0.92).toFixed(2),
-            stop: position === "LONG" ? (latestClose * 0.96).toFixed(2) : (latestClose * 1.04).toFixed(2),
+            target: vts.target,
+            stop: vts.stop,
+            backtest: vts.stats,
             timestamp: new Date(data[0].date).getTime() / 1000,
             size: "25%"
           };
@@ -1351,6 +1388,17 @@ WICHTIG: Wiederhole NICHT einfach die Prozentdifferenz zwischen aktuellem Kurs u
                         <span class="text-gray-900 dark:text-white">SIZE</span>
                         <span class="font-bold text-gray-900 dark:text-white">${data.size}</span>
                       </div>
+                      ${data.backtest ? `
+                      <div class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2 mt-1">
+                        <div>📊 Backtest (n=${data.backtest.n.toLocaleString('de-DE')}, 10d/-4%-Stop): WinRate ${data.backtest.winRate}% · Ø${data.backtest.avgRet}% · Sharpe ${data.backtest.sharpeLike}</div>
+                        <div class="mt-0.5">${
+                          data.backtest.robustness === 'fading'
+                            ? '⚠️ Edge schwächt sich in neuerer Hälfte ab (nicht robust)'
+                            : data.backtest.robustness === 'improving'
+                              ? '📈 Edge verstärkt sich in neuerer Hälfte'
+                              : '✅ Robust über beide Zeithälften'
+                        }</div>
+                      </div>` : ''}
                     </div>
 
                     <button class="ai-analyse-btn w-full mt-3 px-3 py-2 text-white rounded-md text-sm font-semibold flex items-center justify-center gap-2">

@@ -225,12 +225,23 @@
   </main>
 
 <script>
-// Globale API-Client-Integration (nutzt den projekteigenen Proxy)
-window.API_BASE_URL = '';
-</script>
-<script src="/shared/js/api-client.js"></script>
-<script>
 'use strict';
+// /shared/js/api-client.js nie Teil dieses Exports -- inline API-Shim nach dem
+// Muster der Schwester-Files (ath-options-engine.html, broker-ai-trade-signals.html)
+window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
+const _BASE = window.API_BASE_URL;
+async function _getJSON(path, params) {
+  const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+  const res = await fetch(_BASE + path + qs);
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+const API = {
+  eod: {
+    historical: (s, p) => _getJSON(`/eod/historical/${s}`, p),
+    realtime:   (s)    => _getJSON(`/eod/realtime/${s}`)
+  }
+};
 const $ = (id) => document.getElementById(id);
 let chartInstance = null;
 let lastAnalysisData = null;
