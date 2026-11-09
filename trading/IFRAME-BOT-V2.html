@@ -708,6 +708,30 @@ function crawlIframe() {
   }
 }
 
+// Groups buttons sharing a class (e.g. a 30+ item market-tab bar) into one summary
+// line instead of letting them crowd a hard cap and hide real action buttons
+// (e.g. SCAN MARKET / RUN CUSTOM) that happen to sit later in the DOM.
+function summarizeButtons(elements, tabThreshold = 8, maxGroups = 20) {
+  const groups = new Map();
+  elements.forEach(el => {
+    const key = el.className || '(no-class)';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push((el.textContent.trim() || el.value || el.id || '').substring(0, 40));
+  });
+
+  const lines = [];
+  let n = 1;
+  for (const [, labels] of groups) {
+    if (labels.length > tabThreshold) {
+      const preview = labels.slice(0, 6).map(l => `"${l}"`).join(', ');
+      lines.push(`    [TAB-GROUP x${labels.length}] ${preview}, … (+${labels.length - 6} more) → [[CMD:CLICK|<exakter Name>]]`);
+    } else {
+      labels.forEach(l => lines.push(`    [${n++}] "${l}"`));
+    }
+  }
+  return lines.slice(0, maxGroups).join('\n');
+}
+
 function buildIframeContext() {
   const doc = iframeDoc();
   if (!doc) return 'IFRAME: not loaded yet';
@@ -723,10 +747,9 @@ function buildIframeContext() {
 
   const fields  = getVisibleFields(doc);
   const isVis   = el => { try { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; } catch { return false; } };
-  const buttons = Array.from(doc.querySelectorAll('button,[role="button"],input[type="submit"]'))
-    .filter(isVis)
-    .map((b, i) => `    [${i+1}] "${(b.textContent.trim() || b.value || b.id).substring(0,40)}"`)
-    .slice(0, 15).join('\n');
+  const buttons = summarizeButtons(
+    Array.from(doc.querySelectorAll('button,[role="button"],input[type="submit"]')).filter(isVis)
+  );
 
   // Format each field with all info AI needs
   const fieldLines = fields.map(f => {
