@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🧬 Domvs Avrea Life Science Research</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    select, input, button { font-family: inherit; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100">
+  <div class="max-w-6xl mx-auto p-4 md:p-6">
+    <h1 class="text-3xl md:text-4xl font-bold mb-6 text-cyan-400 text-center md:text-left">
+      🧬 Domvs Avrea Life Science GPT
+    </h1>
+
+    <!-- API Key Controls -->
+    <div class="mb-6">
+      <label class="block mb-2 text-cyan-200 font-medium">🔑 OpenAI API Key:</label>
+      <div class="flex flex-col md:flex-row gap-2">
+        <input id="apiKey" type="password" placeholder="sk-..." class="flex-1 p-2 border border-cyan-500 bg-gray-900 rounded" />
+        <button id="saveApiKey" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">💾 Speichern</button>
+        <button id="clearApiKey" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">🗑️ Löschen</button>
+      </div>
+    </div>
+
+    <!-- Search Controls -->
+    <div class="mb-4 space-y-2 md:space-y-0 md:flex md:flex-wrap md:gap-2">
+      <input id="query" type="text" placeholder="z. B. CRISPR cancer therapy"
+        class="flex-1 p-2 border border-cyan-500 bg-gray-900 rounded text-white min-w-[200px]" />
+
+      <select id="quickTopics" class="p-2 border border-cyan-500 bg-gray-900 text-white rounded">
+        <option disabled selected>🎓 Quick Topics</option>
+
+        <!-- Molekulare Medizin -->
+        <optgroup label="🧬 Molekulare Medizin">
+          <option value="CRISPR gene editing cancer therapy">CRISPR Krebstherapie</option>
+          <option value="CAR-T cell immunotherapy">CAR-T-Zell-Immuntherapie</option>
+          <option value="mRNA vaccines cancer treatment">mRNA Krebsimpfstoffe</option>
+          <option value="siRNA therapeutic applications">siRNA Anwendungen</option>
+          <option value="Gene therapy viral vectors">Gentherapie virale Vektoren</option>
+          <option value="Epigenetic modifications therapy">Epigenetische Therapien</option>
+        </optgroup>
+
+        <!-- Neurowissenschaften -->
+        <optgroup label="🧠 Neurowissenschaften">
+          <option value="Alzheimer drug development">Alzheimer Medikamentenentwicklung</option>
+          <option value="Parkinson dopamine therapy">Parkinson Dopamintherapie</option>
+          <option value="Tau protein dementia research">Tau-Protein Demenzforschung</option>
+          <option value="Brain-computer interface BCI">Brain-Computer Interfaces</option>
+          <option value="Stroke neuroplasticity recovery">Neuroplastizität Schlaganfall</option>
+          <option value="Deep brain stimulation DBS">Tiefe Hirnstimulation</option>
+        </optgroup>
+
+        <!-- Immunologie -->
+        <optgroup label="🛡️ Immunologie">
+          <option value="COVID-19 variant immunity">COVID-19 Immunität</option>
+          <option value="Autoimmune disease mechanisms">Autoimmun Mechanismen</option>
+          <option value="Checkpoint inhibitor therapy">Checkpoint Inhibitor Therapie</option>
+          <option value="Cytokine storm treatment">Zytokinsturm Behandlung</option>
+          <option value="Monoclonal antibody therapy">Monoklonale Antikörper</option>
+        </optgroup>
+
+        <!-- Onkologie -->
+        <optgroup label="🎯 Onkologie">
+          <option value="Tumor microenvironment therapy">Tumor-Mikroumgebung</option>
+          <option value="Liquid biopsy circulating DNA">Liquid Biopsy</option>
+          <option value="Radiotherapy proton therapy">Protonentherapie</option>
+          <option value="Cancer stem cell targeting">Krebsstammzellen</option>
+          <option value="Photodynamic therapy PDT">Photodynamische Therapie</option>
+        </optgroup>
+
+        <!-- KI -->
+        <optgroup label="🤖 KI in Medizin">
+          <option value="AI medical imaging diagnosis">KI Diagnostik Bildgebung</option>
+          <option value="Machine learning drug discovery">ML Drug Discovery</option>
+          <option value="Precision medicine algorithms">Algorithmen Präzisionsmedizin</option>
+          <option value="Wearable health monitoring">Wearables Monitoring</option>
+        </optgroup>
+
+        <!-- Aging -->
+        <optgroup label="⏳ Aging">
+          <option value="Cellular senescence therapy">Zelluläre Seneszenz</option>
+          <option value="Telomere extension research">Telomer Verlängerung</option>
+          <option value="Mitochondrial dysfunction aging">Mitochondriale Dysfunktion</option>
+          <option value="Caloric restriction mimetics">Kalorienrestriktion</option>
+          <option value="Rapamycin longevity studies">Rapamycin Studien</option>
+        </optgroup>
+      </select>
+
+      <select id="numPapers" class="p-2 border border-cyan-500 bg-gray-900 text-white rounded">
+        <option value="3">3</option>
+        <option value="5" selected>5</option>
+        <option value="10">10</option>
+      </select>
+
+      <select id="translateTo" class="p-2 border border-cyan-500 bg-gray-900 text-white rounded">
+        <option value="ger" selected>🇩🇪 Deutsch</option>
+        <option value="eng">🇬🇧 Englisch</option>
+        <option value="fre">🇫🇷 Französisch</option>
+        <option value="spa">🇪🇸 Spanisch</option>
+        <option value="ita">🇮🇹 Italienisch</option>
+        <option value="chi">🇨🇳 Chinesisch</option>
+      </select>
+
+      <label class="flex items-center gap-2 text-sm text-cyan-200">
+        <input id="langGerOnly" type="checkbox" class="accent-cyan-600"> Nur deutsche Artikel
+      </label>
+
+      <button onclick="searchEuropePMC()" class="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700 w-full md:w-auto">🔍 Suchen</button>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="space-y-6"></div>
+  </div>
+
+  <script>
+    const translationPrompts = {
+      eng: "Translate the following text to English:",
+      fre: "Traduisez le texte suivant en français:",
+      spa: "Traduce el siguiente texto al español:",
+      ita: "Traduci il seguente testo in italiano:",
+      chi: "将以下文本翻译成中文:"
+    };
+
+    document.getElementById('quickTopics').addEventListener('change', (e) => {
+      document.getElementById('query').value = e.target.value;
+    });
+
+    async function searchEuropePMC() {
+      const query = document.getElementById("query").value.trim();
+      const num = document.getElementById("numPapers").value;
+      const langGerOnly = document.getElementById("langGerOnly").checked;
+      const resultsDiv = document.getElementById("results");
+
+      if (!query) return alert("Bitte Suchbegriff eingeben.");
+      resultsDiv.innerHTML = "⏳ Suche läuft...";
+
+      try {
+        let searchQuery = query;
+        if (langGerOnly) searchQuery += " LANG:ger";
+
+        const res = await fetch(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(searchQuery)}&format=json&pageSize=${num}`);
+        const data = await res.json();
+        const papers = data?.resultList?.result || [];
+
+        if (!papers.length) {
+          resultsDiv.innerHTML = "❌ Keine Artikel gefunden.";
+          return;
+        }
+
+        resultsDiv.innerHTML = "";
+        for (const p of papers) {
+          const title = p.title;
+          const authors = p.authorString || "❌ Keine Autoren";
+          const url = p.fullTextUrlList?.fullTextUrl?.[0]?.url || `https://europepmc.org/article/MED/${p.id}`;
+          const pmid = p.pmid || p.id || "";
+          const pmcid = p.pmcid ? `PMCID: ${p.pmcid}` : "";
+
+          const container = document.createElement("div");
+          container.className = "bg-gray-800 p-4 rounded shadow border border-cyan-600";
+
+          container.innerHTML = `
+            <h2 class="text-lg md:text-xl font-bold text-cyan-300 mb-1">${title}</h2>
+            <p class="text-sm text-gray-400 mb-2">👥 <span class="font-semibold">Autoren:</span> ${authors}</p>
+            <p class="text-xs text-gray-500 mt-1">PMID: ${pmid} ${pmcid}</p>
+            <div class="flex flex-wrap gap-2 mt-4">
+              <a href="${url}" target="_blank" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">🔗 Quelle</a>
+              <button class="summarize bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">🧠 KI</button>
+              <button class="export-txt bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700">📤 Export</button>
+            </div>
+            <div class="summary mt-3 text-base leading-relaxed text-white whitespace-pre-wrap"></div>
+          `;
+
+          const sumBtn = container.querySelector(".summarize");
+          const expBtn = container.querySelector(".export-txt");
+          const summaryDiv = container.querySelector(".summary");
+
+          sumBtn.onclick = async () => {
+            const apiKey = document.getElementById("apiKey").value;
+            const translateTo = document.getElementById("translateTo").value;
+            if (!apiKey) return alert("⚠️ API Key erforderlich.");
+
+            summaryDiv.innerText = "🧠 GPT denkt...";
+            let prompt = `Erstelle eine wissenschaftliche Zusammenfassung:\nTitel: "${title}"\nAutoren: ${authors}\nQuelle: ${url}`;
+
+            let summary = await callOpenAI(apiKey, prompt);
+
+            if (translateTo !== "ger" && translationPrompts[translateTo]) {
+              summaryDiv.innerText = "🌍 Übersetze Zusammenfassung...";
+              summary = await callOpenAI(apiKey, `${translationPrompts[translateTo]}\n\n${summary}`);
+            }
+
+            summaryDiv.innerText = summary;
+            container.dataset.summary = summary;
+          };
+
+          expBtn.onclick = () => {
+            const summary = container.dataset.summary;
+            if (!summary) {
+              alert("⚠️ Bitte zuerst eine Zusammenfassung generieren.");
+              return;
+            }
+            exportAsTxt(title, authors, url, pmid, pmcid, summary);
+          };
+
+          resultsDiv.appendChild(container);
+        }
+      } catch (err) {
+        resultsDiv.innerHTML = "❌ Fehler: " + err.message;
+      }
+    }
+
+    async function callOpenAI(apiKey, prompt) {
+      try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4.1-mini",
+            messages: [
+              {
+                role: "system",
+                content: "Du bist ein hochpräziser medizinischer Forschungsassistent. Erstelle fundierte, wissenschaftliche Zusammenfassungen mit klinischem Kontext, Anwendungen, Risiken und Forschungsstand."
+              },
+              { role: "user", content: prompt }
+            ]
+          })
+        });
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || "⚠️ Keine Antwort erhalten.";
+      } catch (err) {
+        return "❌ OpenAI Fehler: " + err.message;
+      }
+    }
+
+    function exportAsTxt(title, authors, url, pmid, pmcid, summary) {
+      const content = `# Domvs Avrea Research Export\n\nTitel: ${title}\nAutoren: ${authors}\nQuelle: ${url}\nPMID: ${pmid}\n${pmcid}\n\nZusammenfassung:\n${summary}`;
+      const blob = new Blob([content], { type: "text/plain" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `domvs-avrea-${pmid || "article"}.txt`;
+      link.click();
+    }
+
+    // API Key Save/Clear
+    document.getElementById("saveApiKey").onclick = () => {
+      const apiKey = document.getElementById("apiKey").value.trim();
+      if (!apiKey) return alert("Bitte gültigen API Key eingeben.");
+      localStorage.setItem("openAiApiKey", apiKey);
+      alert("API Key gespeichert!");
+    };
+    document.getElementById("clearApiKey").onclick = () => {
+      localStorage.removeItem("openAiApiKey");
+      document.getElementById("apiKey").value = "";
+      alert("API Key gelöscht!");
+    };
+    window.onload = () => {
+      const savedKey = localStorage.getItem("openAiApiKey");
+      if (savedKey) document.getElementById("apiKey").value = savedKey;
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GENITUS // MCP HUB - Complete Overview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#060913;--bg2:#0a0f1e;--bg3:#0d1326;--bg4:#111827;
+      --border:#1e293b;--border2:#334155;
+      --accent:#00ffcc;--accent2:#ff007f;--accent3:#7c3aed;
+      --green:#00ff87;--yellow:#f59e0b;--red:#ef4444;--blue:#00bfff;
+      --text:#f8fafc;--muted:#94a3b8;--dim:#475569;
+      --mono:'Share Tech Mono',monospace;--orb:'Orbitron',sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background:var(--bg);color:var(--text);font-family:var(--orb);
+      min-height:100vh;letter-spacing:.4px;
+      background-image:
+        radial-gradient(ellipse at 20% 0%,rgba(0,255,204,.03) 0%,transparent 50%),
+        radial-gradient(ellipse at 80% 100%,rgba(255,0,127,.03) 0%,transparent 50%);
+    }
+    .hero{padding:48px 32px 32px;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,255,204,.06) 0%,transparent 60%);pointer-events:none}
+    .hero h1{font-size:clamp(28px,5vw,52px);font-weight:900;letter-spacing:-1px;position:relative}
+    .hero h1 span{color:var(--accent);text-shadow:0 0 40px rgba(0,255,204,.3)}
+    .hero h1 .pink{color:var(--accent2);text-shadow:0 0 40px rgba(255,0,127,.3)}
+    .hero-sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;letter-spacing:2px;text-transform:uppercase}
+    .hero-stats{display:flex;justify-content:center;gap:32px;margin-top:24px;flex-wrap:wrap}
+    .h-stat{text-align:center}
+    .h-stat .num{font-family:var(--mono);font-size:28px;font-weight:900;color:var(--accent);text-shadow:0 0 16px rgba(0,255,204,.2)}
+    .h-stat .lbl{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+    .search-wrap{max-width:600px;margin:0 auto 28px;padding:0 20px}
+    .search-box{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px 18px;display:flex;align-items:center;gap:10px;transition:border-color .2s}
+    .search-box:focus-within{border-color:var(--accent);box-shadow:0 0 12px rgba(0,255,204,.08)}
+    .search-box input{flex:1;background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+    .search-box input::placeholder{color:var(--dim)}
+    .filter-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;justify-content:center}
+    .ftag{background:var(--bg4);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:20px;font-size:10px;cursor:pointer;font-family:var(--mono);transition:all .15s;letter-spacing:.5px}
+    .ftag:hover{border-color:var(--accent);color:var(--accent)}
+    .ftag.active{background:rgba(0,255,204,.08);border-color:var(--accent);color:var(--accent)}
+    .main{max-width:1400px;margin:0 auto;padding:0 24px 48px}
+    .cat-section{margin-bottom:36px}
+    .cat-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+    .cat-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px}
+    .cat-count{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim);background:var(--bg4);padding:2px 10px;border-radius:12px}
+    .cat-green .cat-title{color:var(--green)}
+    .cat-blue .cat-title{color:var(--blue)}
+    .cat-pink .cat-title{color:var(--accent2)}
+    .cat-yellow .cat-title{color:var(--yellow)}
+    .cat-purple .cat-title{color:var(--accent3)}
+    .cat-teal .cat-title{color:#5eead4}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+    .card-grid.compact{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+    .card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .18s ease;position:relative;overflow:hidden;text-decoration:none;display:block}
+    .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:0;transition:opacity .18s}
+    .card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,255,204,.06)}
+    .card:hover::before{opacity:1}
+    .card .c-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .card .c-desc{font-size:10px;color:var(--dim);line-height:1.5;font-family:var(--mono);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .card .c-meta{display:flex;gap:8px;margin-top:8px;font-size:9px;font-family:var(--mono)}
+    .c-badge{padding:1px 6px;border-radius:3px;font-size:9px;letter-spacing:.5px}
+    .bg-green{background:rgba(0,255,135,.08);color:var(--green);border:1px solid rgba(0,255,135,.2)}
+    .bg-blue{background:rgba(0,191,255,.08);color:var(--blue);border:1px solid rgba(0,191,255,.2)}
+    .bg-pink{background:rgba(255,0,127,.08);color:var(--accent2);border:1px solid rgba(255,0,127,.2)}
+    .bg-yellow{background:rgba(245,158,11,.08);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
+    .bg-purple{background:rgba(124,58,237,.08);color:var(--accent3);border:1px solid rgba(124,58,237,.2)}
+    .bg-teal{background:rgba(94,234,212,.08);color:#5eead4;border:1px solid rgba(94,234,212,.2)}
+    .hidden{display:none !important}
+    .footer{text-align:center;padding:24px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--dim)}
+    .footer span{color:var(--accent)}
+    @media(max-width:600px){
+      .hero{padding:32px 16px 20px}
+      .hero-stats{gap:16px}
+      .main{padding:0 12px 32px}
+      .card-grid{grid-template-columns:1fr}
+    }
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .cat-section{animation:fadeInUp .4s ease both}
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1><span>GENITUS</span> <span class="pink">// MCP HUB</span></h1>
+  <div class="hero-sub">Model Context Protocol - Browser Agent - Trading Suite - Navigator</div>
+  <div class="hero-stats">
+    <div class="h-stat"><div class="num" id="stat-files">0</div><div class="lbl">HTML Files</div></div>
+    <div class="h-stat"><div class="num" id="stat-cats">0</div><div class="lbl">Categories</div></div>
+    <div class="h-stat"><div class="num" id="stat-trading">0</div><div class="lbl">Trading Apps</div></div>
+    <div class="h-stat"><div class="num" id="stat-api">0</div><div class="lbl">Web APIs</div></div>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <span style="color:var(--dim);font-size:14px">Q</span>
+    <input type="text" id="searchInput" placeholder="Search files..." autocomplete="off">
+  </div>
+  <div class="filter-tags" id="filterTags">
+    <span class="ftag active" data-filter="all">All</span>
+    <span class="ftag" data-filter="mcp">MCP Core</span>
+    <span class="ftag" data-filter="trading">Trading</span>
+    <span class="ftag" data-filter="dude">Dude Bank</span>
+    <span class="ftag" data-filter="terminal">Terminals</span>
+    <span class="ftag" data-filter="browser-api">Browser APIs</span>
+    <span class="ftag" data-filter="fintech">Fintech</span>
+    <span class="ftag" data-filter="life">Life Science</span>
+  </div>
+</div>
+
+<div class="main" id="mainContent"></div>
+
+<div class="footer">
+  GENITUS MCP HUB - <span id="footerCount">0</span> files - Port 5000 - Node.js + Express
+</div>
+
+<script>
+const DATA = [
+  {cat:'mcp',title:'MCP Core',color:'green',items:[
+    {name:'iframe-chat.html',path:'iframe-chat.html',desc:'DANIEL.AI Command Center v7 - Chat + iframe control + MCP tools',badge:'CORE'},
+    {name:'browser-use.html',path:'browser-use.html',desc:'Live Browser & Computer Use - 8 demo scenarios with real APIs',badge:'LIVE'},
+    {name:'MCP-CONSOLE',path:'MCP-CONSOLE.html',desc:'MCP Server Console - Protocol, AI Chat, Marketplace, Proxy, Code Editor',badge:'CONSOLE'},
+    {name:'pupeteer.html',path:'pupeteer.html',desc:'Autonomous Computer Use HUD - Puppeteer Frame Buffer + Vision BBoxes + DOM Control',badge:'HUD'},
+    {name:'markov-mcp-agent.html',path:'markov-mcp-agent.html',desc:'Markov Decision Process + Vector Embeddings + MCP Tools',badge:'AGENT'},
+    {name:'morpheus.html',path:'morpheus.html',desc:'Autonomous UI/UX A/B-Tester with simulated browser viewport',badge:'TESTER'},
+    {name:'mcp-code.html',path:'mcp-code.html',desc:'Web IDE with File Explorer, Editor, Git, Terminal',badge:'IDE'},
+    {name:'mcp-vektor-agent.html',path:'mcp-vektor-agent.html',desc:'MCP RAG + CRUD Agent — 62.441 Embeddings, Vector Search, Agent Flow',badge:'RAG'},
+  ]},
+  {cat:'mcp_servers',title:'MCP Servers (Live Tools)',color:'accent',items:[
+    {name:'MCP-VEKTOR-RAG',path:'MCP-VEKTOR-RAG.html',desc:'RAG Vector Search — 62k Chunks, Kategorie-Suche, Embeddings',badge:'RAG'},
+    {name:'MCP-DVAG-ADVISOR',path:'MCP-DVAG-ADVISOR.html',desc:'DVAG Compliance + Product Compare — echte RAG + GPT-Analyse',badge:'ADVISOR'},
+    {name:'MCP-EOD-MARKETS',path:'MCP-EOD-MARKETS.html',desc:'EODHISTORICAL Quote + History + Portfolio Optimizer',badge:'MARKETS'},
+    {name:'MCP-CRYPTO-SMA',path:'MCP-CRYPTO-SMA.html',desc:'Crypto SMA Verdict + Market Screen — 13 Coins, Signal-Scoring',badge:'CRYPTO'},
+    {name:'MCP-WEATHER-MARKOV',path:'MCP-WEATHER-MARKOV.html',desc:'Wetter-Forecast + Markov-Simulation — Open-Meteo + Probabilistik',badge:'WEATHER'},
+    {name:'MCP-LEARNING-STACK',path:'MCP-LEARNING-STACK.html',desc:'Bücher-Suche + Fussball-Tabelle + Live-Scores + F1 Sessions',badge:'STACK'},
+  ]},
+  {cat:'trading',title:'Trading Core',color:'green',items:[
+    {name:'OPEN-TRADING',path:'trading/OPEN-TRADING.html',desc:'Breakout & Profit Engine - Quantitative scanner with 7 market tabs',badge:'SCANNER'},
+    {name:'TRADING-VIEW-CHART',path:'trading/TRADING-VIEW-CHART.html',desc:'TradingView Grid - EMA 8 Entry / EMA 55 Stop with manual cockpit',badge:'CHARTS'},
+    {name:'TURTLE-TRADING',path:'trading/TURTLE-TRADING.html',desc:'$175M case study - 20/55-Day Breakout - ATR Position Sizing',badge:'EDU'},
+    {name:'TREND-RIDER',path:'trading/TREND-RIDER.html',desc:'Trend detection and signal generation engine',badge:'SIGNAL'},
+    {name:'TREND-RIDER-CHART',path:'trading/TREND-RIDER-CHART.html',desc:'Chart visualization for Trend Rider signals',badge:'CHART'},
+    {name:'quantum_engine_v20',path:'trading/quantum_engine_v20_accessible.html',desc:'Quantum Engine v20 - Advanced trading algorithms',badge:'QUANTUM'},
+    {name:'QUANTUM-VOLUME',path:'trading/QUANTUM-VOLUME-FINAL.html',desc:'Volume-based quantum trading analysis',badge:'VOLUME'},
+  ]},
+  {cat:'terminal',title:'Trading Terminals',color:'blue',items:[
+    {name:'ALLIANZ-TERMINAL',path:'trading/ALLIANZ-TERMINAL-GLOBAL%20(4).html',desc:'Allianz Global Terminal - Multi-asset trading',badge:'TERMINAL'},
+    {name:'DWS-TERMINAL',path:'trading/DWS-TERMINAL-FINAL-PRODUCTION%20(3).html',desc:'DWS Terminal Production - Fund management',badge:'TERMINAL'},
+    {name:'DWS-TERMINAL-844',path:'trading/DWS-TERMINAL-844-CLEAN-FINAL.html',desc:'DWS Terminal 844 Clean Final',badge:'TERMINAL'},
+    {name:'DWS-LIGHTMODE',path:'trading/DWS-TERMINAL-LIGHTMODE.html',desc:'DWS Terminal Light Mode',badge:'TERMINAL'},
+    {name:'DWS-BIG-TERMINAL',path:'trading/DWS-BIG-TERMINAL-UPDATED%20(3).html',desc:'DWS Big Terminal Updated',badge:'TERMINAL'},
+    {name:'DWS-LIVE-VERIFIER',path:'trading/DWS-LIVE-VERIFIER.html',desc:'DWS Live Fund Verifier',badge:'VERIFY'},
+    {name:'DWS-XETRA-VERIFIER',path:'trading/DWS-XETRA-VERIFIER.html',desc:'DWS XETRA Verifier',badge:'VERIFY'},
+    {name:'OPENBB-TERMINAL',path:'trading/OPENBB-TERMINAL.html',desc:'OpenBB Terminal - Open source Bloomberg',badge:'TERMINAL'},
+    {name:'GENERALI-TERMINAL',path:'trading/GENERALI-TERMINAL-FINAL%20(15).html',desc:'Generali Terminal Final',badge:'TERMINAL'},
+    
+      {name:'ALLIANZ-TERMINAL',path:'trading/ALLIANZ-TERMINAL-GLOBAL%20(4).html',desc:'Allianz Global Terminal v4 - Multi-asset trading',badge:'TERMINAL'},
+      {name:'DWS-BIG-TERMINAL',path:'trading/DWS-BIG-TERMINAL-UPDATED%20(3).html',desc:'DWS Big Terminal Updated v3',badge:'TERMINAL'},
+      {name:'DWS-PRODUCTION',path:'trading/DWS-TERMINAL-FINAL-PRODUCTION%20(3).html',desc:'DWS Terminal Production Final',badge:'TERMINAL'},
+      {name:'DWS-TEMPLATE',path:'trading/DWS_TEST_TEMPLATE.html',desc:'DWS Test Template',badge:'TEST'},
+      {name:'GENERALI-TERMINAL',path:'trading/GENERALI-TERMINAL-FINAL%20(15).html',desc:'Generali Terminal Final v15',badge:'TERMINAL'},
+      {name:'OPENBB-BONDS',path:'trading/OPENBB-BONDS.html',desc:'OpenBB Bonds Analysis Terminal',badge:'BONDS'},
+      {name:'OPENBB-TERMINAL',path:'trading/OPENBB-TERMINAL.html',desc:'OpenBB Terminal CLI - Open Source Bloomberg',badge:'TERMINAL'},
+{name:'OMERGA-DESKTOP',path:'trading/OMERGA-DESKTOP.html',desc:'Omerga Desktop Trading',badge:'DESKTOP'},
+  ]},
+  {cat:'fintech',title:'Fintech & Finance',color:'blue',items:[
+    {name:'FINTECH-GAMMA',path:'trading/FINTECH-GAMMA-WEBSITES.html',desc:'Fintech Gamma Website Suite',badge:'WEB'},
+    {name:'ETF-MANAGER',path:'trading/ETF-MANAGER.html',desc:'ETF Portfolio Manager',badge:'ETF'},
+    {name:'FUNDS-MANAGER',path:'trading/FUNDS-MANAGER.html',desc:'Fund Management Dashboard',badge:'FUNDS'},
+    {name:'FUNDS-LANDING',path:'trading/FUNDS-LANDING-PAGE.html',desc:'Funds Landing Page',badge:'LANDING'},
+    {name:'FUNDS-MIX',path:'trading/FUNDS-MIX%20(1).html',desc:'Mixed Funds Overview',badge:'FUNDS'},
+    {name:'G-BONDS',path:'trading/G-BONDS.html',desc:'Government Bonds Tracker',badge:'BONDS'},
+    {name:'G-BONDS-ALERTS',path:'trading/G-BONDS-ALERTS.html',desc:'Bond Alert System',badge:'ALERTS'},
+    {name:'BONDS-BLOOMBERG',path:'trading/BONDS-BLOOMBERG.html',desc:'Bloomberg-style Bond Terminal',badge:'BONDS'},
+    {name:'FOREX',path:'trading/FOREX.html',desc:'Forex Trading Dashboard',badge:'FX'},
+    {name:'ROHSTOFFE',path:'trading/ROHSTOFFE.html',desc:'Commodities Tracker',badge:'COMMODITY'},
+    {name:'EXCHANGE',path:'trading/EXCHANGE.html',desc:'Exchange Rate Monitor',badge:'FX'},
+    
+      {name:'FUNDS-MIX',path:'trading/FUNDS-MIX%20(1).html',desc:'Mixed Funds Overview v1',badge:'FUNDS'},
+      {name:'GITHUB-REPOS',path:'trading/GITHUB-FINANCE-REPOS.html',desc:'GitHub Finance Repositories Index',badge:'GITHUB'},
+{name:'MACRO-EZB',path:'trading/MACRO-EZB.html',desc:'ECB Macro Analysis',badge:'MACRO'},
+    {name:'GLOBAL-MACRO',path:'trading/GLOBAL-MACRO.html',desc:'Global Macro Overview',badge:'MACRO'},
+    {name:'SECTORS',path:'trading/sectors.html',desc:'Sector Performance Analysis',badge:'SECTOR'},
+  ]},
+  {cat:'dude',title:'Dude Bank',color:'pink',items:[
+    {name:'DUDE-BANK-INDEX',path:'trading/DUDE-BANK-INDEX.html',desc:'Dude Bank Main Index',badge:'BANK'},
+    {name:'DUDE-BANK-CONCEPT',path:'trading/DUDE-BANK-CONCEPT.html',desc:'Dude Bank Concept Page',badge:'BANK'},
+    {name:'DUDE-GENOSSENSCHAFT',path:'trading/DUDE-GENOSSENSCHAFT.html',desc:'Cooperative Banking Model',badge:'COOP'},
+    {name:'DUDE-HISTORY-FINANCE',path:'trading/DUDE-HISTORY-FINANCE.html',desc:'Financial History Archive',badge:'HISTORY'},
+    {name:'DUDE-MAGRITTE',path:'trading/DUDE-MAGRITTE-GALLERY.html',desc:'Magritte Art Gallery',badge:'ART'},
+    {name:'DUDE-THEOLOGY',path:'trading/DUDE-THEOLOGY-CHURCH.html',desc:'Theology & Church Finance',badge:'RELIGION'},
+    {name:'DUDE-VAN-THARP',path:'trading/DUDE-VAN-THARP.html',desc:'Van Tharp Trading Psychology',badge:'PSYCH'},
+    {name:'GENITUS-DUDE-FACTORY',path:'trading/GENITUS-DUDE-FACTORY.html',desc:'Genitus Factory Integration',badge:'FACTORY'},
+    {name:'ANDRE-KOSTOLANY',path:'trading/ANDRE-KOSTOLANY.html',desc:'Andre Kostolany Wisdom',badge:'LEGEND'},
+    {name:'JESSE-LIVERMORE',path:'trading/JESSE-LIVERMORE.html',desc:'Jesse Livermore Biography',badge:'LEGEND'},
+    {name:'JIM-ROGERS',path:'trading/JIM-ROGERS.html',desc:'Jim Rogers Supercycle',badge:'LEGEND'},
+    {name:'WARREN-BUFFETT',path:'trading/WARREN-BUFFETT.html',desc:'Warren Buffett Analysis',badge:'LEGEND'},
+    {name:'RAY-DALIO',path:'trading/RAY-DALIO.html',desc:'Ray Dalio Principles',badge:'LEGEND'},
+    {name:'GEORGE-SOROS',path:'trading/GEORGE-SOROS.html',desc:'George Soros Reflexivity',badge:'LEGEND'},
+    {name:'LARRY-WILLIAMS',path:'trading/LARRY-WILLIAMS.html',desc:'Larry Williams Methods',badge:'LEGEND'},
+    {name:'RICH-DAD-KIYOSAKI',path:'trading/RICH-DAD-KIYOSAKI.html',desc:'Robert Kiyosaki Cashflow',badge:'LEGEND'},
+    {name:'BEHAVIORAL-FINANCE',path:'trading/BEHAVIORAL-FINANCE.html',desc:'Behavioral Finance Theory',badge:'THEORY'},
+    {name:'MATHEMATICS-OF-RUIN',path:'trading/DUDE%20BANK/MATHEMATICS-OF-RUIN.html',desc:'Kelly Criterion & Ruin',badge:'MATH'},
+  ]},
+  {cat:'browser-api',title:'Browser APIs',color:'purple',items:[
+    {name:'AUDIO-WORKLET',path:'trading/BROWSER-API/AUDIO-WORKLET-SYNTH.html',desc:'Audio Worklet Synthesizer',badge:'AUDIO'},
+    {name:'WEBGPU-COMPUTE',path:'trading/BROWSER-API/WEBGPU-COMPUTE-SHADER.html',desc:'WebGPU Compute Shaders',badge:'GPU'},
+    {name:'WEBRTC-P2P',path:'trading/BROWSER-API/WEBRTC-P2P-CHAT.html',desc:'WebRTC Peer-to-Peer Chat',badge:'P2P'},
+    {name:'WEB-BLUETOOTH',path:'trading/BROWSER-API/WEB-BLUETOOTH-BLE.html',desc:'Web Bluetooth BLE',badge:'BLE'},
+    {name:'WEB-SERIAL',path:'trading/BROWSER-API/WEB-SERIAL-TERMINAL.html',desc:'Web Serial Terminal',badge:'SERIAL'},
+    {name:'WEBASSEMBLY',path:'trading/BROWSER-API/WEBASSEMBLY-FACTORIAL.html',desc:'WebAssembly Factorial',badge:'WASM'},
+    {name:'WEBSOCKET',path:'trading/BROWSER-API/WEBSOCKET-ECHO.html',desc:'WebSocket Echo Server',badge:'WS'},
+    {name:'WEBXR-VR',path:'trading/BROWSER-API/WEBXR-VR-SESSION.html',desc:'WebXR VR Session',badge:'VR'},
+    {name:'GAMEPAD-HAPTICS',path:'trading/BROWSER-API/GAMEPAD-HAPTICS.html',desc:'Gamepad Haptics API',badge:'GAME'},
+    {name:'NOTIFICATION',path:'trading/BROWSER-API/NOTIFICATION-API.html',desc:'Notification API Demo',badge:'PUSH'},
+    {name:'CLIPBOARD',path:'trading/BROWSER-API/CLIPBOARD-API.html',desc:'Clipboard API',badge:'COPY'},
+    {name:'PICTURE-IN-PICTURE',path:'trading/BROWSER-API/PICTURE-IN-PICTURE.html',desc:'PiP Video',badge:'VIDEO'},
+    {name:'GEOLOCATION',path:'trading/BROWSER-API/GEOLOCATION-WATCHPOSITION.html',desc:'Geolocation Tracking',badge:'GPS'},
+    {name:'WEB-SHARE',path:'trading/BROWSER-API/WEB-SHARE.html',desc:'Web Share API',badge:'SHARE'},
+    {name:'FILE-SYSTEM',path:'trading/BROWSER-API/FILE-SYSTEM-ACCESS.html',desc:'File System Access',badge:'FILES'},
+    {name:'BROWSER-API-INDEX',path:'trading/BROWSER-API/INDEX.html',desc:'All Browser APIs Overview',badge:'INDEX'},
+  ]},
+  {cat:'life',title:'Life Science',color:'teal',items:[
+    {name:'LIFE-SCIENCE-MEGA',path:'trading/LIFE-SCIENCE-MEGA.html',desc:'Life Science Mega Hub',badge:'HUB'},
+    {name:'LIFE-SCIENCE-WIKI',path:'trading/LIFE-SCIENCE-WIKI.html',desc:'Life Science Wiki',badge:'WIKI'},
+    
+      {name:'LIFE-SCIENCE-BUECHER',path:'trading/LIFE-SCIENCE-B%C3%9CCHER.html',desc:'Life Science Book Collection',badge:'BOOKS'},
+{name:'LIFE-SCIENCE-BIOTECH',path:'trading/LIFE-SCIENCE-BIOTECH.html',desc:'Biotech Analysis',badge:'BIOTECH'},
+    {name:'LIFE-SCIENCE-FIN-NEWS',path:'trading/LIFE-SCIENCE-FIN-NEWS.html',desc:'Life Science Finance News',badge:'NEWS'},
+    {name:'LIFE-SCIENCE-KULTUR',path:'trading/LIFE-SCIENCE-KULTUR.html',desc:'Cultural Aspects',badge:'CULTURE'},
+    {name:'LIFE-SCIENCE-CULTURA',path:'trading/LIFE-SCIENCE-CULTURA.html',desc:'Cultura Platform',badge:'CULTURE'},
+    {name:'LIFE-SCIENCE-BUCHER',path:'trading/LIFE-SCIENCE-BUCHER.html',desc:'Book Collection',badge:'BOOKS'},
+    {name:'LIFE-SCIENCE-CONGRESS',path:'trading/LIFE-SCIENCE-CONGRESS.html',desc:'Congress Tracker',badge:'EVENTS'},
+  ]},
+  {cat:'other',title:'More Files',color:'yellow',items:[
+    {name:'ARGENTUM-DAILY',path:'trading/ARGENTUM-DAILY-FINAL%20(1).html',desc:'Daily Silver Analysis',badge:'SILVER'},
+    {name:'ARGENTUM-INTRADAY',path:'trading/ARGENTUM-INTRADAY-FINAL%20(1).html',desc:'Intraday Silver Trading',badge:'SILVER'},
+    {name:'BODY-SLAM',path:'trading/BODY-SLAM-FINAL-v2.html',desc:'Body Slam Strategy',badge:'STRATEGY'},
+    {name:'HIDDEN-SMASH',path:'trading/HIDDEN-SMASH-FINAL%20(1).html',desc:'Hidden Smash Pattern',badge:'PATTERN'},
+    {name:'PEAK-VALLEY',path:'trading/PEAK-VALLEY-BULK-FINAL%20(1).html',desc:'Peak Valley Analysis',badge:'PATTERN'},
+    {name:'VOLUMINA',path:'trading/VOLUMINA-FINAL%20(1).html',desc:'Volume Analysis Suite',badge:'VOLUME'},
+    {name:'CONSULTUS-BULK',path:'trading/CONSULTUS-BULK-DAILY%20(1).html',desc:'Consultus Daily Bulk',badge:'BULK'},
+    {name:'CONSULTUS-WEEKLY',path:'trading/CONSULTUS-BULK-WEEKLY%20(1).html',desc:'Consultus Weekly Bulk',badge:'BULK'},
+    {name:'CORPUS-PARVUS',path:'trading/CORPUS-PARVUS%20(1).html',desc:'Corpus Parvus Database',badge:'DB'},
+    {name:'DENARIUS',path:'trading/DENARIUS-FINAL_html.html',desc:'Denarius Final',badge:'FINAL'},
+    {name:'HEDGING',path:'trading/HEDGING-FINAL%20(2).html',desc:'Hedging Strategies',badge:'HEDGE'},
+    
+      {name:'ARGENTUM-DAILY',path:'trading/ARGENTUM-DAILY-FINAL%20(1).html',desc:'Silver Daily Analysis v1',badge:'SILVER'},
+      {name:'ARGENTUM-INTRADAY',path:'trading/ARGENTUM-INTRADAY-FINAL%20(1).html',desc:'Silver Intraday Trading v1',badge:'SILVER'},
+      {name:'COMMANDO-BACKUP',path:'trading/commando-backup.html',desc:'Commando Bot Backup System',badge:'BACKUP'},
+      {name:'CONSULTUS-DAILY',path:'trading/CONSULTUS-BULK-DAILY%20(1).html',desc:'Consultus Daily Bulk Report v1',badge:'BULK'},
+      {name:'CONSULTUS-WEEKLY',path:'trading/CONSULTUS-BULK-WEEKLY%20(1).html',desc:'Consultus Weekly Bulk Report v1',badge:'BULK'},
+      {name:'CORPUS-PARVUS',path:'trading/CORPUS-PARVUS%20(1).html',desc:'Corpus Parvus Database v1',badge:'DB'},
+      {name:'HEDGING',path:'trading/HEDGING-FINAL%20(2).html',desc:'Hedging Strategies v2',badge:'HEDGE'},
+      {name:'HIDDEN-SMASH',path:'trading/HIDDEN-SMASH-FINAL%20(1).html',desc:'Hidden Smash Pattern v1',badge:'PATTERN'},
+      {name:'INDX-SIMBOLS',path:'trading/indx-simbols.html',desc:'Index Symbols Reference',badge:'INDEX'},
+      {name:'NEWS-BULK',path:'trading/NEWS-BULK-FINAL%20(2).html',desc:'News Bulk Aggregator v2',badge:'NEWS'},
+      {name:'PEAK-VALLEY',path:'trading/PEAK-VALLEY-BULK-FINAL%20(1).html',desc:'Peak Valley Analysis v1',badge:'PATTERN'},
+      {name:'VOLUMINA',path:'trading/VOLUMINA-FINAL%20(1).html',desc:'Volume Analysis Suite v1',badge:'VOLUME'},
+{name:'XTRACKERS',path:'trading/XTRACKERS-FINAL-UPDATED.html',desc:'Xtrackers ETF Tracker',badge:'ETF'},
+    {name:'IFRAME-BOT',path:'trading/IFRAME-BOT.html',desc:'Iframe Automation Bot (legacy)',badge:'BOT'},
+    {name:'COMMANDO-BOT',path:'trading/COMMANDO-BOT.html',desc:'Commando Trading Bot',badge:'BOT'},
+    {name:'COMMANDO-ZENTRALE',path:'trading/COMMANDO-ZENTRALE.html',desc:'Commando Central (legacy)',badge:'HUB'},
+    {name:'KOMMANDOZENTRALE-V2',path:'trading/KOMMANDOZENTRALE-V2.html',desc:'8 Live-Tools, echtes Tool-Calling, Charts inline im Chat',badge:'HUB'},
+    {name:'IFRAME-BOT-V2',path:'trading/IFRAME-BOT-V2.html',desc:'KI steuert Finance-Iframes per echtem Tool-Calling, kein Client-Key',badge:'BOT'},
+    {name:'SUB-AGENTS',path:'trading/SUB-AGENTS.html',desc:'Sub-Agent Coordinator',badge:'AGENTS'},
+    {name:'llamavsmarkov',path:'trading/llamavsmarkov.html',desc:'LLaMA vs Markov Comparison',badge:'AI'},
+    {name:'dws-funds',path:'trading/dws-funds.html',desc:'DWS Funds List',badge:'FUNDS'},
+    {name:'NEWS-BULK',path:'trading/NEWS-BULK-FINAL%20(2).html',desc:'News Bulk Aggregator',badge:'NEWS'},
+    {name:'FINTECH-index-old',path:'trading/FINTECH-index-old.html',desc:'Old Fintech Index',badge:'ARCHIVE'},
+  ]},
+];
+
+let totalFiles = 0;
+let tradingCount = 0;
+let apiCount = 0;
+
+function render(){
+  const el = document.getElementById('mainContent');
+  el.innerHTML = '';
+  const filter = document.querySelector('.ftag.active')?.dataset.filter || 'all';
+  const search = document.getElementById('searchInput').value.toLowerCase();
+
+  totalFiles = 0;
+  tradingCount = 0;
+  apiCount = 0;
+
+  DATA.forEach((cat, ci) => {
+    if(filter !== 'all' && cat.cat !== filter) return;
+    const filtered = cat.items.filter(i =>
+      !search || i.name.toLowerCase().includes(search) || i.desc.toLowerCase().includes(search)
+    );
+    if(!filtered.length) return;
+
+    totalFiles += filtered.length;
+    if(cat.cat === 'trading' || cat.cat === 'terminal') tradingCount += filtered.length;
+    if(cat.cat === 'browser-api') apiCount += filtered.length;
+
+    const sec = document.createElement('div');
+    sec.className = 'cat-section cat-' + cat.color;
+    sec.style.animationDelay = ci * 0.05 + 's';
+    sec.innerHTML = `
+      <div class="cat-header">
+        <span class="cat-title">${cat.title}</span>
+        <span class="cat-count">${filtered.length} files</span>
+      </div>
+      <div class="card-grid${filtered.length > 12 ? ' compact' : ''}"></div>
+    `;
+    const grid = sec.querySelector('.card-grid');
+    filtered.forEach(item => {
+      const card = document.createElement('a');
+      card.className = 'card';
+      card.href = item.path;
+      card.innerHTML = `
+        <div class="c-name">${item.name}</div>
+        <div class="c-desc">${item.desc}</div>
+        <div class="c-meta">
+          <span class="c-badge bg-${cat.color}">${item.badge}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+    el.appendChild(sec);
+  });
+
+  document.getElementById('stat-files').textContent = totalFiles;
+  document.getElementById('stat-cats').textContent = DATA.filter(c =>
+    filter === 'all' || c.cat === filter
+  ).length;
+  document.getElementById('stat-trading').textContent = tradingCount;
+  document.getElementById('stat-api').textContent = apiCount;
+  document.getElementById('footerCount').textContent = totalFiles;
+}
+
+document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('filterTags').addEventListener('click', e => {
+  if(!e.target.classList.contains('ftag')) return;
+  document.querySelectorAll('.ftag').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

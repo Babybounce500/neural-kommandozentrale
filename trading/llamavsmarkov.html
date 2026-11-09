@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LLAMA VS MARKOV // ORACLE-BATTLE</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #06070a; --surface: #0b0d13; --surface2: #12161f;
+            --border: #1a2233; --text: #e2e8f0; --muted: #64748b;
+            --a: #a855f7; --a2: #7e22ce; /* Lila für Llama Intelligence */
+            --b: #22c55e; --b2: #15803d; /* Grün für Markov Matrix-Rauschen */
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; height: 100vh; display: flex; flex-direction: column; }
+        header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .back-link { color: var(--muted); text-decoration: none; font-size: 11px; letter-spacing: 1px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; transition: color 0.15s; }
+        .back-link:hover { color: var(--text); }
+        .title { font-family: 'Orbitron', sans-serif; font-size: 14px; letter-spacing: 3px; color: var(--text); }
+        .title span:first-child { color: var(--a); }
+        .title span:last-child { color: var(--b); }
+
+        .control-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; gap: 16px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+        .dna-box { flex: 1; min-width: 300px; display: flex; align-items: center; gap: 8px; }
+        .slot-label { font-size: 9px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        .slot-label.a { color: var(--a); }
+        .slot-label.b { color: var(--b); }
+        
+        input#dnaInput { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 8px 12px; border-radius: 6px; outline: none; width: 100%; }
+        input#dnaInput:focus { border-color: var(--b); }
+        .vs-badge { font-family: 'Orbitron', sans-serif; font-size: 10px; color: var(--muted); padding: 0 8px; flex-shrink: 0; }
+
+        .mode-controls { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .mode-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 6px 10px; font-size: 9px; border-radius: 6px; cursor: pointer; transition: all 0.15s; font-family: 'JetBrains Mono', monospace; }
+        .mode-btn.active { background: var(--a2); color: white; border-color: var(--a); }
+        .mode-btn.active-b { background: var(--b2); color: white; border-color: var(--b); }
+        
+        .debate-controls { display: flex; gap: 8px; align-items: center; }
+        .debate-controls input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; font-size: 10px; border-radius: 6px; width: 60px; }
+        .debate-timer { font-size: 10px; color: var(--muted); min-width: 60px; }
+
+        .columns { flex: 1; display: flex; overflow: hidden; }
+        .col { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); }
+        .col:last-child { border-right: none; }
+        .col-header { padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+        .col-header.a { background: rgba(168,85,247,0.04); }
+        .col-header.b { background: rgba(34,197,94,0.04); }
+        .col-model { font-size: 10px; letter-spacing: 1px; font-weight: bold; }
+        .col-model.a { color: var(--a); }
+        .col-model.b { color: var(--b); }
+        .col-stats { font-size: 10px; color: var(--muted); display: flex; gap: 12px; }
+        .stat-item { display: flex; flex-direction: column; align-items: flex-end; }
+        .stat-label { font-size: 8px; letter-spacing: 1px; opacity: 0.6; }
+        .stat-value { font-size: 12px; font-weight: 700; }
+        .stat-value.a { color: var(--a); }
+        .stat-value.b { color: var(--b); }
+
+        .col-body { flex: 1; overflow-y: auto; padding: 16px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+        .col-body::-webkit-scrollbar { width: 4px; }
+        .col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .col-body.empty { color: var(--muted); opacity: 0.4; font-style: italic; display: flex; align-items: center; justify-content: center; }
+
+        .msg-actions { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+        .msg-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; font-size: 9px; cursor: pointer; border-radius: 4px; transition: all 0.15s; font-family: 'JetBrains Mono', monospace; }
+        .msg-btn:hover { color: var(--text); border-color: var(--muted); }
+
+        .typing-indicator { display: inline-flex; gap: 4px; align-items: center; }
+        .typing-dot { width: 5px; height: 5px; border-radius: 50%; animation: blink 1.2s infinite; }
+        .typing-dot.a { background: var(--a); }
+        .typing-dot.b { background: var(--b); }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0%,80%,100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+        .input-area { background: var(--surface); border-top: 1px solid var(--border); padding: 16px 24px; display: flex; gap: 10px; align-items: flex-end; flex-shrink: 0; }
+        textarea#prompt { flex: 1; background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 12px 16px; border-radius: 10px; resize: none; outline: none; min-height: 48px; max-height: 160px; line-height: 1.5; transition: border-color 0.15s; }
+        textarea#prompt:focus { border-color: var(--muted); }
+        .send-btn { background: linear-gradient(135deg, var(--a2), var(--b2)); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; cursor: pointer; height: 48px; white-space: nowrap; transition: opacity 0.15s; }
+        .send-btn:hover { opacity: 0.85; }
+        .send-btn:disabled { opacity: 0.3; cursor: default; }
+        .clear-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 12px 14px; border-radius: 10px; cursor: pointer; font-size: 11px; height: 48px; transition: color 0.15s; }
+        .clear-btn:hover { color: #ef4444; border-color: rgba(239,68,68,0.4); }
+
+        .suggestions { padding: 0 24px 16px; display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+        .sug-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 10px; cursor: pointer; transition: color 0.15s; white-space: nowrap; }
+        .sug-btn:hover { color: var(--text); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <a href="https://together-ai.replit.app/" class="back-link">← docs-together-ai.txt</a>
+        <div class="title"><span>LLAMA-70B</span> VS <span>MARKOV-CHAIN</span></div>
+    </div>
+    <span style="font-size:10px;color:var(--muted);letter-spacing:1px;">Stochastisches Rauschen vs Determinastischer Quant</span>
+</header>
+
+<div class="control-bar">
+    <div class="dna-box">
+        <span class="slot-label b">Markov-DNA pool</span>
+        <input type="text" id="dnaInput" value="HEBEL 5X RHEINMETALL MOON BITCOIN LIQUIDATION PUMP CRASH KRYPTO ALPHA GEWINN GEFAHR MARKT MAISTRO AGENT AUTO RISK" placeholder="Futter für die Kette hier eintragen..." />
+    </div>
+
+    <div class="mode-controls">
+        <button class="mode-btn active" id="compareMode" onclick="setMode('compare')">⚔ SYNCHRONIZED</button>
+        <button class="mode-btn" id="debateMode" onclick="setMode('debate')">💬 DEBATE LOOP</button>
+    </div>
+
+    <div class="debate-controls" id="debateControls" style="display: none;">
+        <span style="font-size: 9px; color: var(--muted);">Intervall (s):</span>
+        <input type="number" id="debateInterval" value="3" min="1" max="10">
+        <button class="mode-btn" onclick="toggleAutoDebate()" id="autoBtn">▶ AUTO LOOP</button>
+        <span class="debate-timer" id="debateTimer"></span>
+    </div>
+</div>
+
+<div class="suggestions">
+    <button class="sug-btn" onclick="suggest('Extrahiere die Handelssignale aus dem Markov-Rauschen.')">Signal Extraction</button>
+    <button class="sug-btn" onclick="suggest('Erstelle ein Risikoprofil basierend auf folgendem stochastischen Text.')">Risk Profile</button>
+    <button class="sug-btn" onclick="suggest('Analysiere das Chaos.')">Chaos Analysis</button>
+</div>
+
+<div class="columns">
+    <!-- LINKEN SEITE: TOGETHER AI LLAMA 3.3 70B -->
+    <div class="col">
+        <div class="col-header a">
+            <span class="col-model a">TOGETHER-AI // LLAMA 3.3 70B INSTRUCT</span>
+            <div class="col-stats">
+                <div class="stat-item"><span class="stat-label">STATUS</span><span class="stat-value a" id="statusA">IDLE</span></div>
+                <div class="stat-item"><span class="stat-label">DAUER</span><span class="stat-value a" id="durA">—</span></div>
+            </div>
+        </div>
+        <div class="col-body empty" id="bodyA">Warte auf Trigger...</div>
+    </div>
+    
+    <!-- RECHTE SEITE: LOKALE MARKOV KETTE -->
+    <div class="col">
+        <div class="col-header b">
+            <span class="col-model b">LOCAL ENGINE // MARKOV-CHAIN v5.5</span>
+            <div class="col-stats">
+                <div class="stat-item"><span class="stat-label">ZUSTÄNDE</span><span class="stat-value b" id="statesB">0</span></div>
+                <div class="stat-item"><span class="stat-label">WORDS</span><span class="stat-value b" id="tokB">—</span></div>
+            </div>
+        </div>
+        <div class="col-body empty" id="bodyB">Warte auf Trigger...</div>
+    </div>
+</div>
+
+<div class="input-area">
+    <textarea id="prompt" rows="1" placeholder="Nachricht eingeben — Llama analysiert, Markov mutiert (Enter = Absenden)"></textarea>
+    <button class="clear-btn" onclick="clearAll()">✕</button>
+    <button class="send-btn" id="sendBtn" onclick="sendBoth()">▶ ENGAGE</button>
+</div>
+
+<script>
+    const promptEl = document.getElementById('prompt');
+    const sendBtn = document.getElementById('sendBtn');
+    const TOGETHER_PROXY_URL = 'https://together-ai.replit.app/api/chat'; // Verwende den Unified Proxy-Endpunkt laut docs-together-ai.txt
+    
+    let isLoading = false;
+    let currentMode = 'compare';
+    let debateAutoRunning = false;
+    let debateTimer = null;
+    let debateRound = 0;
+    let lastMarkovOutput = '';
+
+    promptEl.addEventListener('input', () => { promptEl.style.height = 'auto'; promptEl.style.height = Math.min(promptEl.scrollHeight, 160) + 'px'; });
+    promptEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); currentMode === 'compare' ? sendBoth() : null; } });
+
+    function suggest(text) { promptEl.value = text; promptEl.focus(); }
+
+    function clearAll() {
+        document.getElementById('bodyA').textContent = 'Warte auf Trigger...';
+        document.getElementById('bodyB').textContent = 'Warte auf Trigger...';
+        document.getElementById('bodyA').className = 'col-body empty';
+        document.getElementById('bodyB').className = 'col-body empty';
+        document.getElementById('statusA').textContent = 'IDLE';
+        document.getElementById('durA').textContent = '—';
+        document.getElementById('tokB').textContent = '—';
+        debateRound = 0;
+        lastMarkovOutput = '';
+        if (debateAutoRunning) toggleAutoDebate();
+    }
+
+    function setMode(mode) {
+        currentMode = mode;
+        document.getElementById('compareMode').classList.toggle('active', mode === 'compare');
+        document.getElementById('debateMode').classList.toggle('active', mode === 'debate');
+        document.getElementById('debateControls').style.display = mode === 'debate' ? 'flex' : 'none';
+        clearAll();
+    }
+
+    // --- MARKOV GENERATOR LOGIK (v5.5 Engine) ---
+    function buildMarkovModel(text) {
+        const words = text.split(/\s+/);
+        const model = {};
+        for (let i = 0; i < words.length - 1; i++) {
+            const w = words[i];
+            if (!model[w]) model[w] = [];
+            model[w].push(words[i+1]);
+        }
+        return model;
+    }
+
+    function generateMarkovText(dnaText, length = 30) {
+        const model = buildMarkovModel(dnaText);
+        const keys = Object.keys(model);
+        if (keys.length === 0) return dnaText;
+        
+        document.getElementById('statesB').textContent = keys.length;
+        
+        let word = keys[Math.floor(Math.random() * keys.length)];
+        let result = [word];
+        
+        for (let i = 0; i < length; i++) {
+            const nextPossibilities = model[word];
+            if (!nextPossibilities || nextPossibilities.length === 0) {
+                word = keys[Math.floor(Math.random() * keys.length)];
+            } else {
+                word = nextPossibilities[Math.floor(Math.random() * nextPossibilities.length)];
+            }
+            result.push(word);
+        }
+        return result.join(' ');
+    }
+
+    // --- TOGETHER AI CALL (Llama 3.3 70B) ---
+    async function runLlama(promptText) {
+        const body = document.getElementById('bodyA');
+        const statusEl = document.getElementById('statusA');
+        const durEl = document.getElementById('durA');
+
+        body.className = 'col-body';
+        body.innerHTML = `<div class="typing-indicator"><div class="typing-dot a"></div><div class="typing-dot a"></div><div class="typing-dot a"></div></div>`;
+        statusEl.textContent = 'THINKING';
+
+        const start = performance.now();
+        let fullText = '';
+
+        try {
+            const res = await fetch(TOGETHER_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    model: 'together:meta-llama/Llama-3.3-70b-instruct', // Prefix & Modell-Mapping laut Dokumentation
+                    messages: [{ role: 'user', content: promptText }], 
+                    temperature: 0.7,
+                    stream: true 
+                })
+            });
+            
+            if (!res.ok) throw new Error(`API Proxy Error: ${res.status}`);
+
+            body.textContent = '';
+            const reader = res.body.getReader(); 
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read(); if (done) break;
+                const chunks = decoder.decode(value).split('\n');
+                for (const line of chunks) {
+                    if (!line.startsWith('data: ')) continue;
+                    const d = line.slice(6).trim(); if (!d || d === '[DONE]') continue;
+                    try {
+                        const parsed = JSON.parse(d);
+                        const tok = parsed.choices?.[0]?.delta?.content;
+                        if (tok) { 
+                            fullText += tok; 
+                            body.textContent = fullText; 
+                            body.scrollTop = body.scrollHeight; 
+                        }
+                    } catch {}
+                }
+            }
+
+            const elapsed = (performance.now() - start) / 1000;
+            durEl.textContent = elapsed.toFixed(2) + 's';
+            statusEl.textContent = 'DONE';
+            body.innerHTML = escapeHtml(fullText) + renderMessageActions(fullText);
+            return fullText;
+        } catch (err) {
+            body.textContent = '❌ ' + err.message;
+            statusEl.textContent = 'ERROR';
+            return '';
+        }
+    }
+
+    function runMarkovLocal() {
+        const body = document.getElementById('bodyB');
+        body.className = 'col-body';
+        
+        const dnaText = document.getElementById('dnaInput').value;
+        const generated = generateMarkovText(dnaText, 25);
+        
+        body.textContent = generated;
+        document.getElementById('tokB').textContent = generated.split(' ').length;
+        lastMarkovOutput = generated;
+        
+        // Dynamischer Feedback-Loop: Der Markov-Output mutiert zurück ins DNA-Feld!
+        if(Math.random() > 0.6) {
+            document.getElementById('dnaInput').value += " " + generated.split(' ').slice(0,3).join(' ');
+        }
+        
+        return generated;
+    }
+
+    // --- EXECUTION CONTROLS ---
+    async function sendBoth() {
+        const inputPrompt = promptEl.value.trim();
+        if (!inputPrompt || isLoading) return;
+
+        isLoading = true; sendBtn.disabled = true;
+        promptEl.value = ''; promptEl.style.height = 'auto';
+
+        // Markov spuckt sofort seine deterministischen Phrasen aus
+        const markovText = runMarkovLocal();
+        
+        // Llama kriegt den User-Prompt fusioniert mit dem Markov-Rauschen als Kontext!
+        const contextPrompt = `${inputPrompt}\n\nKontext aus dem stochastischen Markov-Orakel: "${markovText}"`;
+        await runLlama(contextPrompt);
+
+        isLoading = false; sendBtn.disabled = false; promptEl.focus();
+    }
+
+    // --- DEBATE MODE LOOP ENGINE ---
+    function toggleAutoDebate() {
+        if (debateAutoRunning) {
+            debateAutoRunning = false;
+            document.getElementById('autoBtn').textContent = '▶ AUTO LOOP';
+            if (debateTimer) clearInterval(debateTimer);
+            document.getElementById('debateTimer').textContent = '';
+        } else {
+            debateAutoRunning = true;
+            document.getElementById('autoBtn').textContent = '⏸ STOP LOOP';
+            runDebateCycle();
+        }
+    }
+
+    async function runDebateCycle() {
+        if (!debateAutoRunning) return;
+        debateRound++;
+        
+        // Step 1: Markov generiert ein kryptisches Signal
+        const markovNoise = runMarkovLocal();
+        
+        // Step 2: Llama versucht, dieses Signal analytisch zu filetieren und anzugreifen
+        const llamaInstruction = `Das stochastische Markov-Orakel hat soeben folgendes Chaos-Signal generiert: "${markovNoise}". 
+        Analysiere dieses Rauschen unbarmherzig, extrahiere angebliche Ticker oder Logikfehler und reagiere zynisch darauf in maximal 3 Sätzen!`;
+        
+        const llamaResponse = await runLlama(llamaInstruction);
+        
+        // Step 3: Füttere Llamas Antwort sofort zurück in das DNA-Pool von Markov!
+        if (llamaResponse) {
+            document.getElementById('dnaInput').value += " " + llamaResponse.toUpperCase().replace(/[^A-Z0-9 ]/g, "").split(' ').slice(0, 5).join(' ');
+        }
+        
+        // Countdown für die nächste Evolutionsstufe
+        const interval = parseInt(document.getElementById('debateInterval').value) || 3;
+        let countdown = interval;
+        document.getElementById('debateTimer').textContent = countdown + 's';
+        
+        debateTimer = setInterval(() => {
+            countdown--;
+            document.getElementById('debateTimer').textContent = countdown > 0 ? countdown + 's' : '...';
+            if (countdown <= 0) {
+                clearInterval(debateTimer);
+                if (debateAutoRunning) runDebateCycle();
+            }
+        }, 1000);
+    }
+
+    function renderMessageActions(content) {
+        return `
+            <div class="msg-actions">
+                <button class="msg-btn" onclick="navigator.clipboard.writeText('${content.replace(/'/g, "\\'")}')">📋 Copy</button>
+            </div>
+        `;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div'); div.textContent = text; return div.innerHTML;
+    }
+</script>
+</body>
+</html>

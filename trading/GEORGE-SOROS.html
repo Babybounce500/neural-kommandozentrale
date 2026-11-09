@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>George Soros — The Man Who Broke the Bank of England</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #0f1629;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #eab308;
+    --accent2: #fde047;
+    --amber: #f59e0b;
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a1400 50%, #0a0e1a 100%);
+    border-bottom: 1px solid #2d2800;
+    padding: 60px 40px; text-align:center; position:relative; overflow:hidden;
+  }
+  .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(234,179,8,0.12) 0%, transparent 70%); }
+  .hero-badge { display:inline-block; background:rgba(234,179,8,0.15); border:1px solid rgba(234,179,8,0.3); color:var(--accent); padding:4px 16px; border-radius:20px; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px; }
+  .hero-title { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; letter-spacing:-1px; color:#fff; margin-bottom:8px; }
+  .hero-title span { color:var(--accent); }
+  .hero-sub { font-size:1.1rem; color:var(--muted); margin-bottom:24px; }
+  .hero-stats { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+  .hero-stat { text-align:center; }
+  .hero-stat-val { font-size:1.8rem; font-weight:800; color:var(--accent); }
+  .hero-stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  .container { max-width:1200px; margin:0 auto; padding:40px 20px; }
+  .section { margin-bottom:48px; }
+  .section-header { display:flex; align-items:center; gap:12px; margin-bottom:24px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .section-header h2 { font-size:1.3rem; font-weight:700; color:#fff; }
+  .section-icon { font-size:1.4rem; }
+  .section-tag { margin-left:auto; background:rgba(234,179,8,0.1); border:1px solid rgba(234,179,8,0.2); color:var(--accent); padding:2px 10px; border-radius:12px; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+
+  .timeline { position:relative; padding-left:30px; }
+  .timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:linear-gradient(180deg, var(--accent), transparent); }
+  .tl-item { position:relative; margin-bottom:24px; }
+  .tl-item::before { content:''; position:absolute; left:-26px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+  .tl-year { font-size:11px; color:var(--accent); font-weight:700; letter-spacing:2px; margin-bottom:4px; }
+  .tl-title { font-weight:700; color:#fff; margin-bottom:4px; }
+  .tl-desc { font-size:0.9rem; color:var(--muted); }
+
+  .info-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:16px; }
+  .info-card h3 { color:var(--accent); margin-bottom:12px; font-size:1rem; }
+
+  .formula-block { background:rgba(234,179,8,0.05); border:1px solid rgba(234,179,8,0.2); border-left:4px solid var(--accent); border-radius:8px; padding:20px 24px; margin:16px 0; font-family:monospace; }
+  .formula-block .formula { font-size:1.1rem; color:var(--accent2); font-weight:700; margin-bottom:8px; }
+  .formula-block .formula-desc { font-size:0.85rem; color:var(--muted); }
+
+  .grid-two { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .grid-three { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+
+  .lw-table { width:100%; border-collapse:collapse; }
+  .lw-table th { background:rgba(234,179,8,0.1); color:var(--accent); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); }
+  .lw-table td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; color:var(--text); }
+  .lw-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .lw-table td:first-child { color:#fff; font-weight:600; }
+
+  .quote-block { background:rgba(234,179,8,0.05); border-left:4px solid var(--accent); border-radius:0 8px 8px 0; padding:16px 20px; margin:12px 0; font-style:italic; color:var(--text); }
+  .quote-block cite { display:block; margin-top:8px; font-style:normal; font-size:0.8rem; color:var(--accent); }
+
+  .rule-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  .rule-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px; display:flex; gap:14px; align-items:flex-start; }
+  .rule-num { font-size:1.5rem; font-weight:800; color:rgba(234,179,8,0.3); flex-shrink:0; line-height:1; }
+  .rule-text strong { color:#fff; display:block; margin-bottom:4px; }
+  .rule-text { font-size:0.9rem; color:var(--text); }
+
+  /* REFLEXIVITY DIAGRAM */
+  .reflex-loop { display:grid; grid-template-columns:1fr; gap:0; }
+  .reflex-box { padding:16px 20px; border:1px solid var(--border); display:flex; align-items:center; gap:16px; }
+  .reflex-box:first-child { border-radius:10px 10px 0 0; background:rgba(234,179,8,0.05); border-color:rgba(234,179,8,0.3); }
+  .reflex-box:last-child { border-radius:0 0 10px 10px; background:rgba(59,130,246,0.05); border-color:rgba(59,130,246,0.3); }
+  .reflex-box.middle { background:rgba(255,255,255,0.02); }
+  .reflex-arrow { text-align:center; padding:6px; font-size:1.4rem; color:var(--muted); }
+  .reflex-label { font-weight:700; font-size:0.9rem; }
+  .reflex-desc { font-size:0.8rem; color:var(--muted); }
+  .reflex-tag { padding:3px 8px; border-radius:4px; font-size:11px; font-weight:700; margin-left:auto; flex-shrink:0; }
+
+  /* BOE TRADE */
+  .boe-timeline { display:flex; gap:0; overflow:hidden; border-radius:10px; border:1px solid var(--border); }
+  .boe-step { flex:1; padding:16px 12px; text-align:center; border-right:1px solid var(--border); }
+  .boe-step:last-child { border-right:none; }
+  .boe-date { font-size:10px; color:var(--muted); letter-spacing:1px; margin-bottom:6px; text-transform:uppercase; }
+  .boe-event { font-weight:700; font-size:0.85rem; color:#fff; margin-bottom:4px; }
+  .boe-detail { font-size:0.75rem; color:var(--muted); }
+  .boe-profit { color:var(--green); font-weight:700; font-size:1rem; }
+
+  /* POPPER INFLUENCE */
+  .popper-card { background:rgba(234,179,8,0.03); border:1px solid rgba(234,179,8,0.2); border-radius:10px; padding:20px; }
+
+  @media (max-width:640px) {
+    .hero { padding:40px 20px; }
+    .boe-timeline { flex-direction:column; }
+    .boe-step { border-right:none; border-bottom:1px solid var(--border); }
+    .boe-step:last-child { border-bottom:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Global Macro Grandmaster · Reflexivity Theorist</div>
+  <h1 class="hero-title">George <span>Soros</span></h1>
+  <p class="hero-sub">The Man Who Broke the Bank of England · Quantum Fund · Open Society</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val">$1 Mrd.</div><div class="hero-stat-label">Ein Tag — Black Wednesday 1992</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">30%+</div><div class="hero-stat-label">Quantum Fund CAGR 1969–2000</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">$32 Mrd.</div><div class="hero-stat-label">Gespendet (Open Society Foundations)</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">Fallibel</div><div class="hero-stat-label">Menschliche Unvollkommenheit als System</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- BIOGRAFIE -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">📜</span><h2>Biografie · Vom Überlebenden zum Weltmarktbeweger</h2><span class="section-tag">1930 – Heute</span></div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-year">1930</div>
+        <div class="tl-title">Budapest, Ungarn · György Schwartz</div>
+        <div class="tl-desc">György Schwartz wird in Budapest in eine jüdische Familie geboren. Vater Tivadar Schwartz — Esperantist und Überlebender des 1. Weltkriegs — ändert Familienname zu Soros (ungarisch: "nächster" oder "aufsteigend").</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1944</div>
+        <div class="tl-title">Holocaust · Überleben unter falscher Identität</div>
+        <div class="tl-desc">Vater Tivadar kauft falsche Papiere und versteckt die Familie. Soros überlebt, indem er als Godson eines ungarischen Beamten gilt, der jüdisches Eigentum konfisziert. Prägend: Überleben erfordert Realismus über Illusionen.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1947</div>
+        <div class="tl-title">London · London School of Economics</div>
+        <div class="tl-desc">Flieht aus kommunistischem Ungarn nach London. Studiert Philosophie bei Karl Popper — Autor von "The Open Society and Its Enemies." Popper prägt Soros' gesamte Weltanschauung: Fallibilismus, kritisches Denken, Ablehnung geschlossener Systeme.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1954–1956</div>
+        <div class="tl-title">Erste Schritte auf Wall Street</div>
+        <div class="tl-desc">Zieht nach New York. Arbeitet bei Mayer & Schweitzer, dann F.M. Mayer. Spezialisiert sich auf europäische Aktien — ein Nischenmarkt, den kaum jemand verstand. Erster Alpha-Vorteil: Informationsasymmetrie.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1969</div>
+        <div class="tl-title">Double Eagle Fund · Der Anfang</div>
+        <div class="tl-desc">Gründet Double Eagle Fund mit $4 Mio. Ersten Erfolge mit Währungsarbitrage und Makro-Wetten. 1973: Umbenennung zu Quantum Fund — gemeinsam mit Jim Rogers.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1973–1980</div>
+        <div class="tl-title">Quantum Fund mit Jim Rogers · 4.200%</div>
+        <div class="tl-desc">Rogers: Research & Analyse. Soros: Execution & Conviction. Soros' Reflexivitäts-Framework trifft auf Rogers' Fundamentalanalyse. $12 Mio. → $250 Mio. in 7 Jahren. Rogers verlässt 1980. Soros weiter solo.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1992 · 16. September</div>
+        <div class="tl-title">Black Wednesday · Bank of England · $1 Milliarde in einem Tag</div>
+        <div class="tl-desc">Shortet das Britische Pfund massiv gegen das ERM (European Rate Mechanism). Erzwingt Devaluation — UK muss aus dem ERM austreten. Quantum Fund macht $1 Mrd. Profit an einem einzigen Tag. Soros wird weltberühmt.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1997</div>
+        <div class="tl-title">Asiatische Finanzkrise</div>
+        <div class="tl-desc">Shortet den Thai Baht — löst nach Ansicht mancher die Asienkrise mit aus. Mahathir Mohammad (Malaysia) nennt ihn "Kriminellen". Soros: Er hat die Krise nicht verursacht, sondern bestehende Schwächen gezeigt. Reflexivität in Aktion.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2000+</div>
+        <div class="tl-title">Open Society Foundations · $32 Mrd. Philanthropy</div>
+        <div class="tl-desc">Zieht sich aus aktivem Trading zurück. Wandelt Quantum Fund in Family Office um. Widmet sich Open Society Foundations: Demokratieförderung, Pressefreiheit, Bildung in 120 Ländern. Meistgehasster und meistrespektiertester Philanthrop der Welt.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KARL POPPER & PHILOSOPHISCHES FUNDAMENT -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🧠</span><h2>Karl Popper · Das philosophische Fundament</h2><span class="section-tag">Fallibilismus als Trading-Philosophie</span></div>
+    <div class="grid-two">
+      <div class="popper-card">
+        <h3 style="color:var(--accent)">Poppers Kernlehren → Soros' Übersetzung</h3>
+        <table class="lw-table" style="margin-top:12px;">
+          <thead><tr><th>Popper (Philosophie)</th><th>Soros (Märkte)</th></tr></thead>
+          <tbody>
+            <tr><td>Fallibilismus</td><td style="color:var(--muted);font-size:0.8rem;">Menschen irren sich systematisch — auch Märkte</td></tr>
+            <tr><td>Kritischer Rationalismus</td><td style="color:var(--muted);font-size:0.8rem;">Hypothesen aufstellen, aktiv versuchen sie zu widerlegen</td></tr>
+            <tr><td>Offene Gesellschaft</td><td style="color:var(--muted);font-size:0.8rem;">Flexible Systeme > dogmatische Gewissheiten</td></tr>
+            <tr><td>Wissen ist immer vorläufig</td><td style="color:var(--muted);font-size:0.8rem;">Positionen sind Hypothesen — immer bereit zu revidieren</td></tr>
+            <tr><td>Totalitarismus = geschlossene Systeme</td><td style="color:var(--muted);font-size:0.8rem;">Märkte, die zu effizienten-Markt-Hypothese glauben = geschlossen</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card">
+        <h3>Soros' Selbstverständnis als Händler</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">Soros betrachtet jeden Trade als Hypothese — nicht als Überzeugung. Wenn die Realität seiner Hypothese widerspricht, revidiert er sofort. Kein Ego. Keine Treue zur Position.</p>
+        <div class="quote-block">"Ich bin nur solange reich geblieben, weil ich wusste, wann ich falsch lag."<cite>— George Soros</cite></div>
+        <div class="quote-block">"Die schlimmste Art von Verlust ist nicht Geld zu verlieren, sondern Zeit damit zu verschwenden, falsche Positionen zu verteidigen."<cite>— Soros über Ego und Märkte</cite></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFLEXIVITÄTSTHEORIE -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🔄</span><h2>Reflexivitätstheorie · Soros' größter intellektueller Beitrag</h2><span class="section-tag">Warum Märkte nie effizient sind</span></div>
+    <div class="info-card" style="border-color:rgba(234,179,8,0.3);background:rgba(234,179,8,0.02);">
+      <p style="color:var(--muted);margin-bottom:20px;">Die klassische Finanztheorie (EMH — Efficient Market Hypothesis) behauptet: Marktpreise reflektieren alle verfügbaren Informationen korrekt. Soros widerspricht fundamental: Märkte sind NIE effizient, weil die Teilnehmer die Realität nicht objektiv wahrnehmen können — sie sind Teil des Systems, das sie beobachten.</p>
+      <div class="reflex-loop">
+        <div class="reflex-box" style="background:rgba(234,179,8,0.05);border-color:rgba(234,179,8,0.3);border-radius:10px 10px 0 0;">
+          <span style="font-size:1.5rem;">🧠</span>
+          <div>
+            <div class="reflex-label" style="color:var(--accent)">Kognitive Funktion (Cognitive Function)</div>
+            <div class="reflex-desc">Marktteilnehmer versuchen die Realität zu verstehen → bilden Erwartungen → treffen Entscheidungen basierend auf unvollständigem, fehlerbehaltetem Verständnis</div>
+          </div>
+          <span class="reflex-tag" style="background:rgba(234,179,8,0.1);color:var(--accent);">FALLIBEL</span>
+        </div>
+        <div class="reflex-arrow">⬇️ beeinflusst</div>
+        <div class="reflex-box middle">
+          <span style="font-size:1.5rem;">📈</span>
+          <div>
+            <div class="reflex-label" style="color:#fff;">Marktpreise & Fundamentals</div>
+            <div class="reflex-desc">Preise spiegeln nicht nur Fundamentaldaten wider — sie werden durch Erwartungen der Teilnehmer verändert, was wiederum die Fundamentaldaten beeinflusst (Boom → echtes Kapital → echtes Wachstum)</div>
+          </div>
+          <span class="reflex-tag" style="background:rgba(255,255,255,0.05);color:var(--muted);">DYNAMISCH</span>
+        </div>
+        <div class="reflex-arrow">⬇️ verändert</div>
+        <div class="reflex-box" style="background:rgba(59,130,246,0.05);border-color:rgba(59,130,246,0.3);border-radius:0 0 10px 10px;">
+          <span style="font-size:1.5rem;">🌍</span>
+          <div>
+            <div class="reflex-label" style="color:var(--blue)">Partizipative Funktion (Participative Function)</div>
+            <div class="reflex-desc">Die veränderte Realität beeinflusst wieder das Denken der Teilnehmer → neue Erwartungen → neue Preise → Kreislauf verstärkt sich selbst (Boom-Bust-Dynamik)</div>
+          </div>
+          <span class="reflex-tag" style="background:rgba(59,130,246,0.1);color:var(--blue);">SELBSTVERSTÄRKEND</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid-two" style="margin-top:16px;">
+      <div class="formula-block">
+        <div class="formula">Realität ≠ Wahrnehmung → Handlung → veränderte Realität → neue Wahrnehmung</div>
+        <div class="formula-desc">Beide Funktionen beeinflussen sich gegenseitig gleichzeitig → kein stabiles Gleichgewicht möglich → Märkte tendieren zu Booms und Busts, nicht zu Effizienz</div>
+      </div>
+      <div class="info-card" style="margin-bottom:0;">
+        <h3>Reflexivität in Beispielen</h3>
+        <table class="lw-table">
+          <thead><tr><th>Phänomen</th><th>Reflexivität in Aktion</th></tr></thead>
+          <tbody>
+            <tr><td>Immobilienboom</td><td style="font-size:0.8rem;color:var(--muted);">Steigende Preise → mehr Kollateral → mehr Kredit → mehr Käufe → noch höhere Preise</td></tr>
+            <tr><td>Bank Run</td><td style="font-size:0.8rem;color:var(--muted);">Gerücht Bank insolvent → Abhebungen → echte Insolvenz → Gerücht war Wahrheit</td></tr>
+            <tr><td>Tech-Bubble 1999</td><td style="font-size:0.8rem;color:var(--muted);">Hohe Bewertungen → Kapitalzufluss → echtes Wachstum (eine Zeit lang) → Korrektur</td></tr>
+            <tr><td>ERM-Short 1992</td><td style="font-size:0.8rem;color:var(--muted);">Soros shortet → andere folgen → Pfund unter Druck → BoE gibt auf → Short profitiert</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:16px;">"Märkte tendieren immer zu Übertreibungen in beide Richtungen. Wenn ich das erkenne, bevor andere es tun, ist das mein Vorteil."<cite>— George Soros, Alchemy of Finance</cite></div>
+  </div>
+
+  <!-- BLACK WEDNESDAY 1992 -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">💷</span><h2>Black Wednesday 1992 · Der größte Trade der Geschichte</h2><span class="section-tag">16. September 1992</span></div>
+    <div class="info-card" style="margin-bottom:16px;">
+      <p style="color:var(--muted);margin-bottom:16px;">Das UK hatte 1990 das Britische Pfund zum ERM (European Rate Mechanism) gebunden — zu einem Kurs, der viele als überteuert ansahen. Die deutsche Wiedervereinigung hatte die deutschen Zinsen hoch getrieben, UK musste folgen — trotz Rezession. Eine unmögliche Situation. Soros erkannte: Das System war strukturell instabil.</p>
+      <div class="boe-timeline">
+        <div class="boe-step" style="background:rgba(234,179,8,0.05);">
+          <div class="boe-date">Aug 1992</div>
+          <div class="boe-event">Position aufbauen</div>
+          <div class="boe-detail">Soros shortet leise GBP gegen DEM. $1,5 Mrd. initial. Andere Macro-Fonds bemerken es und folgen.</div>
+        </div>
+        <div class="boe-step">
+          <div class="boe-date">Sep 15, 1992</div>
+          <div class="boe-event">Volle Überzeugung</div>
+          <div class="boe-detail">Druckenmiller sagt: "Wir sollten volle Größe eingehen." Soros: "Dann gehen wir ALL IN." Short auf $10 Mrd. Pfund.</div>
+        </div>
+        <div class="boe-step" style="background:rgba(239,68,68,0.05);">
+          <div class="boe-date">Sep 16 · Morning</div>
+          <div class="boe-event">Bank of England kämpft</div>
+          <div class="boe-detail">BoE kauft £5 Mrd./Stunde. Zinsen von 10% → 12% → 15% an einem Tag. Händler lachen.</div>
+        </div>
+        <div class="boe-step" style="background:rgba(239,68,68,0.08);">
+          <div class="boe-date">Sep 16 · 19:00</div>
+          <div class="boe-event">UK gibt auf</div>
+          <div class="boe-detail">UK tritt aus dem ERM aus. Pfund fällt sofort 15%. Bank of England verliert £3,3 Mrd. Reserven.</div>
+        </div>
+        <div class="boe-step" style="background:rgba(34,197,94,0.05);">
+          <div class="boe-date">Sep 17</div>
+          <div class="boe-event" style="color:var(--green)">Soros: +$1 Mrd.</div>
+          <div class="boe-detail"><span class="boe-profit">$1.000.000.000</span> Gewinn an einem einzigen Tag. Quantum Fund: +$2 Mrd. im September gesamt.</div>
+        </div>
+      </div>
+    </div>
+    <div class="formula-block">
+      <div class="formula">Short GBP/DEM: Kaufe DM 10 Mrd. auf Kredit → GBP fällt 15% → kaufe GBP zurück billiger → Differenz = Profit</div>
+      <div class="formula-desc">Reflexivität in Reinform: Soros' Short erzeugt Marktdruck → zwingt andere zum Verkauf → self-fulfilling prophecy → UK kann Kurs nicht halten</div>
+    </div>
+    <div class="quote-block">"Es war kein Angriff auf das Pfund. Es war eine rationale Reaktion auf eine unhaltbare Situation. Die Bank of England hat den Fehler gemacht — nicht ich."<cite>— George Soros</cite></div>
+  </div>
+
+  <!-- SOROS TRADING SYSTEM -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">⚙️</span><h2>Soros' Trading-Philosophie · Global Macro in der Praxis</h2><span class="section-tag">Das System</span></div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>Boom-Bust Modell · Der Soros-Zyklus</h3>
+        <table class="lw-table">
+          <thead><tr><th>Phase</th><th>Beschreibung</th><th>Signal</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--green)">1. Auslöser</td><td style="font-size:0.8rem;color:var(--muted);">Neues Narrativ entsteht (Tech, Emerging Markets, Commodity)</td><td style="font-size:0.8rem;color:var(--green)">Früher Einstieg</td></tr>
+            <tr><td style="color:var(--accent)">2. Beschleunigung</td><td style="font-size:0.8rem;color:var(--muted);">Reflexivität: Preise → Fundamentals → Preise ↑</td><td style="font-size:0.8rem;color:var(--accent)">Trend reiten</td></tr>
+            <tr><td style="color:var(--amber)">3. Divergenz</td><td style="font-size:0.8rem;color:var(--muted);">Preise weit über Fundamentals — unhaltbar aber kurzfristig</td><td style="font-size:0.8rem;color:var(--amber)">Vorsicht</td></tr>
+            <tr><td style="color:var(--red)">4. Wendepunkt</td><td style="font-size:0.8rem;color:var(--muted);">Kurskorrektur beginnt — Momentum kehrt um</td><td style="font-size:0.8rem;color:var(--red)">Short-Einstieg</td></tr>
+            <tr><td style="color:var(--red)">5. Beschleunigter Absturz</td><td style="font-size:0.8rem;color:var(--muted);">Reflexivität nach unten: Preise ↓ → Fundamentals ↓ → Preise ↓</td><td style="font-size:0.8rem;color:var(--red)">Short halten</td></tr>
+            <tr><td style="color:var(--blue)">6. Neustart</td><td style="font-size:0.8rem;color:var(--muted);">Übertriebene Unter-Bewertung — Long-Einstieg für nächsten Zyklus</td><td style="font-size:0.8rem;color:var(--blue)">Long-Einstieg</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card">
+        <h3>Druckenmiller-Interview · Die Methodik</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px;">Stanley Druckenmiller, sein Star-Trader, beschreibt wie Soros wirklich handelt:</p>
+        <div class="quote-block">"Soros hat mir gelehrt: Es ist nicht wichtig ob du recht oder unrecht hast — es ist wichtig wie viel du verdienst wenn du recht hast und wie wenig du verlierst wenn du falsch liegst."<cite>— Stanley Druckenmiller über Soros</cite></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+          <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:6px;padding:10px;text-align:center;">
+            <div style="color:var(--green);font-weight:700;">Conviction</div>
+            <div style="color:var(--muted);font-size:0.75rem;">Wenn er recht hat → maximales Sizing. "Geh so groß wie möglich."</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:10px;text-align:center;">
+            <div style="color:var(--red);font-weight:700;">Flexibilität</div>
+            <div style="color:var(--muted);font-size:0.75rem;">Wenn falsch → sofort raus. Kein Ego, keine Verteidigung.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BERÜHMTE TRADES -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🎯</span><h2>Berühmte Soros Trades · Track Record des Makro-Giganten</h2><span class="section-tag">Große Wetten, große Gewinne</span></div>
+    <div class="info-card">
+      <table class="lw-table">
+        <thead><tr><th>Trade</th><th>Jahr</th><th>These</th><th>Ergebnis</th></tr></thead>
+        <tbody>
+          <tr><td>Short GBP/DEM</td><td>1992</td><td>ERM-Bindung unhaltbar, UK in Rezession, deutsche Zinsen zu hoch</td><td style="color:var(--green)">+$1 Mrd. an einem Tag</td></tr>
+          <tr><td>Short Thai Baht</td><td>1997</td><td>Feste Währungsbindung mit massivem Leistungsbilanzdefizit</td><td style="color:var(--green)">+$750 Mio. Quantum Fund</td></tr>
+          <tr><td>Long Gold 1979–1980</td><td>1979</td><td>Inflation + geopolitische Unsicherheit (Iran, USSR)</td><td style="color:var(--green)">Gold +200% in 2 Jahren</td></tr>
+          <tr><td>Long japanische Aktien</td><td>1984</td><td>Japanischer Wirtschaftsboom unterschätzt von Westlern</td><td style="color:var(--green)">+$200 Mio.+</td></tr>
+          <tr><td>Short USD 2002–2004</td><td>2002</td><td>Twin Deficits, Bush-Fiskalpolitik, Fed-Niedrigzinsen</td><td style="color:var(--green)">Dollar −30% über 3 Jahre</td></tr>
+          <tr><td>Quantum Fund 1987</td><td>1987</td><td>Shortete falsch (Yen, nicht S&P) → verlor $840 Mio. im Crash</td><td style="color:var(--red)">−$840 Mio. (größter Verlust)</td></tr>
+          <tr><td>Long Tech 1999</td><td>1999</td><td>Dachte er kann aussteigen bevor Bubble platzt. Zu spät.</td><td style="color:var(--red)">−$700 Mio. Dot-com Crash</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;padding:12px;background:rgba(234,179,8,0.05);border-radius:8px;font-size:0.85rem;color:var(--muted);">
+        <strong style="color:var(--accent);">Soros über seine Verluste:</strong> "Zu wissen, dass ich mich irren kann, ist mein größter Vorteil. Die meisten Menschen können das nicht ertragen."
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 REGELN -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">📋</span><h2>Soros' Kernprinzipien · Reflexivität im Trading</h2><span class="section-tag">Kondensierte Weisheit</span></div>
+    <div class="rule-grid">
+      <div class="rule-card"><div class="rule-num">01</div><div class="rule-text"><strong>Märkte irren sich strukturell</strong>Die EMH ist falsch. Märkte übertreiben systematisch — in beide Richtungen. Das ist keine Anomalie, das ist das System.</div></div>
+      <div class="rule-card"><div class="rule-num">02</div><div class="rule-text"><strong>Jede Position ist eine Hypothese</strong>Kein "Ich habe Recht" — nur "Meine Hypothese ist: X." Wenn X widerlegt wird, sofort Exit. Kein Ego.</div></div>
+      <div class="rule-card"><div class="rule-num">03</div><div class="rule-text"><strong>Wenn richtig: Maximiere Größe</strong>Es spielt keine Rolle wie oft man recht hat — nur wie viel man verdient wenn man recht hat. Conviction = volle Größe.</div></div>
+      <div class="rule-card"><div class="rule-num">04</div><div class="rule-text"><strong>Erkenne Boom-Bust Reflexivitäts-Loops</strong>Suche Situationen wo Preisbewegungen Fundamentals verstärken (oder schwächen). Das sind die größten Makro-Trades.</div></div>
+      <div class="rule-card"><div class="rule-num">05</div><div class="rule-text"><strong>Physische Warnsignale: Rückenschmerzen</strong>Soros buchstäblich: Wenn er einen Trade falsch hatte, schmerzte sein Rücken. Körper als Warnsystem — lerne auf deine Signale zu hören.</div></div>
+      <div class="rule-card"><div class="rule-num">06</div><div class="rule-text"><strong>Strukturelle Instabilität erkennen</strong>ERM, Asian pegs, Sub-Prime: Suche Systeme die durch externe Kräfte unhaltbar geworden sind — dann warte auf den Trigger.</div></div>
+      <div class="rule-card"><div class="rule-num">07</div><div class="rule-text"><strong>Sei kein Verursacher — sei ein Detektor</strong>Soros verursacht keine Krisen. Er erkennt strukturelle Instabilitäten die bereits existieren und nutzt sie. Der Unterschied ist wichtig.</div></div>
+      <div class="rule-card"><div class="rule-num">08</div><div class="rule-text"><strong>Überzeugungen ohne Anhaftung</strong>Starke Thesen, aber sofortige Bereitschaft zur Revision. Nicht "ich bin bullish" — sondern "ich bin bullish BIS die Evidenz sich ändert."</div></div>
+    </div>
+  </div>
+
+  <!-- BÜCHER -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">📚</span><h2>Bücher & Zitate · Das Soros Universum</h2><span class="section-tag">Pflichtlektüre</span></div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>Werke</h3>
+        <table class="lw-table">
+          <thead><tr><th>Titel</th><th>Jahr</th><th>Kernthema</th></tr></thead>
+          <tbody>
+            <tr><td>The Alchemy of Finance</td><td>1987</td><td>Reflexivitätstheorie · Trading-Tagebuch 1985–86</td></tr>
+            <tr><td>The Crisis of Global Capitalism</td><td>1998</td><td>Asienkrise · Risiken des globalen Kapitalismus</td></tr>
+            <tr><td>Open Society</td><td>2000</td><td>Poppers Einfluss · Demokratie als offenes System</td></tr>
+            <tr><td>The Age of Fallibility</td><td>2006</td><td>Amerikanische Außenpolitik und Irrtumsanfälligkeit</td></tr>
+            <tr><td>The New Paradigm for Financial Markets</td><td>2008</td><td>Subprime-Krise durch Reflexivitäts-Linse</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card">
+        <h3>Soros in eigenen Worten</h3>
+        <div class="quote-block">"The worse a situation becomes, the less it takes to turn it around, the bigger the upside."</div>
+        <div class="quote-block">"Once we realize that imperfect understanding is the human condition, there is no shame in being wrong, only in failing to correct our mistakes."</div>
+        <div class="quote-block">"Economic history is a never-ending series of episodes based on falsehoods and lies, not truths. It represents the path to big money."</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 0;border-top:1px solid var(--border);margin-top:20px;">
+    <div style="font-size:0.85rem;color:var(--muted)">DUDE BANK · Trading Legends Series · Modul 15</div>
+    <div style="font-size:0.75rem;color:#334155;margin-top:4px;">George Soros · Reflexivity · The Man Who Broke the Bank of England · 1930 – Budapest → New York</div>
+  </div>
+
+</div>
+</body>
+</html>

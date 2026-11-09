@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ARGENTUM // VECTOR MATRIX v8.5</title>
+    <style>
+        :root {
+            --bg: #030108;
+            --panel: #0b0616;
+            --panel-inner: #130a24;
+            --border: #4a157d;
+            --accent: #00f0ff;
+            --green: #00ffaa;
+            --red: #ff0055;
+            --gold: #ffb700;
+            --white: #e9e9f0;
+            --muted: #7c6f94;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: var(--bg); color: var(--white); font-family: 'Segoe UI', sans-serif; padding: 24px; }
+        
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            background-color: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 0 35px rgba(162, 0, 255, 0.25);
+        }
+
+        h1 { color: var(--accent); text-align: center; font-size: 26px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; font-weight: 900; }
+        .subtitle { text-align: center; color: var(--muted); font-size: 11px; letter-spacing: 1px; margin-bottom: 24px; }
+
+        .control-panel {
+            display: flex; gap: 16px; background: var(--panel-inner); border: 1px solid var(--border);
+            padding: 16px; border-radius: 6px; margin-bottom: 24px; align-items: flex-end; flex-wrap: wrap;
+        }
+        .control-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 180px; }
+        .control-group label { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: bold; }
+        
+        select, input {
+            background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 10px 14px;
+            border-radius: 4px; font-size: 14px; width: 100%;
+        }
+        .input-highlight { border-color: var(--accent); }
+
+        .btn {
+            background: transparent; color: var(--accent); border: 2px solid var(--accent);
+            padding: 10px 24px; font-weight: bold; border-radius: 4px; cursor: pointer;
+            transition: all 0.2s ease; height: 42px; text-transform: uppercase; font-size: 13px;
+        }
+        .btn:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
+
+        #progress { font-size: 13px; color: var(--gold); margin-bottom: 12px; font-weight: bold; display: none; }
+
+        .table-container { background: var(--panel-inner); border: 1px solid var(--border); border-radius: 6px; padding: 12px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { font-size: 11px; color: var(--accent); text-transform: uppercase; border-bottom: 2px solid var(--border); padding: 12px; letter-spacing: 1px; }
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 14px; }
+        
+        .row-strong { background: rgba(0, 255, 170, 0.04) !important; border-left: 4px solid var(--green); }
+        .row-weak { background: rgba(255, 0, 85, 0.04) !important; border-left: 4px solid var(--red); }
+
+        .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 3px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .bg-strong { background: rgba(0, 255, 170, 0.15); color: var(--green); border: 1px solid var(--green); }
+        .bg-weak { background: rgba(255, 0, 85, 0.15); color: var(--red); border: 1px solid var(--red); }
+        .bg-neutral { background: rgba(255, 255, 255, 0.05); color: #fff; border: 1px solid #555; }
+
+        .text-green { color: var(--green); font-weight: bold; }
+        .text-red { color: var(--red); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ARGENTUM // VECTOR MATRIX v8.5</h1>
+    <div class="subtitle">NORMED PERFORMANCE RELATIVE STRENGTH & CUSTOM BENCHMARK MATRIX</div>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <label>Benchmark Modus</label>
+            <select id="benchMode" onchange="toggleBenchInput()">
+                <option value="preset">Presets (SPY / QQQ)</option>
+                <option value="custom">✍️ Manueller Custom Ticker</option>
+            </select>
+        </div>
+        <div class="control-group" id="presetGroup">
+            <label>Benchmark Index Preset</label>
+            <select id="benchmarkSelect">
+                <option value="SPY">🇺🇸 S&P 500 ETF (SPY)</option>
+                <option value="QQQ">🚀 NASDAQ 100 ETF (QQQ)</option>
+            </select>
+        </div>
+        <div class="control-group" id="customGroup" style="display: none;">
+            <label>Custom Benchmark Ticker</label>
+            <input type="text" id="customBenchInput" class="input-highlight" placeholder="z.B. C, IWM, GLD, BTC-USD">
+        </div>
+        <div class="control-group">
+            <label>Asset Cluster</label>
+            <select id="clusterSelect">
+                <option value="dow30">🇺🇸 DOW JONES 30</option>
+                <option value="nasdaq">🇺🇸 NASDAQ TECH</option>
+                <option value="dax">🇩🇪 DAX 40</option>
+                <option value="ftse">🇬🇧 FTSE 100</option>
+                <option value="cac40">🇫🇷 CAC 40</option>
+                <option value="smi">🇨🇭 SMI SWITZERLAND</option>
+                <option value="atx">🇦🇹 ATX VIENNA</option>
+                <option value="aex">🇳🇱 AEX AMSTERDAM</option>
+                <option value="ibex">🇪🇸 IBEX 35 SPAIN</option>
+                <option value="omx_stockholm">🇸🇪 OMXS30 STOCKHOLM</option>
+                <option value="omx_copenhagen">🇩🇰 OMXC25 COPENHAGEN</option>
+                <option value="bel20">🇧🇪 BEL 20 BRUSSELS</option>
+                <option value="psi">🇵🇹 PSI LISBON</option>
+                <option value="tsx">🇨🇦 TSX CANADA</option>
+                <option value="asx">🇦🇺 ASX AUSTRALIA</option>
+                <option value="bovespa">🇧🇷 BOVESPA BRAZIL</option>
+                <option value="nse_direct">🇮🇳 NSE INDIA (NIFTY)</option>
+                <option value="zse">🇭🇷 ZSE ZAGREB</option>
+                <option value="krx">🇰🇷 KRX SOUTH KOREA</option>
+                <option value="crypto">₿ CRYPTO TOP 10</option>
+            </select>
+        </div>
+        <div class="control-group" style="max-width: 100px;">
+            <label>Z-Score Cut</label>
+            <input type="number" id="zLimitInput" value="0.75" step="0.05">
+        </div>
+        <button class="btn" onclick="executeMatrixScanV85()">VECTOR ANALYSIS STARTEN</button>
+    </div>
+
+    <div id="progress">Initialisiere Analyse-Vektoren...</div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Asset</th>
+                    <th>Close (A)</th>
+                    <th>Bench Close</th>
+                    <th>Z-Score (Normed 20D)</th>
+                    <th>Alpha Matrix Status</th>
+                    <th>Confidence</th>
+                    <th>Empfohlenes Pair-Hedge Setup</th>
+                </tr>
+            </thead>
+            <tbody id="bulkTableBody">
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--muted); padding: 30px;">
+                        Konfiguriere Benchmark und starte das Rendite-Matrix-Grid.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const BASE_API = "https://gemini-os.replit.app/api/eod";
+
+    const clusterUniverse = {
+        "dow30": ["AAPL", "MSFT", "JPM", "GS", "JNJ", "NKE", "V", "HD", "MCD", "KO", "IBM", "CVX", "DIS", "CAT", "BA", "AXP", "WMT", "TRV", "UNH", "MMM", "BRK-B", "PG", "MA", "XOM", "ABBV", "AVGO", "VZ", "MRK", "CSCO"],
+        "nasdaq": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "NFLX", "ADBE", "CRM", "QCOM", "INTC", "AMD", "PYPL", "AMAT", "MU"],
+        "dax": ["ALV.XETRA", "SAP.XETRA", "SIE.XETRA", "BMW.XETRA", "MBG.XETRA", "VOW3.XETRA", "MUV2.XETRA", "DTE.XETRA", "DBK.XETRA", "BAYN.XETRA", "BAS.XETRA", "ADS.XETRA", "RWE.XETRA", "RHM.XETRA", "MRK.XETRA", "HNR1.XETRA", "ENR.XETRA", "FRE.XETRA", "HEI.XETRA", "MTX.XETRA", "DB1.XETRA", "DPW.XETRA", "EOAN.XETRA", "IFX.XETRA", "LIN.XETRA", "BEI.XETRA", "HEN3.XETRA", "CON.XETRA", "DHER.XETRA", "ZAL.XETRA"],
+        "ftse": ["SHEL.LSE", "AZN.LSE", "HSBA.LSE", "ULVR.LSE", "BP.LSE", "GSK.LSE", "RIO.LSE", "DGE.LSE", "LSEG.LSE", "REL.LSE", "NG.LSE", "CPG.LSE", "LLOY.LSE", "BT-A.LSE", "VOD.LSE", "AAL.LSE", "BARC.LSE", "NWG.LSE", "STAN.LSE", "BHP.LSE", "PRU.LSE", "AV.LSE", "LGEN.LSE", "TSCO.LSE", "SBRY.LSE", "BATS.LSE", "IMB.LSE", "RKT.LSE", "WPP.LSE", "BA.LSE", "SSE.LSE", "SGE.LSE"],
+        "cac40": ["MC.PA", "TTE.PA", "SAN.PA", "AI.PA", "OR.PA", "BNP.PA", "DG.PA", "RI.PA", "CA.PA", "ACA.PA", "ORA.PA", "DSY.PA", "KER.PA", "HO.PA", "AIR.PA", "ALO.PA", "BN.PA", "CAP.PA", "CS.PA", "EL.PA", "EN.PA", "GLE.PA", "LR.PA", "ML.PA", "SU.PA"],
+        "smi": ["NESN.SW", "ROG.SW", "NOVN.SW", "ABBN.SW", "UBSG.SW", "ZURN.SW", "SREN.SW", "SIKA.SW", "GIVN.SW", "LONN.SW", "SRENH.SW", "SLHN.SW", "ADEN.SW", "BARN.SW", "BALN.SW", "BSKP.SW", "FHZN.SW", "GEBN.SW", "BAER.SW", "PGHN.SW", "SCHN.SW", "SGSN.SW", "SOON.SW", "UHR.SW", "SCMN.SW"],
+        "atx": ["EBS.VI", "OMV.VI", "VER.VI", "RBI.VI", "VOE.VI", "ANDR.VI", "BG.VI", "EVN.VI", "IIA.VI", "POST.VI", "ABIN.VI", "ADKO.VI", "AGR.VI", "AMAG.VI", "ATS.VI", "BHD.VI", "BKS.VI", "CAI.VI", "DOC.VI", "FACC.VI", "FLU.VI", "LNZ.VI", "MMK.VI"],
+        "aex": ["ASML.AS", "INGA.AS", "PHIA.AS", "HEIA.AS", "ABN.AS", "AD.AS", "NN.AS", "AKZA.AS", "WKL.AS", "URW.AS", "AALB.AS", "ACOMO.AS", "ADYEN.AS", "AGN.AS", "ASMI.AS", "ASRNL.AS", "BESI.AS", "IMCD.AS", "KPN.AS", "RAND.AS", "TKWY.AS", "VPK.AS"],
+        "ibex": ["SAN.MC", "BBVA.MC", "ITX.MC", "IBE.MC", "REP.MC", "TEF.MC", "ACS.MC", "FER.MC", "CABK.MC", "ENG.MC", "A3M.MC", "ACX.MC", "AENA.MC", "AMS.MC", "ANA.MC", "BKT.MC", "CLNX.MC", "EBRO.MC", "ELE.MC", "GRF.MC", "IAG.MC", "MAP.MC"],
+        "omx_stockholm": ["VOLV-B.ST", "ERIC-B.ST", "HM-B.ST", "SEB-A.ST", "SWED-A.ST", "INVE-B.ST", "ABB.ST", "ATCO-A.ST", "ALFA.ST", "SSAB-A.ST", "ASSA-B.ST", "ATCO-B.ST", "BOL.ST", "ELUX-A.ST", "ELUX-B.ST", "ERIC-A.ST", "HEXA-B.ST", "INVE-A.ST", "NDA-SE.ST", "SEB-C.ST", "SHB-A.ST", "SHB-B.ST", "SCA-B.ST"],
+        "omx_copenhagen": ["NOVO-B.CO", "MAERSK-B.CO", "COLOB.CO", "ORSTED.CO", "GN.CO", "DEMANT.CO", "VWS.CO", "CARL-B.CO", "CHR.CO", "DSV.CO"],
+        "bel20": ["UCB.BR", "KBC.BR", "INGA.BR", "COLR.BR", "PROX.BR", "SOLB.BR", "ACKB.BR", "ABI.BR", "AED.BR", "AGS.BR", "ARGX.BR", "BPOST.BR", "COFB.BR", "ELI.BR", "GBLB.BR", "KBCA.BR", "MELE.BR", "ONTEX.BR", "SOF.BR", "TITC.BR", "UMI.BR"],
+        "psi": ["EDP.LS", "EDPR.LS", "GALP.LS", "BCP.LS", "JMT.LS", "NOS.LS", "SON.LS", "ALTR.LS", "COR.LS", "CTT.LS", "GVOLT.LS", "IBS.LS", "IPR.LS", "NBA.LS", "NVG.LS", "PHR.LS", "RENE.LS", "SEM.LS", "SNC.LS", "TDSA.LS"],
+        "tsx": ["RY.TO", "TD.TO", "BNS.TO", "CNR.TO", "CP.TO", "SHOP.TO", "ENB.TO", "TRI.TO", "MFC.TO", "SU.TO", "BAM.A.TO", "BMO.TO", "BCE.TO", "CNQ.TO", "TRP.TO", "WCN.TO", "CSU.TO", "NTR.TO", "SLF.TO", "MG.TO", "FTS.TO"],
+        "asx": ["BHP.AX", "CBA.AX", "CSL.AX", "ANZ.AX", "WBC.AX", "NAB.AX", "RIO.AX", "WDS.AX", "MQG.AX", "WES.AX", "WOW.AX", "FMG.AX", "GMG.AX", "TCL.AX", "REA.AX", "ALL.AX", "COH.AX", "S32.AX", "STO.AX", "ORG.AX", "MIN.AX", "NCM.AX", "QAN.AX", "SHL.AX", "ASX.AX", "CPU.AX", "AMP.AX", "QBE.AX", "IAG.AX", "AGL.AX"],
+        "bovespa": ["PETR4.SA", "VALE3.SA", "ITUB4.SA", "BBDC4.SA", "ABEV3.SA", "B3SA3.SA", "WEGE3.SA", "BBAS3.SA", "SUZB3.SA", "JBSS3.SA", "BBDC3.SA", "BBSE3.SA", "BRFS3.SA", "CSAN3.SA", "ELET3.SA", "ELET6.SA", "GGBR4.SA", "KLBN11.SA", "PETR3.SA", "SBSP3.SA", "VIVT3.SA"],
+        "nse_direct": ["RELIANCE.NSE", "TCS.NSE", "HDFCBANK.NSE", "INFY.NSE", "ICICIBANK.NSE", "HINDUNILVR.NSE", "KOTAKBANK.NSE", "SBIN.NSE", "BHARTIARTL.NSE", "BAJFINANCE.NSE", "WIPRO.NSE", "HCLTECH.NSE", "TECHM.NSE", "LT.NSE", "MARUTI.NSE", "SUNPHARMA.NSE", "TITAN.NSE", "ASIANPAINT.NSE", "NTPC.NSE", "POWERGRID.NSE", "NESTLEIND.NSE", "ULTRACEMCO.NSE", "TATASTEEL.NSE", "TATAMOTORS.NSE", "ONGC.NSE", "AXISBANK.NSE", "DRREDDY.NSE", "CIPLA.NSE", "PERSISTENT.NSE", "COFORGE.NSE"],
+        "zse": ["HT.ZSE", "INA.ZSE", "KOEI.ZSE", "ATGR.ZSE", "PODR.ZSE", "ADRS.ZSE", "ERNT.ZSE", "HPB.ZSE", "JNAF.ZSE", "KRAS.ZSE", "MAIS.ZSE", "ARNT.ZSE", "ATPL.ZSE", "DLKV.ZSE", "ADPL.ZSE", "JDPL.ZSE", "IGH.ZSE", "INGR.ZSE", "ADRS2.ZSE", "DDJH.ZSE", "RIVP.ZSE", "ZABA.ZSE"],
+        "krx": ["005930.KO", "000660.KO", "005380.KO", "000270.KO", "051910.KO", "035420.KO", "068270.KO", "373220.KO", "207940.KO", "006400.KO", "003550.KO", "012330.KO", "028260.KO", "009150.KO", "000810.KO", "055550.KO", "105560.KO", "086790.KO", "096770.KO", "017670.KO", "030200.KO", "003670.KO", "011200.KO", "066570.KO", "034730.KO"],
+        "crypto": ["BTC-USD.CC", "ETH-USD.CC", "BNB-USD.CC", "SOL-USD.CC", "XRP-USD.CC", "DOGE-USD.CC", "ADA-USD.CC", "DOT-USD.CC", "LINK-USD.CC", "LTC-USD.CC"]
+    };
+
+    function toggleBenchInput() {
+        const mode = document.getElementById('benchMode').value;
+        document.getElementById('presetGroup').style.display = mode === 'preset' ? 'block' : 'none';
+        document.getElementById('customGroup').style.display = mode === 'custom' ? 'block' : 'none';
+    }
+
+    async function fetchEodData(symbol) {
+        try {
+            let cleanSym = symbol.toUpperCase().trim();
+            const response = await fetch(`${BASE_API}?symbol=${cleanSym}&endpoint=historical&period=d`);
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (e) {
+            console.error(`Error fetching ${symbol}:`, e);
+            return null;
+        }
+    }
+
+    async function executeMatrixScanV85() {
+        const mode = document.getElementById('benchMode').value;
+        let benchmark = mode === 'preset' ? document.getElementById('benchmarkSelect').value : document.getElementById('customBenchInput').value;
+        const clusterKey = document.getElementById('clusterSelect').value;
+        const zLimit = parseFloat(document.getElementById('zLimitInput').value) || 0.75;
+        
+        const tbody = document.getElementById('bulkTableBody');
+        const progress = document.getElementById('progress');
+
+        if (!benchmark) {
+            alert("Bitte einen gültigen Benchmark-Ticker eingeben!");
+            return;
+        }
+
+        tbody.innerHTML = '';
+        progress.style.display = 'block';
+
+        progress.textContent = `Lade Benchmark-Struktur-Matrix: ${benchmark}...`;
+        const rawBenchData = await fetchEodData(benchmark);
+        if (!rawBenchData || rawBenchData.length < 22) {
+            progress.textContent = `❌ Fehler: Benchmark ${benchmark} lieferte keine Daten.`;
+            return;
+        }
+        rawBenchData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const symbols = clusterUniverse[clusterKey];
+        
+        for(let i = 0; i < symbols.length; i++) {
+            const sym = symbols[i];
+            progress.textContent = `Berechne relative Performance-Matrix ${i+1}/${symbols.length}: ${sym}...`;
+            
+            const rawAssetData = await fetchEodData(sym);
+            if (!rawAssetData || rawAssetData.length < 22) continue;
+            rawAssetData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // --- V8.5 CORE: NORMIERTER PERFORMANCE-SPREAD ---
+            let normSpreads = [];
+            let iterations = Math.min(20, rawAssetData.length, rawBenchData.length);
+            
+            let assetBase = parseFloat(rawAssetData[iterations - 1].close);
+            let benchBase = parseFloat(rawBenchData[iterations - 1].close);
+
+            for(let k = 0; k < iterations; k++) {
+                let assetPerf = (parseFloat(rawAssetData[k].close) - assetBase) / assetBase;
+                let benchPerf = (parseFloat(rawBenchData[k].close) - benchBase) / benchBase;
+                normSpreads.push(assetPerf - benchPerf);
+            }
+
+            const currentSpread = normSpreads[0];
+            const meanSpread = normSpreads.reduce((s, v) => s + v, 0) / normSpreads.length;
+            const variance = normSpreads.reduce((s, v) => s + Math.pow(v - meanSpread, 2), 0) / normSpreads.length;
+            const stdDev = Math.sqrt(variance);
+
+            const zScore = (currentSpread - meanSpread) / (stdDev || 0.01);
+
+            // --- V8.5 SMARTER EXECUTION ENGINE (TREND VS MEAN REVERSION) ---
+            let statusText = "SYNCHRON";
+            let badgeClass = "bg-neutral";
+            let rowClass = "";
+            let actionText = "Neutral. Synchroner Gleichlauf zum Core.";
+            let confidence = Math.round(100 - (Math.abs(zScore) * 45));
+
+            let displaySym = sym.replace('.US', '').replace('.CC', '');
+            let displayBench = benchmark.replace('.US', '').replace('.CC', '');
+
+            // Extremwert-Filter für Mean Reversion (Gummiband-Kollaps)
+            if (zScore <= -2.00) {
+                statusText = "💥 EXTREME UNWUCHT (REVERSAL)";
+                badgeClass = "bg-strong"; 
+                rowClass = "row-strong";
+                confidence = Math.min(95, Math.round(40 + (Math.abs(zScore) * 15)));
+                actionText = `🔥 **ANTIZYKLISCH:** <span class="text-green">BUY ${displaySym}</span> // <span class="text-red">SHORT ${displayBench}</span> (Spread-Rebound)`;
+            } 
+            else if (zScore >= 2.00) {
+                statusText = "💥 EXT. ÜBERHITZUNG (REVERSAL)";
+                badgeClass = "bg-weak"; 
+                rowClass = "row-weak";
+                confidence = Math.min(95, Math.round(40 + (zScore * 15)));
+                actionText = `🔥 **ANTIZYKLISCH:** <span class="text-red">SHORT ${displaySym}</span> // <span class="text-green">BUY ${displayBench}</span> (Spread-Kollaps)`;
+            }
+            // Reguläre Trendfolge innerhalb des Z-Score-Limits
+            else if (zScore >= zLimit) {
+                statusText = "RELATIVE STÄRKE (TREND)";
+                badgeClass = "bg-strong";
+                rowClass = "row-strong";
+                confidence = Math.min(99, Math.round(50 + (zScore * 20)));
+                actionText = `<span class="text-green">BUY ${displaySym}</span> // <span class="text-red">SHORT ${displayBench}</span>`;
+            } else if (zScore <= -zLimit) {
+                statusText = "RELATIVE SCHWÄCHE (TREND)";
+                badgeClass = "bg-weak";
+                rowClass = "row-weak";
+                confidence = Math.min(99, Math.round(50 + (Math.abs(zScore) * 20)));
+                actionText = `<span class="text-red">SHORT ${displaySym}</span> // <span class="text-green">BUY ${displayBench}</span>`;
+            }
+
+            if (confidence < 5) confidence = 8;
+
+            const assetClose = parseFloat(rawAssetData[0].close);
+            const benchClose = parseFloat(rawBenchData[0].close);
+            const assetDec = assetClose < 5 ? 4 : 2;
+
+            const row = `
+                <tr class="${rowClass}">
+                    <td><strong>${displaySym}</strong></td>
+                    <td>$${assetClose.toFixed(assetDec)}</td>
+                    <td>$${benchClose.toFixed(2)}</td>
+                    <td style="font-weight:bold;" class="${zScore >= 0 ? 'text-green' : 'text-red'}">${zScore.toFixed(2)}</td>
+                    <td><span class="badge ${badgeClass}">${statusText}</span></td>
+                    <td style="color:var(--gold); font-weight:bold;">${confidence}%</td>
+                    <td><strong>${actionText}</strong></td>
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', row);
+            
+            // Optimaler API Rate-Limit-Schutz
+            await new Promise(r => setTimeout(r, 350));
+        }
+
+        progress.style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

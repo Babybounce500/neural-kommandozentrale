@@ -1,0 +1,1186 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>OMEGA Windows - Trading Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            background-image: url('https://babybounce500.github.io/icon1/lecode.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            color: #0f172a;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(2px);
+            z-index: 1;
+        }
+
+        .desktop-container {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .desktop-content {
+            flex: 1;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            align-content: start;
+            overflow-y: auto;
+            padding-bottom: 70px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(8, 145, 178, 0.3) transparent;
+        }
+
+        .desktop-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .desktop-content::-webkit-scrollbar-thumb {
+            background: rgba(8, 145, 178, 0.3);
+            border-radius: 4px;
+        }
+
+        .desktop-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(8, 145, 178, 0.5);
+        }
+
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: #0f172a;
+            text-align: center;
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(8, 145, 178, 0.2);
+        }
+
+        .desktop-icon:hover,
+        .desktop-icon:active {
+            background: rgba(248, 250, 252, 0.95);
+            border-color: rgba(8, 145, 178, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(8, 145, 178, 0.15);
+        }
+
+        .icon-svg {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 8px;
+            fill: currentColor;
+        }
+
+        .icon-name {
+            font-size: 12px;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+            color: #0f172a;
+        }
+
+        .taskbar {
+            height: 60px;
+            background: rgba(248, 250, 252, 0.95);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(8, 145, 178, 0.15);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(8, 145, 178, 0.08);
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            touch-action: manipulation;
+            box-shadow: 0 2px 8px rgba(8, 145, 178, 0.2);
+        }
+
+        .start-button:hover,
+        .start-button:active {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            transform: scale(0.98);
+            box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+        }
+
+        .taskbar-tabs {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 15px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .taskbar-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .taskbar-tab {
+            background: rgba(248, 250, 252, 0.7);
+            border: 1px solid rgba(8, 145, 178, 0.2);
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            max-width: 160px;
+            position: relative;
+            flex-shrink: 0;
+            touch-action: manipulation;
+            color: #0f172a;
+        }
+
+        .taskbar-tab:hover,
+        .taskbar-tab:active {
+            background: rgba(248, 250, 252, 0.9);
+            border-color: rgba(8, 145, 178, 0.35);
+            transform: scale(0.98);
+        }
+
+        .taskbar-tab.active {
+            background: rgba(8, 145, 178, 0.15);
+            border-color: rgba(8, 145, 178, 0.4);
+            box-shadow: 0 0 8px rgba(8, 145, 178, 0.2);
+        }
+
+        .taskbar-tab .tab-icon {
+            width: 18px;
+            height: 18px;
+            fill: #0891b2;
+            flex-shrink: 0;
+        }
+
+        .taskbar-tab .tab-text {
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .taskbar-tab .tab-close {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(8, 145, 178, 0.15);
+            color: #0f172a;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+            margin-left: 8px;
+            flex-shrink: 0;
+            touch-action: manipulation;
+        }
+
+        .taskbar-tab .tab-close:hover,
+        .taskbar-tab .tab-close:active {
+            background: rgba(239, 68, 68, 0.7);
+            color: white;
+        }
+
+        .system-tray {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #0f172a;
+            font-size: 13px;
+        }
+
+        .system-tray-icon {
+            width: 24px;
+            height: 24px;
+            fill: #0891b2;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .system-tray-icon:hover,
+        .system-tray-icon:active {
+            opacity: 0.7;
+        }
+
+        .system-time {
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(8, 145, 178, 0.1);
+            color: #0f172a;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            touch-action: manipulation;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .system-time:hover,
+        .system-time:active {
+            background: rgba(8, 145, 178, 0.2);
+        }
+
+        .window {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.98);
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: calc(100vh - 60px);
+            z-index: 500;
+            display: none;
+        }
+
+        .window.active {
+            display: block;
+        }
+
+        .window-header {
+            background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            height: 60px;
+            box-shadow: 0 2px 8px rgba(8, 145, 178, 0.2);
+        }
+
+        .window-title {
+            font-weight: 600;
+            font-size: 16px;
+            flex: 1;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .window-control {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: black; /* Changed to black */
+            transition: background 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .window-control:hover,
+        .window-control:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .window-control.close:hover,
+        .window-control.close:active {
+            background: #e74c3c;
+        }
+
+        .window-control.minimize:hover,
+        .window-control.minimize:active {
+            background: #f39c12;
+        }
+
+        .window-control.maximize:hover,
+        .window-control.maximize:active {
+            background: #27ae60;
+        }
+
+        .window-content {
+            height: calc(100% - 60px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .window-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        .category-omega { color: #0891b2; }
+        .category-legacy { color: #7c3aed; }
+
+        .start-menu {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            max-height: calc(100vh - 120px);
+            background: rgba(248, 250, 252, 0.98);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(8, 145, 178, 0.15);
+            padding: 20px;
+            display: none;
+            z-index: 1001;
+            overflow-y: auto;
+        }
+
+        .start-menu.active {
+            display: block;
+        }
+
+        .start-menu-title {
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .start-menu-apps {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-height: none;
+        }
+
+        .start-menu-app {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            color: #0f172a;
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(8, 145, 178, 0.2);
+            touch-action: manipulation;
+        }
+
+        .start-menu-app:hover,
+        .start-menu-app:active {
+            background: rgba(248, 250, 252, 0.95);
+            border-color: rgba(8, 145, 178, 0.35);
+            transform: scale(0.98);
+        }
+
+        .start-menu-app .icon-svg {
+            width: 28px;
+            height: 28px;
+            margin-right: 12px;
+            margin-bottom: 0;
+        }
+
+        .start-menu-app .app-name {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            right: 20px;
+            background: rgba(8, 145, 178, 0.95);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(8, 145, 178, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: none;
+            animation: slideUp 0.3s ease;
+            text-align: center;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .window-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #64748b;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #0891b2;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Desktop styles for larger screens */
+        @media (min-width: 769px) {
+            .desktop-content {
+                padding-bottom: 20px;
+            }
+
+            .taskbar {
+                height: 50px;
+                position: relative;
+                padding: 0 10px;
+            }
+
+            .start-button {
+                padding: 8px 16px;
+                font-size: 14px;
+                margin-right: 10px;
+            }
+
+            .taskbar-tab {
+                padding: 6px 12px;
+                min-width: 120px;
+                max-width: 180px;
+            }
+
+            .taskbar-tab .tab-icon {
+                width: 16px;
+                height: 16px;
+            }
+
+            .taskbar-tab .tab-text {
+                font-size: 12px;
+            }
+
+            .taskbar-tab .tab-close {
+                width: 16px;
+                height: 16px;
+                font-size: 12px;
+                margin-left: auto;
+            }
+
+            .system-tray {
+                font-size: 12px;
+                gap: 8px;
+            }
+
+            .system-tray-icon {
+                width: 20px;
+                height: 20px;
+            }
+
+            .system-time {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+
+            .window {
+                position: absolute;
+                border: 1px solid rgba(8, 145, 178, 0.2);
+                border-radius: 8px;
+                box-shadow: 0 10px 30px rgba(8, 145, 178, 0.15);
+                min-width: 400px;
+                min-height: 300px;
+                width: 800px;
+                height: 600px;
+                top: auto;
+                left: auto;
+                background: #ffffff;
+            }
+
+            .window-header {
+                padding: 10px 15px;
+                height: 50px;
+                cursor: move;
+            }
+
+            .window-title {
+                font-size: 14px;
+            }
+
+            .window-controls {
+                gap: 8px;
+            }
+
+            .window-control {
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+            .window-content {
+                height: calc(100% - 50px);
+            }
+
+            .start-menu {
+                position: absolute;
+                bottom: 50px;
+                left: 10px;
+                right: auto;
+                width: 400px;
+                max-height: 500px;
+                border: 1px solid rgba(8, 145, 178, 0.15);
+                border-radius: 8px;
+            }
+
+            .start-menu-title {
+                font-size: 18px;
+                margin-bottom: 15px;
+            }
+
+            .start-menu-apps {
+                gap: 10px;
+                max-height: 400px;
+                overflow-y: auto;
+            }
+
+            .start-menu-app {
+                padding: 10px;
+                background: transparent;
+                border: none;
+            }
+
+            .start-menu-app .icon-svg {
+                width: 24px;
+                height: 24px;
+                margin-right: 10px;
+            }
+
+            .start-menu-app .app-name {
+                font-size: 14px;
+            }
+
+            .notification {
+                bottom: 60px;
+                right: 20px;
+                left: auto;
+                width: 300px;
+                animation: slideIn 0.3s ease;
+            }
+
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .desktop-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                padding: 15px 15px 80px 15px;
+            }
+
+            .desktop-icon {
+                padding: 12px;
+            }
+
+            .icon-svg {
+                width: 28px;
+                height: 28px;
+            }
+
+            .icon-name {
+                font-size: 11px;
+            }
+
+            .start-button {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .taskbar-tab {
+                min-width: 100px;
+                max-width: 140px;
+                padding: 6px 12px;
+            }
+
+            .taskbar-tab .tab-text {
+                font-size: 12px;
+            }
+
+            .system-time {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 50px;
+            }
+
+            .start-menu-apps {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .start-menu-app {
+                padding: 12px;
+            }
+        }
+
+        /* Tablet devices (480px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .desktop-content {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+                padding: 18px;
+                padding-bottom: 80px;
+            }
+
+            .desktop-icon {
+                padding: 14px;
+            }
+
+            .icon-svg {
+                width: 30px;
+                height: 30px;
+            }
+
+            .icon-name {
+                font-size: 11px;
+            }
+
+            .taskbar {
+                height: 58px;
+                padding: 0 12px;
+            }
+
+            .start-button {
+                padding: 10px 18px;
+                font-size: 13px;
+                margin-right: 12px;
+            }
+
+            .taskbar-tab {
+                min-width: 110px;
+                max-width: 150px;
+                padding: 7px 13px;
+            }
+
+            .taskbar-tab .tab-icon {
+                width: 17px;
+                height: 17px;
+            }
+
+            .taskbar-tab .tab-text {
+                font-size: 12px;
+            }
+
+            .taskbar-tab .tab-close {
+                width: 18px;
+                height: 18px;
+                font-size: 13px;
+            }
+
+            .system-tray {
+                gap: 10px;
+            }
+
+            .system-tray-icon {
+                width: 22px;
+                height: 22px;
+            }
+
+            .system-time {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 55px;
+            }
+
+            .start-menu {
+                width: 380px;
+                max-height: 450px;
+            }
+
+            .start-menu-apps {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .notification {
+                bottom: 70px;
+                left: 15px;
+                right: 15px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="desktop-container">
+        <div class="desktop-content" id="desktop">
+            <!-- Desktop icons will be generated here -->
+        </div>
+        <div class="taskbar">
+            <button class="start-button" onclick="toggleStartMenu()">
+                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: currentColor;">
+                    <path d="M3 3h18v18H3V3zm2 2v14h14V5H5z"/>
+                </svg>
+                LeCode AI
+            </button>
+            <div class="taskbar-tabs" id="taskbarTabs">
+                <!-- Window tabs will be generated here -->
+            </div>
+            <div class="system-tray">
+                <svg class="system-tray-icon" viewBox="0 0 24 24" title="Wi-Fi">
+                    <path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z"/>
+                </svg>
+                <svg class="system-tray-icon" viewBox="0 0 24 24" title="Volume">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+                <div class="system-time" id="systemTime"></div>
+            </div>
+        </div>
+        <div class="start-menu" id="startMenu">
+            <div class="start-menu-title">LeCode AI Applications</div>
+            <div class="start-menu-apps" id="startMenuApps">
+                <!-- Start menu apps will be generated here -->
+            </div>
+        </div>
+        <div class="notification" id="notification"></div>
+    </div>
+    <script>
+        // Application data
+        const apps = [
+            { id: 1, name: "Argentum Ω", href: "https://neural-trading-apps.replit.app/ARGENTUM-TERMINAL.html", icon: "Bot", category: "omega" },
+            { id: 2, name: "Anti-Cyclic", href: "https://neural-trading-apps.replit.app/ANTI-CYCLIC-TERMINAL.html", icon: "Eye", category: "omega" },
+            { id: 3, name: "Quantum Ω", href: "https://neural-trading-apps.replit.app/QUANTUM-TERMINAL.html", icon: "Globe", category: "omega" },
+            { id: 4, name: "Compression", href: "https://neural-trading-apps.replit.app/COMPRESSION-TERMINAL.html", icon: "Shield", category: "omega" },
+            { id: 5, name: "Arg Daily", href: "https://neural-trading-apps.replit.app/trading/ARGENTUM-DAILY-FINAL%20(1).html", icon: "Terminal", category: "legacy" },
+            { id: 6, name: "Arg Intra", href: "https://neural-trading-apps.replit.app/trading/ARGENTUM-INTRADAY-FINAL%20(1).html", icon: "Search", category: "legacy" },
+            { id: 7, name: "Arg Hedge", href: "https://neural-trading-apps.replit.app/trading/HEDGING-FINAL%20(2).html", icon: "Code2", category: "legacy" },
+            { id: 8, name: "Body Slam", href: "https://neural-trading-apps.replit.app/trading/BODY-SLAM-FINAL-v2.html", icon: "FileText", category: "legacy" },
+            { id: 9, name: "Hidden Smash", href: "https://neural-trading-apps.replit.app/trading/HIDDEN-SMASH-FINAL%20(1).html", icon: "Factory", category: "legacy" },
+            { id: 10, name: "Peak Valley", href: "https://neural-trading-apps.replit.app/trading/PEAK-VALLEY-BULK-FINAL%20(1).html", icon: "Calculator", category: "legacy" },
+            { id: 11, name: "Consultus Daily", href: "https://neural-trading-apps.replit.app/trading/CONSULTUS-BULK-DAILY%20(1).html", icon: "Bot", category: "legacy" },
+            { id: 12, name: "Consultus Weekly", href: "https://neural-trading-apps.replit.app/trading/CONSULTUS-BULK-WEEKLY%20(1).html", icon: "Eye", category: "legacy" },
+            { id: 13, name: "Corpus Parvus", href: "https://neural-trading-apps.replit.app/trading/CORPUS-PARVUS%20(1).html", icon: "Globe", category: "legacy" },
+            { id: 14, name: "Denarius", href: "https://neural-trading-apps.replit.app/trading/DENARIUS-FINAL_html.html", icon: "Shield", category: "legacy" },
+            { id: 15, name: "Quantum Volume", href: "https://neural-trading-apps.replit.app/trading/QUANTUM-VOLUME-FINAL.html", icon: "Terminal", category: "legacy" },
+            { id: 16, name: "Volumina", href: "https://neural-trading-apps.replit.app/trading/VOLUMINA-FINAL%20(1).html", icon: "Search", category: "legacy" }
+        ];
+
+        // SVG Icons
+        const icons = {
+            Bot: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7v1a7 7 0 0 1-7 7H10a7 7 0 0 1-7-7v-1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2zM8 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>',
+            Eye: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M12 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0 8a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5m0-12.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5Z"/></svg>',
+            Globe: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>',
+            Shield: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>',
+            Terminal: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM4 18V8h16v10H4zm2-8h2v2H6v-2zm4 0h8v2h-8v-2zm0 4h8v2h-8v-2z"/></svg>',
+            Search: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>',
+            Code2: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M16 18l6-6-6-6-1.5 1.5L19 12l-4.5 4.5L16 18zM8 6l-6 6 6 6 1.5-1.5L5 12l4.5-4.5L8 6z"/></svg>',
+            FileText: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>',
+            Factory: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M12 3L2 12h3v8h14v-8h3L12 3zm0 7.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>',
+            Calculator: '<svg viewBox="0 0 24 24" class="icon-svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>'
+        };
+
+        // Window management
+        let windows = {};
+        let zIndex = 100;
+        let draggedWindow = null;
+        let startMenuVisible = false;
+        let activeWindow = null;
+        let isMobile = window.innerWidth <= 768;
+
+        // Detect mobile
+        function checkMobile() {
+            isMobile = window.innerWidth <= 768;
+        }
+
+        window.addEventListener('resize', checkMobile);
+
+        // Time update
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('systemTime').textContent = timeString;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Notification system
+        function showNotification(message, duration = 3000) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, duration);
+        }
+
+        function generateDesktopIcons() {
+            const desktop = document.getElementById('desktop');
+            desktop.innerHTML = '';
+
+            apps.forEach(app => {
+                const icon = document.createElement('div');
+                icon.className = `desktop-icon category-${app.category}`;
+                icon.onclick = () => openApp(app);
+
+                icon.innerHTML = `
+                    ${icons[app.icon] || icons.Bot}
+                    <div class="icon-name">${app.name}</div>
+                `;
+
+                desktop.appendChild(icon);
+            });
+        }
+
+        function generateStartMenu() {
+            const startMenuApps = document.getElementById('startMenuApps');
+            startMenuApps.innerHTML = '';
+
+            apps.forEach(app => {
+                const menuItem = document.createElement('div');
+                menuItem.className = `start-menu-app category-${app.category}`;
+                menuItem.onclick = () => {
+                    openApp(app);
+                    toggleStartMenu();
+                };
+
+                menuItem.innerHTML = `
+                    ${icons[app.icon] || icons.Bot}
+                    <div class="app-name">${app.name}</div>
+                `;
+
+                startMenuApps.appendChild(menuItem);
+            });
+        }
+
+        function updateTaskbarTabs() {
+            const taskbarTabs = document.getElementById('taskbarTabs');
+            taskbarTabs.innerHTML = '';
+
+            Object.values(windows).forEach(window => {
+                if (!window.minimized) {
+                    const tab = document.createElement('div');
+                    tab.className = `taskbar-tab ${window.element.id === activeWindow ? 'active' : ''}`;
+                    tab.onclick = () => bringToFront(window.element.id);
+
+                    const iconSvg = icons[window.app.icon] || icons.Bot;
+                    tab.innerHTML = `
+                        ${iconSvg.replace('class="icon-svg"', 'class="tab-icon"')}
+                        <div class="tab-text">${window.app.name}</div>
+                        <button class="tab-close" onclick="event.stopPropagation(); closeWindow('${window.element.id}')">×</button>
+                    `;
+
+                    taskbarTabs.appendChild(tab);
+                }
+            });
+        }
+
+        function openApp(app) {
+            const windowId = `window-${app.id}`;
+
+            if (windows[windowId]) {
+                bringToFront(windowId);
+                return;
+            }
+
+            const window = document.createElement('div');
+            window.className = 'window active';
+            window.id = windowId;
+
+            if (!isMobile) {
+                window.style.left = `${50 + (Object.keys(windows).length * 30)}px`;
+                window.style.top = `${50 + (Object.keys(windows).length * 30)}px`;
+                window.style.width = '800px';
+                window.style.height = '600px';
+            }
+
+            window.style.zIndex = ++zIndex;
+            const dragHandler = isMobile ? '' : `onmousedown="startDrag('${windowId}', event)"`;
+
+            window.innerHTML = `
+                <div class="window-header" ${dragHandler}>
+                    <div class="window-title">${app.name}</div>
+                    <div class="window-controls">
+                        ${!isMobile ? `<button class="window-control minimize" onclick="minimizeWindow('${windowId}')">−</button>` : ''}
+                        ${!isMobile ? `<button class="window-control maximize" onclick="maximizeWindow('${windowId}')">□</button>` : ''}
+                        <button class="window-control close" onclick="closeWindow('${windowId}')">×</button>
+                    </div>
+                </div>
+                <div class="window-content">
+                    <div class="window-loading">
+                        <div class="loading-spinner"></div>
+                        Loading ${app.name}...
+                    </div>
+                    <iframe class="window-iframe" src="${app.href}" frameborder="0" onload="hideLoading('${windowId}')"></iframe>
+                </div>
+            `;
+
+            document.body.appendChild(window);
+            windows[windowId] = {
+                element: window,
+                app: app,
+                minimized: false,
+                maximized: false,
+                originalSize: { width: 800, height: 600 },
+                originalPosition: { left: window.style.left, top: window.style.top }
+            };
+
+            activeWindow = windowId;
+            updateTaskbarTabs();
+            showNotification(`${app.name} opened`);
+        }
+
+        function hideLoading(windowId) {
+            const window = document.getElementById(windowId);
+            if (window) {
+                const loading = window.querySelector('.window-loading');
+                if (loading) {
+                    loading.style.display = 'none';
+                }
+            }
+        }
+
+        function closeWindow(windowId) {
+            if (windows[windowId]) {
+                const appName = windows[windowId].app.name;
+                windows[windowId].element.remove();
+                delete windows[windowId];
+
+                if (activeWindow === windowId) {
+                    activeWindow = null;
+                    let topWindow = null;
+                    let topZIndex = 0;
+                    Object.keys(windows).forEach(id => {
+                        const z = parseInt(windows[id].element.style.zIndex);
+                        if (z > topZIndex && !windows[id].minimized) {
+                            topZIndex = z;
+                            topWindow = id;
+                        }
+                    });
+                    activeWindow = topWindow;
+                }
+
+                updateTaskbarTabs();
+                showNotification(`${appName} closed`);
+            }
+        }
+
+        function minimizeWindow(windowId) {
+            if (windows[windowId] && !isMobile) {
+                windows[windowId].element.style.display = 'none';
+                windows[windowId].minimized = true;
+
+                if (activeWindow === windowId) {
+                    activeWindow = null;
+                }
+
+                updateTaskbarTabs();
+                showNotification(`${windows[windowId].app.name} minimized`);
+            }
+        }
+
+        function maximizeWindow(windowId) {
+            if (windows[windowId] && !isMobile) {
+                const window = windows[windowId].element;
+                if (windows[windowId].maximized) {
+                    window.style.width = windows[windowId].originalSize.width + 'px';
+                    window.style.height = windows[windowId].originalSize.height + 'px';
+                    window.style.left = windows[windowId].originalPosition.left;
+                    window.style.top = windows[windowId].originalPosition.top;
+                    windows[windowId].maximized = false;
+                } else {
+                    windows[windowId].originalSize = {
+                        width: parseInt(window.style.width),
+                        height: parseInt(window.style.height)
+                    };
+                    windows[windowId].originalPosition = {
+                        left: window.style.left,
+                        top: window.style.top
+                    };
+                    window.style.width = '100vw';
+                    window.style.height = 'calc(100vh - 50px)';
+                    window.style.left = '0';
+                    window.style.top = '0';
+                    windows[windowId].maximized = true;
+                }
+            }
+        }
+
+        function bringToFront(windowId) {
+            if (windows[windowId]) {
+                windows[windowId].element.style.zIndex = ++zIndex;
+                windows[windowId].element.style.display = 'block';
+                windows[windowId].minimized = false;
+                activeWindow = windowId;
+                updateTaskbarTabs();
+            }
+        }
+
+        function startDrag(windowId, event) {
+            if (isMobile) return;
+
+            draggedWindow = {
+                id: windowId,
+                startX: event.clientX,
+                startY: event.clientY,
+                startLeft: parseInt(windows[windowId].element.style.left),
+                startTop: parseInt(windows[windowId].element.style.top)
+            };
+
+            bringToFront(windowId);
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        function drag(event) {
+            if (draggedWindow && !isMobile) {
+                const deltaX = event.clientX - draggedWindow.startX;
+                const deltaY = event.clientY - draggedWindow.startY;
+
+                windows[draggedWindow.id].element.style.left = (draggedWindow.startLeft + deltaX) + 'px';
+                windows[draggedWindow.id].element.style.top = (draggedWindow.startTop + deltaY) + 'px';
+            }
+        }
+
+        function stopDrag() {
+            draggedWindow = null;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        function toggleStartMenu() {
+            const startMenu = document.getElementById('startMenu');
+            startMenuVisible = !startMenuVisible;
+            startMenu.className = startMenuVisible ? 'start-menu active' : 'start-menu';
+        }
+
+        // Click outside to close start menu
+        document.addEventListener('click', function(event) {
+            const startMenu = document.getElementById('startMenu');
+            const startButton = document.querySelector('.start-button');
+
+            if (startMenuVisible && !startMenu.contains(event.target) && !startButton.contains(event.target)) {
+                toggleStartMenu();
+            }
+        });
+
+        // Touch events for mobile
+        document.addEventListener('touchstart', function(event) {
+            const startMenu = document.getElementById('startMenu');
+            const startButton = document.querySelector('.start-button');
+
+            if (startMenuVisible && !startMenu.contains(event.target) && !startButton.contains(event.target)) {
+                toggleStartMenu();
+            }
+        });
+
+        // Initialize desktop
+        document.addEventListener('DOMContentLoaded', function() {
+            generateDesktopIcons();
+            generateStartMenu();
+            updateTaskbarTabs();
+
+            // Auto-open Code Factory as default
+            setTimeout(() => {
+                const codeFactory = apps.find(app => app.name === "Code Factory");
+                if (codeFactory) {
+                    openApp(codeFactory);
+                }
+            }, 1000);
+        });
+
+        // Keyboard shortcuts (desktop only)
+        document.addEventListener('keydown', function(event) {
+            if (!isMobile && event.altKey && event.key === 'Tab') {
+                event.preventDefault();
+                const windowIds = Object.keys(windows).filter(id => !windows[id].minimized);
+                if (windowIds.length > 1) {
+                    const currentIndex = windowIds.indexOf(activeWindow);
+                    const nextIndex = (currentIndex + 1) % windowIds.length;
+                    bringToFront(windowIds[nextIndex]);
+                }
+            }
+        });
+
+        // Prevent zoom on mobile
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('gesturechange', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('gestureend', function (e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

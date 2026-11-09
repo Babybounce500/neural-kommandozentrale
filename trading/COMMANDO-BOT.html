@@ -1,0 +1,4179 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0" name="viewport"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
+  <title>DANIEL.AI - ULTIMATE UTILITY TERMINAL v8.5 CUSTOM</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+  <!-- Syntax Highlighting (Monaco/VS Code style) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-tomorrow.min.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-html.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-javascript.min.js"></script>
+  <style>
+    :root {
+      --accent-primary: #39ff14;
+      --accent-secondary: #00e5ff;
+      --accent-danger: #ff3333;
+      --accent-warning: #ffff00;
+      --bg-terminal: #0a0a0a;
+      --sidebar-width: 320px;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, var(--bg-terminal) 0%, #1a1a1a 100%);
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    .bg-dark-custom {
+      background-color: #121212;
+      border: 1px solid #282828;
+    }
+
+    #chatHistory {
+      height: calc(70vh);
+      background-color: #000000;
+      border: 1px solid #333;
+      overflow-y: auto;
+      padding: 15px;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .msg-block {
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: rgba(255,255,255,0.02);
+      border-left: 3px solid #444;
+      position: relative;
+      scroll-margin-top: 20px;
+    }
+
+    .msg-user { border-left-color: #ffffff; color: #ffffff; font-weight: bold; }
+    .msg-system { border-left-color: var(--accent-secondary); color: var(--accent-secondary); font-weight: bold; }
+    .msg-assistant { border-left-color: var(--accent-primary); color: var(--accent-primary); }
+    .msg-error { border-left-color: var(--accent-danger); color: var(--accent-danger); font-weight: bold; }
+    .msg-contra { border-left-color: #ff007f; color: #ff007f; font-weight: bold; background-color: rgba(255,0,127,0.04); }
+    .msg-success { border-left-color: var(--accent-warning); color: var(--accent-warning); font-weight: bold; }
+
+    .terminal-text {
+      white-space: pre-wrap;
+      margin-bottom: 6px;
+      word-break: break-word;
+      line-height: 1.6;
+    }
+
+    /* Markdown Rendering */
+    .terminal-text h1, .terminal-text h2, .terminal-text h3 {
+      color: var(--accent-primary);
+      margin: 12px 0 8px 0;
+      font-weight: bold;
+    }
+
+    .terminal-text h1 { font-size: 1.4em; }
+    .terminal-text h2 { font-size: 1.2em; }
+    .terminal-text h3 { font-size: 1.1em; }
+
+    .terminal-text ul, .terminal-text ol {
+      margin: 8px 0 8px 20px;
+      padding-left: 20px;
+    }
+
+    .terminal-text li {
+      margin: 4px 0;
+    }
+
+    .terminal-text code {
+      background: #1a1a1a;
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: var(--accent-secondary);
+      font-family: 'Fira Code', monospace;
+    }
+
+    .terminal-text pre {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 12px;
+      margin: 8px 0;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .code-block {
+      background: #1e1e1e;
+      border: 1px solid #39ff14;
+      border-radius: 6px;
+      padding: 0;
+      margin: 10px 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .code-header {
+      background: #1a1a1a;
+      padding: 8px 12px;
+      border-bottom: 1px solid #39ff14;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--accent-primary);
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .code-content {
+      padding: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: #d4d4d4;
+      overflow-x: auto;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .code-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .code-btn {
+      background: transparent;
+      border: 1px solid var(--accent-primary);
+      color: var(--accent-primary);
+      padding: 4px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 10px;
+      transition: all 0.2s;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .code-btn:hover {
+      background: var(--accent-primary);
+      color: #000;
+      box-shadow: 0 0 8px var(--accent-primary);
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding-top: 5px;
+      margin-top: 5px;
+    }
+
+    .btn-utility {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      padding: 2px 6px;
+      background: #222;
+      border: 1px solid #444;
+      color: #ffffff;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .btn-utility:hover {
+      background: var(--accent-primary);
+      color: #000;
+      border-color: var(--accent-primary);
+    }
+
+    #userPrompt {
+      font-family: 'Fira Code', monospace;
+      font-weight: 500;
+      background-color: #000000;
+      color: #ffffff;
+      border: 2px solid #444;
+      font-size: 14px;
+    }
+
+    #userPrompt::placeholder {
+      color: #ffffff !important;
+    }
+
+    #userPrompt:focus {
+      background-color: #050505;
+      color: #ffffff;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 12px rgba(57, 255, 20, 0.4);
+    }
+
+    /* BURGER SIDEBAR STYLES */
+    .custom-sidebar {
+      background-color: #080808 !important;
+      border-left: 2px solid #1a1a1a;
+      width: var(--sidebar-width) !important;
+    }
+
+    .sidebar-header-title {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--accent-primary);
+      font-weight: 900;
+      letter-spacing: 2px;
+      font-size: 13px;
+      text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+    }
+
+    .burger-btn {
+      background: transparent;
+      border: 1px solid var(--accent-primary);
+      color: var(--accent-primary);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      padding: 6px 14px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 1px;
+    }
+
+    .burger-btn:hover {
+      background: var(--accent-primary);
+      color: #000;
+      box-shadow: 0 0 12px rgba(57, 255, 20, 0.5);
+    }
+
+    .category-header {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      color: var(--accent-secondary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 8px 0 4px 0;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      margin-bottom: 6px;
+      margin-top: 12px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .category-header:first-of-type {
+      margin-top: 4px;
+    }
+
+    .category-header:hover {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .category-toggle-icon {
+      font-size: 9px;
+      transition: transform 0.2s;
+    }
+
+    .category-toggle-icon.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .category-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-bottom: 4px;
+    }
+
+    .cmd-badge {
+      background-color: #111;
+      border: 1px solid #252525;
+      padding: 4px 7px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-family: 'Fira Code', monospace;
+      font-weight: 500;
+      display: inline-block;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: #ffffff;
+    }
+
+    .cmd-badge:hover {
+      background-color: #1a1a1a;
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+      box-shadow: 0 0 6px rgba(57, 255, 20, 0.3);
+    }
+
+    .cmd-badge.hidden-cmd {
+      border-color: #1a1a1a;
+      color: #ffffff;
+      font-style: italic;
+    }
+
+    .cmd-badge.hidden-cmd:hover {
+      color: var(--accent-warning);
+      border-color: var(--accent-warning);
+      box-shadow: 0 0 6px rgba(255, 255, 0, 0.2);
+    }
+
+    .advanced-toggle {
+      width: 100%;
+      background: rgba(255, 255, 0, 0.03);
+      border: 1px dashed #333;
+      color: var(--accent-warning);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      padding: 6px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      margin-top: 14px;
+      text-align: left;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .advanced-toggle:hover {
+      background: rgba(255, 255, 0, 0.08);
+      border-color: var(--accent-warning);
+    }
+
+    .sidebar-divider {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      margin: 10px 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MOBILE — Full-Viewport Terminal (iOS Safari + Android)
+       ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      /* — Body: full screen, no overflow, flex column — */
+      html, body {
+        height: 100%;
+        height: 100dvh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* — Navbar: shrink to minimum — */
+      nav.navbar {
+        flex-shrink: 0;
+        padding: 6px 10px !important;
+        min-height: 46px;
+      }
+      .navbar-brand {
+        font-size: 11px !important;
+        letter-spacing: 1px;
+      }
+      .burger-btn {
+        padding: 5px 10px;
+        font-size: 10px;
+      }
+
+      /* — Main container: fill all remaining height — */
+      .container-fluid {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        padding: 0 !important;
+        margin-top: 0 !important;
+      }
+
+      .bg-dark-custom {
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-radius: 0 !important;
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+      }
+
+      /* — Terminal area: fills viewport, scroll inside — */
+      #chatHistory {
+        flex: 1 1 0;
+        height: auto !important;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        font-size: 13.5px;
+        line-height: 1.65;
+        padding: 12px 10px;
+        border: none !important;
+        border-bottom: 1px solid #222 !important;
+        border-radius: 0 !important;
+      }
+
+      /* — Messages: bigger, more breathing room — */
+      .msg-block {
+        margin-bottom: 14px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        border-left-width: 4px;
+      }
+
+      .terminal-text {
+        font-size: 13.5px;
+        line-height: 1.65;
+        word-break: break-word;
+        overflow-wrap: break-word;
+      }
+
+      /* Code blocks: horizontal scroll instead of wrap */
+      .terminal-text code, pre {
+        font-size: 12px;
+        overflow-x: auto;
+        display: block;
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* COPY button: smaller, less intrusive */
+      .action-bar {
+        padding-top: 6px;
+        margin-top: 6px;
+      }
+      .btn-utility {
+        font-size: 8px;
+        padding: 2px 5px;
+        opacity: 0.5;
+      }
+
+      /* — Input area: sticky bottom, safe-area aware — */
+      .input-group {
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        padding: 8px 8px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        background: #080808;
+        border-top: 1px solid #2a2a2a;
+        gap: 6px;
+        margin-bottom: 0 !important;
+      }
+
+      /* Full-width text input row */
+      #userPrompt {
+        flex: 1 1 auto;
+        font-size: 16px !important; /* prevent iOS auto-zoom */
+        min-height: 44px;
+        padding: 8px 12px;
+        border-radius: 6px !important;
+        background: #111;
+        border-color: #333;
+      }
+      #userPrompt:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 2px rgba(57,255,20,0.2);
+      }
+
+      /* Upload + Execute buttons */
+      .upload-btn {
+        flex-shrink: 0;
+        min-height: 44px;
+        font-size: 10px;
+        padding: 0 10px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+      }
+
+      #sendButton {
+        flex-shrink: 0;
+        min-height: 44px;
+        font-size: 11px;
+        font-weight: 900;
+        padding: 0 14px;
+        border-radius: 6px !important;
+        letter-spacing: 0.5px;
+      }
+
+      /* Sidebar full-width on mobile */
+      .custom-sidebar {
+        width: 92% !important;
+        max-width: 380px;
+      }
+
+      /* Charts and iframes: max out width */
+      canvas {
+        max-width: 100% !important;
+        height: auto !important;
+      }
+      iframe {
+        max-width: 100% !important;
+        height: 320px !important;
+      }
+
+      /* Agentic panel: readable on small screen */
+      .msg-success div[style*="font-family:monospace"] {
+        font-size: 11px !important;
+      }
+    }
+
+    /* Extra small — phones under 380px */
+    @media (max-width: 380px) {
+      #chatHistory {
+        font-size: 12.5px;
+      }
+      .terminal-text {
+        font-size: 12.5px;
+      }
+      .navbar-brand {
+        font-size: 9px !important;
+      }
+    }
+
+    .media-container {
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    .media-container img, .media-container video, .media-container audio {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 4px;
+      border: 1px solid var(--accent-primary);
+      display: inline-block;
+    }
+
+    .qr-container { text-align: center; margin: 8px 0; }
+    .qr-container img { max-width: 180px; border: 1px solid var(--accent-primary); }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--accent-primary);
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .upload-btn {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      padding: 6px 12px;
+      background: #222;
+      border: 1px solid #444;
+      color: var(--accent-primary);
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+
+    .upload-btn:hover {
+      background: var(--accent-primary);
+      color: #000;
+      border-color: var(--accent-primary);
+    }
+
+    .timer-display {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--accent-primary);
+      text-align: center;
+      padding: 10px;
+      background: rgba(57, 255, 20, 0.1);
+      border: 1px solid var(--accent-primary);
+      border-radius: 4px;
+      margin: 10px 0;
+      font-family: 'Orbitron', monospace;
+    }
+
+    .break-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #000000;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .break-text {
+      font-size: 48px;
+      color: var(--accent-primary);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .break-timer {
+      font-size: 72px;
+      color: var(--accent-secondary);
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+
+    .break-info {
+      font-size: 18px;
+      color: #ffffff;
+      text-align: center;
+      max-width: 400px;
+    }
+    /* ── MONACO-STYLE CODE BLOCKS ────────────────────────────────────── */
+    .monaco-block {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      margin: 8px 0;
+      overflow: hidden;
+      font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    }
+    .monaco-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 12px;
+      background: #2d2d2d;
+      border-bottom: 1px solid #3a3a3a;
+      user-select: none;
+    }
+    .monaco-lang {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-family: monospace;
+    }
+    .monaco-actions { display: flex; gap: 6px; }
+    .monaco-btn {
+      background: #3a3a3a;
+      border: 1px solid #555;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 3px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: monospace;
+      transition: background 0.15s;
+    }
+    .monaco-btn:hover { background: #505050; color: #fff; }
+    .monaco-run { color: #39ff14 !important; border-color: #2a7a2a !important; }
+    .monaco-run:hover { background: #1a3a1a !important; }
+    .monaco-pre {
+      margin: 0;
+      padding: 14px 16px;
+      overflow-x: auto;
+      background: #1e1e1e !important;
+      max-height: 500px;
+    }
+    .monaco-code {
+      font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace !important;
+      font-size: 12px !important;
+      line-height: 1.65 !important;
+      background: transparent !important;
+      padding: 0 !important;
+    }
+    /* AI prose text between code blocks */
+    .ai-prose {
+      white-space: pre-wrap;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #d4d4d4;
+      padding: 2px 0;
+    }
+    .ai-prose strong { color: #fff; font-weight: 700; }
+    .ai-prose code {
+      background: #2d2d2d;
+      color: #ce9178;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 11px;
+    }
+    .ai-prose h1 {
+      color: #39ff14;
+      font-size: 1.4em;
+      font-weight: bold;
+      margin: 12px 0 8px 0;
+      letter-spacing: 1px;
+    }
+    .ai-prose h2 {
+      color: #00e5ff;
+      font-size: 1.2em;
+      font-weight: bold;
+      margin: 10px 0 6px 0;
+      letter-spacing: 0.5px;
+    }
+    .ai-prose h3 {
+      color: #ffff00;
+      font-size: 1.1em;
+      font-weight: bold;
+      margin: 8px 0 4px 0;
+    }
+  </style>
+
+  <style>
+/* ════════════════════════════════════════════════════════════════════ */
+/* MOBILE RESPONSIVE - Surgical additions for iOS/Android */
+/* ════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --safe-top: max(env(safe-area-inset-top), 8px);
+  --safe-bottom: max(env(safe-area-inset-bottom), 8px);
+  --safe-left: max(env(safe-area-inset-left), 8px);
+  --safe-right: max(env(safe-area-inset-right), 8px);
+}
+
+html, body {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ──── MOBILE: < 768px ──── */
+@media (max-width: 767px) {
+  body {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Sidebar badges - prevent overflow */
+  #sidebarBadgesContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    word-break: break-word;
+  }
+
+  .cmd-badge {
+    font-size: 9px !important;
+    padding: 3px 5px !important;
+    flex: 0 1 auto;
+    max-width: 100%;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  #chatHistory {
+    height: calc(100vh - 160px);
+    padding: 8px var(--safe-left);
+    font-size: 12px;
+    margin-top: var(--safe-top);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .input-group {
+    position: fixed;
+    bottom: var(--safe-bottom);
+    left: var(--safe-left);
+    right: var(--safe-right);
+    z-index: 1000;
+    margin: 0;
+    background: #1a1a1a;
+    padding: 8px 0;
+  }
+
+  #userPrompt {
+    font-size: 14px;
+    padding: 10px 10px;
+    height: 44px;
+    border-radius: 4px;
+  }
+
+  .btn, .btn-success, .upload-btn {
+    font-size: 12px;
+    padding: 8px 6px;
+    height: 44px;
+    min-width: 44px;
+  }
+
+  .btn-span-title {
+    display: none !important;
+  }
+
+  /* DROPUP AutoComplete - nach oben! */
+  #autocompleteDropdown {
+    position: fixed !important;
+    bottom: 100% !important;
+    top: auto !important;
+    left: var(--safe-left) !important;
+    right: var(--safe-right) !important;
+    border-radius: 6px 6px 0 0 !important;
+    border-bottom: 1px solid #39ff14 !important;
+    max-height: 240px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .msg-block {
+    margin-bottom: 6px;
+    padding: 8px;
+    font-size: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  #miniChartContainer {
+    display: none !important;
+  }
+
+  .container {
+    padding: 0 !important;
+  }
+
+  /* Code blocks */
+  pre {
+    font-size: 10px;
+    padding: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  code {
+    font-size: 10px;
+  }
+}
+
+/* ──── TABLET: 768px - 1024px ──── */
+@media (min-width: 768px) and (max-width: 1024px) {
+  #chatHistory {
+    height: calc(100vh - 200px);
+    font-size: 13px;
+  }
+
+  #userPrompt {
+    font-size: 13px;
+    height: 42px;
+  }
+
+  .btn, .btn-success, .upload-btn {
+    font-size: 11px;
+    height: 42px;
+  }
+
+  .msg-block {
+    font-size: 12px;
+    padding: 9px;
+  }
+
+  pre {
+    font-size: 11px;
+  }
+
+  .btn-span-title {
+    display: inline !important;
+    font-size: 9px;
+  }
+}
+
+/* ──── LANDSCAPE: < 500px height ──── */
+@media (max-height: 500px) {
+  #chatHistory {
+    height: calc(100vh - 140px);
+  }
+
+  .msg-block {
+    margin-bottom: 3px;
+    padding: 4px;
+    font-size: 11px;
+  }
+
+  .input-group {
+    bottom: 0;
+  }
+}
+
+/* ──── SMOOTH SCROLLING ──── */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #39ff14;
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #4dff1f;
+}
+
+/* ──── TOUCH OPTIMIZATION ──── */
+@media (hover: none) and (pointer: coarse) {
+  button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s;
+  }
+}
+
+/* ──── PREVENT INPUT AUTO-ZOOM on iOS ──── */
+input, textarea, select {
+  font-size: 16px;
+}
+
+/* ──── SAFE AREA SUPPORT ──── */
+@supports (padding: max(0px)) {
+  #chatHistory {
+    padding-right: max(8px, var(--safe-right));
+    padding-left: max(8px, var(--safe-left));
+  }
+
+  .input-group {
+    padding-bottom: max(4px, calc(var(--safe-bottom) + 4px));
+  }
+}
+
+/* ──── COMMAND INPUT MODAL STYLES ──── */
+#commandModal {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Desktop: centered modal */
+@media (min-width: 768px) {
+  #commandModal {
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(0,0,0,0.8) !important;
+  }
+
+  #commandModal > div {
+    min-width: 400px;
+    max-width: 500px;
+    max-height: 70vh;
+    border-radius: 8px;
+  }
+}
+
+/* Tablet: bottom sheet */
+@media (min-width: 481px) and (max-width: 767px) {
+  #commandModal > div {
+    width: 90%;
+    margin: 0 auto;
+    max-height: 60vh;
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+/* Mobile: full-width bottom sheet */
+@media (max-width: 480px) {
+  #commandModal > div {
+    width: 100%;
+    max-height: 75vh;
+    border-radius: 16px 16px 0 0;
+    padding: 14px 14px !important;
+  }
+
+  #commandModal input[type="text"] {
+    font-size: 16px !important;
+    padding: 12px !important;
+  }
+
+  #commandModal button {
+    padding: 12px 14px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* Landscape mode */
+@media (max-height: 600px) {
+  #commandModal > div {
+    max-height: 85vh;
+    padding: 12px;
+  }
+
+  #commandModal input[type="text"] {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  #commandModal button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Very small devices */
+@media (max-width: 360px) {
+  #commandModal > div {
+    padding: 12px 10px !important;
+  }
+
+  #modalCmdName {
+    font-size: 12px !important;
+  }
+
+  #modalCmdHelp {
+    font-size: 10px !important;
+  }
+
+  #commandModal input[type="text"] {
+    font-size: 14px !important;
+    padding: 10px !important;
+  }
+}
+
+/* Touch devices */
+@media (hover: none) and (pointer: coarse) {
+  #commandModal button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px !important;
+  }
+
+  #commandModal input[type="text"] {
+    min-height: 44px;
+  }
+}
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR WITH BURGER TRIGGER -->
+  <nav class="navbar navbar-dark bg-black border-bottom border-secondary px-3 d-flex justify-content-between align-items-center">
+    <span class="navbar-brand mb-0 h1 text-success fw-bold" style="font-size: 12px; letter-spacing: 1px;">
+      ⚡ DANIEL.AI // TERMINAL v8.5
+    </span>
+    <button class="burger-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarCommands" aria-controls="sidebarCommands">
+      ☰ COMMANDS
+    </button>
+  </nav>
+
+  <!-- OFFCANVAS SIDEBAR -->
+  <div class="offcanvas offcanvas-end custom-sidebar text-white" tabindex="-1" id="sidebarCommands" aria-labelledby="sidebarLabel">
+    <div class="offcanvas-header border-bottom" style="border-color: #1a1a1a !important;">
+      <h5 class="offcanvas-title sidebar-header-title" id="sidebarLabel">⚙️ COMMAND CONSOLE</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body" style="overflow-y: auto; padding: 12px 14px;">
+      <p style="color: #ffffff; font-family: 'Fira Code', monospace; font-size: 10px; margin-bottom: 10px;">// Klicken → Befehl im Terminal einfügen</p>
+      <div id="sidebarBadgesContainer"></div>
+    </div>
+  </div>
+
+  <!-- MAIN TERMINAL -->
+  <div class="container-fluid mt-3">
+    <div class="bg-dark-custom p-3 rounded shadow-lg">
+
+      <div class="rounded" id="chatHistory"></div>
+
+      <div class="input-group mb-2" style="position:relative;">
+        <input autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="form-control" id="userPrompt" placeholder="$ Befehl eingeben... (chat Hallo, img [url], heikin SAP.XETRA)" type="text"/>
+        <!-- AutoComplete Dropdown -->
+        <div id="autocompleteDropdown" style="
+          display:none;
+          position:absolute;
+          top:100%;
+          left:0;
+          right:0;
+          background:#1a1a1a;
+          border:1px solid #39ff14;
+          border-top:none;
+          border-radius:0 0 6px 6px;
+          max-height:300px;
+          overflow-y:auto;
+          z-index:1000;
+          box-shadow:0 4px 12px rgba(57,255,20,0.2);
+        "></div>
+        <input type="file" id="fileInput" accept="image/*,video/*,audio/*,.pdf"/>
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📁 UPLOAD</button>
+        <button class="btn btn-success fw-bold" id="sendButton">> EXECUTE</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── FULLSCREEN IFRAME MODAL (Mobile) ─────────────────────────── -->
+  <div id="iframeModal" style="
+    display:none; position:fixed; inset:0; z-index:10000;
+    background:#000; flex-direction:column;
+    -webkit-overflow-scrolling:touch;
+  ">
+    <!-- Header bar -->
+    <div style="
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 14px; background:#0d0d0d;
+      border-bottom:2px solid #39ff14;
+      flex-shrink:0; min-height:48px;
+    ">
+      <div style="display:flex;align-items:center;gap:8px;overflow:hidden;">
+        <span style="color:#39ff14;font-size:14px;">⬛</span>
+        <span id="iframeModalTitle" style="
+          color:#39ff14; font-family:monospace; font-size:12px;
+          font-weight:700; letter-spacing:1px;
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60vw;
+        ">DANIEL.AI</span>
+      </div>
+      <button onclick="closeIframeModal()" style="
+        background:#111; border:1px solid #333; color:#fff;
+        padding:6px 16px; border-radius:6px; font-size:16px;
+        cursor:pointer; font-weight:700; line-height:1;
+        -webkit-tap-highlight-color:transparent;
+        flex-shrink:0;
+      ">✕ Zurück</button>
+    </div>
+    <!-- iFrame fills remaining height -->
+    <iframe id="iframeModalFrame" src=""
+      style="flex:1; width:100%; border:none; background:#000; display:block;"
+      allow="fullscreen" loading="lazy">
+    </iframe>
+  <!-- ── COMMAND INPUT MODAL (Mobile-friendly) ─────────────────────────── -->
+  <div id="commandModal" style="
+    display:none; position:fixed; inset:0; z-index:9999;
+    background:rgba(0,0,0,0.7); flex-direction:column;
+    justify-content:flex-end; padding:0;
+  ">
+    <div style="
+      background:#0d0d0d; border-top:2px solid #39ff14;
+      border-radius:12px 12px 0 0; padding:16px;
+      max-width:100%; max-height:80vh; overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+    ">
+      <!-- Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div>
+          <div style="color:#39ff14; font-weight:bold; font-size:14px; font-family:Orbitron,sans-serif;">
+            $ <span id="modalCmdName">command</span>
+          </div>
+          <div style="color:#aaa; font-size:11px; margin-top:4px;" id="modalCmdHelp"></div>
+        </div>
+        <button onclick="closeCommandModal()" style="
+          background:transparent; border:1px solid #444; color:#fff;
+          padding:8px 12px; border-radius:4px; cursor:pointer; font-size:18px;
+          -webkit-tap-highlight-color:transparent;
+        ">✕</button>
+      </div>
+
+      <!-- Input Fields -->
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+        <input type="text" id="modalInput1" placeholder="Argument 1" style="
+          background:#1a1a1a; border:1px solid #333; color:#fff;
+          padding:10px 12px; border-radius:4px; font-family:monospace;
+          font-size:13px;
+        "/>
+        <input type="text" id="modalInput2" placeholder="Argument 2 (optional)" style="
+          background:#1a1a1a; border:1px solid #333; color:#fff;
+          padding:10px 12px; border-radius:4px; font-family:monospace;
+          font-size:13px; display:none;
+        "/>
+        <input type="text" id="modalInput3" placeholder="Argument 3 (optional)" style="
+          background:#1a1a1a; border:1px solid #333; color:#fff;
+          padding:10px 12px; border-radius:4px; font-family:monospace;
+          font-size:13px; display:none;
+        "/>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button onclick="executeCommandModal()" style="
+          flex:1; min-width:120px; background:#39ff14; color:#000;
+          border:none; padding:10px 16px; border-radius:4px;
+          font-weight:bold; font-size:13px; cursor:pointer;
+          font-family:Orbitron,sans-serif;
+          -webkit-tap-highlight-color:transparent;
+        ">▶ EXECUTE</button>
+        <button onclick="closeCommandModal()" style="
+          flex:1; min-width:120px; background:transparent; color:#fff;
+          border:1px solid #444; padding:10px 16px; border-radius:4px;
+          font-size:13px; cursor:pointer;
+          -webkit-tap-highlight-color:transparent;
+        ">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS für Offcanvas -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    let chatHistory = [];
+    let cmdContext  = [];   // rolling buffer (legacy compat)
+    let commandHistory = [];
+    let historyIndex = -1;
+    let countdownTimer = null;
+    let breakActive = false;
+    const PROXY_URL = 'https://theserver-open-ai.replit.app';
+    let maxTokens = 2000;   // GPT + Claude max output tokens (settable via "tokens [n]")
+
+    // ── RAG SYSTEM PROMPT (daniel2-Logik) ───────────────────────────────
+    const DANIEL_SYSTEM_PROMPT = `Du bist DANIEL.AI — ein Senior Finanzmarkt-Experte und KI-Assistent mit 20+ Jahren Erfahrung.
+
+Du hast Zugriff auf alle Terminal-Analysen die der Nutzer ausgeführt hat (RSI, Heikin-Ashi, Macro-Dashboard, Broker-Signale, Hedge-Levels, Pivot-Punkte, Shell-Outputs etc.).
+
+WICHTIGE REGELN:
+1. Nutze ALLE bisherigen Terminal-Analysen als Datengrundlage — zitiere konkrete Zahlen
+2. Erstelle konkrete Empfehlungen mit Entry, Stop-Loss und Kursziel wenn Finance-Daten vorhanden
+3. Erkläre dein Reasoning basierend auf den echten Marktdaten
+4. Kombiniere mehrere Signale wenn möglich (RSI + Trend + News = stärkere These)
+5. Gib Risk/Reward-Verhältnisse an
+6. Antworte auf Deutsch, präzise und datengetrieben
+7. Wenn keine Analyse-Daten vorliegen: beantworte die Frage normal
+
+Du bist KEIN generischer Chatbot — du bist ein datenbewusster Finanz-Analyst der die Terminal-Outputs kennt und nutzt.`;
+
+    // ── ANALYSIS CONTEXT STORE ──────────────────────────────────────────
+    // Stores clean plain-text outputs of all finance/shell commands
+    // Each entry: { role: 'assistant', content: plainText, _isAnalysis: true, cmd: 'rsi', ts: Date }
+    function pushAnalysis(cleanText, cmdLabel = '') {
+        if (!cleanText || cleanText.length < 30) return;
+        chatHistory.push({
+            role: 'assistant',
+            content: cleanText,
+            _isAnalysis: true,
+            _cmd: cmdLabel,
+            _ts: new Date().toLocaleTimeString('de-DE')
+        });
+        // Also update legacy cmdContext
+        cmdContext.push(cleanText.substring(0, 600));
+        if (cmdContext.length > 8) cmdContext.shift();
+    }
+
+    // ── RAG CONTEXT BUILDER (daniel2-Muster) ───────────────────────────
+    function buildRagPrompt(userMessage) {
+        const analyses = chatHistory.filter(m => m._isAnalysis);
+        if (analyses.length === 0) return userMessage;
+
+        const analysisBlock = analyses
+            .slice(-15) // Max 15 analysis entries
+            .map(m => {
+                const label = m._cmd ? `[${m._cmd.toUpperCase()} — ${m._ts}]` : `[ANALYSE — ${m._ts}]`;
+                return `${label}\n${m.content}`;
+            })
+            .join('\n\n---\n\n');
+
+        return `📊 AKTUELLE TERMINAL-ANALYSEN (${analyses.length} Ergebnisse):
+
+${analysisBlock}
+
+═══════════════════════════════════════
+
+BENUTZER-FRAGE: ${userMessage}
+
+Nutze die obigen Terminal-Analysen als Grundlage. Beziehe dich konkret auf Zahlen und Signale.`;
+    }
+
+    // ── CONVERSATION HISTORY (clean, no analysis clutter) ──────────────
+    function getConvMessages() {
+        return chatHistory
+            .filter(m => !m._isAnalysis)
+            .slice(-12);
+    }
+
+    const chatHistoryElement = document.getElementById("chatHistory");
+    const userPromptElement = document.getElementById("userPrompt");
+    const sendButton = document.getElementById("sendButton");
+    const fileInput = document.getElementById("fileInput");
+
+    const allCommands = [
+      // ── AI & CHAT ──────────────────────────────────────────────────────
+      { cmd: "chat",        args: "[message]",        cat: "🤖 AI & Chat" },
+      { cmd: "claude",      args: "[message]",        cat: "🤖 AI & Chat" },
+      { cmd: "code",        args: "[prompt]",         cat: "💻 Code Gen" },
+      { cmd: "mistral",     args: "[message]",        cat: "🤖 AI & Chat" },      { cmd: "web",         args: "[query]",          cat: "🤖 AI & Chat" },
+      // ── FINANCE (Marktdaten & Charting) ────────────────────────────────
+      { cmd: "heikin",      args: "[symbol]",         cat: "📊 Finance" },
+      { cmd: "broker",      args: "[sym] [method]",   cat: "📊 Finance" },
+      { cmd: "ticker",      args: "[exchange]",       cat: "📊 Finance" },
+      { cmd: "funds",       args: "[fund-id]",        cat: "📊 Finance" },      { cmd: "fx",          args: "[amt] [fr] [to]",  cat: "📊 Finance",     hidden: true },
+      // ── FINTECH PRO (Market Intelligence) ──────────────────────────────
+      { cmd: "news",        args: "[ticker]",         cat: "📈 Fintech Pro" },
+      { cmd: "alert",       args: "",                 cat: "📈 Fintech Pro" },
+      { cmd: "macro",       args: "",                 cat: "📈 Fintech Pro" },
+      { cmd: "regime",      args: "",                 cat: "📈 Fintech Pro" },
+      { cmd: "hedge",       args: "[ticker]",         cat: "📈 Fintech Pro",  hidden: true },
+      { cmd: "split",       args: "[ticker]",         cat: "📈 Fintech Pro",  hidden: true },
+      { cmd: "pivot",       args: "[ticker]",         cat: "📈 Fintech Pro",  hidden: true },
+      { cmd: "range",       args: "[ticker]",         cat: "📈 Fintech Pro",  hidden: true },
+      { cmd: "rsi",         args: "[ticker]",         cat: "📈 Fintech Pro",  hidden: true },
+      // ── DEV TOOLS ──────────────────────────────────────────────────────
+      // ── DESIGN & COLOR ─────────────────────────────────────────────────
+      // ── UTILITIES ──────────────────────────────────────────────────────
+      { cmd: "calc",        args: "[expr]",           cat: "⚙️ Utilities" },      // ── MEDIA ──────────────────────────────────────────────────────────
+      // ── OFFICE ─────────────────────────────────────────────────────────
+      // ── AGENTIC ────────────────────────────────────────────────────────      // ── SYSTEM ─────────────────────────────────────────────────────────
+      { cmd: "clear",       args: "",                 cat: "🔧 System" },
+    ];
+
+    window.onload = function() {
+        logToTerminal("system", `# ⚡ DANIEL.AI ENGINE v8.5 ULTRA-LEAN EDITION\n\n## 📊 CORE CAPABILITIES\n✓ **20 Commands** - Finance + LLM + Math focused\n✓ **LLM Models:** OpenAI · Claude · Mistral\n✓ **Finance/Trading:** heikin · broker · ticker · funds · fx\n✓ **Fintech Pro:** news · alert · macro · regime · hedge · split · pivot · range · rsi\n✓ **Math/Calc:** calc\n\n## 🎯 QUICK START\n\`\`\`\ncalc 2+2              → Math expressions\nheikin SAP.XETRA      → Candlestick analysis\nfx 100 EUR USD        → Currency conversion\nchat [message]        → OpenAI GPT\nclaude [message]      → Claude AI\ncode [prompt]         → Code generation\nmacro                 → Market macro analysis\nalert                 → Market alerts\n\`\`\`\n\n**☰ COMMANDS** (Burger Menu) to browse all 20 commands!`);
+        renderSidebarBadges();
+    };
+
+    // ════════════════════════════════════════════════════════════════════════════════
+    // ──── AUTOCOMPLETE + COMMAND HISTORY (LocalStorage) ────────────────────────────
+    // ════════════════════════════════════════════════════════════════════════════════
+
+    const CommandHistory = {
+        MAX_ITEMS: 25,
+        STORAGE_KEY: 'daniel_command_history',
+
+        get() {
+            const stored = localStorage.getItem(this.STORAGE_KEY);
+            return stored ? JSON.parse(stored) : [];
+        },
+
+        add(command) {
+            if (!command.trim()) return;
+            const history = this.get();
+            // Remove duplicates (keep most recent)
+            const filtered = history.filter(h => h.cmd !== command);
+            // Add new with timestamp
+            const updated = [
+                { cmd: command, ts: Date.now() },
+                ...filtered
+            ].slice(0, this.MAX_ITEMS);
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+        },
+
+        clear() {
+            localStorage.removeItem(this.STORAGE_KEY);
+        }
+    };
+
+    // AutoComplete Dropdown Manager
+    const AutoComplete = {
+        dropdown: document.getElementById('autocompleteDropdown'),
+        input: userPromptElement,
+        selectedIndex: -1,
+        filteredItems: [],
+
+        init() {
+            this.input.addEventListener('input', () => this.onInput());
+            this.input.addEventListener('focus', () => this.onFocus());
+            this.input.addEventListener('blur', () => setTimeout(() => this.hide(), 200));
+            this.input.addEventListener('keydown', (e) => this.onKeydown(e));
+            document.addEventListener('click', (e) => {
+                if (e.target !== this.input && e.target !== this.dropdown) {
+                    this.hide();
+                }
+            });
+        },
+
+        onInput() {
+            const query = this.input.value.trim();
+            if (!query) {
+                this.showHistory();
+                return;
+            }
+            this.filterAndShow(query);
+        },
+
+        onFocus() {
+            const query = this.input.value.trim();
+            if (!query) {
+                this.showHistory();
+            } else {
+                this.filterAndShow(query);
+            }
+        },
+
+        showHistory() {
+            const history = CommandHistory.get();
+            if (history.length === 0) {
+                this.hide();
+                return;
+            }
+            this.filteredItems = history.map(h => h.cmd);
+            this.render(true);
+        },
+
+        filterAndShow(query) {
+            // Fuzzy match: "ch h" → matches "chat hallo"
+            const words = query.split(/\s+/);
+            const allCmds = allCommands.map(c => c.cmd);
+            const history = CommandHistory.get().map(h => h.cmd);
+
+            // Combine: recent history first, then all commands
+            const combined = [...new Set([...history, ...allCmds])];
+
+            this.filteredItems = combined.filter(cmd => {
+                return words.every(word => cmd.toLowerCase().includes(word.toLowerCase()));
+            });
+
+            this.render(false);
+        },
+
+        render(isHistory) {
+            this.dropdown.innerHTML = '';
+            this.selectedIndex = -1;
+
+            if (this.filteredItems.length === 0) {
+                this.hide();
+                return;
+            }
+
+            const section = document.createElement('div');
+            section.style.cssText = 'padding:8px;color:#999;font-size:9px;letter-spacing:1px;border-bottom:1px solid #333;';
+            section.textContent = isHistory ? '⏱ RECENT' : '🔍 MATCHING';
+            this.dropdown.appendChild(section);
+
+            this.filteredItems.slice(0, 12).forEach((cmd, idx) => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.style.cssText = `
+                  padding:10px 12px;
+                  cursor:pointer;
+                  border-bottom:1px solid #222;
+                  color:#d4d4d4;
+                  font-family:monospace;
+                  font-size:12px;
+                  transition:all 0.15s;
+                  user-select:none;
+                `;
+
+                item.textContent = '$ ' + cmd;
+                item.onmouseover = () => {
+                    this.selectedIndex = idx;
+                    this.highlightSelected();
+                };
+                item.onclick = () => {
+                    this.select(cmd);
+                };
+
+                this.dropdown.appendChild(item);
+            });
+
+            this.show();
+        },
+
+        onKeydown(e) {
+            if (this.dropdown.style.display === 'none') return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                this.selectedIndex = (this.selectedIndex + 1) % this.filteredItems.length;
+                this.highlightSelected();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                this.selectedIndex = (this.selectedIndex - 1 + this.filteredItems.length) % this.filteredItems.length;
+                this.highlightSelected();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (this.selectedIndex >= 0) {
+                    this.select(this.filteredItems[this.selectedIndex]);
+                }
+            } else if (e.key === 'Escape') {
+                this.hide();
+            }
+        },
+
+        highlightSelected() {
+            const items = this.dropdown.querySelectorAll('.autocomplete-item');
+            items.forEach((item, idx) => {
+                if (idx === this.selectedIndex) {
+                    item.style.background = 'rgba(57, 255, 20, 0.1)';
+                    item.style.borderLeft = '3px solid #39ff14';
+                    item.style.paddingLeft = '9px';
+                } else {
+                    item.style.background = 'transparent';
+                    item.style.borderLeft = 'none';
+                    item.style.paddingLeft = '12px';
+                }
+            });
+        },
+
+        select(cmd) {
+            this.input.value = cmd + ' ';
+            CommandHistory.add(cmd);
+            this.hide();
+            this.input.focus();
+        },
+
+        show() {
+            this.dropdown.style.display = 'block';
+        },
+
+        hide() {
+            this.dropdown.style.display = 'none';
+        }
+    };
+
+    // ════════════════════════════════════════════════════════════════════
+    // MOBILE AUTOFILL + SUGGESTIONS
+    // ════════════════════════════════════════════════════════════════════
+    const MobileAutofill = {
+      isMobile: /iPhone|iPad|iPod|Android/.test(navigator.userAgent),
+      suggestionBox: null,
+
+      init() {
+        if (!this.isMobile) return;
+        const input = document.getElementById('userPrompt');
+        this.suggestionBox = document.createElement('div');
+        this.suggestionBox.id = 'mobileSuggestions';
+        this.suggestionBox.style.cssText = 'position:fixed;bottom:100%;left:8px;right:8px;background:#1a1a1a;border:1px solid #39ff14;border-radius:6px 6px 0 0;max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:4px;z-index:999;display:none;';
+        document.body.appendChild(this.suggestionBox);
+        input.addEventListener('input', (e) => this.suggest(e.target.value));
+        input.addEventListener('focus', () => !input.value && this.showRecent());
+        input.addEventListener('blur', () => setTimeout(() => this.hide(), 150));
+      },
+
+      suggest(query) {
+        if (!query || query.length < 2) { this.showRecent(); return; }
+        const matches = allCommands.filter(c => c.cmd.toLowerCase().includes(query.toLowerCase())).slice(0, 6);
+        this.render(matches, query);
+      },
+
+      showRecent() {
+        const recent = CommandHistory.get().slice(0, 6).map(h => h.cmd);
+        if (recent.length === 0) { this.hide(); return; }
+        this.render(recent.map(cmd => ({ cmd })), '');
+      },
+
+      render(items, query) {
+        this.suggestionBox.innerHTML = '';
+        if (items.length === 0) { this.hide(); return; }
+        items.forEach(item => {
+          const div = document.createElement('div');
+          const cmd = item.cmd || item;
+          const hl = query ? cmd.replace(new RegExp(`(${query})`, 'gi'), '<span style="color:#39ff14">$1</span>') : cmd;
+          div.innerHTML = `<span style="color:#999">$</span> ${hl}`;
+          div.style.cssText = 'padding:10px 12px;border-bottom:1px solid #222;cursor:pointer;font-size:12px;font-family:monospace;color:#d4d4d4;';
+          div.onclick = () => this.select(cmd);
+          div.onmouseover = () => { div.style.background = 'rgba(57,255,20,0.1)'; div.style.borderLeft = '3px solid #39ff14'; div.style.paddingLeft = '9px'; };
+          div.onmouseout = () => { div.style.background = 'transparent'; div.style.borderLeft = 'none'; div.style.paddingLeft = '12px'; };
+          this.suggestionBox.appendChild(div);
+        });
+        this.show();
+      },
+
+      select(cmd) {
+        document.getElementById('userPrompt').value = cmd;
+        this.hide();
+        document.getElementById('userPrompt').focus();
+      },
+
+      show() { this.suggestionBox.style.display = 'block'; },
+      hide() { this.suggestionBox.style.display = 'none'; }
+    };
+
+    if (/iPhone|iPad|iPod|Android/.test(navigator.userAgent)) {
+      document.addEventListener('DOMContentLoaded', () => MobileAutofill.init());
+      MobileAutofill.init();
+    }
+
+    // Initialize AutoComplete
+    AutoComplete.init();
+
+    function renderSidebarBadges() {
+        const container = document.getElementById("sidebarBadgesContainer");
+        if (!container) return;
+        container.innerHTML = "";
+
+        const categories = [...new Set(allCommands.map(c => c.cat))];
+
+        categories.forEach(cat => {
+            const visibleCmds = allCommands.filter(c => c.cat === cat && !c.hidden);
+            if (visibleCmds.length === 0) return; // skip empty categories
+
+            const catId = cat.replace(/[^a-z]/gi, '_');
+            const header = document.createElement("div");
+            header.className = "category-header";
+            header.innerHTML = `<span>${cat}</span><span class="category-toggle-icon" id="icon_${catId}">▼</span>`;
+
+            const badgeWrapper = document.createElement("div");
+            badgeWrapper.className = "category-badges";
+            badgeWrapper.id = `badges_${catId}`;
+
+            header.onclick = () => {
+                const isHidden = badgeWrapper.style.display === "none";
+                badgeWrapper.style.display = isHidden ? "flex" : "none";
+                document.getElementById(`icon_${catId}`).classList.toggle("collapsed", !isHidden);
+            };
+
+            container.appendChild(header);
+            container.appendChild(badgeWrapper);
+
+            visibleCmds.forEach(cmd => badgeWrapper.appendChild(makeBadge(cmd, false)));
+        });
+
+        // ── ADVANCED panel: hidden commands grouped by category ────────────
+        const hr = document.createElement("hr");
+        hr.className = "sidebar-divider";
+        container.appendChild(hr);
+
+        const advBtn = document.createElement("button");
+        advBtn.className = "advanced-toggle";
+        advBtn.id = "advancedToggle";
+        advBtn.innerHTML = `<span>⚡ ADVANCED COMMANDS</span><span id="advIcon">▼</span>`;
+        container.appendChild(advBtn);
+
+        const advPanel = document.createElement("div");
+        advPanel.id = "advancedPanel";
+        advPanel.style.display = "none";
+        advPanel.style.marginTop = "8px";
+
+        // Group hidden commands by their category
+        const hiddenByCat = {};
+        allCommands.filter(c => c.hidden).forEach(cmd => {
+            if (!hiddenByCat[cmd.cat]) hiddenByCat[cmd.cat] = [];
+            hiddenByCat[cmd.cat].push(cmd);
+        });
+
+        Object.entries(hiddenByCat).forEach(([cat, cmds]) => {
+            const groupLabel = document.createElement("div");
+            groupLabel.style.cssText = "font-size:9px;color:#ffffff;letter-spacing:1px;text-transform:uppercase;padding:6px 2px 2px;";
+            groupLabel.textContent = cat;
+            advPanel.appendChild(groupLabel);
+
+            const wrap = document.createElement("div");
+            wrap.className = "category-badges";
+            wrap.style.marginBottom = "6px";
+            cmds.forEach(cmd => wrap.appendChild(makeBadge(cmd, true)));
+            advPanel.appendChild(wrap);
+        });
+
+        container.appendChild(advPanel);
+
+        advBtn.onclick = () => {
+            const isHidden = advPanel.style.display === "none";
+            advPanel.style.display = isHidden ? "block" : "none";
+            document.getElementById("advIcon").textContent = isHidden ? "▲" : "▼";
+        };
+    }
+
+    function makeBadge(cmd, isHidden) {
+        const badge = document.createElement("div");
+        badge.className = "cmd-badge" + (isHidden ? " hidden-cmd" : "");
+        badge.textContent = `${cmd.cmd}${cmd.args ? " " + cmd.args : ""}`;
+        badge.title = cmd.cmd;
+        badge.onclick = () => {
+            try {
+                userPromptElement.value = cmd.cmd + " ";
+                userPromptElement.focus();
+                // Auto-close sidebar on mobile
+                if (window.innerWidth < 768) {
+                    const sidebar = document.getElementById("sidebarCommands");
+                    if (sidebar && bootstrap && bootstrap.Offcanvas) {
+                        const bsInstance = bootstrap.Offcanvas.getInstance(sidebar);
+                        if (bsInstance) bsInstance.hide();
+                    }
+                }
+            } catch(e) {
+                console.error("Badge click error:", e);
+                userPromptElement.value = cmd.cmd + " ";
+                userPromptElement.focus();
+            }
+        };
+        return badge;
+    }
+
+    // ── COMMAND MODAL FUNCTIONS ────────────────────────────────────────────
+    let currentModalCmd = null;
+
+    function openCommandModal(cmd) {
+        currentModalCmd = cmd;
+        
+        // Update modal header
+        document.getElementById("modalCmdName").textContent = cmd.cmd;
+        document.getElementById("modalCmdHelp").textContent = `${cmd.args || 'no arguments'}`;
+        
+        // Reset inputs
+        document.getElementById("modalInput1").value = "";
+        document.getElementById("modalInput2").value = "";
+        document.getElementById("modalInput3").value = "";
+        
+        // Hide extra inputs
+        document.getElementById("modalInput2").style.display = "none";
+        document.getElementById("modalInput3").style.display = "none";
+        
+        // Set input count based on command
+        const multiArgCmds = {
+            'fx': 3, 'contrast': 2, 'bmi': 2, 'macro-calc': 2, 'convert': 2, 'pct': 2
+        };
+        
+        if (multiArgCmds[cmd.cmd]) {
+            const count = multiArgCmds[cmd.cmd];
+            for (let i = 2; i <= count; i++) {
+                document.getElementById(`modalInput${i}`).style.display = "block";
+            }
+        }
+        
+        // Set placeholder based on command
+        const placeholders = {
+            'chat': 'Your message...',
+            'claude': 'Your message...',
+            'code': 'Code generation prompt...',
+            'mistral': 'Your message...',
+            'gemini': 'Your message...',
+            'web': 'Search query...',
+            'heikin': 'Stock symbol (e.g., SAP.XETRA)...',
+            'broker': 'Ticker symbol...',
+            'ticker': 'Exchange name...',
+            'funds': 'Fund ID...',
+            'crypto': 'Coin ID (bitcoin)...',
+            'fx': 'Amount...',
+            'news': 'Ticker...',
+            'hedge': 'Ticker...',
+            'split': 'Ticker...',
+            'pivot': 'Ticker...',
+            'range': 'Ticker...',
+            'rsi': 'Ticker...',
+            'calc': 'Math expression (e.g., 2+2)...',
+            'macro-calc': 'Calories...'
+        };
+        
+        document.getElementById("modalInput1").placeholder = placeholders[cmd.cmd] || cmd.args || 'Enter argument...';
+        
+        // Show modal
+        document.getElementById("commandModal").style.display = "flex";
+        document.getElementById("modalInput1").focus();
+    }
+
+    function closeCommandModal() {
+        document.getElementById("commandModal").style.display = "none";
+        currentModalCmd = null;
+    }
+
+    function executeCommandModal() {
+        if (!currentModalCmd) return;
+        
+        const input1 = document.getElementById("modalInput1").value.trim();
+        const input2 = document.getElementById("modalInput2").value.trim();
+        const input3 = document.getElementById("modalInput3").value.trim();
+        
+        if (!input1 && !['alert', 'macro', 'regime', 'clear', 'shell-status'].includes(currentModalCmd.cmd)) {
+            alert("Please enter an argument");
+            return;
+        }
+        
+        // Build command
+        let fullCmd = currentModalCmd.cmd;
+        if (input1) fullCmd += " " + input1;
+        if (input2) fullCmd += " " + input2;
+        if (input3) fullCmd += " " + input3;
+        
+        // Close modal
+        closeCommandModal();
+        
+        // Close sidebar on mobile
+        if (window.innerWidth < 768) {
+            const sidebar = document.getElementById("sidebarCommands");
+            const bsInstance = bootstrap.Offcanvas.getInstance(sidebar);
+            if (bsInstance) bsInstance.hide();
+        }
+        
+        // Execute command
+        userPromptElement.value = fullCmd;
+        sendButton.click();
+    }
+
+    // Allow Enter key in modal - register event listeners directly
+    setTimeout(() => {
+        const inputs = ['modalInput1', 'modalInput2', 'modalInput3'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') executeCommandModal();
+                });
+            }
+        });
+    }, 100);
+
+    function logToTerminal(type, text, noScroll = false, id = null) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `msg-block msg-${type}`;
+        if (id) msgDiv.id = id;
+
+        const terminalText = document.createElement("div");
+        terminalText.className = "terminal-text";
+
+        if (/<[a-z][\s\S]*>/i.test(text)) {
+            terminalText.innerHTML = text;
+        } else {
+            terminalText.textContent = text;
+        }
+        msgDiv.appendChild(terminalText);
+
+        const actionBar = document.createElement("div");
+        actionBar.className = "action-bar";
+        const copyBtn = document.createElement("button");
+        copyBtn.className = "btn-utility";
+        copyBtn.textContent = "COPY";
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(text).then(() => {
+                logToTerminal("success", "✓ Copied!");
+            }).catch(() => {
+                logToTerminal("error", "Copy failed");
+            });
+        };
+        actionBar.appendChild(copyBtn);
+        msgDiv.appendChild(actionBar);
+
+        chatHistoryElement.appendChild(msgDiv);
+
+        // RAG HOOK
+        if (type === 'success' && typeof text === 'string' && !id) {
+            const plain = text.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim();
+            if (plain.length > 40) {
+                pushAnalysis(plain, _currentCmd || '');
+            }
+        }
+
+        if (!noScroll) chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
+    }
+
+    function logHTML(type, html, id = null) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `msg-block msg-${type}`;
+        if (id) msgDiv.id = id;
+        msgDiv.innerHTML = html;
+        chatHistoryElement.appendChild(msgDiv);
+
+        setTimeout(() => {
+            msgDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 50);
+    }
+
+    // ── MONACO-STYLE CODE BLOCK RENDERER ────────────────────────────────
+    const LANG_COLORS = {
+        html:'#e44d26', htm:'#e44d26', css:'#264de4', javascript:'#f0db4f',
+        js:'#f0db4f', typescript:'#3178c6', ts:'#3178c6', python:'#3572A5',
+        py:'#3572A5', bash:'#89e051', sh:'#89e051', shell:'#89e051',
+        json:'#cbcb41', sql:'#336791', xml:'#f16529', yaml:'#cc1018',
+        markdown:'#083fa1', md:'#083fa1', plaintext:'#888', text:'#888'
+    };
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function renderCodeBlock(lang, code) {
+        const l = (lang || 'code').toLowerCase();
+        const color = LANG_COLORS[l] || '#39ff14';
+        const isHtml = ['html','htm'].includes(l);
+        const id = 'cb' + Math.random().toString(36).substr(2,8);
+
+        let highlighted = escHtml(code);
+        try {
+            if (window.hljs) {
+                const res = window.hljs.getLanguage(l)
+                    ? window.hljs.highlight(code, { language: l, ignoreIllegals: true })
+                    : window.hljs.highlightAuto(code);
+                highlighted = res.value;
+            }
+        } catch(e) {}
+
+        const runBtn = isHtml
+            ? `<button class="monaco-btn monaco-run" onclick="runHtmlBlock('${id}')">▶ Run HTML</button>`
+            : '';
+
+        return `<div class="monaco-block" id="${id}">
+  <div class="monaco-bar">
+    <span class="monaco-lang" style="color:${color}">⬛ ${l}</span>
+    <div class="monaco-actions">
+      ${runBtn}
+      <button class="monaco-btn" onclick="copyCodeBlock('${id}')">⧉ Copy</button>
+    </div>
+  </div>
+  <pre class="monaco-pre"><code class="monaco-code hljs">${highlighted}</code></pre>
+</div>`;
+    }
+
+    // Full markdown support: headings, lists, bold, italic, code
+    function markdownInline(text) {
+        let html = escHtml(text);
+
+        // Headings: # H1, ## H2, ### H3
+        html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+
+        // Bold: **text**
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+        // Italic: *text*
+        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+        // Inline code: `code`
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Line breaks for lists
+        html = html.replace(/^- (.*?)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>');
+        html = html.replace(/<\/ul>\s*<ul>/g, '');
+
+        // Ordered lists: 1. item
+        html = html.replace(/^\d+\. (.*?)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*?<\/li>)/s, match => {
+            if (!match.includes('<ul>')) return `<ol>${match}</ol>`;
+            return match;
+        });
+        html = html.replace(/<\/ol>\s*<ol>/g, '');
+
+        // Line breaks (convert \n\n to <br><br>)
+        html = html.replace(/\n\n/g, '<br><br>');
+
+        return html;
+    }
+
+    // ──── LECODE-STYLE CHAT DISPLAY: Proper prose + code block separation ────
+    function updateChatDisplay() {
+        chatHistoryElement.innerHTML = "";
+        chatHistory.forEach((message, idx) => {
+            if (!message.content) return;
+
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add(message.role === "user" ? "msg-user" : "msg-assistant");
+
+            // Model Badge für Assistant Messages
+            if (message.role === 'assistant') {
+                const badge = document.createElement("small");
+                badge.style.cssText = 'color: #0099ff; display: block; margin-bottom: 8px; font-size: 10px; letter-spacing: 1px; font-weight: bold;';
+                badge.textContent = '🤖 CLAUDE RESPONSE';
+                messageDiv.appendChild(badge);
+            }
+
+            // Extended Code Block Regex - ROBUST VERSION
+            // Supports: ```language\ncode\n``` with flexible spacing and edge cases
+            const codeBlockRegex = /```\s*([a-z0-9+\-]*)\s*[\r\n]+([\s\S]*?)[\r\n]+```/gi;
+            let lastIndex = 0;
+            let match;
+
+            while ((match = codeBlockRegex.exec(message.content)) !== null) {
+                // Prose before code block
+                if (match.index > lastIndex) {
+                    const proseText = message.content.substring(lastIndex, match.index).trim();
+                    if (proseText) {
+                        const proseDiv = document.createElement("div");
+                        proseDiv.className = "ai-prose";
+                        // Process markdown: escape HTML first, then apply formatting
+                        let html = escHtml(proseText);
+                        // Markdown headings (must be before other processing)
+                        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                                  .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                                  .replace(/^# (.+)$/gm, '<h1>$1</h1>');
+                        // Code formatting
+                        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+                        // Bold formatting
+                        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                        // Double newlines to breaks
+                        html = html.replace(/\n\n/g, '<br><br>');
+                        proseDiv.innerHTML = html;
+                        messageDiv.appendChild(proseDiv);
+                    }
+                }
+
+                // Code Block with COPY + RUN buttons
+                const codeId = 'code-' + Math.random().toString(36).substr(2, 8);
+                // Extract code and language from regex groups
+                const codeContent = match[2].trim();  // Group 2 = code content (NEW)
+                let language = match[1] ? match[1].toLowerCase().trim() : 'plaintext';  // Group 1 = language hint
+
+                // If language not specified in fence, auto-detect from content
+                if (!match[1] || match[1].trim() === '') {
+                    language = 'plaintext';
+                    if (codeContent.includes('<!DOCTYPE') || codeContent.includes('<html') || codeContent.includes('<div') || codeContent.includes('</')) language = 'html';
+                    else if (codeContent.includes('function ') || codeContent.includes('const ') || codeContent.includes('let ') || codeContent.includes('=>') || codeContent.includes('document.')) language = 'javascript';
+                    else if (codeContent.includes('def ') || codeContent.includes('import ') && codeContent.includes('python')) language = 'python';
+                    else if (codeContent.includes('import java') || codeContent.includes('public class')) language = 'java';
+                    else if (codeContent.includes('<?php')) language = 'php';
+                    else if (codeContent.match(/^{\s*"/) || codeContent.includes('"') && codeContent.includes(':')) language = 'json';
+                    else if (codeContent.includes('<?xml')) language = 'xml';
+                }
+
+                // Create wrapper div for code block
+                const codeWrapper = document.createElement("div");
+                codeWrapper.id = codeId;
+                codeWrapper.style.cssText = 'position:relative;margin:10px 0;border:1px solid #39ff14;border-radius:6px;background:#1a1a1a;';
+
+                // Header with language badge ONLY
+                const header = document.createElement("div");
+                header.style.cssText = 'background:#0a0a0a;padding:8px 12px;border-bottom:1px solid #39ff14;';
+
+                const langBadge = document.createElement("span");
+                langBadge.style.cssText = 'color:#39ff14;font-size:10px;font-weight:bold;letter-spacing:1px;';
+                langBadge.textContent = `⬛ ${language}`;
+                header.appendChild(langBadge);
+                codeWrapper.appendChild(header);
+
+                const pre = document.createElement("pre");
+                pre.style.cssText = 'margin:0;padding:12px;overflow-x:auto;';
+                const codeElement = document.createElement("code");
+                codeElement.className = `language-${language}`;
+                codeElement.textContent = codeContent;
+                pre.appendChild(codeElement);
+                codeWrapper.appendChild(pre);
+
+                // FOOTER with all buttons
+                const footer = document.createElement("div");
+                footer.style.cssText = 'background:#0a0a0a;padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #39ff14;';
+
+                // COPY button - WHITE styling
+                const copyBtn = document.createElement("button");
+                copyBtn.className = "btn-utility";
+                copyBtn.textContent = "⧉ COPY";
+                copyBtn.style.cssText = 'padding:6px 10px;font-size:10px;cursor:pointer;border:1px solid #ffffff;background:transparent;color:#ffffff;border-radius:3px;transition:all 0.2s;flex:1;';
+                copyBtn.onclick = () => {
+                    const codeEl = document.querySelector('#' + codeId + ' code');
+                    if (codeEl) {
+                        navigator.clipboard.writeText(codeEl.textContent).then(() => {
+                            copyBtn.textContent = '✓ COPIED';
+                            copyBtn.style.background = '#ffffff';
+                            copyBtn.style.color = '#000';
+                            setTimeout(() => {
+                                copyBtn.textContent = '⧉ COPY';
+                                copyBtn.style.background = 'transparent';
+                                copyBtn.style.color = '#ffffff';
+                            }, 2000);
+                        });
+                    }
+                };
+                footer.appendChild(copyBtn);
+
+                // DOWNLOAD HTML button
+                const downloadHtmlBtn = document.createElement("button");
+                downloadHtmlBtn.className = "btn-utility";
+                downloadHtmlBtn.textContent = "⬇ HTML";
+                downloadHtmlBtn.style.cssText = 'padding:6px 10px;font-size:10px;cursor:pointer;border:1px solid #39ff14;background:transparent;color:#39ff14;border-radius:3px;transition:all 0.2s;flex:1;';
+                downloadHtmlBtn.onclick = () => {
+                    const codeEl = document.querySelector('#' + codeId + ' code');
+                    if (codeEl) {
+                        const blob = new Blob([codeEl.textContent], { type: 'text/html;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'code.html';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }
+                };
+                footer.appendChild(downloadHtmlBtn);
+
+                // DOWNLOAD TEXT button
+                const downloadTextBtn = document.createElement("button");
+                downloadTextBtn.className = "btn-utility";
+                downloadTextBtn.textContent = "⬇ TEXT";
+                downloadTextBtn.style.cssText = 'padding:6px 10px;font-size:10px;cursor:pointer;border:1px solid #00e5ff;background:transparent;color:#00e5ff;border-radius:3px;transition:all 0.2s;flex:1;';
+                downloadTextBtn.onclick = () => {
+                    const codeEl = document.querySelector('#' + codeId + ' code');
+                    if (codeEl) {
+                        const blob = new Blob([codeEl.textContent], { type: 'text/plain;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'code.txt';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                    }
+                };
+                footer.appendChild(downloadTextBtn);
+
+                // RUN button (für HTML)
+                if (['html', 'htm'].includes(language)) {
+                    const runBtn = document.createElement("button");
+                    runBtn.className = "btn-utility";
+                    runBtn.textContent = "▶ RUN";
+                    runBtn.style.cssText = 'padding:6px 10px;font-size:10px;cursor:pointer;border:1px solid #ffff00;background:transparent;color:#ffff00;border-radius:3px;transition:all 0.2s;flex:1;';
+                    runBtn.onclick = () => {
+                        const codeEl = document.querySelector('#' + codeId + ' code');
+                        if (codeEl) {
+                            openIframeModal('data:text/html;charset=utf-8,' + encodeURIComponent(codeEl.textContent), '▶ Run HTML');
+                        }
+                    };
+                    footer.appendChild(runBtn);
+                }
+
+                codeWrapper.appendChild(footer);
+
+                messageDiv.appendChild(codeWrapper);
+
+                lastIndex = codeBlockRegex.lastIndex;
+            }
+
+            // Remaining prose
+            if (lastIndex < message.content.length) {
+                const remainingText = message.content.substring(lastIndex).trim();
+                if (remainingText) {
+                    const proseDiv = document.createElement("div");
+                    proseDiv.className = "ai-prose";
+                    // Process markdown: escape HTML first, then apply formatting
+                    let html = escHtml(remainingText);
+                    // Markdown headings (must be before other processing)
+                    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                              .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                              .replace(/^# (.+)$/gm, '<h1>$1</h1>');
+                    // Code formatting
+                    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+                    // Bold formatting
+                    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    // Double newlines to breaks
+                    html = html.replace(/\n\n/g, '<br><br>');
+                    proseDiv.innerHTML = html;
+                    messageDiv.appendChild(proseDiv);
+                }
+            }
+
+            // Add Copy + Download buttons for assistant messages (text only)
+            if (message.role === 'assistant' && message.content && !message.content.includes('```')) {
+                const msgBtnContainer = document.createElement("div");
+                msgBtnContainer.style.cssText = 'display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;';
+
+                // COPY MESSAGE button - white
+                const copyMsgBtn = document.createElement("button");
+                copyMsgBtn.textContent = "⧉ COPY";
+                copyMsgBtn.style.cssText = 'padding:6px 10px;font-size:10px;cursor:pointer;border:1px solid #ffffff;background:transparent;color:#ffffff;border-radius:3px;transition:all 0.2s;flex:1;min-width:60px;';
+                copyMsgBtn.onclick = () => {
+                    navigator.clipboard.writeText(message.content).then(() => {
+                        copyMsgBtn.textContent = '✓ COPIED';
+                        copyMsgBtn.style.background = '#ffffff';
+                        copyMsgBtn.style.color = '#000';
+                        setTimeout(() => {
+                            copyMsgBtn.textContent = '⧉ COPY';
+                            copyMsgBtn.style.background = 'transparent';
+                            copyMsgBtn.style.color = '#ffffff';
+                        }, 2000);
+                    });
+                };
+                msgBtnContainer.appendChild(copyMsgBtn);
+
+                // DOWNLOAD TEXT button - get filename from user prompt
+                const downloadMsgBtn = document.createElement("button");
+                downloadMsgBtn.textContent = "⬇ TEXT";
+                downloadMsgBtn.style.cssText = 'padding:6px 10px;font-size:10px;cursor:pointer;border:1px solid #00e5ff;background:transparent;color:#00e5ff;border-radius:3px;transition:all 0.2s;flex:1;min-width:60px;';
+                downloadMsgBtn.onclick = () => {
+                    const blob = new Blob([message.content], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+
+                    // Find previous user message as filename
+                    let filename = 'message.txt';
+                    for (let i = idx - 1; i >= 0; i--) {
+                        if (chatHistory[i].role === 'user') {
+                            const words = chatHistory[i].content.split(/\s+/).filter(w => /^[a-zA-Z0-9_-]+$/.test(w)).slice(0, 3).join('_').toLowerCase();
+                            if (words.length > 0) {
+                                filename = words.substring(0, 40) + '.txt';
+                            }
+                            break;
+                        }
+                    }
+
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                };
+                msgBtnContainer.appendChild(downloadMsgBtn);
+
+                messageDiv.appendChild(msgBtnContainer);
+            }
+
+            chatHistoryElement.appendChild(messageDiv);
+        });
+
+        // Prism Highlighting
+        if (typeof Prism !== 'undefined') {
+            try {
+                Prism.highlightAll();
+            } catch (e) {
+                console.warn('Prism highlighting failed:', e);
+            }
+        }
+        chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
+    }
+
+    window.copyCodeBlock = function(id) {
+        const code = document.querySelector('#' + id + ' .monaco-code');
+        if (!code) return;
+        navigator.clipboard.writeText(code.textContent).then(() => {
+            const btn = document.querySelector('#' + id + ' .monaco-btn:last-child');
+            if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => btn.textContent = '⧉ Copy', 2000); }
+        });
+    };
+
+    window.runHtmlBlock = function(id) {
+        const code = document.querySelector('#' + id + ' .monaco-code');
+        if (!code) return;
+        openIframeModal('data:text/html;charset=utf-8,' + encodeURIComponent(code.textContent), '▶ Run HTML');
+    };
+
+    // ── FULLSCREEN IFRAME MODAL (Mobile) ────────────────────────────────
+    function openIframeModal(src, title) {
+        document.getElementById('iframeModalFrame').src = src;
+        document.getElementById('iframeModalTitle').textContent = title || src;
+        const modal = document.getElementById('iframeModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    window.closeIframeModal = function() {
+        document.getElementById('iframeModalFrame').src = 'about:blank';
+        document.getElementById('iframeModal').style.display = 'none';
+        document.body.style.overflow = '';
+    };
+    // Close modal on Escape key
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            const m = document.getElementById('iframeModal');
+            if (m && m.style.display === 'flex') closeIframeModal();
+        }
+    });
+
+    let _currentCmd = '';   // tracks active command for RAG labeling
+
+    async function executeCommand(input) {
+        const parts = input.trim().split(/\s+/);
+        const command = parts[0].toLowerCase();
+        const args = parts.slice(1).join(" ");
+        _currentCmd = command;   // set before any logToTerminal calls
+
+        // Save to command history
+        CommandHistory.add(command);
+
+        logToTerminal("user", `$ ${input}`);
+
+        // Clear input and set to just command for quick workflow
+        userPromptElement.value = "";
+
+        if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+        }
+
+        try {
+            switch(command) {
+                // ── LLM APIs ──
+                case "chat": await window.chat(args); break;
+                case "claude": await window.claude(args); break;
+                case "code": await window.code(args); break;
+                case "mistral": await window.mistral(args); break;
+                case "web": await window.web(args); break;
+                // ── FINANCE / TRADING ──
+                case "funds": await window.renderFundsChart(args); break;
+                case "heikin": await window.renderHeikinChart(args); break;
+                case "broker": await window.brokerSignal(args); break;
+                case "ticker": await window.tickerTerminal(args); break;
+                case "news":   await window.fintechNews(args); break;
+                case "alert":  await window.fintechAlert(); break;
+                case "macro":  await window.fintechMacro(); break;
+                case "regime": await window.fintechRegime(); break;
+                case "hedge":  await window.fintechHedge(args); break;
+                case "split":  await window.fintechSplit(args); break;
+                case "pivot":  await window.fintechPivot(args); break;
+                case "range":  await window.fintechRange(args); break;
+                case "rsi":    await window.fintechRsi(args); break;
+                // ── MATH / MARKETS ──
+                case "calc": window.calc(args); break;
+                case "fx": await window.fxConvert(parts[1], parts[2], parts[3]); break;
+                // ── COMPUTER USE ──
+                case "clear": window.clear(); break;
+                default: logToTerminal("error", `✗ Unknown command: '${command}'`);
+            }
+        } catch(e) {
+            logToTerminal("error", `✗ Error: ${e.message}`);
+        }
+    }
+
+    // ========== CHAT COMMANDS WITH FIXED SPINNERS ==========
+
+    window.chat = async function(message) {
+        if (!message) return logToTerminal("error", "Usage: chat [message]");
+
+        const analysisCount = chatHistory.filter(m => m._isAnalysis).length;
+        const loadingId = 'loading-' + Math.random().toString(36).substr(2, 9);
+        const hint = analysisCount > 0 ? ` [${analysisCount} Analysen]` : '';
+        logToTerminal("system", `<span class="loading-spinner"></span>OpenAI denkt${hint}...`, false, loadingId);
+
+        try {
+            const ragMsg  = buildRagPrompt(message);
+            const convMsgs = getConvMessages();
+
+            chatHistory.push({ role: 'user', content: message });
+
+            const apiMessages = [
+                { role: 'system', content: DANIEL_SYSTEM_PROMPT },
+                ...convMsgs,
+                { role: 'user', content: ragMsg }
+            ];
+
+            const response = await fetch(`${PROXY_URL}/api/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'gpt-4o-mini',
+                    messages: apiMessages,
+                    max_tokens: 2048,
+                    temperature: 0.7,
+                    stream: true
+                })
+            });
+
+            // KRITISCH: Error-Check BEVOR Stream gelesen wird
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({ message: 'Unknown error' }));
+                document.getElementById(loadingId)?.remove();
+                chatHistory.pop();
+                return logToTerminal("error", `✗ OpenAI Error: ${err.message || err.error || response.status}`);
+            }
+
+            document.getElementById(loadingId)?.remove();
+
+            // Stream Reader
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullContent = '';
+            const msgId = 'chat-stream-' + Math.random().toString(36).substr(2, 9);
+            logToTerminal("assistant", '', true, msgId);
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
+
+                for (const line of lines) {
+                    const jsonStr = line.replace('data: ', '').trim();
+                    if (jsonStr === '[DONE]') continue;
+
+                    try {
+                        const data = JSON.parse(jsonStr);
+                        const delta = data.choices?.[0]?.delta?.content;
+                        if (delta) {
+                            fullContent += delta;
+                            // Update live in terminal
+                            const el = document.getElementById(msgId);
+                            if (el) {
+                                // Use textContent to safely display, then add formatting back
+                                el.textContent = `💬 OPENAI RESPONSE\n${fullContent}`;
+                            }
+                        }
+                    } catch (e) { /* silent parse error */ }
+                }
+            }
+
+            // Speichere final in chatHistory
+            chatHistory.push({ role: 'assistant', content: fullContent });
+
+            // Re-render with lecode-style formatting
+            updateChatDisplay();
+
+        } catch(e) { 
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("error", `✗ Chat Error: ${e.message}`); 
+        }
+    };
+
+    window.claude = async function(message) {
+        if (!message) return logToTerminal("error", "Usage: claude [message]");
+
+        const analysisCount = chatHistory.filter(m => m._isAnalysis).length;
+        const loadingId = 'loading-' + Math.random().toString(36).substr(2, 9);
+        logToTerminal("system", `<span class="loading-spinner"></span>Claude denkt${analysisCount > 0 ? ` [${analysisCount} Analysen]` : ''}...`, false, loadingId);
+
+        try {
+            const ragMsg   = buildRagPrompt(message);
+            const convMsgs = getConvMessages();
+
+            chatHistory.push({ role: 'user', content: message });
+
+            const response = await fetch(`${PROXY_URL}/claude/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-5-20250929',
+                    system: DANIEL_SYSTEM_PROMPT,
+                    messages: [
+                        ...convMsgs,
+                        { role: 'user', content: ragMsg }
+                    ],
+                    max_tokens: 2048,
+                    stream: true
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({ message: 'Unknown error' }));
+                document.getElementById(loadingId)?.remove();
+                chatHistory.pop();
+                return logToTerminal("error", `✗ Claude Error: ${err.message || err.error || response.status}`);
+            }
+
+            document.getElementById(loadingId)?.remove();
+
+            // Streaming Reader — lecode PATTERN
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullContent = '';
+            const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
+            logToTerminal("assistant", '', true, msgId);
+
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
+
+                    for (const line of lines) {
+                        const data = line.replace('data: ', '').trim();
+                        if (data === '[DONE]') {
+                            reader.cancel();
+                            break;
+                        }
+
+                        try {
+                            const parsed = JSON.parse(data);
+                            // CRITICAL: Handle BOTH Claude format (delta.text) AND OpenAI format (choices[0].delta.text)
+                            const content = parsed.delta?.text || parsed.choices?.[0]?.delta?.text;
+                            if (content) {
+                                fullContent += content;
+                                // Update live display
+                                const el = document.getElementById(msgId);
+                                if (el) {
+                                    el.textContent = `🤖 CLAUDE RESPONSE\n${fullContent}`;
+                                }
+                            }
+                        } catch (e) {
+                            // JSON parse error - silent
+                        }
+                    }
+                }
+            } finally {
+                reader.cancel();
+            }
+
+            // Save to history
+            chatHistory.push({ role: 'assistant', content: fullContent });
+
+            // Re-render with lecode-style formatting
+            updateChatDisplay();
+
+            // Check if response is incomplete (for continue feature)
+            const isIncomplete = fullContent.endsWith('...') || 
+                                fullContent.length > 7500;
+            if (isIncomplete) {
+                logToTerminal("system", "💡 Response möglicherweise unvollständig. Nutze: `continue` für Fortsetzung");
+            }
+
+        } catch(e) { 
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("error", `✗ Claude Error: ${e.message}`); 
+        }
+    };
+
+    window.downloadCode = function(code, language) {
+        const langMap = { html: 'html', javascript: 'js', js: 'js', python: 'py', css: 'css', json: 'json', java: 'java' };
+        const ext = langMap[language] || language || 'txt';
+        let filename = 'code.' + ext;
+        const userMessages = chatHistory.filter(m => m.role === 'user').map(m => m.content);
+        if (userMessages.length > 0) {
+            const words = userMessages[userMessages.length - 1].split(/\s+/).filter(w => /^[a-zA-Z0-9_-]+$/.test(w)).slice(0, 3).join('_').toLowerCase();
+            if (words.length > 0) filename = words.substring(0, 40) + '.' + ext;
+        }
+        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        logToTerminal("success", `✓ Downloaded: ${filename}`);
+    };
+
+    window.code = async function(prompt) {
+        if (!prompt) return logToTerminal("error", "Usage: code [prompt]");
+
+        const loadingId = 'loading-code-' + Math.random().toString(36).substr(2, 9);
+        logToTerminal("system", `<span class="loading-spinner"></span>Codestral generiert Code...`, false, loadingId);
+
+        try {
+            // Filter + prep messages wie in lecode (nicht convMsgs!)
+            const messages = chatHistory
+                .filter(msg => {
+                    if (msg.role === 'user') {
+                        return !msg._isAnalysis;
+                    }
+                    return msg.role === 'assistant' && msg.content.trim().length > 0;
+                })
+                .map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                }));
+
+            const response = await fetch(`${PROXY_URL}/mistral/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'codestral-latest',
+                    temperature: 0.7,
+                    top_p: 1,
+                    max_tokens: 256000,
+                    stream: true,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are a high-end senior web developer with expertise in HTML5, CSS3, Media Queries, and JavaScript. Generate production-ready code with proper structure and comments.'
+                        },
+                        ...messages,
+                        { role: 'user', content: prompt }
+                    ],
+                    response_format: { type: 'text' },
+                    safe_prompt: false
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({ message: 'Unknown error' }));
+                document.getElementById(loadingId)?.remove();
+                return logToTerminal("error", `✗ Code Error: ${err.message || response.status}`);
+            }
+
+            document.getElementById(loadingId)?.remove();
+
+            // Streaming Reader — Codestral Pattern
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullContent = '';
+            const msgId = 'msg-' + Math.random().toString(36).substr(2, 9);
+            logToTerminal("system", '📝 Codestral antwortet...', false, msgId);
+
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
+
+                    for (const line of lines) {
+                        const data = line.replace('data: ', '').trim();
+                        if (data === '[DONE]') {
+                            reader.cancel();
+                            break;
+                        }
+
+                        try {
+                            const parsed = JSON.parse(data);
+                            const content = parsed.choices?.[0]?.delta?.content;
+                            if (content) {
+                                fullContent += content;
+                            }
+                        } catch (e) { /* silent */ }
+                    }
+                }
+            } finally {
+                reader.cancel();
+            }
+
+            document.getElementById(msgId)?.remove();
+
+            // Save to history (separate user/assistant wie lecode)
+            chatHistory.push({ role: 'user', content: prompt });
+            chatHistory.push({ role: 'assistant', content: fullContent });
+
+            // Re-render with lecode-style formatting (separates prose + code beautifully)
+            updateChatDisplay();
+
+            chatHistoryElement.scrollTop = chatHistoryElement.scrollHeight;
+
+        } catch(e) { 
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("error", `✗ Code Error: ${e.message}`); 
+        }
+    };
+
+    window.mistral = async function(message) {
+        if (!message) return logToTerminal("error", "Usage: mistral [message]");
+
+        const loadingId = 'loading-mistral-' + Math.random().toString(36).substr(2, 9);
+        logToTerminal("system", `<span class="loading-spinner"></span>Thinking with Mistral...`, false, loadingId);
+
+        try {
+            const response = await fetch(`${PROXY_URL}/mistral/chat/completions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'mistral-small-latest',
+                    messages: [{ role: 'user', content: message }],
+                    max_tokens: 1024,
+                    temperature: 0.7
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+                document.getElementById(loadingId)?.remove();
+                return logToTerminal("error", `✗ Mistral Error: ${error.message || 'API Error'}`);
+            }
+
+            const data = await response.json();
+            const answer = data.choices[0].message.content;
+
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("assistant", `🤖 MISTRAL RESPONSE\n\n${answer}`, true);
+        } catch(e) { 
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("error", `✗ Mistral Error: ${e.message}`); 
+        }
+    };
+
+
+    window.web = async function(query) {
+        if (!query) return logToTerminal("error", "Usage: web [query]");
+
+        const loadingId = 'loading-web-' + Math.random().toString(36).substr(2, 9);
+        logToTerminal("system", `<span class="loading-spinner"></span>🔍 Searching the web...`, false, loadingId);
+
+        try {
+            const response = await fetch(`${PROXY_URL}/perplexity/chat/completions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'sonar',
+                    search_recency_filter: 'week',
+                    messages: [{ role: 'user', content: query }],
+                    max_tokens: 1500
+                })
+            });
+
+            if (!response.ok) throw new Error('API Error');
+
+            const data = await response.json();
+            const answer = data.choices[0].message.content;
+
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("assistant", `🌐 WEB SEARCH RESULT\n\n${answer}`, true);
+        } catch(e) { 
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("error", `✗ Web Search Error: ${e.message}`); 
+        }
+    };
+
+    window.renderHeikinChart = async function(args) {
+        const API_BASE = 'https://theserver-open-ai.replit.app';
+
+        if (!args || args.trim() === '') {
+            logToTerminal("error", "Usage: heikin [symbol]\\nExample: heikin SAP.XETRA");
+            return;
+        }
+
+        const symbol = args.trim().toUpperCase();
+        const loadingId = 'hk_loading_' + symbol.replace(/\\./g, '_');
+        logToTerminal("system", `<span class="loading-spinner"></span>📊 Loading ${symbol}...`, false, loadingId);
+
+        try {
+            // Fetch data
+            const from = new Date();
+            from.setFullYear(from.getFullYear() - 1);
+            const fromStr = from.toISOString().split('T')[0];
+            const toStr = new Date().toISOString().split('T')[0];
+
+            const res = await fetch(`${API_BASE}/eod/historical/${encodeURIComponent(symbol)}?from=${fromStr}&to=${toStr}&period=d`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            const json = await res.json();
+            const rawData = Array.isArray(json) ? json : (json.data || []);
+            if (rawData.length < 20) throw new Error('Not enough data');
+
+            // Convert to bars
+            const bars = rawData.map(d => ({
+                date: d.date,
+                open: parseFloat(d.open),
+                high: parseFloat(d.high),
+                low: parseFloat(d.low),
+                close: parseFloat(d.adjusted_close || d.close),
+                volume: parseInt(d.volume) || 0
+            })).sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // Calculate Heikin-Ashi
+            const ha = [];
+            bars.forEach((b, i) => {
+                const hc = (b.open + b.high + b.low + b.close) / 4;
+                const ho = i === 0 ? b.open : (ha[i - 1].open + ha[i - 1].close) / 2;
+                const hh = Math.max(b.high, ho, hc);
+                const hl = Math.min(b.low, ho, hc);
+                const color = hc >= ho ? '#00ff88' : '#ff4499';
+                ha.push({
+                    date: b.date,
+                    open: Math.round(ho * 100) / 100,
+                    high: Math.round(hh * 100) / 100,
+                    low: Math.round(hl * 100) / 100,
+                    close: Math.round(hc * 100) / 100,
+                    color: color
+                });
+            });
+
+            // Analyze
+            const last = ha[ha.length - 1];
+            const prev = ha[ha.length - 2] || last;
+            const bull = last.close >= last.open;
+            const pbull = prev.close >= prev.open;
+            const isFlip = bull !== pbull;
+
+            let streak = 1;
+            for (let i = ha.length - 1; i > 0; i--) {
+                const isCurrentBull = ha[i].close >= ha[i].open;
+                const isPrevBull = ha[i - 1].close >= ha[i - 1].open;
+                if (isCurrentBull === isPrevBull) streak++;
+                else break;
+            }
+
+            const closes = ha.map(b => b.close);
+            const chg = ((last.close - bars[bars.length - 1].close) / bars[bars.length - 1].close * 100).toFixed(2);
+            const h52 = Math.max(...ha.map(b => b.high));
+            const l52 = Math.min(...ha.map(b => b.low));
+            const sma20 = closes.length >= 20 ? closes.slice(-20).reduce((a, b) => a + b) / 20 : last.close;
+
+            document.getElementById(loadingId)?.remove();
+
+            // Render output
+            const color = bull ? '#00ff88' : '#ff4499';
+            const flipStr = isFlip ? '🔄 FLIP' : 'HOLD';
+            const statusStr = bull ? '🟢 BULLISH' : '🔴 BEARISH';
+
+            // BUILD HTML - Simple string concatenation
+            let html = `<div style="border: 2px solid ${color}; border-radius: 8px; padding: 16px; background: #0f1535; margin: 15px 0;">`;
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">`;
+            html += `<div><strong style="color: ${color};">HEIKIN ${symbol}</strong><br><span style="color: #ffffff; font-size: 0.85em;">Momentum</span></div>`;
+            html += `<div style="text-align: right;">`;
+            html += `<div style="color: ${color}; font-weight: bold; font-size: 1.1em;">${last.close.toFixed(2)}</div>`;
+            html += `<div style="color: ${chg >= 0 ? '#00ff88' : '#ff4499'}; font-weight: bold;">${chg >= 0 ? '+' : ''}${chg}%</div>`;
+            html += `<div style="color: ${color}; font-size: 0.9em; margin-top: 4px;">${statusStr}</div>`;
+            html += `</div></div>`;
+
+            // Canvas - UNIQUE ID using symbol (not Date.now()!)
+            const canvasId = `heikin_chart_${symbol.replace(/\\./g, '_')}`;
+            html += `<canvas id="${canvasId}" style="max-height: 280px; width: 100%; margin: 12px 0;"></canvas>`;
+
+            // Metrics
+            html += `<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px; font-size: 0.9em;">`;
+            html += `<div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 4px; padding: 8px; text-align: center;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em;">STREAK</div>`;
+            html += `<div style="color: #ffd700; font-weight: bold; margin-top: 3px;">${streak}</div>`;
+            html += `</div>`;
+
+            html += `<div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 4px; padding: 8px; text-align: center;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em;">HIGH</div>`;
+            html += `<div style="color: #00ff88; font-weight: bold; margin-top: 3px;">${h52.toFixed(2)}</div>`;
+            html += `</div>`;
+
+            html += `<div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 4px; padding: 8px; text-align: center;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em;">LOW</div>`;
+            html += `<div style="color: #ff4499; font-weight: bold; margin-top: 3px;">${l52.toFixed(2)}</div>`;
+            html += `</div>`;
+
+            html += `<div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 4px; padding: 8px; text-align: center;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em;">SMA20</div>`;
+            html += `<div style="color: #00ffff; font-weight: bold; margin-top: 3px;">${sma20.toFixed(2)}</div>`;
+            html += `</div>`;
+
+            html += `<div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 4px; padding: 8px; text-align: center;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em;">STATUS</div>`;
+            html += `<div style="color: ${color}; font-weight: bold; margin-top: 3px; font-size: 0.85em;">${flipStr}</div>`;
+            html += `</div>`;
+
+            html += `</div></div>`;
+
+            logHTML("success", html);
+
+            // SAVE TO CHAT HISTORY FOR RAG
+            const analysisText = `📊 HEIKIN-ASHI [${symbol}]\n• Close: ${last.close.toFixed(2)} (${chg >= 0 ? '+' : ''}${chg}%)\n• Trend: ${statusStr}\n• 52W High: ${h52.toFixed(2)} | Low: ${l52.toFixed(2)} | SMA20: ${sma20.toFixed(2)}\n• Streak: ${streak} | Signal: ${flipStr}`;
+            chatHistory.push({
+                role: 'system',
+                content: analysisText,
+                _isAnalysis: true,
+                _cmd: 'heikin',
+                _ts: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+            });
+
+            // Wait for canvas to exist in DOM
+            await new Promise(resolve => {
+                let attempts = 0;
+                const waitForCanvas = setInterval(() => {
+                    const canvas = document.getElementById(canvasId);
+                    if (canvas) {
+                        clearInterval(waitForCanvas);
+                        resolve(canvas);
+                    } else if (++attempts > 100) {
+                        clearInterval(waitForCanvas);
+                        resolve(null);
+                    }
+                }, 50);
+            });
+
+            // Render Chart.js
+            renderHeikinChartStable(canvasId, symbol, ha);
+
+        } catch (e) {
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("error", `✗ Error: ${e.message}`);
+        }
+    };
+
+    function renderHeikinChartStable(canvasId, symbol, ha) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas || typeof Chart === 'undefined') {
+            console.error('Canvas not found or Chart.js not loaded');
+            return;
+        }
+
+        try {
+            // Prepare data
+            const displayData = ha.slice(-100);
+            const dates = displayData.map(b => b.date);
+            const closes = displayData.map(b => b.close);
+            const opens = displayData.map(b => b.open);
+            const highs = displayData.map(b => b.high);
+            const lows = displayData.map(b => b.low);
+
+            // Color based on last candle
+            const lastCandle = displayData[displayData.length - 1];
+            const chartColor = lastCandle.close >= lastCandle.open ? '#00ff88' : '#ff4499';
+
+            const ctx = canvas.getContext('2d');
+
+            if (canvas.chartInstance) {
+                canvas.chartInstance.destroy();
+            }
+
+            canvas.chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Open',
+                            data: opens,
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            backgroundColor: 'transparent',
+                            borderWidth: 1,
+                            borderDash: [3, 3],
+                            pointRadius: 0,
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Close (HA)',
+                            data: closes,
+                            borderColor: chartColor,
+                            backgroundColor: chartColor + '18',
+                            borderWidth: 2.5,
+                            pointRadius: 0,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: chartColor,
+                            tension: 0.2,
+                            fill: true
+                        },
+                        {
+                            label: 'High',
+                            data: highs,
+                            borderColor: 'rgba(0, 255, 136, 0.3)',
+                            backgroundColor: 'transparent',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Low',
+                            data: lows,
+                            borderColor: 'rgba(255, 0, 60, 0.3)',
+                            backgroundColor: 'transparent',
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.1,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#ffffff',
+                                font: { family: "'Orbitron',monospace", size: 9 },
+                                padding: 12,
+                                usePointStyle: false
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(15, 21, 53, 0.95)',
+                            borderColor: chartColor,
+                            borderWidth: 1,
+                            titleColor: chartColor,
+                            bodyColor: '#fff',
+                            padding: 10,
+                            displayColors: true,
+                            titleFont: {
+                                family: "'Orbitron',monospace",
+                                size: 10,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                family: "'Courier New',monospace",
+                                size: 9
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    return `${context.dataset.label}: ${value.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: {
+                                color: 'rgba(0, 255, 136, 0.05)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(0, 255, 136, 0.5)',
+                                font: { family: "'Orbitron',monospace", size: 8 },
+                                maxTicksLimit: 12,
+                                maxRotation: 45,
+                                minRotation: 0,
+                                callback: function(value, index) {
+                                    const maxTicks = 12;
+                                    const step = Math.ceil(dates.length / maxTicks);
+                                    return index % step === 0 ? dates[index] : '';
+                                }
+                            }
+                        },
+                        y: {
+                            display: true,
+                            position: 'left',
+                            grid: {
+                                color: 'rgba(0, 255, 136, 0.08)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#00ff88',
+                                font: { family: "'Orbitron',monospace", size: 9, weight: 'bold' },
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error('Chart rendering error:', error);
+            logToTerminal("error", `Chart Error: ${error.message}`);
+        }
+    }
+
+    const PROXY = 'https://theserver-open-ai.replit.app';
+    const US_EXCH = ['US','NYSE','NASDAQ','AMEX','PINK','OTCQB','OTCQX','BATS'];
+    const FORCE_SFX = ['CC','FOREX','INDX','BOND','GBOND'];
+    const EXCHANGES = [
+        {g:'🇺🇸 United States',opts:[{v:'US',l:'US — All'},{v:'NYSE',l:'NYSE'},{v:'NASDAQ',l:'NASDAQ'},{v:'AMEX',l:'AMEX'},{v:'PINK',l:'OTC Pink'},{v:'OTCQB',l:'OTCQB'},{v:'OTCQX',l:'OTCQX'},{v:'BATS',l:'BATS'}]},
+        {g:'🇨🇦 Canada',opts:[{v:'TO',l:'Toronto (TSX)'},{v:'V',l:'TSX Venture'},{v:'NEO',l:'NEO Exchange'}]},
+        {g:'🇲🇽 Latin America',opts:[{v:'MX',l:'Mexico (BMV)'},{v:'SA',l:'Brazil (B3)'},{v:'BA',l:'Argentina (BCBA)'},{v:'SN',l:'Chile'},{v:'LIM',l:'Peru (BVL)'},{v:'BVC',l:'Colombia'}]},
+        {g:'🇬🇧 United Kingdom',opts:[{v:'LSE',l:'London (LSE)'},{v:'IL',l:'London IL'}]},
+        {g:'🇩🇪 Germany',opts:[{v:'XETRA',l:'XETRA'},{v:'F',l:'Frankfurt'},{v:'STU',l:'Stuttgart'},{v:'DU',l:'Düsseldorf'},{v:'BE',l:'Berlin'},{v:'MU',l:'Munich'},{v:'HM',l:'Hamburg'},{v:'HA',l:'Hannover'}]},
+        {g:'🇫🇷 France',opts:[{v:'PA',l:'Paris (Euronext)'}]},
+        {g:'🇳🇱 Netherlands',opts:[{v:'AS',l:'Amsterdam'}]},
+        {g:'🇧🇪 Belgium',opts:[{v:'BR',l:'Brussels'}]},
+        {g:'🇵🇹 Portugal',opts:[{v:'LIS',l:'Lisbon'}]},
+        {g:'🇮🇹 Italy',opts:[{v:'MI',l:'Milan'}]},
+        {g:'🇨🇭 Switzerland',opts:[{v:'SW',l:'SIX Swiss'}]},
+        {g:'🇪🇸 Spain',opts:[{v:'MC',l:'Madrid (BME)'}]},
+        {g:'🇦🇹 Austria',opts:[{v:'VI',l:'Vienna'}]},
+        {g:'🇸🇪 Scandinavia',opts:[{v:'ST',l:'Stockholm'},{v:'OL',l:'Oslo'},{v:'CO',l:'Copenhagen'},{v:'HE',l:'Helsinki'},{v:'IC',l:'Reykjavik'}]},
+        {g:'🇵🇱 Eastern Europe',opts:[{v:'WAR',l:'Warsaw (GPW)'},{v:'PR',l:'Prague'},{v:'BUD',l:'Budapest'},{v:'RO',l:'Bucharest'},{v:'ZSE',l:'Zagreb'}]},
+        {g:'🇷🇺 Russia & CIS',opts:[{v:'MCX',l:'Moscow (MOEX)'}]},
+        {g:'🇹🇷 Turkey',opts:[{v:'IS',l:'Istanbul (BIST)'}]},
+        {g:'🇮🇱 Israel',opts:[{v:'TA',l:'Tel Aviv (TASE)'}]},
+        {g:'🇿🇦 Africa',opts:[{v:'JSE',l:'Johannesburg'},{v:'EGX',l:'Cairo'},{v:'CASE',l:'Casablanca'},{v:'NBO',l:'Nairobi'}]},
+        {g:'🇦🇪 Middle East',opts:[{v:'DFM',l:'Dubai (DFM)'},{v:'ADX',l:'Abu Dhabi'},{v:'QSE',l:'Qatar'},{v:'BCSE',l:'Bahrain'},{v:'KW',l:'Kuwait'}]},
+        {g:'🇯🇵 Japan',opts:[{v:'TSE',l:'Tokyo (TSE)'}]},
+        {g:'🇨🇳 China',opts:[{v:'SHG',l:'Shanghai'},{v:'SHE',l:'Shenzhen'}]},
+        {g:'🇭🇰 Hong Kong',opts:[{v:'HKEX',l:'Hong Kong (HKEX)'}]},
+        {g:'🇰🇷 Korea',opts:[{v:'KO',l:'Korea (KRX)'}]},
+        {g:'🇮🇳 India',opts:[{v:'NSE',l:'National (NSE)'},{v:'BSE',l:'Bombay (BSE)'}]},
+        {g:'🇸🇬 Southeast Asia',opts:[{v:'SG',l:'Singapore'},{v:'KLSE',l:'Kuala Lumpur'},{v:'BKK',l:'Bangkok'},{v:'JK',l:'Jakarta'},{v:'HO',l:'Ho Chi Minh'},{v:'PSE',l:'Philippines'}]},
+        {g:'🇹🇼 Taiwan',opts:[{v:'TW',l:'Taiwan (TWSE)'}]},
+        {g:'🇦🇺 Australia / NZ',opts:[{v:'AU',l:'Australia (ASX)'},{v:'NZ',l:'New Zealand (NZX)'}]},
+        {g:'🪙 Crypto',opts:[{v:'CC',l:'Crypto (CC)'}]},
+        {g:'💱 Forex & Other',opts:[{v:'FOREX',l:'Forex'},{v:'INDX',l:'Indices'},{v:'BOND',l:'Bonds'},{v:'GBOND',l:'Govt Bonds'}]},
+    ];
+
+    let tickerAllTickers = [];
+    let tickerCurrentEx = '';
+
+    function tickerFullSymbol(s) {
+        if (!tickerCurrentEx) return s;
+        const sfx = US_EXCH.includes(tickerCurrentEx) ? 'US' : tickerCurrentEx;
+        if (s.toUpperCase().endsWith('.' + sfx.toUpperCase())) return s;
+        if (FORCE_SFX.includes(tickerCurrentEx)) return `${s}.${sfx}`;
+        if (s.includes('.')) return s;
+        return `${s}.${sfx}`;
+    }
+
+    window.tickerTerminal = async function(args) {
+        if (!args || args.trim() === '') {
+            window.tickerSearchQuery = '';
+            showTickerExchanges();
+            return;
+        }
+        const arg = args.trim();
+        // Check if it's an exchange code (2-4 chars, uppercase)
+        if (/^[A-Z]{2,4}$/.test(arg)) {
+            // It's an exchange
+            window.tickerSearchQuery = '';
+            await loadTickerExchange(arg.toUpperCase());
+        } else {
+            // It's a search query
+            // Load current exchange if set, otherwise show exchanges
+            if (tickerCurrentEx) {
+                window.tickerSearchQuery = arg;
+                displayTickerTable();
+            } else {
+                logToTerminal("error", "Select an exchange first: ticker [US|XETRA|TSE...]");
+            }
+        }
+    };
+
+    window.tickerCopy = function(symbol) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(symbol).then(() => {
+                logToTerminal("success", `⎘ Copied: ${symbol}`);
+            });
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = symbol;
+            ta.style.cssText = 'position:fixed;left:-9999px;opacity:0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                logToTerminal("success", `⎘ Copied: ${symbol}`);
+            } catch (e) {
+                logToTerminal("error", "Copy failed");
+            }
+            document.body.removeChild(ta);
+        }
+    };
+
+    window.tickerCopyName = function(symbol, name) {
+        const text = `${symbol} - ${name}`;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                logToTerminal("success", `⎘ Copied: ${text}`);
+            });
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;left:-9999px;opacity:0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                logToTerminal("success", `⎘ Copied: ${text}`);
+            } catch (e) {
+                logToTerminal("error", "Copy failed");
+            }
+            document.body.removeChild(ta);
+        }
+    };
+
+    function showTickerExchanges() {
+        let html = `<div style="border: 2px solid #00d4ff; border-radius: 8px; padding: 16px; background: #0f1535; margin: 15px 0;">`;
+        html += `<div style="font-family: 'Orbitron'; color: #00d4ff; font-size: 1.1em; margin-bottom: 12px; letter-spacing: 2px;">📊 SELECT MARKET</div>`;
+        html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">`;
+        EXCHANGES.forEach(g => {
+            html += `<fieldset style="border: 1px solid rgba(0,212,255,.2); border-radius: 4px; padding: 8px; background: rgba(0,212,255,.02);">`;
+            html += `<legend style="color: #00ff88; font-size: 0.8em; font-weight: bold; padding: 0 4px; letter-spacing: 1px;">${g.g}</legend>`;
+            g.opts.forEach(o => {
+                html += `<button onclick="window.tickerTerminal('${o.v}')" style="display: block; width: 100%; background: transparent; border: 1px solid rgba(0,212,255,.3); color: #00d4ff; padding: 6px 8px; border-radius: 3px; cursor: pointer; font-family: 'Courier New'; font-size: 0.75em; margin-top: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,212,255,.1)'; this.style.borderColor='#00d4ff';" onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(0,212,255,.3)';">${o.l}</button>`;
+            });
+            html += `</fieldset>`;
+        });
+        html += `</div></div>`;
+        logHTML("system", html);
+    }
+
+    async function loadTickerExchange(ex) {
+        const lid = 'ticker_' + ex;
+        logToTerminal("system", `<span class="loading-spinner"></span>⏳ Loading ${ex}...`, false, lid);
+        try {
+            tickerCurrentEx = ex;
+            const res = await fetch(`${PROXY}/eod/exchange-symbols/${ex}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const json = await res.json();
+            tickerAllTickers = json.map(r => ({
+                symbol: (r.Code || '').trim(),
+                name: (r.Name || '').trim(),
+                type: (r.Type || 'EQ').toUpperCase()
+            })).filter(r => r.symbol);
+            document.getElementById(lid)?.remove();
+            displayTickerTable();
+        } catch (e) {
+            document.getElementById(lid)?.remove();
+            logToTerminal("error", `✗ Ticker Error: ${e.message}`);
+        }
+    }
+
+    function displayTickerTable() {
+        const ex = tickerCurrentEx;
+        const tickers = tickerAllTickers;
+        const searchQuery = window.tickerSearchQuery || '';
+
+        // Filter by search query (intelligent: symbol OR name)
+        const filtered = searchQuery ? tickers.filter(t => 
+            t.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.name.toLowerCase().includes(searchQuery.toLowerCase())
+        ) : tickers;
+
+        const display = filtered.slice(0, 50);
+
+        let html = `<div style="border: 2px solid #00ff88; border-radius: 8px; padding: 16px; background: #0f1535; margin: 15px 0;">`;
+        html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">`;
+        html += `<div style="font-family: 'Orbitron'; color: #00ff88; font-size: 1.1em; letter-spacing: 2px;">📊 ${ex}</div>`;
+        html += `<div style="color: #ffffff; font-size: 0.85em;">Showing ${display.length} of ${filtered.length} (${tickers.length} total)</div></div>`;
+
+        if (searchQuery) {
+            html += `<div style="background: rgba(0,255,136,.1); border-left: 3px solid #00ff88; padding: 10px; margin-bottom: 12px; border-radius: 4px;">`;
+            html += `<span style="color: #00ff88; font-weight: bold;">Search: "${searchQuery}"</span> `;
+            html += `<button onclick="window.tickerTerminal('${ex}')" style="background: transparent; border: 1px solid #00d4ff; color: #00d4ff; padding: 4px 8px; border-radius: 2px; cursor: pointer; font-size: 0.8em;">Clear</button></div>`;
+        }
+
+        html += `<div style="max-height: 500px; overflow-y: auto; border: 1px solid rgba(0,255,136,.2); border-radius: 4px;">`;
+        html += `<table style="width: 100%; border-collapse: collapse; font-family: 'Courier New'; font-size: 0.8em;">`;
+        html += `<thead style="background: rgba(0,255,136,.1); border-bottom: 1px solid #00ff88;"><tr><th style="padding: 8px; text-align: left; color: #00ff88; font-weight: bold;">SYMBOL</th><th style="padding: 8px; text-align: left; color: #ffffff; max-width: 220px;">NAME</th><th style="padding: 8px; color: #00d4ff;">TYPE</th><th style="padding: 8px; text-align: center; color: #ffc040;">⚙️</th></tr></thead><tbody>`;
+
+        display.forEach((t, i) => {
+            const fullSym = tickerFullSymbol(t.symbol);
+            const tColor = t.type === 'COMMON STOCK' ? '#00ff88' : t.type === 'ETF' ? '#ffc040' : t.type === 'INDEX' ? '#ff3b5c' : '#aaa';
+            html += `<tr style="border-bottom: 1px solid rgba(0,255,136,.08); ${i % 2 === 0 ? 'background: rgba(0,255,136,.02);' : ''}">`;
+            html += `<td style="padding: 6px; color: #00ff88; font-weight: bold;">${fullSym}</td>`;
+            html += `<td style="padding: 6px; color: #ffffff; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.name}</td>`;
+            html += `<td style="padding: 6px; color: ${tColor}; font-size: 0.7em;">${t.type}</td>`;
+            html += `<td style="padding: 6px; text-align: center; white-space: nowrap;">`;
+            html += `<button onclick="window.tickerCopy('${fullSym}')" style="background: transparent; border: 1px solid #00d4ff; color: #00d4ff; padding: 2px 6px; border-radius: 2px; cursor: pointer; font-size: 0.65em; margin-right: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,212,255,.2)';" onmouseout="this.style.background='transparent';">⎘SYM</button>`;
+            html += `<button onclick="window.tickerCopyName('${fullSym}','${t.name.replace(/'/g, "\\'")}')" style="background: transparent; border: 1px solid #ffc040; color: #ffc040; padding: 2px 6px; border-radius: 2px; cursor: pointer; font-size: 0.65em; margin-right: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,192,64,.2)';" onmouseout="this.style.background='transparent';">⎘NAM</button>`;
+            html += `<button onclick="window.tickerChart('${fullSym}')" style="background: transparent; border: 1px solid #ffc040; color: #ffc040; padding: 2px 6px; border-radius: 2px; cursor: pointer; font-size: 0.65em; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,192,64,.2)';" onmouseout="this.style.background='transparent';">📈</button>`;
+            html += `</td></tr>`;
+        });
+
+        html += `</tbody></table></div></div>`;
+        logHTML("success", html);
+    }
+
+    window.tickerChart = async function(symbol) {
+        const lid = 'chart_' + symbol.replace(/\./g, '_');
+        logToTerminal("system", `<span class="loading-spinner"></span>📈 ${symbol}...`, false, lid);
+        try {
+            const from = new Date(Date.now() - 365 * 86400000).toISOString().split('T')[0];
+            const res = await fetch(`${PROXY}/eod/historical/${encodeURIComponent(symbol)}?from=${from}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length < 2) throw new Error('No data');
+            document.getElementById(lid)?.remove();
+            const last = data[data.length - 1];
+            const first = data[0];
+            const chg = ((last.close - first.close) / first.close * 100).toFixed(2);
+            const high = Math.max(...data.map(d => parseFloat(d.high)));
+            const low = Math.min(...data.map(d => parseFloat(d.low)));
+            let html = `<div style="border: 2px solid #00d4ff; border-radius: 8px; padding: 16px; background: #0f1535; margin: 15px 0;">`;
+            html += `<div style="display: flex; justify-content: space-between; margin-bottom: 12px;"><div style="font-family: 'Orbitron'; color: #00d4ff; font-size: 1.1em;">${symbol}</div><div style="text-align: right;"><div style="color: #00d4ff; font-weight: bold;">${last.close.toFixed(2)}</div><div style="color: ${chg >= 0 ? '#00ff88' : '#ff4499'};">${chg >= 0 ? '+' : ''}${chg}%</div></div></div>`;
+            const cid = 'tchart_' + symbol.replace(/\./g, '_') + '_' + Date.now();
+            html += `<canvas id="${cid}" style="max-height: 250px; width: 100%; margin: 12px 0;"></canvas>`;
+            html += `<div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;"><div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 4px; padding: 8px; text-align: center;"><div style="color: #ffffff; font-size: 0.7em;">HIGH</div><div style="color: #00ff88; font-weight: bold;">${high.toFixed(2)}</div></div><div style="background: rgba(255,100,100,.1); border: 1px solid #ff6464; border-radius: 4px; padding: 8px; text-align: center;"><div style="color: #ffffff; font-size: 0.7em;">LOW</div><div style="color: #ff6464; font-weight: bold;">${low.toFixed(2)}</div></div><div style="background: rgba(0,212,255,.1); border: 1px solid #00d4ff; border-radius: 4px; padding: 8px; text-align: center;"><div style="color: #ffffff; font-size: 0.7em;">1Y</div><div style="color: #00d4ff; font-weight: bold;">${data.length}d</div></div></div></div>`;
+            logHTML("success", html);
+            await new Promise(r => {
+                let a = 0;
+                const c = setInterval(() => {
+                    if (document.getElementById(cid)) {
+                        clearInterval(c);
+                        renderTickerChart(cid, data);
+                        r();
+                    } else if (++a > 100) {
+                        clearInterval(c);
+                        r();
+                    }
+                }, 50);
+            });
+        } catch (e) {
+            document.getElementById(lid)?.remove();
+            logToTerminal("error", `✗ ${e.message}`);
+        }
+    };
+
+    function renderTickerChart(cid, data) {
+        const cvs = document.getElementById(cid);
+        if (!cvs || typeof Chart === 'undefined') return;
+        try {
+            const d = data.slice(-100);
+            const dates = d.map(x => x.date);
+            const closes = d.map(x => parseFloat(x.close));
+            const ctx = cvs.getContext('2d');
+            if (cvs.chartInstance) cvs.chartInstance.destroy();
+            cvs.chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Price',
+                        data: closes,
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0,212,255,0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#00d4ff',
+                        tension: 0.2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: false,
+                    interaction: {mode: 'index', intersect: false},
+                    plugins: {legend: {display: false}, tooltip: {backgroundColor: 'rgba(15,21,53,.95)', borderColor: '#00d4ff', borderWidth: 1, titleFont: {family: "'Orbitron',monospace", size: 9}, bodyFont: {family: "'Courier New',monospace", size: 8}}},
+                    scales: {y: {beginAtZero: false, grid: {color: 'rgba(0,212,255,.08)'}, ticks: {color: '#00d4ff', font: {family: "'Orbitron',monospace", size: 8}}}, x: {grid: {display: false}, ticks: {color: 'rgba(0,212,255,.4)', font: {size: 7}, maxRotation: 45, callback: (v,i) => i % Math.ceil(dates.length/8) === 0 ? dates[i] : ''}}}
+                }
+            });
+        } catch (e) {
+            console.error('Chart:', e);
+        }
+    }
+
+    window.brokerSignal = async function(args) {
+        const API_BASE = 'https://secure-all.replit.app';
+        const IMAGES = Array.from({length:26},(_,i)=>`https://babybounce500.github.io/KUNST3/${i+1}.jpg`);
+
+        if (!args || args.trim() === '') {
+            logToTerminal("error", "Usage: broker [symbol] [method]\nMethods: realtime, daily, weekly, monthly\nExample: broker AAPL.US daily");
+            return;
+        }
+
+        const parts = args.trim().toUpperCase().split(/\s+/);
+        const symbol = parts[0];
+        const method = parts[1] || 'realtime';
+
+        if (!['REALTIME', 'DAILY', 'WEEKLY', 'MONTHLY'].includes(method.toUpperCase())) {
+            logToTerminal("error", "Invalid method. Use: realtime, daily, weekly, monthly");
+            return;
+        }
+
+        const loadingId = 'broker_' + symbol.replace(/\./g, '_');
+        logToTerminal("system", `<span class="loading-spinner"></span>📊 Analyzing ${symbol} [${method.toUpperCase()}]...`, false, loadingId);
+
+        try {
+            const signal = await fetchBrokerSignal(symbol, method.toLowerCase(), API_BASE);
+            document.getElementById(loadingId)?.remove();
+
+            const imgUrl = IMAGES[Math.floor(Math.random() * IMAGES.length)];
+            const isLong = signal.recommendation === 'LONG';
+            const mainColor = isLong ? '#00ff88' : '#ff4499';
+            const badgeColor = isLong ? '#00ff88' : '#ff003c';
+            const signalEmoji = isLong ? '🟢 LONG' : '🔴 SHORT';
+
+            const date = new Date(signal.timestamp * 1000);
+            const dateStr = date.toLocaleDateString('de-DE');
+            const timeStr = date.toLocaleTimeString('de-DE');
+
+            let html = `<div style="border: 2px solid ${mainColor}; border-radius: 12px; overflow: hidden; background: #0f1535; margin: 15px 0; box-shadow: 0 0 20px rgba(0,0,0,0.3);">`;
+            html += `<div style="position: relative; height: 200px; overflow: hidden; background: linear-gradient(135deg, #050608 0%, #0f1535 100%);">`;
+            html += `<img src="${imgUrl}" alt="${symbol}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7; filter: brightness(0.8) saturate(1.2);">`;
+            html += `<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to right, rgba(0,0,0,0.5), rgba(0,0,0,0.1));">`;
+            html += `<div style="position: absolute; top: 12px; left: 16px; right: 16px;">`;
+            html += `<div style="font-family: 'Orbitron'; font-size: 1.8em; font-weight: 900; color: ${mainColor}; text-shadow: 0 0 20px ${mainColor}; letter-spacing: 2px;">${symbol}</div>`;
+            html += `<div style="font-size: 0.8em; color: #ffffff; margin-top: 4px; letter-spacing: 1px;">${dateStr} • ${timeStr}</div>`;
+            html += `</div>`;
+            html += `<div style="position: absolute; bottom: 12px; right: 16px;">`;
+            html += `<span style="background: ${badgeColor}; color: #000; font-weight: 900; padding: 6px 12px; border-radius: 4px; font-family: 'Orbitron'; font-size: 0.9em; letter-spacing: 1px;">${signalEmoji}</span>`;
+            html += `</div></div></div>`;
+
+            html += `<div style="padding: 20px;">`;
+            html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">`;
+            html += `<div style="background: rgba(0,255,136,.05); border-left: 3px solid ${mainColor}; padding: 12px;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em; letter-spacing: 1px; margin-bottom: 6px;">ENTRY</div>`;
+            html += `<div style="color: ${mainColor}; font-weight: bold; font-size: 1.2em; font-family: 'Orbitron';">${signal.price}</div>`;
+            html += `</div>`;
+            html += `<div style="background: rgba(0,212,255,.05); border-left: 3px solid #00d4ff; padding: 12px;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em; letter-spacing: 1px; margin-bottom: 6px;">METHOD</div>`;
+            html += `<div style="color: #00d4ff; font-weight: bold; font-size: 1.2em; font-family: 'Orbitron';">${method.toUpperCase()}</div>`;
+            html += `</div></div>`;
+
+            html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">`;
+            html += `<div style="background: rgba(0,255,200,.05); border-left: 3px solid #00ffc8; padding: 12px;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em; letter-spacing: 1px; margin-bottom: 6px;">TARGET</div>`;
+            html += `<div style="color: #00ffc8; font-weight: bold; font-size: 1.2em; font-family: 'Orbitron';">${signal.target}</div>`;
+            html += `<div style="color: #ffffff; font-size: 0.8em; margin-top: 4px;">Profit Target</div>`;
+            html += `</div>`;
+            html += `<div style="background: rgba(255,100,100,.05); border-left: 3px solid #ff6464; padding: 12px;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em; letter-spacing: 1px; margin-bottom: 6px;">STOP LOSS</div>`;
+            html += `<div style="color: #ff6464; font-weight: bold; font-size: 1.2em; font-family: 'Orbitron';">${signal.stop}</div>`;
+            html += `<div style="color: #ffffff; font-size: 0.8em; margin-top: 4px;">Risk Management</div>`;
+            html += `</div></div>`;
+
+            html += `<div style="background: rgba(255,221,0,.05); border: 1px solid rgba(255,221,0,.3); border-radius: 6px; padding: 12px; margin-bottom: 12px;">`;
+            html += `<div style="color: #ffffff; font-size: 0.75em; letter-spacing: 1px; margin-bottom: 6px;">POSITION SIZE</div>`;
+            html += `<div style="color: #ffdd00; font-weight: bold; font-size: 1.1em; font-family: 'Orbitron';">${signal.size}</div>`;
+            html += `</div>`;
+
+            const r2t = ((signal.target - signal.price) / signal.price * 100).toFixed(2);
+            const r2s = ((signal.price - signal.stop) / signal.price * 100).toFixed(2);
+            const rratio = (Math.abs(r2t / r2s)).toFixed(2);
+
+            html += `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">`;
+            html += `<div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 4px; padding: 8px; text-align: center;">`;
+            html += `<div style="color: #ffffff; font-size: 0.7em;">P/L %</div>`;
+            html += `<div style="color: #00ff88; font-weight: bold; font-size: 0.95em; margin-top: 3px;">${r2t}%</div>`;
+            html += `</div>`;
+            html += `<div style="background: rgba(255,100,100,.1); border: 1px solid #ff6464; border-radius: 4px; padding: 8px; text-align: center;">`;
+            html += `<div style="color: #ffffff; font-size: 0.7em;">RISK %</div>`;
+            html += `<div style="color: #ff6464; font-weight: bold; font-size: 0.95em; margin-top: 3px;">${r2s}%</div>`;
+            html += `</div>`;
+            html += `<div style="background: rgba(0,212,255,.1); border: 1px solid #00d4ff; border-radius: 4px; padding: 8px; text-align: center;">`;
+            html += `<div style="color: #ffffff; font-size: 0.7em;">R/R</div>`;
+            html += `<div style="color: #00d4ff; font-weight: bold; font-size: 0.95em; margin-top: 3px;">1:${rratio}</div>`;
+            html += `</div></div></div></div>`;
+
+            logHTML("success", html);
+        } catch (e) {
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("error", `✗ Broker Error: ${e.message}`);
+        }
+    };
+
+    async function fetchBrokerSignal(symbol, method, apiBase) {
+        const dateStr = (daysAgo = 0) => {
+            const d = new Date();
+            d.setDate(d.getDate() - daysAgo);
+            return d.toISOString().split('T')[0];
+        };
+
+        try {
+            if (method === 'realtime') {
+                const res = await fetch(`${apiBase}/api/eod?symbol=${encodeURIComponent(symbol)}&endpoint=real-time`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const d = await res.json();
+                const price = parseFloat(d.close || d.last || d.price || 0);
+                const high = parseFloat(d.high || price);
+                const low = parseFloat(d.low || price);
+                const avg = (high + low) / 2;
+                const pos = price > avg ? 'LONG' : 'SHORT';
+                return {
+                    symbol: symbol,
+                    recommendation: pos,
+                    price: Number(price).toFixed(4),
+                    target: pos === 'LONG' ? (price * 1.01).toFixed(4) : (price * 0.99).toFixed(4),
+                    stop: pos === 'LONG' ? (price * 0.99).toFixed(4) : (price * 1.01).toFixed(4),
+                    timestamp: d.timestamp || Date.now() / 1000,
+                    size: '100%'
+                };
+            }
+
+            const from = method === 'monthly' ? dateStr(45) : method === 'weekly' ? dateStr(14) : dateStr(5);
+            const to = dateStr(0);
+
+            const res = await fetch(`${apiBase}/api/eod?symbol=${encodeURIComponent(symbol)}&endpoint=historical&from=${from}&to=${to}&period=d`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            let data = await res.json();
+
+            if (!Array.isArray(data) || data.length < 2) throw new Error('Insufficient data');
+            data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (method === 'daily') {
+                const lat = parseFloat(data[0].close);
+                const prev = parseFloat(data[2]?.close || data[1].close);
+                const pos = lat / prev > 1 ? 'LONG' : 'SHORT';
+                return { symbol, recommendation: pos, price: lat.toFixed(4), target: pos === 'LONG' ? (lat * 1.04).toFixed(4) : (lat * 0.96).toFixed(4), stop: pos === 'LONG' ? (lat * 0.98).toFixed(4) : (lat * 1.02).toFixed(4), timestamp: new Date(data[0].date).getTime() / 1000, size: '50%' };
+            }
+
+            if (method === 'weekly') {
+                if (data.length < 5) throw new Error('Not enough data');
+                const sma1 = (parseFloat(data[0].close) + parseFloat(data[1].close) + parseFloat(data[2].close)) / 3;
+                const sma3 = (parseFloat(data[2].close) + parseFloat(data[3].close) + parseFloat(data[4].close)) / 3;
+                const lat = parseFloat(data[0].close);
+                const pos = sma1 / sma3 > 1 ? 'LONG' : 'SHORT';
+                return { symbol, recommendation: pos, price: lat.toFixed(4), target: pos === 'LONG' ? (lat * 1.08).toFixed(4) : (lat * 0.92).toFixed(4), stop: pos === 'LONG' ? (lat * 0.96).toFixed(4) : (lat * 1.04).toFixed(4), timestamp: new Date(data[0].date).getTime() / 1000, size: '25%' };
+            }
+
+            if (method === 'monthly') {
+                const lat = parseFloat(data[0].close);
+                const older = parseFloat(data[data.length - 1].close);
+                const pos = lat > older ? 'LONG' : 'SHORT';
+                return { symbol, recommendation: pos, price: lat.toFixed(4), target: pos === 'LONG' ? (lat * 1.20).toFixed(4) : (lat * 0.80).toFixed(4), stop: pos === 'LONG' ? (lat * 0.90).toFixed(4) : (lat * 1.10).toFixed(4), timestamp: new Date(data[0].date).getTime() / 1000, size: '10%' };
+            }
+        } catch (err) {
+            throw new Error(`API Error: ${err.message}`);
+        }
+    }
+
+    window.renderFundsChart = async function(args) {
+        const fundDefinitions = [
+            { id: 0, name: 'CRYPTO BEST 5', desc: 'Top 5 cryptocurrencies', symbols: ['BCH-USD.cc','BNB-USD.cc','BTC-USD.cc','DOGE-USD.cc','ETH-USD.cc'], color: '#cc00ff' },
+            { id: 1, name: 'DAX BLUE CHIP', desc: 'German blue-chip stocks', symbols: ['ALV.XETRA','MBG.XETRA','BMW.XETRA','SIE.XETRA','SAP.XETRA'], color: '#00ffff' },
+            { id: 2, name: 'DAX DIVIDEND ELITE', desc: 'German dividend stocks', symbols: ['ALV.XETRA','MUV2.XETRA','SRT3.XETRA','HNR1.XETRA','RHM.XETRA'], color: '#00ff88' },
+            { id: 3, name: 'CRYPTO EXPANSION', desc: 'Broad DeFi & altcoins', symbols: ['ADA-USD.cc','AAVE-USD.cc','BNB-USD.cc','BTC-USD.cc','DOGE-USD.cc','DOT-USD.cc','ETH-USD.cc','LINK-USD.cc','LTC-USD.cc','SOL-USD.cc','XRP-USD.cc'], color: '#ff00ff' },
+            { id: 4, name: 'DAX TOP 40', desc: 'Full German market', symbols: ['ADS.XETRA','ALV.XETRA','BMW.XETRA','SAP.XETRA','SIE.XETRA'], color: '#ffd700' },
+            { id: 5, name: 'DOW JONES 30', desc: 'US blue-chip stocks', symbols: ['AAPL.US','MSFT.US','JPM.US','GS.US','JNJ.US','NKE.US','V.US','HD.US','MCD.US','KO.US'], color: '#00ffff' },
+            { id: 6, name: 'USA TECH INDEX', desc: 'US tech leaders', symbols: ['AAPL.US','MSFT.US','NVDA.US','TSLA.US','AMZN.US','NFLX.US','ADBE.US','CRM.US','QCOM.US'], color: '#00ff88' },
+            { id: 7, name: 'TESLA', desc: 'Tesla Inc. (TSLA)', symbols: ['TSLA.US'], color: '#ff4499' },
+            { id: 8, name: 'NETFLIX', desc: 'Netflix Inc. (NFLX)', symbols: ['NFLX.US'], color: '#e50914' }
+        ];
+
+        const API_BASE = 'https://theserver-open-ai.replit.app';
+        const EMISSION_DATE = '2024-01-02';
+        const cache = {};
+
+        async function fetchHistory(symbol, from, to) {
+            const key = `${symbol}|${from}|${to}`;
+            if (cache[key]) return cache[key];
+            try {
+                const res = await fetch(`${API_BASE}/eod/historical/${encodeURIComponent(symbol)}?from=${from}&to=${to}&period=d`);
+                if (!res.ok) return [];
+                const json = await res.json();
+                const arr = Array.isArray(json) ? json : (json.data || []);
+                return cache[key] = arr;
+            } catch(e) { return []; }
+        }
+
+        async function computeFundHistory(symbols, from, to) {
+            const results = await Promise.all(symbols.map(s => fetchHistory(s, from, to)));
+            const dateMap = {};
+            results.forEach(data => {
+                data.forEach(e => {
+                    if (!dateMap[e.date]) dateMap[e.date] = [];
+                    dateMap[e.date].push(parseFloat(e.adjusted_close || e.close || 0));
+                });
+            });
+            const minCoverage = Math.ceil(symbols.length * 0.6);
+            const dates = Object.keys(dateMap).filter(d => dateMap[d].length >= minCoverage).sort();
+            const avgs = dates.map(d => dateMap[d].reduce((a,b)=>a+b,0)/dateMap[d].length);
+            if (avgs.length === 0) return { dates: [], indexed: [] };
+            const base = avgs[0];
+            const indexed = avgs.map(v => base > 0 ? (v / base) * 100 : 100);
+            return { dates, indexed };
+        }
+
+        function getFromDate(period) {
+            const d = new Date();
+            if (period === 'ALL') return EMISSION_DATE;
+            const months = { '3M': 3, '6M': 6, '1Y': 12 };
+            d.setMonth(d.getMonth() - (months[period] || 12));
+            return d.toISOString().split('T')[0];
+        }
+
+        if (!args || args.trim() === '') {
+            let list = '📊 AVAILABLE FUNDS:\n\n';
+            fundDefinitions.forEach(f => list += `${f.id}. ${f.name}\n`);
+            logToTerminal("info", list + '\n💡 Usage: funds [0-8] or funds [name]', true);
+            return;
+        }
+
+        const search = args.toLowerCase().trim();
+        let fundToLoad = /^\d+$/.test(search) ? fundDefinitions.find(f => f.id === parseInt(search)) : fundDefinitions.find(f => f.name.toLowerCase().includes(search));
+
+        if (!fundToLoad) return logToTerminal("error", `✗ Fund not found: "${args}"`);
+
+        const loadingId = 'loading-fund-' + Math.random().toString(36).substr(2, 9);
+        logToTerminal("system", `<span class="loading-spinner"></span>📊 Loading ${fundToLoad.name}...`, false, loadingId);
+
+        try {
+            const period = '1Y';
+            const from = getFromDate(period);
+            const to = new Date().toISOString().split('T')[0];
+            const { dates, indexed } = await computeFundHistory(fundToLoad.symbols, from, to);
+
+            document.getElementById(loadingId)?.remove();
+
+            if (indexed.length === 0) return logToTerminal("error", `✗ No data for ${fundToLoad.name}`);
+
+            const last = indexed[indexed.length - 1] || 100;
+            const isUp = last >= 100;
+            const color = isUp ? fundToLoad.color : '#ff4499';
+            const pct = (last - 100).toFixed(2);
+            const sign = last >= 100 ? '+' : '';
+            const minVal = Math.min(...indexed);
+            const maxVal = Math.max(...indexed);
+            const canvasId = `fund-chart-${fundToLoad.id}-${Date.now()}`;
+
+            const html = `<div style="border: 2px solid ${color}; border-radius: 8px; padding: 20px; background: #0f1535;">
+                <div style="margin-bottom: 15px;"><strong style="color: ${color}; font-size: 1.1em;">${fundToLoad.name}</strong><br><span style="color: #ffffff; font-size: 0.85em;">${fundToLoad.desc}</span></div>
+                <div style="text-align: right; margin-bottom: 15px;"><div style="color: ${color}; font-weight: bold;">📈 ${last.toFixed(2)} [${sign}${pct}%]</div></div>
+                <canvas id="${canvasId}" style="max-height: 300px;"></canvas>
+                <div style="display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 15px;">
+                    <div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 6px; padding: 8px; text-align: center;"><div style="color: #ffffff; font-size: 0.75em;">NOW</div><div style="color: ${color}; font-weight: bold;">${last.toFixed(2)}</div></div>
+                    <div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 6px; padding: 8px; text-align: center;"><div style="color: #ffffff; font-size: 0.75em;">HIGH</div><div style="color: #00ff88; font-weight: bold;">${maxVal.toFixed(2)}</div></div>
+                    <div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 6px; padding: 8px; text-align: center;"><div style="color: #ffffff; font-size: 0.75em;">LOW</div><div style="color: #ff4499; font-weight: bold;">${minVal.toFixed(2)}</div></div>
+                    <div style="background: rgba(0,255,136,.1); border: 1px solid #00ff88; border-radius: 6px; padding: 8px; text-align: center;"><div style="color: #ffffff; font-size: 0.75em;">ASSETS</div><div style="color: #ffd700; font-weight: bold;">${fundToLoad.symbols.length}</div></div>
+                </div>
+            </div>`;
+
+            logHTML("success", html);
+
+            await new Promise(resolve => { let a = 0; const c = setInterval(() => { if (document.getElementById(canvasId) || a++ > 50) { clearInterval(c); resolve(); } }, 50); });
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            let displayDates = dates;
+            let displayIndexed = indexed;
+            const step = Math.ceil(dates.length / 120);
+            if (step > 1) { displayDates = dates.filter((_, i) => i % step === 0); displayIndexed = indexed.filter((_, i) => i % step === 0); }
+
+            new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: displayDates,
+                    datasets: [{ label: fundToLoad.name, data: displayIndexed, borderColor: color, backgroundColor: color + '20', borderWidth: 2.5, tension: 0.3, fill: true, pointRadius: step > 5 ? 0 : 2, pointHoverRadius: 5, pointBackgroundColor: color }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(15,21,53,.95)', borderColor: color, borderWidth: 2, padding: 12, titleFont: { family: "'Orbitron',monospace", size: 11, weight: 'bold' }, bodyFont: { family: "'Courier New',monospace", size: 10 }, callbacks: { label: ctx => { const v = ctx.parsed.y; const c = (v - 100).toFixed(2); const s = v >= 100 ? '+' : ''; return [`INDEX: ${v.toFixed(2)}`, `RETURN: ${s}${c}%`]; } } } },
+                    scales: {
+                        y: { beginAtZero: false, grid: { color: 'rgba(0,255,136,.08)' }, ticks: { color: '#00ff88', font: { family: "'Orbitron',monospace", size: 9 }, callback: v => v.toFixed(0) } },
+                        x: { grid: { display: false }, ticks: { color: 'rgba(0,255,136,.5)', font: { family: "'Orbitron',monospace", size: 8 }, callback: (v, i) => { const n = Math.ceil(displayDates.length / 8); return i % n === 0 ? displayDates[i] : ''; } } }
+                    }
+                }
+            });
+        } catch(e) { document.getElementById(loadingId)?.remove(); logToTerminal("error", `✗ Error: ${e.message}`); }
+    };
+
+
+    // ========== UTILITY COMMANDS ==========
+
+
+
+
+
+    window.calc = function(expr) {
+        if (!expr) return logToTerminal("error", "Usage: calc [expression]");
+        try {
+            const result = Function('"use strict"; return (' + expr + ')')();
+            logToTerminal("success", `🧮 CALCULATOR\n${expr} = ${result}`);
+        } catch(e) { logToTerminal("error", `✗ Calc Error: ${e.message}`); }
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // ========== MEDIA COMMANDS ==========
+
+    // ── AI IMAGE GENERATION (gpt-image-1 via Async Job) ──────────────────
+
+
+
+
+
+
+    // ========== FILE UPLOAD HANDLER ==========
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const data = event.target.result;
+            const type = file.type;
+
+            if (type.startsWith('image/')) {
+                const html = `<div class="media-container"><img src="${data}" alt="${file.name}" style="max-width:100%;max-height:400px;border-radius:4px;border:1px solid var(--accent-primary)"></div>`;
+                logHTML("success", `🖼️ IMAGE: ${file.name}\n${html}`);
+            } else if (type.startsWith('video/')) {
+                const html = `<div class="media-container"><video controls style="max-width:100%;max-height:400px;border-radius:4px;border:1px solid var(--accent-primary)"><source src="${data}" type="${type}"></video></div>`;
+                logHTML("success", `🎬 VIDEO: ${file.name}\n${html}`);
+            } else if (type.startsWith('audio/')) {
+                const html = `<div class="media-container"><audio controls style="width:100%"><source src="${data}" type="${type}"></audio></div>`;
+                logHTML("success", `🔊 AUDIO: ${file.name}\n${html}`);
+            } else if (type === 'application/pdf') {
+                const html = `<div class="media-container"><iframe src="${data}" type="application/pdf" width="100%" height="600" frameborder="0"></iframe></div>`;
+                logHTML("success", `📄 PDF: ${file.name}\n${html}`);
+            } else {
+                logToTerminal("error", `✗ Unsupported file type: ${type}`);
+            }
+        };
+        reader.readAsDataURL(file);
+        fileInput.value = '';
+    });
+
+    window.clear = function() { 
+        chatHistoryElement.innerHTML = ""; 
+        logToTerminal("system", "🗑️ Cleared"); 
+    };
+
+    // ========== CUSTOM CODE EXECUTION ==========
+
+
+    // ============================================================
+    // FINTECH PRO MODULE v8.5
+    // Merged from DANIEL-FINTECH.html
+    // ============================================================
+
+    async function _getTechnicalCrossover(symbol, totalScore) {
+        try {
+            const res = await fetch(`${PROXY_URL}/eod/historical/${symbol}?fmt=json`);
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length < 200) return null;
+            const sorted = data.sort((a,b) => new Date(a.date) - new Date(b.date));
+            const lastClose = parseFloat(sorted[sorted.length - 1].close);
+            const prices = sorted.slice(-30).map(d => parseFloat(d.close));
+            let gains = 0, losses = 0;
+            for (let i = 1; i <= 14; i++) {
+                let diff = prices[i] - prices[i-1];
+                if (diff > 0) gains += diff; else losses -= diff;
+            }
+            let avgGain = gains / 14, avgLoss = losses / 14;
+            for (let i = 15; i < prices.length; i++) {
+                let diff = prices[i] - prices[i-1];
+                avgGain = (avgGain * 13 + (diff > 0 ? diff : 0)) / 14;
+                avgLoss = (avgLoss * 13 + (diff < 0 ? -diff : 0)) / 14;
+            }
+            const rsiVal = avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+            const sma200 = sorted.slice(-200).reduce((sum, d) => sum + parseFloat(d.close), 0) / 200;
+            let signal = "⚖️ BALANCED TREND (Nachrichtenfluss deckt sich präzise mit dem Chartbild)";
+            let action = "SQUEEZE THE TREND / TRAILING STOP-LOSS ENG NACHZIEHEN";
+            if (totalScore >= 1 && rsiVal > 60) {
+                signal = "⚠️ HARD CEILING / DISTRIBUTION (News extrem bullisch, aber RSI signalisiert Überlastung. Institutionelle verkaufen in die Retail-Gier!)";
+                action = "GEWINNMITNAHME (Sell on Fact) / AUF KEINEN FALL OBEN NACHKAUFEN!";
+            } else if (totalScore <= -1 && rsiVal < 52) {
+                signal = "🚀 PANIC EXHAUSTION / BEAR TRAP (Horror-News schlagen ein, aber der RSI steht stabil. Die Verkäufer rennen in eine massive Kaufwand!)";
+                action = "ANTIZYKLISCHE LIMIT-ORDERS SETZEN (Buy on Bad News) / POSITION AUFBAUEN";
+            } else if (totalScore >= 1 && rsiVal <= 60) {
+                signal = "🔥 UNLEASHED MOMENTUM / VALUE ACCUMULATION (Hervorragende News treffen auf flachen Chart. Explosionsgefahr!)";
+                action = "AGGRESSIVER LONG-EINSTIEG / AUFSTOCKEN (Ausbruch antizipieren)";
+            } else if (totalScore >= 1 && lastClose < sma200 && rsiVal > 55) {
+                signal = "🛑 BEAR MARKET TRAP (Gute News verpuffen als reiner Dead-Cat-Bounce unter dem SMA 200)";
+                action = "KEIN RE-ENTRY / SHORT-GELEGENHEITEN BEI REJECTION DES SMA SUCHEN";
+            }
+            return { rsi: rsiVal.toFixed(2), sma200: sma200.toFixed(2), currentPrice: lastClose.toFixed(2), signal, action };
+        } catch(e) { return null; }
+    }
+
+    window.fintechNews = async function(stockSymbol) {
+        let symbol = stockSymbol ? stockSymbol.toUpperCase().trim() : null;
+        if (!symbol) return logToTerminal("error", "Usage: news [ticker]  (z.B. news AAPL)");
+        logToTerminal("system", `Scanne Top 3 Nachrichten für ${symbol} (FULL TEXT ENGINE ACTIVE)...`);
+        try {
+            const response = await fetch(`${PROXY_URL}/eod/news?s=${symbol}&offset=0&limit=3`);
+            const data = await response.json();
+            if (!Array.isArray(data) || data.length === 0) return logToTerminal("error", `Keine News für ${symbol}.`);
+            const bullHits = ['upgrade','beats','profit','bullish','growth','sales rose','beat earnings','sues'];
+            const bearHits = ['lawsuit','downgrade','loss','misses','drop','fall','sued','pfas'];
+            let totalScore = 0;
+            data.slice(0,3).forEach((item, i) => {
+                let title = (item.title || "").toLowerCase();
+                let body  = (item.content || "").toLowerCase();
+                let score = 0;
+                bullHits.forEach(w => { if(title.includes(w)) score += 3; if(body.includes(w)) score += 1; });
+                bearHits.forEach(w => { if(title.includes(w)) score -= 4.5; if(body.includes(w)) score -= 1.8; });
+                let sent = score >= 2 ? "🟢 BULLISH" : score <= -2 ? "🔴 BEARISH" : "🔄 NEUTRAL";
+                if (score >= 2) totalScore++; else if (score <= -2) totalScore--;
+                logToTerminal("assistant", `🔥 STORY #${i+1} | ${sent} (Score: ${score.toFixed(1)})\n• Titel: ${item.title}\n• Datum: ${item.date}\n• Text:\n${item.content}`);
+            });
+            const label = totalScore > 1 ? "🟢 AGGRESSIV BULLISH" : totalScore === 1 ? "🌱 MODERAT BULLISH" : totalScore === -1 ? "⚠️ MODERAT BEARISH" : totalScore < -1 ? "🚨 STARK BEARISH" : "🔄 NEUTRAL";
+            logToTerminal("success", `🤖 AI SENTIMENT FAZIT: Score ${totalScore} → ${label}`);
+
+            // SAVE TO CHAT HISTORY FOR RAG
+            const newsAnalysis = `📰 NEWS ANALYSIS [${symbol}]\n• Top 3 Stories Sentiment Score: ${totalScore}\n• Overall Sentiment: ${label}\n• Analysis: ${data.slice(0,3).map((item, i) => item.title).join(' | ')}`;
+            chatHistory.push({
+                role: 'system',
+                content: newsAnalysis,
+                _isAnalysis: true,
+                _cmd: 'news',
+                _ts: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+            });
+
+            const contra = await _getTechnicalCrossover(symbol, totalScore);
+            if (contra) {
+                logToTerminal("contra", `🧠 [CONTRA-ENGINE] CROSSOVER FOR ${symbol}:\n• Kurs: $${contra.currentPrice}  RSI(14): ${contra.rsi}  SMA200: $${contra.sma200}\n• SIGNAL   : ${contra.signal}\n• AKTION   : ${contra.action}`);
+            }
+        } catch(e) { logToTerminal("error", `News-Fehler: ${e.message}`); }
+    };
+
+    window.fintechAlert = async function() {
+        logToTerminal("system", "Initiiere GLOBAL PANIC BUTTON (VIX · Gold · Bonds)...");
+        try {
+            const [vixD, goldD, bondsD] = await Promise.all([
+                fetch(`${PROXY_URL}/eod/realtime/VXX?fmt=json`).then(r => r.json()),
+                fetch(`${PROXY_URL}/eod/realtime/GLD?fmt=json`).then(r => r.json()),
+                fetch(`${PROXY_URL}/eod/realtime/TLT?fmt=json`).then(r => r.json())
+            ]);
+            const vix  = parseFloat(vixD.change_p)   || 0;
+            const gold = parseFloat(goldD.change_p)   || 0;
+            const bond = parseFloat(bondsD.change_p)  || 0;
+            let pts = 0;
+            if (vix > 1.5)  pts += 3; if (gold > 0.5)  pts += 2; if (bond > 0.4)  pts += 2;
+            if (vix < -1.5) pts -= 3; if (gold < -0.5) pts -= 1; if (bond < -0.4) pts -= 1;
+            let cond = "🟢 RISK-ON", advice = "Vollgas Long. Smart Money pumpt Liquidität in Aktien.";
+            if (pts >= 4) { cond = "☠️ RISK-OFF (GLOBAL PANIC DETECTED)"; advice = "🚨 ALARMSTUFE ROT: Gewinne sichern! VIX + Gold + Anleihen steigen gleichzeitig."; }
+            else if (pts >= 1) { cond = "⚠️ MODERATE RISK-OFF / VOLATILE GROUND"; advice = "Erhöhte Vorsicht. Keine riskanten Überhebelungen."; }
+            logToTerminal(pts >= 4 ? "contra" : "success",
+                `☠️ [GLOBAL RISK MONITOR]\n• VIX   : ${vix > 0 ? '+':''}${vix.toFixed(2)}%  ${vix > 1.5 ? '🔥 Angst' : '📉 Ruhig'}\n• Gold  : ${gold > 0 ? '+':''}${gold.toFixed(2)}%  ${gold > 0.5 ? '🔱 Fluchtwert' : '🔄 Stabil'}\n• Bonds : ${bond > 0 ? '+':''}${bond.toFixed(2)}%  ${bond > 0.4 ? '🏦 Kapitalflucht' : '🔄 Normal'}\n• SIGNAL: ${cond}\n• AKTION: ${advice}`);
+
+            // SAVE TO CHAT HISTORY FOR RAG
+            chatHistory.push({
+                role: 'system',
+                content: `⚠️ GLOBAL RISK ALERT\n• VIX: ${vix.toFixed(2)}% | Gold: ${gold.toFixed(2)}% | Bonds: ${bond.toFixed(2)}%\n• Risk Score: ${pts}\n• Signal: ${cond}\n• Action: ${advice}`,
+                _isAnalysis: true,
+                _cmd: 'alert',
+                _ts: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+            });
+        } catch(e) { logToTerminal("error", `Alert-Fehler: ${e.message}`); }
+    };
+
+    window.fintechMacro = async function() {
+        logToTerminal("system", "Fische globale Makro-News (FED · CPI · Powell · Rates)...");
+        try {
+            const response = await fetch(`${PROXY_URL}/eod/news?s=US&offset=0&limit=6`);
+            const data = await response.json();
+            if (!Array.isArray(data) || data.length === 0) return logToTerminal("error", "Keine Makro-Daten erreichbar.");
+            const kw = ['fed','fomc','cpi','inflation','powell','rate hike','interest rate','unemployment','payrolls'];
+            let count = 0, macroScore = 0;
+            data.forEach(item => {
+                let txt = `${item.title} ${item.content}`.toLowerCase();
+                if (kw.some(k => txt.includes(k)) && count < 3) {
+                    count++;
+                    if (txt.includes('hike') || txt.includes('hotter') || txt.includes('inflation rose')) macroScore -= 2;
+                    if (txt.includes('cut')  || txt.includes('cool')   || txt.includes('pause'))          macroScore += 2;
+                    logToTerminal("assistant", `📅 [MAKRO #${count}]\n• Datum: ${item.date}\n• Titel: ${item.title}\n• Text:\n${item.content}`);
+                }
+            });
+            let status = "🔄 NEUTRAL / LAUWARM", advice = "Kein unmittelbarer Makro-Schock. Trading nach Chart.";
+            if (macroScore < 0) { status = "🚨 HAWKISH SCARE / RISK-OFF"; advice = "Märkte fürchten straffe Zinspolitik. Longs reduzieren!"; }
+            else if (macroScore > 0) { status = "🚀 DOVISH Rückenwind / RISK-ON"; advice = "Liquiditätsschleusen intakt. Kaufen erlaubt."; }
+            logToTerminal("contra", `🧠 [MACRO REPORT]\n• Status   : ${status}\n• Strategie: ${advice}`);
+
+            // SAVE TO CHAT HISTORY FOR RAG
+            chatHistory.push({
+                role: 'system',
+                content: `📊 MACRO ANALYSIS\n• FED/Rates Score: ${macroScore}\n• Status: ${status}\n• Strategy: ${advice}`,
+                _isAnalysis: true,
+                _cmd: 'macro',
+                _ts: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+            });
+        } catch(e) { logToTerminal("error", `Makro-Fehler: ${e.message}`); }
+    };
+
+    window.fintechRegime = async function() {
+        logToTerminal("system", "Berechne Marktumfeld (SPY · QQQ · DIA vs SMA 200)...");
+        try {
+            const [spy, qqq, dia] = await Promise.all([
+                fetch(`${PROXY_URL}/eod/historical/SPY?fmt=json`).then(r => r.json()),
+                fetch(`${PROXY_URL}/eod/historical/QQQ?fmt=json`).then(r => r.json()),
+                fetch(`${PROXY_URL}/eod/historical/DIA?fmt=json`).then(r => r.json())
+            ]);
+            const check = (d) => {
+                let s = d.sort((a,b) => new Date(a.date) - new Date(b.date));
+                let close = parseFloat(s[s.length-1].close);
+                let sma = s.slice(-200).reduce((sum,x) => sum + parseFloat(x.close), 0) / 200;
+                return { above: close > sma, close, sma };
+            };
+            const rSpy = check(spy), rQqq = check(qqq), rDia = check(dia);
+            const score = (rSpy.above?1:0) + (rQqq.above?1:0) + (rDia.above?1:0);
+            let regime = "🔥 BULL MARKET REGIME (Vollgas Long)";
+            let strat  = "Rücksetzer rigide kaufen. Übergeordneter Trend schützt Longs.";
+            if (score === 0) { regime = "☠️ BEAR MARKET REGIME"; strat = "Finger weg von Longs! Rallies werden gnadenlos abverkauft."; }
+            else if (score < 3) { regime = "⚠️ MIXED CHOP REGIME (Range-Trading)"; strat = "Keine Trendfolge. Gewinne an Range-Kanten schnell einstreichen."; }
+            logToTerminal("success",
+                `📊 [MARKET REGIME DETECTOR]\n• SPY  : $${rSpy.close} vs SMA200 $${rSpy.sma.toFixed(2)}  → ${rSpy.above ? '🟢 ABOVE':'🔴 BELOW'}\n• QQQ  : $${rQqq.close} vs SMA200 $${rQqq.sma.toFixed(2)}  → ${rQqq.above ? '🟢 ABOVE':'🔴 BELOW'}\n• DIA  : $${rDia.close} vs SMA200 $${rDia.sma.toFixed(2)}  → ${rDia.above ? '🟢 ABOVE':'🔴 BELOW'}\n• REGIME  : ${regime}\n• STRATEGIE: ${strat}`);
+
+            // SAVE TO CHAT HISTORY FOR RAG
+            chatHistory.push({
+                role: 'system',
+                content: `📊 MARKET REGIME [SPY/QQQ/DIA]\n• Score: ${score}/3\n• Regime: ${regime}\n• Strategy: ${strat}`,
+                _isAnalysis: true,
+                _cmd: 'regime',
+                _ts: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+            });
+        } catch(e) { logToTerminal("error", `Regime-Fehler: ${e.message}`); }
+    };
+
+    window.fintechHedge = async function(symbol) {
+        if (!symbol) return logToTerminal("error", "Usage: hedge [ticker]  (z.B. hedge NVDA)");
+        const ticker = symbol.toUpperCase().trim();
+        logToTerminal("system", `Berechne relative Stärke von ${ticker} vs SPY (5 Handelstage)...`);
+        try {
+            const [tData, sData] = await Promise.all([
+                fetch(`${PROXY_URL}/eod/historical/${ticker}?fmt=json`).then(r => r.json()),
+                fetch(`${PROXY_URL}/eod/historical/SPY?fmt=json`).then(r => r.json())
+            ]);
+            const perf = (d) => {
+                let s = d.sort((a,b) => new Date(a.date) - new Date(b.date)).slice(-5);
+                return ((parseFloat(s[s.length-1].close) - parseFloat(s[0].close)) / parseFloat(s[0].close)) * 100;
+            };
+            const tP = perf(tData), sP = perf(sData), alpha = tP - sP;
+            let sig = "⚖️ NEUTRALE BETA-CORRELATION";
+            if (alpha > 3.5)  sig = "🔥 BRUTALE RELATIVE STÄRKE (Institutionelle Akkumulation rollt!)";
+            else if (alpha < -3.5) sig = "🚨 MASSIVE SCHWÄCHE (Wird als erstes abgeladen)";
+            logToTerminal("assistant",
+                `🛡️ [RELATIVE STRENGTH / ALPHA MATRIX]\n• ${ticker} Performance (5 Tage): ${tP.toFixed(2)}%\n• S&P 500 Performance (5 Tage) : ${sP.toFixed(2)}%\n• Alpha (Divergenz)             : ${alpha > 0 ? '+':''}${alpha.toFixed(2)}%\n• SIGNAL: ${sig}`);
+
+            // SAVE TO CHAT HISTORY FOR RAG
+            chatHistory.push({
+                role: 'system',
+                content: `🛡️ RELATIVE STRENGTH [${ticker}]\n• Stock 5D: ${tP.toFixed(2)}% | SPY 5D: ${sP.toFixed(2)}%\n• Alpha: ${alpha.toFixed(2)}%\n• Signal: ${sig}`,
+                _isAnalysis: true,
+                _cmd: 'hedge',
+                _ts: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+            });
+        } catch(e) { logToTerminal("error", "Fehler bei Relative Strength."); }
+    };
+
+    window.fintechSplit = async function(symbol) {
+        if (!symbol) return logToTerminal("error", "Usage: split [ticker]  (z.B. split MMM)");
+        const ticker = symbol.toUpperCase().trim();
+        logToTerminal("system", `Analysiere Retail vs Smart Money Divergenz für ${ticker}...`);
+        try {
+            const [newsData, priceData] = await Promise.all([
+                fetch(`${PROXY_URL}/eod/news?s=${ticker}&offset=0&limit=3`).then(r => r.json()),
+                fetch(`${PROXY_URL}/eod/realtime/${ticker}?fmt=json`).then(r => r.json())
+            ]);
+            let txtScore = 0;
+            newsData.slice(0,3).forEach(n => {
+                let t = `${n.title} ${n.content}`.toLowerCase();
+                if (t.includes('upgrade') || t.includes('beat') || t.includes('growth')) txtScore += 2;
+                if (t.includes('lawsuit') || t.includes('miss')  || t.includes('fell'))  txtScore -= 2;
+            });
+            const pChange = parseFloat(priceData.change_p) || 0;
+            let div = "🔄 HARMONISCH (Kurs folgt Nachrichtenfluss)";
+            if (txtScore >= 2 && pChange < -1.5) div = "🚨 INSTITUTIONAL DISTRIBUTION (Super News, aber Kurs fällt — Material wird abgeladen!)";
+            else if (txtScore <= -2 && pChange > 1.5) div = "🔥 SMART MONEY ACCUMULATION (Schlechte News, aber Kurs steigt — Großinvestoren kaufen!)";
+            logToTerminal("contra",
+                `🎭 [RETAIL VS SMART MONEY SPLIT]\n• News-Sentiment  : ${txtScore > 0 ? '🟢 BULLISH' : txtScore < 0 ? '🔴 BEARISH' : '🔄 NEUTRAL'}\n• Intraday Kurs   : ${pChange > 0 ? '+':''}${pChange.toFixed(2)}%\n• DIVERGENZ: ${div}`);
+        } catch(e) { logToTerminal("error", "Fehler bei Divergenz-Analyse."); }
+    };
+
+    window.fintechPivot = async function(symbol) {
+        if (!symbol) return logToTerminal("error", "Usage: pivot [ticker]  (z.B. pivot SPY)");
+        const ticker = symbol.toUpperCase().trim();
+        try {
+            const d = await fetch(`${PROXY_URL}/eod/historical/${ticker}?fmt=json`).then(r => r.json());
+            const s = d.sort((a,b) => new Date(a.date) - new Date(b.date));
+            const vt = s[s.length - 2];
+            const h = parseFloat(vt.high), l = parseFloat(vt.low), c = parseFloat(vt.close);
+            const p = (h + l + c) / 3;
+            logToTerminal("assistant",
+                `🎯 PIVOT MATRIX [${ticker}]\n• R2  : ${(p+(h-l)).toFixed(2)}\n• R1  : ${((2*p)-l).toFixed(2)}\n• PP  : ${p.toFixed(2)}\n• S1  : ${((2*p)-h).toFixed(2)}\n• S2  : ${(p-(h-l)).toFixed(2)}`);
+        } catch(e) { logToTerminal("error", "Pivot-Fehler."); }
+    };
+
+    window.fintechRange = async function(symbol) {
+        if (!symbol) return logToTerminal("error", "Usage: range [ticker]  (z.B. range TSLA)");
+        const ticker = symbol.toUpperCase().trim();
+        try {
+            const data = await fetch(`${PROXY_URL}/eod/realtime/${ticker}?fmt=json`).then(r => r.json());
+            const h = parseFloat(data.high), l = parseFloat(data.low), c = parseFloat(data.close), r = h - l;
+            logToTerminal("assistant",
+                `MOMENTUM RANGE [${ticker}]\n• Price        : ${c.toFixed(2)}\n• Range (H-L)  : ${r.toFixed(2)}\n• LONG Trigger : ${(c+(0.5*r)).toFixed(2)}\n• SHORT Trigger: ${(c-(0.5*r)).toFixed(2)}`);
+        } catch(e) { logToTerminal("error", "Range-Fehler."); }
+    };
+
+    window.fintechRsi = async function(symbol) {
+        if (!symbol) return logToTerminal("error", "Usage: rsi [ticker]  (z.B. rsi AAPL)");
+        const ticker = symbol.toUpperCase().trim();
+        try {
+            const data = await fetch(`${PROXY_URL}/eod/historical/${ticker}?fmt=json`).then(r => r.json());
+            const sorted = data.sort((a,b) => new Date(a.date) - new Date(b.date));
+            const prices = sorted.slice(-30).map(d => parseFloat(d.close));
+            let g = 0, l = 0;
+            for (let i = 1; i <= 14; i++) { let d = prices[i]-prices[i-1]; if(d>0) g+=d; else l-=d; }
+            let ag = g/14, al = l/14;
+            for (let i = 15; i < prices.length; i++) {
+                let d = prices[i]-prices[i-1];
+                ag = (ag*13 + (d>0?d:0)) / 14;
+                al = (al*13 + (d<0?-d:0)) / 14;
+            }
+            const rsiVal = al === 0 ? 100 : 100 - (100 / (1 + (ag/al)));
+            const zone = rsiVal >= 70 ? "⚠️ ÜBERKAUFT" : rsiVal <= 30 ? "🔥 ÜBERVERKAUFT" : "🔄 NEUTRAL";
+            const output = `📊 RSI REPORT [${ticker}]\n• RSI(14): ${rsiVal.toFixed(2)}  → ${zone}`;
+            logToTerminal("assistant", output);
+            // SAVE TO CHAT HISTORY FOR RAG
+            chatHistory.push({
+                role: 'system',
+                content: output,
+                _isAnalysis: true,
+                _cmd: 'rsi',
+                _ts: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+            });
+        } catch(e) { logToTerminal("error", "RSI-Fehler."); }
+    };
+
+    // ============================================================
+    // OFFICE MODULE v8.5  —  Word · Excel · docx · xlsx
+    // ============================================================
+
+
+
+
+    // ╔══════════════════════════════════════════════════════════════════╗
+    // ║  AGENTIC MODULE v1.0                                             ║
+    // ║  IDE · VectorSearch · MemoryCRUD · Context · Computer Use        ║
+    // ╚══════════════════════════════════════════════════════════════════╝
+
+    // ── AGENTIC HELP ────────────────────────────────────────────────────
+
+    // ── SHELL BRIDGE ────────────────────────────────────────────────────
+    const SHELL_BRIDGE = `${location.protocol}//${location.hostname}:8000`;
+    const SHELL_TOKEN  = 'DANIEL_SHELL_2025';
+
+
+
+
+    // ── IDE iframe ──────────────────────────────────────────────────────
+
+    // ── IndexedDB helpers (VectorDB + MemoryDB) ──────────────────────────
+    const DANIEL_AGENTIC = (() => {
+        function openDB(name, storeName) {
+            return new Promise((res, rej) => {
+                const req = indexedDB.open(name, 1);
+                req.onupgradeneeded = () => {
+                    if (!req.result.objectStoreNames.contains(storeName)) {
+                        req.result.createObjectStore(storeName, { keyPath: storeName === 'chunks' ? 'chunk_id' : 'key' });
+                    }
+                };
+                req.onsuccess = () => res(req.result);
+                req.onerror   = () => rej(req.error);
+            });
+        }
+        function tx(db, store, mode, fn) {
+            return new Promise((res, rej) => {
+                const t = db.transaction(store, mode);
+                const s = t.objectStore(store);
+                const req = fn(s);
+                if (req && req.onsuccess !== undefined) {
+                    req.onsuccess = () => res(req.result);
+                    req.onerror   = () => rej(req.error);
+                } else {
+                    t.oncomplete = () => res();
+                    t.onerror    = () => rej(t.error);
+                }
+            });
+        }
+        return { openDB, tx };
+    })();
+
+    // ── MEMORY CRUD (MemoryDB → key/value) ──────────────────────────────
+    const DANIEL_MEM_DB_NAME = 'DanielMemoryDB';
+    async function _memDB() { return DANIEL_AGENTIC.openDB(DANIEL_MEM_DB_NAME, 'memory'); }
+
+
+
+
+
+    // ── VECTOR SEARCH (Xenova/all-MiniLM-L6-v2 local) ────────────────────
+    const DANIEL_VEC_DB   = 'DanielVectorDB';
+    const DANIEL_VEC_MODEL = 'Xenova/all-MiniLM-L6-v2';
+    let _vecPipeline = null;
+    let _vecModelLoading = false;
+
+    async function _vecDB() { return DANIEL_AGENTIC.openDB(DANIEL_VEC_DB, 'chunks'); }
+
+    async function _vecEnsureModel() {
+        if (_vecPipeline) return _vecPipeline;
+        if (_vecModelLoading) {
+            while (_vecModelLoading) await new Promise(r => setTimeout(r, 300));
+            return _vecPipeline;
+        }
+        _vecModelLoading = true;
+        try {
+            if (!window._xenovaLoaded) {
+                const mod = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0');
+                window.pipeline = mod.pipeline;
+                if (mod.env) mod.env.allowLocalModels = false;
+                window._xenovaLoaded = true;
+            }
+            _vecPipeline = await window.pipeline('feature-extraction', DANIEL_VEC_MODEL, { quantized: true });
+            return _vecPipeline;
+        } finally { _vecModelLoading = false; }
+    }
+
+    async function _vecEmbed(text) {
+        const pipe = await _vecEnsureModel();
+        const out  = await pipe(text, { pooling: 'mean', normalize: true });
+        return Array.from(out.data);
+    }
+
+    function _vecCosineSim(a, b) {
+        let dot = 0, an = 0, bn = 0;
+        for (let i = 0; i < a.length; i++) { dot += a[i]*b[i]; an += a[i]*a[i]; bn += b[i]*b[i]; }
+        return (Math.sqrt(an) * Math.sqrt(bn)) === 0 ? 0 : dot / (Math.sqrt(an) * Math.sqrt(bn));
+    }
+
+    function _vecChunk(text, size = 500) {
+        const chunks = []; const lines = text.split('\n'); let cur = '';
+        for (const line of lines) {
+            if ((cur + '\n' + line).length > size && cur) { chunks.push(cur.trim()); cur = line; }
+            else { cur = cur ? cur + '\n' + line : line; }
+        }
+        if (cur.trim().length > 10) chunks.push(cur.trim());
+        return chunks;
+    }
+
+
+
+
+
+    // ── CONTEXT: zeige Chat-History ──────────────────────────────────────
+
+    // ── COMPUTER USE: Screenshot → Claude Vision → Autonome Aktion ───────
+
+
+    // ========== v8.5 NEW COMMANDS ==========
+
+
+    window.fxConvert = async function(amount, from, to) {
+        if (!amount || !from || !to) return logToTerminal("error", "Usage: fx [amount] [from_iso] [to_iso]");
+        const loadingId = 'loading-fx-' + Math.random().toString(36).substr(2, 9);
+        logToTerminal("system", `<span class="loading-spinner"></span>Berechne Wechselkurs...`, false, loadingId);
+        try {
+            const res = await fetch(`https://open.er-api.com/v6/latest/${from.toUpperCase()}`);
+            if (!res.ok) throw new Error("Währung nicht gefunden.");
+            const data = await res.json();
+            const rate = data.rates[to.toUpperCase()];
+            if (!rate) throw new Error(`Zielwährung ${to} existiert nicht.`);
+            const result = (parseFloat(amount) * rate).toFixed(2);
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("success", `💱 CURRENCY EXCHANGE:\n${amount} ${from.toUpperCase()} = ${result} ${to.toUpperCase()}\n(Kurs: ${rate.toFixed(4)})`);
+        } catch(e) {
+            document.getElementById(loadingId)?.remove();
+            logToTerminal("error", `✗ FX Error: ${e.message}`);
+        }
+    };
+
+
+
+
+
+
+
+
+
+
+
+    sendButton.addEventListener("click", () => {
+        if (breakActive) return;
+        const input = userPromptElement.value.trim();
+        if (!input) return;
+        commandHistory.push(input);
+        historyIndex = -1;
+        userPromptElement.value = '';
+        executeCommand(input);
+    });
+
+    userPromptElement.addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && !breakActive) sendButton.click();
+    });
+
+    // Global Enter listener - works even with menus open
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !breakActive && document.activeElement === userPromptElement) {
+            e.preventDefault();
+            sendButton.click();
+        }
+    });
+
+    userPromptElement.addEventListener("keyup", (e) => {
+        if (e.key === "ArrowUp") {
+            if (historyIndex < commandHistory.length - 1) {
+                historyIndex++;
+                userPromptElement.value = commandHistory[commandHistory.length - 1 - historyIndex];
+            }
+        } else if (e.key === "ArrowDown") {
+            if (historyIndex > 0) {
+                historyIndex--;
+                userPromptElement.value = commandHistory[commandHistory.length - 1 - historyIndex];
+            } else {
+                historyIndex = -1;
+                userPromptElement.value = "";
+            }
+        }
+    });
+
+    /* ──── Mobile Touch Optimization ──── */
+    // Prevent document scroll bounce on iOS
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        document.addEventListener('touchmove', (e) => {
+            if (!e.target.closest('#chatHistory') && e.target !== userPromptElement) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    }
+
+    // Smooth scroll on chat messages
+    document.getElementById('chatHistory').addEventListener('scroll', (e) => {
+        e.target.style.scrollBehavior = 'smooth';
+    });
+  </script>
+</body>
+</html>

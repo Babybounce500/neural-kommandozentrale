@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LIFE SCIENCE MEGA TERMINAL</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:     #0b0e14;
+      --bg2:    #141a24;
+      --bg3:    #1a2333;
+      --border: #2d3748;
+      --accent: #00e6ff;
+      --green:  #00ff87;
+      --red:    #ff3366;
+      --yellow: #ecc94b;
+      --purple: #9c6fbe;
+      --orange: #ff8c42;
+      --text:   #e1e4ea;
+      --muted:  #718096;
+      --drawer-w: 290px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      display: flex; flex-direction: column;
+      overflow: hidden; height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .ls-header {
+      flex-shrink: 0; background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 9px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .burger-btn {
+      background: none; border: 1px solid #4a5568;
+      color: var(--muted); width: 32px; height: 32px;
+      border-radius: 3px; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; transition: all 0.15s;
+    }
+    .burger-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .ls-title {
+      color: var(--accent); font-size: 15px; font-weight: 800;
+      letter-spacing: 2px; text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0,230,255,0.25); white-space: nowrap;
+    }
+    .ls-title span { color: var(--muted); font-size: 10px; font-weight: 400; letter-spacing: 1px; }
+    .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    select.cz-sel {
+      background: var(--bg); border: 1px solid #4a5568; color: var(--yellow);
+      font-size: 11px; padding: 4px 8px; border-radius: 3px; outline: none; cursor: pointer;
+    }
+    .hdr-btn {
+      background: rgba(0,230,255,0.06); border: 1px solid #4a5568;
+      color: var(--muted); font-size: 10px; font-weight: 700;
+      padding: 4px 10px; border-radius: 3px; cursor: pointer; transition: all 0.15s;
+    }
+    .hdr-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .proxy-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 5px var(--green);
+      display: inline-block;
+    }
+
+    /* ── MODULE TABS ── */
+    .mod-tabs {
+      flex-shrink: 0; background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 14px; display: flex; gap: 3px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .mod-tabs::-webkit-scrollbar { display: none; }
+    .mbt {
+      background: rgba(0,230,255,0.03); border: 1px solid rgba(0,230,255,0.12);
+      color: var(--muted); padding: 4px 10px; border-radius: 3px; cursor: pointer;
+      font-size: 11px; font-weight: 600; transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+    }
+    .mbt:hover { border-color: var(--accent); color: var(--accent); }
+    .mbt.active { background: rgba(0,230,255,0.1); border-color: var(--accent); color: var(--accent); }
+
+    /* ── MAIN AREA ── */
+    .main-area { flex: 1; min-height: 0; display: flex; position: relative; overflow: hidden; }
+
+    /* ── DRAWER OVERLAY (mobile) ── */
+    .drawer-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 99;
+    }
+    .drawer-overlay.show { display: block; }
+
+    /* ── SEARCH DRAWER ── */
+    .search-drawer {
+      width: var(--drawer-w); flex-shrink: 0;
+      background: var(--bg2); border-right: 1px solid var(--border);
+      overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+      padding: 14px 12px; transition: transform 0.25s ease;
+    }
+
+    /* ── RESULTS PANEL ── */
+    .results-panel {
+      flex: 1; overflow-y: auto;
+      padding: 12px; display: flex; flex-direction: column; gap: 9px;
+    }
+
+    /* ── DRAWER INTERNALS ── */
+    .sidebar-title {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--muted); font-weight: 700; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .field-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .ls-input {
+      width: 100%; background: var(--bg); border: 1px solid #4a5568;
+      color: var(--text); font-family: 'Courier New', monospace; font-size: 12px;
+      padding: 6px 10px; border-radius: 3px; outline: none;
+    }
+    .ls-input:focus { border-color: var(--accent); }
+    .ls-select {
+      width: 100%; background: var(--bg); border: 1px solid #4a5568;
+      color: var(--yellow); font-size: 11px; padding: 5px 8px;
+      border-radius: 3px; outline: none; cursor: pointer;
+    }
+    .btn-search {
+      width: 100%; background: var(--accent); color: var(--bg);
+      border: none; font-size: 12px; font-weight: 800; letter-spacing: 0.5px;
+      padding: 8px; border-radius: 3px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-search:hover { background: #fff; }
+    .btn-gpt {
+      width: 100%; background: rgba(156,111,190,0.1); border: 1px solid var(--purple);
+      color: var(--purple); font-size: 11px; font-weight: 700;
+      padding: 6px; border-radius: 3px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-gpt:hover { background: rgba(156,111,190,0.2); }
+    .sep { height: 1px; background: var(--border); }
+    .quick-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+    .qpill {
+      background: rgba(0,230,255,0.04); border: 1px solid rgba(0,230,255,0.18);
+      color: #8a94a8; font-size: 10px; padding: 2px 7px; border-radius: 3px;
+      cursor: pointer; transition: all 0.12s;
+    }
+    .qpill:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── RESULT CARDS ── */
+    .res-card {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 5px;
+      padding: 12px 14px; transition: border-color 0.15s;
+    }
+    .res-card:hover { border-color: rgba(0,230,255,0.25); }
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+    .card-title { font-size: 13px; font-weight: 700; color: var(--accent); line-height: 1.4; flex: 1; }
+    .card-title a { color: inherit; text-decoration: none; }
+    .card-title a:hover { text-decoration: underline; }
+    .card-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; }
+    .badge-oa   { background: rgba(0,255,135,0.1);  color: var(--green);  border: 1px solid rgba(0,255,135,0.3); }
+    .badge-pay  { background: rgba(113,128,150,0.1); color: var(--muted);  border: 1px solid #4a5568; }
+    .badge-phase{ background: rgba(236,201,75,0.1);  color: var(--yellow); border: 1px solid rgba(236,201,75,0.3); }
+    .badge-rec  { background: rgba(0,255,135,0.1);  color: var(--green);  border: 1px solid rgba(0,255,135,0.3); }
+    .badge-drug { background: rgba(156,111,190,0.1); color: var(--purple); border: 1px solid rgba(156,111,190,0.3); }
+    .card-meta { font-size: 10px; color: var(--muted); margin-bottom: 5px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .card-abstract { font-size: 11px; color: #a0aec0; line-height: 1.6; overflow: hidden; max-height: 5em; }
+    .card-abstract.expanded { max-height: 9999px; overflow: visible; }
+    .card-actions { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+    .act-btn {
+      font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px;
+      cursor: pointer; border: 1px solid; transition: all 0.12s; background: transparent;
+    }
+    .act-btn.expand { border-color: #4a5568; color: var(--muted); }
+    .act-btn.expand:hover { border-color: var(--accent); color: var(--accent); }
+    .act-btn.gpt-card { border-color: var(--purple); color: var(--purple); }
+    .act-btn.gpt-card:hover { background: rgba(156,111,190,0.12); }
+    .act-btn.link { border-color: #4a5568; color: #a0aec0; text-decoration: none; display: inline-flex; align-items: center; }
+    .act-btn.link:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── GPT OUTPUT ── */
+    .gpt-panel {
+      background: rgba(156,111,190,0.06); border: 1px solid rgba(156,111,190,0.3);
+      border-radius: 5px; padding: 10px 12px; margin-top: 6px;
+      font-size: 11px; color: #d0b8f0; line-height: 1.8;
+    }
+    .gpt-panel h3 { color: var(--purple); font-size: 11px; margin-bottom: 4px; }
+    .gpt-export-row { display:flex; gap:5px; margin:4px 0 6px; }
+    .gpt-export-row button { font-size:9px; font-weight:700; padding:2px 8px; border-radius:3px; cursor:pointer; border:1px solid #4a5568; color:var(--muted); background:transparent; transition:all 0.12s; }
+    .gpt-export-row button:hover { border-color:var(--accent); color:var(--accent); }
+    .gpt-panel .prose { font-size: 12px; line-height: 1.75; color: #d0b8f0; }
+    .gpt-panel .prose h1,.gpt-panel .prose h2 { color: var(--accent); font-size: 13px; margin: 8px 0 4px; }
+    .gpt-panel .prose h3 { color: var(--green); font-size: 12px; margin: 6px 0 3px; }
+    .gpt-panel .prose ul,.gpt-panel .prose ol { padding-left: 18px; margin: 4px 0; }
+    .gpt-panel .prose li { margin: 2px 0; }
+    .gpt-panel .prose strong { color: var(--yellow); }
+    .gpt-panel .prose a { color: var(--accent); }
+    .gpt-panel .prose blockquote { border-left: 3px solid var(--accent); padding-left: 8px; color: var(--muted); }
+    .gpt-panel .prose table { border-collapse: collapse; width: 100%; margin: 6px 0; }
+    .gpt-panel .prose th,.gpt-panel .prose td { border: 1px solid var(--border); padding: 4px 8px; font-size: 11px; }
+    .gpt-panel .prose th { background: var(--bg3); color: var(--accent); }
+
+    /* ── WIKI IMPROVED ── */
+    .wiki-improved {
+      background: var(--bg); border: 1px solid rgba(0,230,255,0.2);
+      border-radius: 4px; padding: 14px; margin-top: 8px;
+    }
+    .wiki-improved h1 { font-size: 17px; color: var(--accent); border-bottom: 1px solid rgba(0,230,255,0.25); padding-bottom: 5px; margin-bottom: 10px; }
+    .wiki-improved h2 { font-size: 13px; color: #4fd1c5; margin: 10px 0 4px; }
+    .wiki-improved h3 { font-size: 12px; color: var(--green); margin: 7px 0 3px; }
+    .wiki-improved p  { font-size: 12px; line-height: 1.7; margin-bottom: 6px; color: var(--text); }
+    .wiki-improved ul,.wiki-improved ol { padding-left: 18px; margin: 4px 0; font-size: 12px; }
+    .wiki-improved blockquote { border-left: 3px solid var(--accent); padding-left: 8px; color: var(--muted); font-style: italic; }
+    .wiki-improved a { color: var(--accent); }
+    .wiki-thumb { float: right; max-width: 130px; max-height: 130px; object-fit: contain; border-radius: 4px; margin: 0 0 8px 12px; border: 1px solid var(--border); }
+
+    /* ── MISC ── */
+    .loading-spinner { text-align: center; padding: 40px; color: var(--muted); font-size: 12px; letter-spacing: 1px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #4a5568; font-size: 12px; }
+    .empty-state h2 { font-size: 30px; margin-bottom: 8px; }
+    .err-box { background: rgba(255,51,102,0.07); border: 1px solid rgba(255,51,102,0.3); border-radius: 4px; padding: 10px 12px; font-size: 11px; color: var(--red); }
+    .tag { display: inline-block; background: rgba(0,230,255,0.06); border: 1px solid rgba(0,230,255,0.18); color: #8a94a8; font-size: 9px; padding: 1px 5px; border-radius: 2px; margin: 1px; }
+    .score-bar { background: rgba(255,255,255,0.05); border-radius: 2px; height: 4px; overflow: hidden; margin-top: 2px; }
+    .score-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 2px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .kv-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(45,55,72,0.5); font-size: 11px; }
+    .kv-key { color: var(--muted); }
+    .kv-val { color: var(--text); font-family: 'Courier New', monospace; text-align: right; max-width: 60%; word-break: break-word; }
+    .net-img { width: 100%; border-radius: 4px; border: 1px solid var(--border); }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      flex-shrink: 0; background: var(--bg2); border-top: 1px solid var(--border);
+      padding: 4px 14px; font-size: 10px; font-family: 'Courier New', monospace;
+      color: var(--muted); display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .status-bar .stat { color: var(--accent); }
+
+    /* ── LIGHT MODE ── */
+    body.light {
+      --bg:     #f7f6f3;
+      --bg2:    #ffffff;
+      --bg3:    #ede9e3;
+      --border: #d4cfc8;
+      --accent: #3b5bdb;
+      --green:  #2f9e44;
+      --red:    #c92a2a;
+      --yellow: #e67700;
+      --purple: #6741d9;
+      --text:   #1c1917;
+      --muted:  #6b7280;
+    }
+    body.light .card-abstract { color: #374151; }
+    body.light .card-title    { color: var(--accent); }
+    body.light .card-badge.badge-pay { background: #f3f4f6; color: #6b7280; }
+    body.light .gpt-panel     { background: #f9f5ff; border-color: #d0bfff; color: #3d2c8d; }
+    body.light .gpt-panel h3  { color: var(--purple); }
+    body.light .gpt-panel .gpt-body { color: #3d2c8d; }
+    body.light .gpt-panel .prose    { color: #3d2c8d; }
+    body.light .gpt-panel .prose strong { color: var(--text); }
+    body.light .res-card { box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    body.light .score-bar { background: rgba(0,0,0,0.06); }
+    body.light .net-img   { opacity: 0.92; }
+    body.light .empty-state { color: #9ca3af; }
+    body.light .kv-val    { font-family: sans-serif; }
+    body.light .wiki-improved { background: #fff; border-color: rgba(59,91,219,0.2); }
+    body.light .wiki-improved h1 { color: var(--accent); }
+    body.light .wiki-improved h2 { color: #0c8599; }
+    body.light .wiki-improved p  { color: var(--text); }
+    body.light .proxy-dot { background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .mode-btn {
+      background: none; border: 1px solid #4a5568; color: var(--muted);
+      font-size: 13px; width: 28px; height: 28px; border-radius: 3px;
+      cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+    }
+    body.light .mode-btn { border-color: var(--border); }
+    .mode-btn:hover { border-color: var(--accent); }
+
+    /* ── MOBILE RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .search-drawer {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        z-index: 100;
+        transform: translateX(-110%);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.6);
+      }
+      .search-drawer.open { transform: translateX(0); }
+      .ls-title span { display: none; }
+      .ls-title { font-size: 13px; }
+      .hdr-btn.hide-mobile { display: none; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .status-bar span:last-child { display: none; }
+    }
+    @media (min-width: 769px) {
+      .burger-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="ls-header">
+  <button class="burger-btn" onclick="toggleDrawer()" title="Search Panel">☰</button>
+  <div class="ls-title">LIFE SCIENCE MEGA <span>// 11-DATABASE RESEARCH ENGINE</span></div>
+  <div class="hdr-right">
+    <span class="proxy-dot" title="Proxy aktiv: theserver-open-ai.replit.app"></span>
+    <select class="cz-sel" id="gpt-model">
+      <option value="gpt">GPT-4o (Proxy)</option>
+      <option value="claude">Claude Sonnet (Proxy)</option>
+    </select>
+    <button class="mode-btn" id="mode-toggle" onclick="toggleMode()" title="Light / Dark Mode">☀</button>
+    <button class="hdr-btn hide-mobile" onclick="exportAllResults()">⬇ EXPORT</button>
+  </div>
+</div>
+
+<!-- ── MODULE TABS ── -->
+<div class="mod-tabs">
+  <button class="mbt active" data-mod="wiki">📖 WIKI</button>
+  <button class="mbt" data-mod="pubmed">🔬 PUBMED</button>
+  <button class="mbt" data-mod="epmc">🌍 EUR PMC</button>
+  <button class="mbt" data-mod="proteins">🧬 PROTEINS</button>
+  <button class="mbt" data-mod="chembl">💊 CHEMBL</button>
+  <button class="mbt" data-mod="fda">⚕️ OPENFDA</button>
+  <button class="mbt" data-mod="trials">🏥 TRIALS</button>
+  <button class="mbt" data-mod="preprints">📑 PREPRINTS</button>
+  <button class="mbt" data-mod="scholar">📚 SCHOLAR</button>
+  <button class="mbt" data-mod="networks">🔗 NETWORKS</button>
+  <button class="mbt" data-mod="genome">🏗️ GENOME</button>
+</div>
+
+<!-- ── MAIN AREA ── -->
+<div class="main-area">
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="search-drawer" id="search-drawer"></div>
+  <div class="results-panel" id="results">
+    <div class="empty-state"><h2>🧬</h2>Modul auswählen und Suche starten</div>
+  </div>
+</div>
+
+<!-- ── STATUS BAR ── -->
+<div class="status-bar">
+  <span id="status-msg">READY</span>
+  <span>Hits: <span class="stat" id="hit-count">0</span></span>
+  <span>Modul: <span class="stat" id="active-mod-label">—</span></span>
+  <span style="margin-left:auto;color:#3a4a5a">PubMed · EuropePMC · UniProt · ChEMBL · OpenFDA · ClinicalTrials · bioRxiv · OpenAlex · STRING · Ensembl · HGNC · Wikipedia</span>
+</div>
+
+<script>
+/* ================================================================
+   LIFE SCIENCE MEGA TERMINAL
+   GPT/Claude via proxy: https://theserver-open-ai.replit.app
+   11 CORS-enabled free databases — no API key in frontend
+================================================================ */
+
+const AI_BOT_URL = 'https://theserver-open-ai.replit.app';
+
+let currentMod  = 'wiki';
+let lastResults = '';
+
+/* ── INIT ── */
+window.addEventListener('load', () => {
+  if (window.marked) marked.use({ gfm: true, breaks: true });
+  document.querySelectorAll('.mbt').forEach(b =>
+    b.addEventListener('click', () => switchMod(b.dataset.mod))
+  );
+  // restore light/dark preference
+  if (localStorage.getItem('ls_mega_light') === '1') applyLight(true);
+  switchMod('wiki');
+});
+
+function toggleMode() {
+  const isLight = document.body.classList.contains('light');
+  applyLight(!isLight);
+  localStorage.setItem('ls_mega_light', isLight ? '0' : '1');
+}
+function applyLight(on) {
+  document.body.classList.toggle('light', on);
+  const btn = document.getElementById('mode-toggle');
+  if (btn) btn.textContent = on ? '🌙' : '☀';
+}
+
+/* ── BURGER DRAWER ── */
+function toggleDrawer() {
+  const d = document.getElementById('search-drawer');
+  const o = document.getElementById('drawer-overlay');
+  const open = d.classList.toggle('open');
+  o.classList.toggle('show', open);
+}
+function closeDrawer() {
+  document.getElementById('search-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+}
+
+/* ── PROXY GPT CALL ── */
+async function callGPT(userPrompt, sys) {
+  const model  = document.getElementById('gpt-model').value;
+  const sysMsg = sys || 'Du bist ein präziser Life-Science Analyst. Antworte strukturiert auf Deutsch mit Markdown.';
+
+  if (model === 'claude') {
+    const res = await fetch(`${AI_BOT_URL}/claude/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 1500,
+        system: sysMsg,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    if (!res.ok) throw new Error(`Claude Proxy HTTP ${res.status}`);
+    const d = await res.json();
+    return d.content?.[0]?.text || '';
+  } else {
+    const res = await fetch(`${AI_BOT_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          { role: 'system', content: sysMsg },
+          { role: 'user',   content: userPrompt }
+        ],
+        stream: false
+      })
+    });
+    if (!res.ok) throw new Error(`GPT Proxy HTTP ${res.status}`);
+    const d = await res.json();
+    return d.choices?.[0]?.message?.content || '';
+  }
+}
+
+/* ── MODULE SYSTEM ── */
+const MOD_CONFIGS = {
+  wiki:      { label: '📖 WIKI',      buildFn: buildWiki },
+  pubmed:    { label: '🔬 PUBMED',    buildFn: buildPubmed },
+  epmc:      { label: '🌍 EUR PMC',   buildFn: buildEPMC },
+  proteins:  { label: '🧬 PROTEINS',  buildFn: buildProteins },
+  chembl:    { label: '💊 CHEMBL',    buildFn: buildChEMBL },
+  fda:       { label: '⚕️ OPENFDA',  buildFn: buildFDA },
+  trials:    { label: '🏥 TRIALS',    buildFn: buildTrials },
+  preprints: { label: '📑 PREPRINTS', buildFn: buildPreprints },
+  scholar:   { label: '📚 SCHOLAR',   buildFn: buildScholar },
+  networks:  { label: '🔗 NETWORKS',  buildFn: buildNetworks },
+  genome:    { label: '🏗️ GENOME',   buildFn: buildGenome },
+};
+
+function switchMod(mod) {
+  currentMod = mod;
+  document.querySelectorAll('.mbt').forEach(b => b.classList.toggle('active', b.dataset.mod === mod));
+  document.getElementById('active-mod-label').textContent = MOD_CONFIGS[mod]?.label || mod;
+  document.getElementById('results').innerHTML = '<div class="empty-state"><h2>🔍</h2>Suche starten</div>';
+  document.getElementById('hit-count').textContent = '0';
+  lastResults = '';
+  MOD_CONFIGS[mod]?.buildFn?.();
+  if (window.innerWidth <= 768) closeDrawer();
+}
+
+/* ── HELPERS ── */
+function setStatus(msg)  { document.getElementById('status-msg').textContent = msg; }
+function setHits(n)      { document.getElementById('hit-count').textContent = n; }
+function showLoading()   { document.getElementById('results').innerHTML = '<div class="loading-spinner">⏳ SCANNING DATABASE...</div>'; }
+function showError(e)    { document.getElementById('results').innerHTML = `<div class="err-box">⚠ ${e}</div>`; }
+function drawer(html)    { document.getElementById('search-drawer').innerHTML = html; }
+function esc(s)          { return (s||'').replace(/['"<>&]/g, c => ({'\'':"\\'",'"':'&quot;','<':'&lt;','>':'&gt;','&':'&amp;'}[c]||c)); }
+
+function qPills(terms, inputId) {
+  return `<div class="field-label">Quick Pills</div><div class="quick-pills">${
+    terms.map(t => `<span class="qpill" onclick="document.getElementById('${inputId}').value='${esc(t)}'">${t}</span>`).join('')
+  }</div>`;
+}
+
+function gptSidebarBtn(label) {
+  return `<button class="btn-gpt" onclick="analyzeWithGPT('${label}')">🤖 GPT — ANALYSE ALL RESULTS</button>`;
+}
+
+async function analyzeWithGPT(label) {
+  if (!lastResults) { alert('Bitte erst eine Suche durchführen'); return; }
+  const box = Object.assign(document.createElement('div'), { className: 'gpt-panel' });
+  box.innerHTML = '<h3>🤖 Analysiere...</h3>';
+  document.getElementById('results').prepend(box);
+  try {
+    const text = await callGPT(
+      `Erstelle eine strukturierte wissenschaftliche Zusammenfassung auf Deutsch aus folgenden ${label} Ergebnissen:\n\n${lastResults.slice(0,8000)}`,
+      'Du bist ein präziser Life-Science Analyst. Erstelle eine Markdown-Zusammenfassung mit: **1) Kernbefunde**, **2) Klinische Relevanz**, **3) Offene Fragen**.'
+    );
+    box.innerHTML = `<h3>🤖 GPT Synthese — ${label}</h3><div class="gpt-export-row"><button onclick="copyGPTPanel(this)">📋 Copy</button><button onclick="exportGPTPanel(this,'GPT_${label.replace(/[^a-z0-9]/gi,'_')}')">⬇ TXT</button></div><div class="gpt-body prose">${marked.parse(text)}</div>`;
+  } catch(e) { box.innerHTML = `<h3 style="color:var(--red)">⚠ Proxy Error</h3>${e.message}`; }
+}
+
+async function analyzeCard(title, context) {
+  const btn  = event.target;
+  const card = btn.closest('.res-card');
+  const box  = Object.assign(document.createElement('div'), { className: 'gpt-panel' });
+  box.innerHTML = '<h3>🤖 Analysiere...</h3>';
+  if (card) card.after(box); else document.getElementById('results').prepend(box);
+  try {
+    const text = await callGPT(
+      `Analysiere dieses Life-Science Thema präzise auf Deutsch:\n\n**Thema:** ${title}\n**Kontext:** ${context}\n\nGib: 1) Klinische Bedeutung, 2) Wirkmechanismus, 3) Forschungsstand, 4) Offene Fragen.`
+    );
+    box.innerHTML = `<h3>🤖 ${title.slice(0,50)}</h3><div class="gpt-export-row"><button onclick="copyGPTPanel(this)">📋 Copy</button><button onclick="exportGPTPanel(this,'GPT_Card')">⬇ TXT</button></div><div class="gpt-body prose">${marked.parse(text)}</div>`;
+  } catch(e) { box.innerHTML = `<h3 style="color:var(--red)">⚠ Proxy Error</h3>${e.message}`; }
+}
+
+function toggleExpand(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const expanded = el.classList.toggle('expanded');
+  btn.textContent = expanded ? '▲ Weniger' : '▼ Mehr';
+}
+
+function copyGPTPanel(btn) {
+  const panel = btn.closest('.gpt-panel');
+  const body  = panel.querySelector('.gpt-body');
+  const text  = body ? body.innerText : panel.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+function exportGPTPanel(btn, name) {
+  const panel = btn.closest('.gpt-panel');
+  const body  = panel.querySelector('.gpt-body');
+  const text  = body ? body.innerText : panel.innerText;
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([text], {type:'text/plain'})),
+    download: `${name}_${Date.now()}.txt`
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function exportAllResults() {
+  if (!lastResults) { alert('Keine Ergebnisse vorhanden'); return; }
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([lastResults], { type:'text/plain' })),
+    download: `LS_${currentMod}_${Date.now()}.txt`
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function exportWikiTxt(title, content) {
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([content], { type:'text/plain' })),
+    download: `wiki_${title.replace(/[^a-z0-9]/gi,'_').toLowerCase()}.txt`
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+/* ================================================================
+   MODULE 1 — WIKIPEDIA
+   (OG feature-set: multilingual, quick-select, GPT improve, TXT export)
+================================================================ */
+function buildWiki() {
+  drawer(`
+    <div class="sidebar-title">📖 Wikipedia Research</div>
+    <div>
+      <div class="field-label">Schnellauswahl</div>
+      <select class="ls-select" id="w-quick" onchange="document.getElementById('w-query').value=this.value">
+        <option value="">-- Quick Search --</option>
+        <option>CRISPR</option><option>Apoptosis</option><option>mRNA Vaccine</option>
+        <option>Oncology</option><option>Neuroscience</option><option>Proteomics</option>
+        <option>BRCA1</option><option>Immunotherapy</option><option>Stem Cells</option>
+        <option>Epigenetics</option><option>Alzheimer Disease</option><option>AlphaFold</option>
+        <option>CAR-T Cell Therapy</option><option>Liquid Biopsy</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Suchbegriff</div>
+      <input class="ls-input" id="w-query" placeholder="CRISPR, p53, Apoptosis..." onkeydown="if(event.key==='Enter')searchWiki()"/>
+    </div>
+    ${qPills(['CRISPR','p53','BRCA1','Immunotherapy','Alzheimer','Proteomics','CAR-T','Genomics'],'w-query')}
+    <div>
+      <div class="field-label">Wikipedia Sprache</div>
+      <select class="ls-select" id="w-lang">
+        <option value="en">English</option><option value="de">Deutsch</option>
+        <option value="fr">Français</option><option value="es">Español</option>
+        <option value="it">Italiano</option><option value="pt">Português</option>
+        <option value="ru">Русский</option><option value="zh">中文</option>
+        <option value="ja">日本語</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">GPT Ausgabe-Sprache</div>
+      <select class="ls-select" id="w-out-lang">
+        <option value="Deutsch">Deutsch</option>
+        <option value="English">English</option>
+        <option value="Français">Français</option>
+        <option value="Español">Español</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Artikel Anzahl</div>
+      <select class="ls-select" id="w-num">
+        <option value="3">3</option><option value="5" selected>5</option><option value="10">10</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchWiki()">🔎 SUCHEN</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('Wikipedia')}
+  `);
+}
+
+async function searchWiki() {
+  const q    = document.getElementById('w-query').value.trim();
+  const lang = document.getElementById('w-lang').value;
+  const num  = parseInt(document.getElementById('w-num').value);
+  if (!q) return;
+  showLoading(); setStatus('Wikipedia wird durchsucht...');
+  try {
+    const base  = `https://${lang}.wikipedia.org/w/api.php`;
+    const sRes  = await fetch(`${base}?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*&srlimit=${num}`);
+    const sData = await sRes.json();
+    const arts  = sData?.query?.search || [];
+    if (!arts.length) { showError('Keine Artikel gefunden'); return; }
+    let html = '', textDump = `Wikipedia (${lang}): ${q}\n\n`;
+    for (const a of arts) {
+      const title   = a.title;
+      const snippet = a.snippet.replace(/<\/?[^>]+>/g, '');
+      const url     = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+      let extract = snippet, imgUrl = '';
+      try {
+        const pr = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+        if (pr.ok) { const pd = await pr.json(); extract = pd.extract || snippet; imgUrl = pd.thumbnail?.source || ''; }
+      } catch {}
+      const uid = 'w' + Math.random().toString(36).slice(2, 7);
+      textDump += `=== ${title} ===\n${extract.slice(0, 400)}\n${url}\n\n`;
+      html += `
+        <div class="res-card" id="card-${uid}">
+          <div class="card-header">
+            <div class="card-title"><a href="${url}" target="_blank">${title}</a></div>
+            <span class="card-badge badge-oa">WIKI</span>
+          </div>
+          ${imgUrl ? `<img src="${imgUrl}" alt="${title}" class="wiki-thumb"/>` : ''}
+          <div class="card-abstract" id="${uid}">${extract.slice(0, 600)}</div>
+          <div class="card-actions">
+            <button class="act-btn expand" onclick="toggleExpand('${uid}',this)">▼ Mehr</button>
+            <a class="act-btn link" href="${url}" target="_blank">🌐 Wikipedia</a>
+            <button class="act-btn gpt-card" onclick="improveWikiArticle('${esc(title)}','${uid}')">🧠 GPT IMPROVE</button>
+          </div>
+          <div id="imp-${uid}"></div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(arts.length); setStatus('Wikipedia abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+async function improveWikiArticle(title, uid) {
+  const impDiv  = document.getElementById(`imp-${uid}`);
+  if (!impDiv) return;
+  impDiv.innerHTML = '<div class="gpt-panel"><h3>🧠 GPT verbessert Artikel...</h3></div>';
+  const outLang = document.getElementById('w-out-lang')?.value || 'Deutsch';
+  const wLang   = document.getElementById('w-lang')?.value || 'en';
+  try {
+    const pr  = await fetch(`https://${wLang}.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`);
+    const pd  = await pr.json();
+    const txt = Object.values(pd.query.pages)[0]?.extract || '';
+    const sys = `Du bist ein präziser Wikipedia-Verbesserungsassistent. Schreibe den Artikel strukturiert, neutral und enzyklopädisch um. Nutze Markdown (## Überschriften, Listen, Tabellen). Füge Inline-Referenzen [1],[2] ein. SCHREIBE KOMPLETT AUF ${outLang}.`;
+    const prompt = `Verbessere diesen Wikipedia-Artikel über "${title}" vollständig auf ${outLang}.\nStruktur: Einleitung, Geschichte, Methoden, Anwendungen, Klinische Relevanz, Fazit.\nFüge Hintergrundinfos ein, entferne Redundanzen, bleibe neutral.\n\nOriginaltext:\n${txt.slice(0, 6000)}`;
+    const text = await callGPT(prompt, sys);
+    impDiv.innerHTML = `
+      <div class="wiki-improved">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:10px;color:var(--purple);font-weight:700">🧠 GPT-VERBESSERT — ${outLang.toUpperCase()}</span>
+          <button class="act-btn link" onclick="exportWikiTxt('${esc(title)}',document.getElementById('wc-${uid}').innerText)">📥 TXT</button>
+        </div>
+        <div id="wc-${uid}">${marked.parse(text)}</div>
+      </div>`;
+  } catch(e) { impDiv.innerHTML = `<div class="err-box">⚠ ${e.message}</div>`; }
+}
+
+/* ================================================================
+   MODULE 2 — PUBMED
+================================================================ */
+function buildPubmed() {
+  drawer(`
+    <div class="sidebar-title">🔬 PubMed / NCBI Entrez</div>
+    <div>
+      <div class="field-label">Suchanfrage</div>
+      <input class="ls-input" id="pm-query" placeholder="CRISPR cancer 2024[PDAT]" onkeydown="if(event.key==='Enter')searchPubmed()"/>
+    </div>
+    ${qPills(['CRISPR gene editing','CAR-T therapy','mRNA vaccines','p53 tumor suppressor','BRCA1 mutations','immunotherapy checkpoint','Alzheimer amyloid'],'pm-query')}
+    <div>
+      <div class="field-label">Max. Treffer</div>
+      <select class="ls-select" id="pm-max"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select>
+    </div>
+    <div>
+      <div class="field-label">Datenbank</div>
+      <select class="ls-select" id="pm-db">
+        <option value="pubmed">PubMed</option>
+        <option value="gene">Gene DB</option>
+        <option value="protein">Protein</option>
+        <option value="nuccore">Nucleotide</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchPubmed()">🔬 NCBI SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('PubMed')}
+  `);
+}
+
+async function searchPubmed() {
+  const q   = document.getElementById('pm-query').value.trim();
+  const max = document.getElementById('pm-max').value;
+  const db  = document.getElementById('pm-db').value;
+  if (!q) return;
+  showLoading(); setStatus('NCBI Entrez wird durchsucht...');
+  const BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
+  try {
+    const sData = await (await fetch(`${BASE}/esearch.fcgi?db=${db}&term=${encodeURIComponent(q)}&retmax=${max}&retmode=json`)).json();
+    const ids   = sData.esearchresult?.idlist || [];
+    const total = sData.esearchresult?.count || 0;
+    if (!ids.length) { showError(`Keine Treffer in ${db}`); return; }
+    const records = Object.values((await (await fetch(`${BASE}/esummary.fcgi?db=${db}&id=${ids.join(',')}&retmode=json&version=2.0`)).json()).result||{}).filter(r=>r.uid);
+    let html = `<div class="res-card" style="border-color:rgba(0,230,255,0.3)"><div class="card-meta"><span>Total: <b style="color:var(--accent)">${total}</b></span><span>DB: ${db}</span></div></div>`;
+    let textDump = `PubMed (${db}): ${q} | Total: ${total}\n\n`;
+    for (const r of records) {
+      if (!r.title) continue;
+      const title   = r.title || '—';
+      const authors = r.authors?.map(a=>a.name).slice(0,3).join(', ') || r.organism?.scientificname || '';
+      const journal = r.fulljournalname || r.source || '';
+      const year    = r.pubdate?.slice(0,4) || '';
+      const doi     = r.elocationid?.startsWith('10.') ? r.elocationid : '';
+      const url     = `https://pubmed.ncbi.nlm.nih.gov/${r.uid}/`;
+      textDump += `${title}\n${authors} | ${journal} | ${year}\nPMID:${r.uid}\n\n`;
+      html += `
+        <div class="res-card">
+          <div class="card-header">
+            <div class="card-title"><a href="${url}" target="_blank">${title}</a></div>
+            <span class="card-badge badge-pay">PMID ${r.uid}</span>
+          </div>
+          <div class="card-meta">
+            ${authors ? `<span>👤 ${authors}</span>` : ''}
+            ${journal ? `<span>📰 ${journal}</span>` : ''}
+            ${year    ? `<span>📅 ${year}</span>` : ''}
+          </div>
+          <div class="card-actions">
+            <a class="act-btn link" href="${url}" target="_blank">📄 PubMed</a>
+            ${doi ? `<a class="act-btn link" href="https://doi.org/${doi}" target="_blank">🔗 DOI</a>` : ''}
+            <button class="act-btn gpt-card" onclick="analyzeCard('${esc(title)}','${esc(authors+' | '+journal+' | '+year)}')">🤖 GPT</button>
+          </div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(ids.length); setStatus('PubMed abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 3 — EUROPE PMC
+================================================================ */
+function buildEPMC() {
+  drawer(`
+    <div class="sidebar-title">🌍 Europe PMC</div>
+    <div>
+      <div class="field-label">Suchanfrage</div>
+      <input class="ls-input" id="ep-query" placeholder="p53 apoptosis cancer" onkeydown="if(event.key==='Enter')searchEPMC()"/>
+    </div>
+    ${qPills(['CRISPR base editing','RNA interference','tumor microenvironment','liquid biopsy','single cell RNA seq','gene therapy AAV'],'ep-query')}
+    <div>
+      <div class="field-label">Filter</div>
+      <select class="ls-select" id="ep-filter">
+        <option value="">Alle</option>
+        <option value="OPEN_ACCESS:y">Open Access only</option>
+        <option value="HAS_PDF:y">Mit PDF</option>
+        <option value="IN_EPMC:y">Volltext in EPMC</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Jahr ab</div>
+      <input class="ls-input" id="ep-year" placeholder="2022" type="number"/>
+    </div>
+    <div>
+      <div class="field-label">Anzahl</div>
+      <select class="ls-select" id="ep-size"><option value="10" selected>10</option><option value="20">20</option><option value="25">25</option></select>
+    </div>
+    <button class="btn-search" onclick="searchEPMC()">🌍 EPMC SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('Europe PMC')}
+  `);
+}
+
+async function searchEPMC() {
+  let q = document.getElementById('ep-query').value.trim();
+  const filter = document.getElementById('ep-filter').value;
+  const year   = document.getElementById('ep-year').value;
+  const size   = document.getElementById('ep-size').value;
+  if (!q) return;
+  if (filter) q += ` AND ${filter}`;
+  if (year)   q += ` AND PUB_YEAR:${year}`;
+  showLoading(); setStatus('Europe PMC wird durchsucht...');
+  try {
+    const data  = await (await fetch(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(q)}&format=json&pageSize=${size}&resultType=core`)).json();
+    const items = data?.resultList?.result || [];
+    if (!items.length) { showError('Keine Treffer'); return; }
+    let html = `<div class="res-card" style="border-color:rgba(0,230,255,0.3)"><div class="card-meta"><span>Total: <b style="color:var(--accent)">${data.hitCount}</b></span></div></div>`;
+    let textDump = `Europe PMC: ${q} | Total: ${data.hitCount}\n\n`;
+    for (const r of items) {
+      const isOA = r.isOpenAccess === 'Y';
+      const cited = r.citedByCount || 0;
+      const url   = r.pmid ? `https://pubmed.ncbi.nlm.nih.gov/${r.pmid}/` : r.doi ? `https://doi.org/${r.doi}` : '#';
+      const eid   = 'ep' + (r.id || Math.random().toString(36).slice(2,6));
+      textDump += `${r.title}\n${r.authorString} | ${r.journalTitle} | ${r.pubYear}\nCit: ${cited}\n\n`;
+      html += `
+        <div class="res-card">
+          <div class="card-header">
+            <div class="card-title"><a href="${url}" target="_blank">${r.title||'—'}</a></div>
+            <span class="card-badge ${isOA?'badge-oa':'badge-pay'}">${isOA?'🔓 OA':'🔒 SUB'}</span>
+          </div>
+          <div class="card-meta">
+            <span>👤 ${(r.authorString||'').slice(0,60)}</span>
+            <span>📰 ${r.journalTitle||''}</span>
+            <span>📅 ${r.pubYear||''}</span>
+            <span>📊 ${cited} cit.</span>
+          </div>
+          ${r.abstractText ? `<div class="card-abstract" id="${eid}">${r.abstractText.slice(0,600)}</div>` : ''}
+          <div class="card-actions">
+            ${r.abstractText ? `<button class="act-btn expand" onclick="toggleExpand('${eid}',this)">▼ Abstract</button>` : ''}
+            <a class="act-btn link" href="${url}" target="_blank">📄 Open</a>
+            ${r.doi ? `<a class="act-btn link" href="https://doi.org/${r.doi}" target="_blank">🔗 DOI</a>` : ''}
+            <button class="act-btn gpt-card" onclick="analyzeCard('${esc(r.title||'')}','${esc((r.abstractText||'').slice(0,200))}')">🤖 GPT</button>
+          </div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(items.length); setStatus('Europe PMC abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 4 — UNIPROT
+================================================================ */
+function buildProteins() {
+  drawer(`
+    <div class="sidebar-title">🧬 UniProt Proteins</div>
+    <div>
+      <div class="field-label">Gen / Protein Name</div>
+      <input class="ls-input" id="up-query" placeholder="BRCA1, TP53, EGFR, insulin..." onkeydown="if(event.key==='Enter')searchUniProt()"/>
+    </div>
+    ${qPills(['BRCA1','TP53','EGFR','KRAS','MYC','PTEN','VEGFA','insulin','albumin','hemoglobin'],'up-query')}
+    <div>
+      <div class="field-label">Organismus</div>
+      <select class="ls-select" id="up-org">
+        <option value="9606">Homo sapiens</option>
+        <option value="10090">Mus musculus</option>
+        <option value="10116">Rattus norvegicus</option>
+        <option value="559292">S. cerevisiae</option>
+        <option value="">Alle</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Datenbank</div>
+      <select class="ls-select" id="up-reviewed">
+        <option value="reviewed:true">Swiss-Prot (reviewed)</option>
+        <option value="">Swiss-Prot + TrEMBL</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchUniProt()">🧬 PROTEIN SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('UniProt')}
+  `);
+}
+
+async function searchUniProt() {
+  const q   = document.getElementById('up-query').value.trim();
+  const org = document.getElementById('up-org').value;
+  const rev = document.getElementById('up-reviewed').value;
+  if (!q) return;
+  let query = `gene:${q} OR protein_name:${q}`;
+  if (org) query += ` AND organism_id:${org}`;
+  if (rev) query += ` AND ${rev}`;
+  showLoading(); setStatus('UniProt wird durchsucht...');
+  try {
+    const data    = await (await fetch(`https://rest.uniprot.org/uniprotkb/search?query=${encodeURIComponent(query)}&format=json&size=15&fields=accession,id,gene_names,organism_name,length,protein_name,reviewed,cc_function,cc_disease`)).json();
+    const results = data.results || [];
+    if (!results.length) { showError('Keine Proteine gefunden'); return; }
+    let html = '', textDump = `UniProt: ${q}\n\n`;
+    for (const r of results) {
+      const acc  = r.primaryAccession;
+      const name = r.proteinDescription?.recommendedName?.fullName?.value || r.id;
+      const genes= r.genes?.map(g=>g.geneName?.value).join(', ') || '—';
+      const org2 = r.organism?.scientificName || '';
+      const len  = r.sequence?.length || '';
+      const fn   = r.comments?.find(c=>c.commentType==='FUNCTION')?.texts?.[0]?.value?.slice(0,400) || '';
+      const dis  = r.comments?.filter(c=>c.commentType==='DISEASE').map(d=>d.disease?.diseaseEntry?.name).filter(Boolean).join(', ') || '';
+      const fid  = 'up' + acc;
+      textDump += `${name} (${acc})\nGenes: ${genes} | ${org2} | ${len} aa\n${fn.slice(0,150)}\n\n`;
+      html += `
+        <div class="res-card">
+          <div class="card-header">
+            <div class="card-title"><a href="https://www.uniprot.org/uniprotkb/${acc}" target="_blank">${name}</a></div>
+            <span class="card-badge badge-drug">${acc}</span>
+          </div>
+          <div class="card-meta">
+            <span>🧬 ${genes}</span><span>🌍 ${org2}</span><span>📏 ${len} aa</span>
+          </div>
+          ${fn ? `<div class="card-abstract" id="${fid}">${fn}</div>` : ''}
+          ${dis ? `<div style="margin-top:4px">${dis.split(',').map(d=>`<span class="tag">⚕️ ${d.trim()}</span>`).join('')}</div>` : ''}
+          <div class="card-actions">
+            ${fn ? `<button class="act-btn expand" onclick="toggleExpand('${fid}',this)">▼ Function</button>` : ''}
+            <a class="act-btn link" href="https://www.uniprot.org/uniprotkb/${acc}" target="_blank">🔗 UniProt</a>
+            <button class="act-btn gpt-card" onclick="analyzeCard('${esc(name)}','${esc(fn.slice(0,200))}')">🤖 GPT</button>
+          </div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(results.length); setStatus('UniProt abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 5 — CHEMBL
+================================================================ */
+function buildChEMBL() {
+  drawer(`
+    <div class="sidebar-title">💊 ChEMBL Drug Database</div>
+    <div>
+      <div class="field-label">Drug / Compound Name</div>
+      <input class="ls-input" id="ch-query" placeholder="aspirin, imatinib, pembrolizumab..." onkeydown="if(event.key==='Enter')searchChEMBL()"/>
+    </div>
+    ${qPills(['aspirin','imatinib','pembrolizumab','trastuzumab','metformin','erlotinib','venetoclax','osimertinib','rituximab'],'ch-query')}
+    <div>
+      <div class="field-label">Min. Klinische Phase</div>
+      <select class="ls-select" id="ch-phase">
+        <option value="">Alle Phasen</option>
+        <option value="4">Phase 4 (Approved)</option>
+        <option value="3">Phase 3+</option>
+        <option value="2">Phase 2+</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchChEMBL()">💊 DRUG SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('ChEMBL')}
+  `);
+}
+
+async function searchChEMBL() {
+  const q     = document.getElementById('ch-query').value.trim();
+  const phase = document.getElementById('ch-phase').value;
+  if (!q) return;
+  showLoading(); setStatus('ChEMBL wird durchsucht...');
+  try {
+    let url = `https://www.ebi.ac.uk/chembl/api/data/molecule?pref_name__icontains=${encodeURIComponent(q)}&format=json&limit=15`;
+    if (phase) url += `&max_phase__gte=${phase}`;
+    const mols = (await (await fetch(url)).json()).molecules || [];
+    if (!mols.length) { showError('Keine Compounds gefunden'); return; }
+    let html = '', textDump = `ChEMBL: ${q}\n\n`;
+    for (const m of mols) {
+      const id     = m.molecule_chembl_id;
+      const name   = m.pref_name || id;
+      const type   = m.molecule_type || '—';
+      const phase2 = m.max_phase ?? '—';
+      const mw     = m.molecule_properties?.mw_freebase?.toFixed(2) || '—';
+      const logP   = m.molecule_properties?.alogp || '—';
+      const smiles = m.molecule_structures?.canonical_smiles?.slice(0,80) || '';
+      const trades = m.molecule_synonyms?.filter(s=>s.syn_type==='TRADE_NAME').map(s=>s.molecule_synonym).slice(0,3).join(', ') || '';
+      const cUrl   = `https://www.ebi.ac.uk/chembl/compound_report_card/${id}/`;
+      const pColor = phase2>=4?'var(--green)':phase2>=3?'var(--yellow)':'var(--muted)';
+      textDump += `${name} (${id})\nType:${type} Phase:${phase2} MW:${mw} logP:${logP}\nTrade:${trades}\n\n`;
+      html += `
+        <div class="res-card">
+          <div class="card-header">
+            <div class="card-title"><a href="${cUrl}" target="_blank">${name}</a></div>
+            <span class="card-badge badge-phase" style="color:${pColor}">Phase ${phase2}</span>
+          </div>
+          <div class="card-meta">
+            <span>🔬 ${type}</span><span>⚖️ MW ${mw}</span><span>💧 logP ${logP}</span>
+          </div>
+          ${trades?`<div style="font-size:10px;color:var(--muted);margin:3px 0">Trade: <b style="color:var(--text)">${trades}</b></div>`:''}
+          ${smiles?`<div style="font-size:9px;color:#4a5568;font-family:monospace;word-break:break-all;margin-top:3px">${smiles}...</div>`:''}
+          <div class="card-actions">
+            <a class="act-btn link" href="${cUrl}" target="_blank">💊 ChEMBL</a>
+            <button class="act-btn gpt-card" onclick="analyzeCard('${esc(name)}','Typ:${type} Phase:${phase2} MW:${mw}')">🤖 GPT</button>
+          </div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(mols.length); setStatus('ChEMBL abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 6 — OPENFDA
+================================================================ */
+function buildFDA() {
+  drawer(`
+    <div class="sidebar-title">⚕️ OpenFDA</div>
+    <div>
+      <div class="field-label">Drug Name</div>
+      <input class="ls-input" id="fd-query" placeholder="aspirin, metformin, atorvastatin..." onkeydown="if(event.key==='Enter')searchFDA()"/>
+    </div>
+    ${qPills(['aspirin','metformin','atorvastatin','lisinopril','warfarin','sildenafil','amoxicillin','prednisone','omeprazole'],'fd-query')}
+    <div>
+      <div class="field-label">Datentyp</div>
+      <select class="ls-select" id="fd-type">
+        <option value="label">Drug Labels (Beipackzettel)</option>
+        <option value="event">Adverse Events (FAERS)</option>
+        <option value="enforcement">Drug Recalls</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchFDA()">⚕️ FDA SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('OpenFDA')}
+  `);
+}
+
+async function searchFDA() {
+  const q    = document.getElementById('fd-query').value.trim();
+  const type = document.getElementById('fd-type').value;
+  if (!q) return;
+  showLoading(); setStatus('OpenFDA wird durchsucht...');
+  try {
+    let endpoint = `https://api.fda.gov/drug/${type}.json?limit=10`;
+    if (type==='label')      endpoint += `&search=openfda.brand_name:${encodeURIComponent(q)}+OR+openfda.generic_name:${encodeURIComponent(q)}`;
+    else if (type==='event') endpoint += `&search=patient.drug.medicinalproduct:${encodeURIComponent(q)}`;
+    else                     endpoint += `&search=product_description:${encodeURIComponent(q)}`;
+    const results = (await (await fetch(endpoint)).json()).results || [];
+    if (!results.length) { showError('Keine FDA-Daten gefunden'); return; }
+    let html = '', textDump = `OpenFDA ${type}: ${q}\n\n`;
+    for (const r of results) {
+      if (type==='label') {
+        const bn  = r.openfda?.brand_name?.[0] || q;
+        const gn  = r.openfda?.generic_name?.[0] || '';
+        const mfr = r.openfda?.manufacturer_name?.[0] || '';
+        const ind = (r.indications_and_usage?.[0]||'').slice(0,400);
+        const bbw = !!r.boxed_warning?.[0];
+        const lid = 'fd'+Math.random().toString(36).slice(2,6);
+        textDump += `${bn} (${gn})\n${mfr}\n${ind.slice(0,200)}\n\n`;
+        html += `
+          <div class="res-card" ${bbw?'style="border-color:rgba(255,51,102,0.4)"':''}>
+            <div class="card-header">
+              <div class="card-title">${bn}${gn?` <span style="font-size:10px;color:var(--muted)">(${gn})</span>`:''}</div>
+              ${bbw?`<span class="card-badge" style="background:rgba(255,51,102,0.15);color:var(--red);border-color:var(--red)">⚠ BLACK BOX</span>`:''}
+            </div>
+            <div class="card-meta">${mfr?`<span>🏭 ${mfr}</span>`:''}</div>
+            ${ind?`<div class="card-abstract" id="${lid}">${ind}</div>`:''}
+            <div class="card-actions">
+              ${ind?`<button class="act-btn expand" onclick="toggleExpand('${lid}',this)">▼ Indikationen</button>`:''}
+              <button class="act-btn gpt-card" onclick="analyzeCard('${esc(bn)}','${esc(ind.slice(0,200))}')">🤖 Safety GPT</button>
+            </div>
+          </div>`;
+      } else if (type==='event') {
+        const drug = r.patient?.drug?.[0]?.medicinalproduct || q;
+        const reax = r.patient?.reaction?.map(x=>x.reactionmeddrapt).join(', ') || '';
+        const date = r.receiptdate || '';
+        textDump += `${drug}: ${reax}\n${date}\n\n`;
+        html += `<div class="res-card"><div class="card-header"><div class="card-title">Adverse Event: ${drug}</div><span class="card-badge badge-pay">${date}</span></div><div class="card-meta"><span>⚠ ${reax.slice(0,120)}</span></div></div>`;
+      } else {
+        const product = (r.product_description||'').slice(0,80);
+        const cls     = r.classification || '';
+        const reason  = (r.reason_for_recall||'').slice(0,200);
+        textDump += `RECALL: ${product}\n${cls}\n${reason}\n\n`;
+        html += `<div class="res-card" style="border-color:rgba(255,140,66,0.3)"><div class="card-header"><div class="card-title">⚠️ ${product}</div><span class="card-badge" style="color:var(--orange);border-color:var(--orange)">${cls}</span></div>${reason?`<div class="card-abstract">${reason}</div>`:''}</div>`;
+      }
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(results.length); setStatus('OpenFDA abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 7 — CLINICALTRIALS
+================================================================ */
+function buildTrials() {
+  drawer(`
+    <div class="sidebar-title">🏥 ClinicalTrials.gov</div>
+    <div>
+      <div class="field-label">Erkrankung</div>
+      <input class="ls-input" id="ct-cond" placeholder="lung cancer, diabetes..." onkeydown="if(event.key==='Enter')searchTrials()"/>
+    </div>
+    ${qPills(['lung cancer','breast cancer','diabetes type 2','Alzheimer disease','glioblastoma','melanoma','rheumatoid arthritis','multiple myeloma'],'ct-cond')}
+    <div>
+      <div class="field-label">Intervention / Drug</div>
+      <input class="ls-input" id="ct-intr" placeholder="pembrolizumab, CAR-T..."/>
+    </div>
+    <div>
+      <div class="field-label">Status</div>
+      <select class="ls-select" id="ct-status">
+        <option value="RECRUITING">Recruiting</option>
+        <option value="">Alle</option>
+        <option value="COMPLETED">Completed</option>
+        <option value="ACTIVE_NOT_RECRUITING">Active, not recruiting</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Phase</div>
+      <select class="ls-select" id="ct-phase">
+        <option value="">Alle</option>
+        <option value="PHASE3">Phase 3</option>
+        <option value="PHASE2">Phase 2</option>
+        <option value="PHASE1">Phase 1</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchTrials()">🏥 TRIAL SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('ClinicalTrials')}
+  `);
+}
+
+async function searchTrials() {
+  const cond   = document.getElementById('ct-cond').value.trim();
+  const intr   = document.getElementById('ct-intr').value.trim();
+  const status = document.getElementById('ct-status').value;
+  const phase  = document.getElementById('ct-phase').value;
+  if (!cond && !intr) return;
+  showLoading(); setStatus('ClinicalTrials.gov wird durchsucht...');
+  try {
+    let url = 'https://clinicaltrials.gov/api/v2/studies?format=json&pageSize=10';
+    if (cond)   url += `&query.cond=${encodeURIComponent(cond)}`;
+    if (intr)   url += `&query.intr=${encodeURIComponent(intr)}`;
+    if (status) url += `&filter.overallStatus=${status}`;
+    if (phase)  url += `&filter.phase=${phase}`;
+    const studies = (await (await fetch(url)).json()).studies || [];
+    if (!studies.length) { showError('Keine Studien gefunden'); return; }
+    let html = '', textDump = `ClinicalTrials: ${cond||''} ${intr||''}\n\n`;
+    for (const s of studies) {
+      const id    = s.protocolSection.identificationModule;
+      const sm    = s.protocolSection.statusModule;
+      const dm    = s.protocolSection.designModule;
+      const desc  = s.protocolSection.descriptionModule;
+      const nct   = id.nctId;
+      const title = id.briefTitle || nct;
+      const st2   = sm.overallStatus || '—';
+      const phases= dm?.phases?.join(', ') || '—';
+      const enroll= dm?.enrollmentInfo?.count || '—';
+      const spnsr = s.protocolSection.sponsorCollaboratorsModule?.leadSponsor?.name || '—';
+      const sum   = (desc?.briefSummary||'').slice(0,400);
+      const cid   = 'ct'+nct;
+      textDump += `${title}\nNCT:${nct} Status:${st2} Phase:${phases} n=${enroll}\n${sum.slice(0,150)}\n\n`;
+      html += `
+        <div class="res-card">
+          <div class="card-header">
+            <div class="card-title"><a href="https://clinicaltrials.gov/study/${nct}" target="_blank">${title}</a></div>
+            <span class="card-badge ${st2==='RECRUITING'?'badge-rec':'badge-pay'}">${st2.replace(/_/g,' ')}</span>
+          </div>
+          <div class="card-meta">
+            <span>🏥 ${spnsr.slice(0,40)}</span><span>💉 ${phases}</span><span>👥 n=${enroll}</span>
+          </div>
+          ${sum?`<div class="card-abstract" id="${cid}">${sum}</div>`:''}
+          <div class="card-actions">
+            ${sum?`<button class="act-btn expand" onclick="toggleExpand('${cid}',this)">▼ Summary</button>`:''}
+            <a class="act-btn link" href="https://clinicaltrials.gov/study/${nct}" target="_blank">🔗 CT.gov</a>
+            <button class="act-btn gpt-card" onclick="analyzeCard('${esc(title)}','Phase:${phases} n=${enroll} Status:${st2}')">🤖 GPT</button>
+          </div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(studies.length); setStatus('ClinicalTrials abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 8 — PREPRINTS
+================================================================ */
+function buildPreprints() {
+  drawer(`
+    <div class="sidebar-title">📑 Preprints</div>
+    <div>
+      <div class="field-label">Server</div>
+      <select class="ls-select" id="bx-server">
+        <option value="biorxiv">bioRxiv (Biology)</option>
+        <option value="medrxiv">medRxiv (Medicine)</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Kategorie</div>
+      <select class="ls-select" id="bx-cat">
+        <option value="">Alle</option>
+        <option value="cancer biology">Cancer Biology</option>
+        <option value="neuroscience">Neuroscience</option>
+        <option value="genomics">Genomics</option>
+        <option value="immunology">Immunology</option>
+        <option value="biochemistry">Biochemistry</option>
+        <option value="bioinformatics">Bioinformatics</option>
+        <option value="cell biology">Cell Biology</option>
+        <option value="genetics">Genetics</option>
+        <option value="microbiology">Microbiology</option>
+        <option value="pharmacology and toxicology">Pharmacology</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Von</div>
+      <input class="ls-input" id="bx-from" type="date" value="${new Date(Date.now()-7*864e5).toISOString().slice(0,10)}"/>
+    </div>
+    <div>
+      <div class="field-label">Bis</div>
+      <input class="ls-input" id="bx-to" type="date" value="${new Date().toISOString().slice(0,10)}"/>
+    </div>
+    <button class="btn-search" onclick="searchPreprints()">📑 PREPRINT SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('Preprints')}
+  `);
+}
+
+async function searchPreprints() {
+  const server = document.getElementById('bx-server').value;
+  const from   = document.getElementById('bx-from').value;
+  const to     = document.getElementById('bx-to').value;
+  const cat    = document.getElementById('bx-cat').value;
+  showLoading(); setStatus(`${server} wird durchsucht...`);
+  try {
+    let items = (await (await fetch(`https://api.biorxiv.org/details/${server}/${from}/${to}/0/json`)).json()).collection || [];
+    if (cat) items = items.filter(i=>(i.category||'').toLowerCase()===cat);
+    if (!items.length) { showError('Keine Preprints gefunden'); return; }
+    let html = `<div class="res-card" style="border-color:rgba(0,230,255,0.3)"><div class="card-meta"><span>Preprints: <b style="color:var(--accent)">${items.length}</b></span><span>${server}</span></div></div>`;
+    let textDump = `${server}: ${from}→${to}\n\n`;
+    for (const p of items.slice(0,20)) {
+      const doi = p.doi || '';
+      const pid = 'bx'+doi.replace(/[^a-z0-9]/gi,'').slice(0,8);
+      const pub = p.published && p.published!=='NA';
+      textDump += `${p.title}\n${(p.authors||'').slice(0,60)} | ${p.date}\n${(p.abstract||'').slice(0,150)}\n\n`;
+      html += `
+        <div class="res-card" ${pub?'style="border-color:rgba(0,255,135,0.2)"':''}>
+          <div class="card-header">
+            <div class="card-title"><a href="${doi?`https://doi.org/${doi}`:'#'}" target="_blank">${p.title}</a></div>
+            <span class="card-badge ${pub?'badge-oa':'badge-pay'}">${pub?'PUBLISHED':'PREPRINT'}</span>
+          </div>
+          <div class="card-meta">
+            <span>👤 ${(p.authors||'').slice(0,70)}</span><span>📅 ${p.date}</span>
+            ${p.category?`<span>🏷 ${p.category}</span>`:''}
+          </div>
+          ${p.abstract?`<div class="card-abstract" id="${pid}">${(p.abstract||'').slice(0,500)}</div>`:''}
+          <div class="card-actions">
+            ${p.abstract?`<button class="act-btn expand" onclick="toggleExpand('${pid}',this)">▼ Abstract</button>`:''}
+            ${doi?`<a class="act-btn link" href="https://doi.org/${doi}" target="_blank">📄 Preprint</a>`:''}
+            <button class="act-btn gpt-card" onclick="analyzeCard('${esc(p.title||'')}','${esc((p.abstract||'').slice(0,200))}')">🤖 GPT</button>
+          </div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(items.length); setStatus(`${server} abgeschlossen`);
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 9 — SCHOLAR
+================================================================ */
+function buildScholar() {
+  drawer(`
+    <div class="sidebar-title">📚 Academic Scholar</div>
+    <div>
+      <div class="field-label">Suchanfrage</div>
+      <input class="ls-input" id="oa-query" placeholder="cancer immunotherapy 2024" onkeydown="if(event.key==='Enter')searchScholar()"/>
+    </div>
+    ${qPills(['CRISPR base editing','AlphaFold structure','CAR-T outcomes','liquid biopsy ctDNA','tumor microenvironment','mRNA vaccine efficacy','single-cell sequencing'],'oa-query')}
+    <div>
+      <div class="field-label">Quelle</div>
+      <select class="ls-select" id="oa-src">
+        <option value="openalex">OpenAlex (470M Papers)</option>
+        <option value="s2">Semantic Scholar</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Open Access</div>
+      <select class="ls-select" id="oa-oa"><option value="">Alle</option><option value="true">Nur OA</option></select>
+    </div>
+    <div>
+      <div class="field-label">Jahr ab</div>
+      <input class="ls-input" id="oa-year" placeholder="2022" type="number"/>
+    </div>
+    <button class="btn-search" onclick="searchScholar()">📚 SCHOLAR SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('Scholar')}
+  `);
+}
+
+async function searchScholar() {
+  const q   = document.getElementById('oa-query').value.trim();
+  const src = document.getElementById('oa-src').value;
+  const oa  = document.getElementById('oa-oa').value;
+  const yr  = document.getElementById('oa-year').value;
+  if (!q) return;
+  showLoading(); setStatus(`${src} wird durchsucht...`);
+  try {
+    let items = [], total = 0, textDump = `${src}: ${q}\n\n`;
+    if (src === 'openalex') {
+      let url = `https://api.openalex.org/works?search=${encodeURIComponent(q)}&per-page=15&mailto=lifescimega@research.io`;
+      if (oa) url += `&filter=open_access.is_oa:true`;
+      if (yr) url += `,publication_year:${yr}`;
+      const d = await (await fetch(url)).json();
+      total = d.meta?.count || 0;
+      items = (d.results||[]).map(r => ({
+        title:   r.title||'—',
+        authors: r.authorships?.slice(0,3).map(a=>a.author?.display_name).join(', ')||'—',
+        year:    r.publication_year||'—',
+        journal: r.primary_location?.source?.display_name||'—',
+        cited:   r.cited_by_count||0,
+        isOA:    r.open_access?.is_oa||false,
+        url:     r.open_access?.oa_url||(r.doi?`https://doi.org/${r.doi}`:'#'),
+        abstract:Object.keys(r.abstract_inverted_index||{}).join(' ').slice(0,400),
+        field:   r.primary_topic?.display_name||'',
+      }));
+    } else {
+      let url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${encodeURIComponent(q)}&limit=15&fields=title,year,authors,citationCount,openAccessPdf,abstract,fieldsOfStudy`;
+      if (yr) url += `&year=${yr}-`;
+      const d = await (await fetch(url)).json();
+      total = d.total||0;
+      items = (d.data||[]).map(r => ({
+        title:   r.title||'—',
+        authors: (r.authors||[]).slice(0,3).map(a=>a.name).join(', ')||'—',
+        year:    r.year||'—', journal:'',
+        cited:   r.citationCount||0,
+        isOA:    !!r.openAccessPdf,
+        url:     r.openAccessPdf?.url||`https://www.semanticscholar.org/paper/${r.paperId}`,
+        abstract:(r.abstract||'').slice(0,400),
+        field:   (r.fieldsOfStudy||[]).join(', '),
+      }));
+    }
+    if (!items.length) { showError('Keine Paper gefunden'); return; }
+    let html = `<div class="res-card" style="border-color:rgba(0,230,255,0.3)"><div class="card-meta"><span>Total: <b style="color:var(--accent)">${total.toLocaleString()}</b></span></div></div>`;
+    for (const r of items) {
+      const oid = 'oa'+Math.random().toString(36).slice(2,7);
+      textDump += `${r.title}\n${r.authors} | ${r.year} | ${r.cited} cit.\n${r.abstract.slice(0,150)}\n\n`;
+      html += `
+        <div class="res-card">
+          <div class="card-header">
+            <div class="card-title"><a href="${r.url}" target="_blank">${r.title}</a></div>
+            <span class="card-badge ${r.isOA?'badge-oa':'badge-pay'}">${r.isOA?'🔓 OA':'📊 '+r.cited}</span>
+          </div>
+          <div class="card-meta">
+            <span>👤 ${r.authors}</span><span>📅 ${r.year}</span>
+            ${r.journal?`<span>📰 ${r.journal.slice(0,40)}</span>`:''}
+            <span>📊 ${r.cited} cited</span>
+            ${r.field?`<span>🏷 ${r.field.slice(0,40)}</span>`:''}
+          </div>
+          ${r.abstract?`<div class="card-abstract" id="${oid}">${r.abstract}</div>`:''}
+          <div class="card-actions">
+            ${r.abstract?`<button class="act-btn expand" onclick="toggleExpand('${oid}',this)">▼ Abstract</button>`:''}
+            <a class="act-btn link" href="${r.url}" target="_blank">📄 Paper</a>
+            <button class="act-btn gpt-card" onclick="analyzeCard('${esc(r.title)}','${esc(r.abstract.slice(0,200))}')">🤖 GPT</button>
+          </div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(items.length); setStatus(`${src} abgeschlossen`);
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 10 — STRING NETWORKS
+================================================================ */
+function buildNetworks() {
+  drawer(`
+    <div class="sidebar-title">🔗 STRING Protein Networks</div>
+    <div>
+      <div class="field-label">Proteine (kommagetrennt)</div>
+      <input class="ls-input" id="st-genes" placeholder="BRCA1,TP53,EGFR" onkeydown="if(event.key==='Enter')searchSTRING()"/>
+    </div>
+    ${qPills(['TP53,BRCA1,BRCA2','EGFR,KRAS,BRAF','MYC,CDK4,RB1','BCL2,BAX,CASP3','VEGFA,FLT1,KDR'],'st-genes')}
+    <div>
+      <div class="field-label">Spezies</div>
+      <select class="ls-select" id="st-species">
+        <option value="9606">Homo sapiens</option>
+        <option value="10090">Mus musculus</option>
+        <option value="4932">S. cerevisiae</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Min. Interaktions-Score</div>
+      <select class="ls-select" id="st-score">
+        <option value="900">0.900 (very high)</option>
+        <option value="700" selected>0.700 (high)</option>
+        <option value="400">0.400 (medium)</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchSTRING()">🔗 NETWORK SEARCH</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('STRING')}
+  `);
+}
+
+async function searchSTRING() {
+  const genes    = document.getElementById('st-genes').value.trim();
+  const species  = document.getElementById('st-species').value;
+  const minScore = document.getElementById('st-score').value;
+  if (!genes) return;
+  showLoading(); setStatus('STRING DB wird abgefragt...');
+  const identifiers = genes.split(',').map(g=>g.trim()).join('%0d');
+  try {
+    const mapped  = await (await fetch(`https://string-db.org/api/json/get_string_ids?identifiers=${identifiers}&species=${species}&echo_query=1`)).json();
+    if (!mapped.length) { showError('Keine STRING-Einträge gefunden'); return; }
+    const ids     = mapped.map(m=>m.stringId).join('%0d');
+    const network = await (await fetch(`https://string-db.org/api/json/network?identifiers=${ids}&species=${species}&required_score=${minScore}`)).json();
+    const imgUrl  = `https://string-db.org/api/image/network?identifiers=${identifiers}&species=${species}&required_score=${minScore}&network_flavor=evidence`;
+    const top     = network.sort((a,b)=>b.score-a.score).slice(0,30);
+    let textDump  = `STRING Network: ${genes}\nInteraktionen: ${network.length}\n\n`;
+    top.forEach(i=>{ textDump += `${i.preferredName_A} ↔ ${i.preferredName_B}: ${i.score}\n`; });
+    let html = `
+      <div class="res-card" style="border-color:rgba(0,230,255,0.3)">
+        <div class="card-header"><div class="card-title">Network: ${genes}</div><span class="card-badge badge-oa">${network.length} Interaktionen</span></div>
+        <img src="${imgUrl}" alt="STRING Network" class="net-img" style="margin-top:8px"/>
+        <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px">STRING Evidence Network · Min Score ${(minScore/1000).toFixed(3)}</div>
+        <div class="card-actions">
+          <button class="act-btn gpt-card" onclick="analyzeCard('Protein Network ${genes}','${top.slice(0,8).map(i=>i.preferredName_A+'-'+i.preferredName_B).join(', ')}')">🤖 GPT Netzwerk-Analyse</button>
+        </div>
+      </div>
+      <div class="res-card">
+        <div class="sidebar-title" style="margin-bottom:8px">Top Interaktionen</div>
+        ${top.map(i=>`
+          <div class="kv-row">
+            <span class="kv-key">${i.preferredName_A} ↔ ${i.preferredName_B}</span>
+            <span class="kv-val" style="display:flex;align-items:center;gap:5px">
+              <span style="color:var(--accent)">${(i.score/1000).toFixed(3)}</span>
+              <div class="score-bar" style="width:50px"><div class="score-fill" style="width:${i.score/10}%"></div></div>
+            </span>
+          </div>`).join('')}
+      </div>`;
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(network.length); setStatus('STRING abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 11 — GENOME (Ensembl + HGNC)
+================================================================ */
+function buildGenome() {
+  drawer(`
+    <div class="sidebar-title">🏗️ Genome — Ensembl + HGNC</div>
+    <div>
+      <div class="field-label">Gen-Symbol</div>
+      <input class="ls-input" id="ge-gene" placeholder="BRCA1, EGFR, BRAF, TP53..." onkeydown="if(event.key==='Enter')searchGenome()"/>
+    </div>
+    ${qPills(['BRCA1','BRCA2','TP53','EGFR','KRAS','BRAF','MYC','PTEN','ALK','ERBB2','CDK4','RB1','VHL','APC'],'ge-gene')}
+    <div>
+      <div class="field-label">Quelle</div>
+      <select class="ls-select" id="ge-src">
+        <option value="both">Ensembl + HGNC</option>
+        <option value="ensembl">Ensembl only</option>
+        <option value="hgnc">HGNC only</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchGenome()">🏗️ GENOME LOOKUP</button>
+    <div class="sep"></div>
+    ${gptSidebarBtn('Genome')}
+  `);
+}
+
+async function searchGenome() {
+  const gene = document.getElementById('ge-gene').value.trim().toUpperCase();
+  const src  = document.getElementById('ge-src').value;
+  if (!gene) return;
+  showLoading(); setStatus('Ensembl + HGNC werden abgefragt...');
+  let html = '', textDump = `Genome: ${gene}\n\n`;
+  try {
+    if (src !== 'hgnc') {
+      const eRes = await fetch(`https://rest.ensembl.org/lookup/symbol/homo_sapiens/${gene}?content-type=application/json;expand=1`);
+      if (eRes.ok) {
+        const e   = await eRes.json();
+        const loc = e.seq_region_name ? `chr${e.seq_region_name}:${e.start}-${e.end}` : '—';
+        const snt = e.strand===1?'+':'-';
+        textDump += `Ensembl: ${e.display_name} (${e.id})\nLoc: ${loc} (${snt})\nBiotype: ${e.biotype}\n\n`;
+        html += `
+          <div class="res-card">
+            <div class="card-header">
+              <div class="card-title">🔬 Ensembl: ${e.display_name||gene}</div>
+              <span class="card-badge badge-drug">${e.biotype||'—'}</span>
+            </div>
+            <div class="grid-2">
+              <div>
+                <div class="kv-row"><span class="kv-key">Ensembl ID</span><span class="kv-val"><a href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=${e.id}" target="_blank" style="color:var(--accent)">${e.id}</a></span></div>
+                <div class="kv-row"><span class="kv-key">Location</span><span class="kv-val">${loc}</span></div>
+                <div class="kv-row"><span class="kv-key">Strand</span><span class="kv-val">${snt}</span></div>
+                <div class="kv-row"><span class="kv-key">Biotype</span><span class="kv-val">${e.biotype||'—'}</span></div>
+              </div>
+              <div>
+                <div class="kv-row"><span class="kv-key">Assembly</span><span class="kv-val">${e.assembly_name||'—'}</span></div>
+                <div class="kv-row"><span class="kv-key">Length</span><span class="kv-val">${e.end&&e.start?(e.end-e.start).toLocaleString()+' bp':'—'}</span></div>
+              </div>
+            </div>
+            <div class="card-actions">
+              <a class="act-btn link" href="https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=${e.id}" target="_blank">🔗 Ensembl</a>
+              <button class="act-btn gpt-card" onclick="analyzeCard('${gene}','Ensembl:${e.id} ${loc} Biotype:${e.biotype}')">🤖 GPT</button>
+            </div>
+          </div>`;
+      }
+    }
+    if (src !== 'ensembl') {
+      const hRes = await fetch(`https://rest.genenames.org/fetch/symbol/${gene}`, { headers:{'Accept':'application/json'} });
+      if (hRes.ok) {
+        const docs = (await hRes.json())?.response?.docs || [];
+        if (docs.length) {
+          const h = docs[0];
+          textDump += `HGNC: ${h.symbol} — ${h.name}\nID:${h.hgnc_id} Loc:${h.location}\nEntrez:${h.entrez_id}\n\n`;
+          html += `
+            <div class="res-card">
+              <div class="card-header">
+                <div class="card-title">📋 HGNC: ${h.symbol}</div>
+                <span class="card-badge badge-oa">HGNC:${(h.hgnc_id||'').replace('HGNC:','')}</span>
+              </div>
+              <div class="grid-2">
+                <div>
+                  <div class="kv-row"><span class="kv-key">Full Name</span><span class="kv-val">${h.name||'—'}</span></div>
+                  <div class="kv-row"><span class="kv-key">Location</span><span class="kv-val">${h.location||'—'}</span></div>
+                  <div class="kv-row"><span class="kv-key">Locus Type</span><span class="kv-val">${h.locus_type||'—'}</span></div>
+                  <div class="kv-row"><span class="kv-key">Status</span><span class="kv-val" style="color:var(--green)">${h.status||'—'}</span></div>
+                </div>
+                <div>
+                  <div class="kv-row"><span class="kv-key">Entrez ID</span><span class="kv-val"><a href="https://www.ncbi.nlm.nih.gov/gene/${h.entrez_id}" target="_blank" style="color:var(--accent)">${h.entrez_id||'—'}</a></span></div>
+                  <div class="kv-row"><span class="kv-key">UniProt</span><span class="kv-val">${(h.uniprot_ids||[]).join(', ')||'—'}</span></div>
+                  <div class="kv-row"><span class="kv-key">Ensembl</span><span class="kv-val">${h.ensembl_gene_id||'—'}</span></div>
+                  <div class="kv-row"><span class="kv-key">Gene Group</span><span class="kv-val">${(h.gene_group||[]).join(', ')||'—'}</span></div>
+                </div>
+              </div>
+              ${h.alias_symbol?.length?`<div style="margin-top:5px">${h.alias_symbol.map(a=>`<span class="tag">alias: ${a}</span>`).join('')}</div>`:''}
+              <div class="card-actions">
+                <a class="act-btn link" href="https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/${h.hgnc_id}" target="_blank">🔗 HGNC</a>
+              </div>
+            </div>`;
+        }
+      }
+    }
+    if (!html) { showError('Keine Genomdaten gefunden'); return; }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(2); setStatus('Genome Lookup abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+</script>
+</body>
+</html>

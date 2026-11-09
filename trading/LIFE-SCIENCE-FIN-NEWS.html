@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>📈 Domvs Avrea Financial News Analyzer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    select, input, button {
+      font-family: inherit;
+    }
+    .financial-gradient {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+    }
+    .summary {
+      color: white !important;
+    }
+    .news-item {
+      border-left: 3px solid #3b82f6;
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+    .hidden-text {
+      display: none;
+      margin-top: 0.5rem;
+      padding: 1rem;
+      background-color: #1e293b;
+      border-radius: 0.5rem;
+      line-height: 1.6;
+    }
+    .news-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .news-controls > * {
+      margin-bottom: 0.5rem;
+    }
+    .article-content {
+      white-space: pre-line;
+      text-align: justify;
+    }
+    .analysis-content {
+      white-space: pre-line;
+      text-align: justify;
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100">
+  <div class="max-w-6xl mx-auto p-6">
+    <h1 class="text-4xl font-bold mb-6 text-cyan-400">📈 Domvs Avrea Financial News Analyzer</h1>
+
+    <!-- API Key Input -->
+    <label class="block mb-2 text-cyan-200 font-medium">🔑 OpenAI API Key:</label>
+    <div class="flex gap-2">
+      <input id="apiKey" type="password" placeholder="sk-..." class="flex-1 p-2 border border-cyan-500 bg-gray-900 rounded" />
+      <button id="saveApiKey" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">💾 Speichern</button>
+      <button id="clearApiKey" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">🗑️ Löschen</button>
+    </div>
+
+    <!-- News Controls -->
+    <div class="news-controls mt-4">
+      <!-- Stock Ticker Input -->
+      <div class="flex gap-2">
+        <input id="tickerInput" type="text" placeholder="z. B. AAPL.US" class="p-2 border border-cyan-500 bg-gray-900 rounded text-white" value="AAPL.US" />
+      </div>
+
+      <!-- Number of News Items -->
+      <select id="numNewsItems" class="p-2 border border-cyan-500 bg-gray-900 text-white rounded">
+        <option value="5" selected>5 letzte News</option>
+        <option value="10">10 letzte News</option>
+        <option value="20">20 letzte News</option>
+        <option value="40">40 letzte News</option>
+      </select>
+
+      <!-- Fetch News Button -->
+      <button onclick="fetchNews()" class="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700">🔍 News abrufen</button>
+    </div>
+
+    <!-- News Results -->
+    <div id="newsResults" class="mt-6 space-y-4"></div>
+
+    <!-- Analysis Results -->
+    <div id="analysisResults" class="mt-6"></div>
+  </div>
+
+  <script>
+    // Global variables
+    let savedAnalyses = JSON.parse(localStorage.getItem('savedAnalyses') || '[]');
+
+    // Load saved API key if available
+    const savedApiKey = localStorage.getItem('openAiApiKey');
+    if (savedApiKey) {
+      document.getElementById('apiKey').value = savedApiKey;
+    }
+
+    // Save API key to localStorage
+    document.getElementById('saveApiKey').addEventListener('click', () => {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      if (apiKey) {
+        localStorage.setItem('openAiApiKey', apiKey);
+        alert('OpenAI API Key erfolgreich gespeichert!');
+      } else {
+        alert('Bitte geben Sie einen gültigen OpenAI API Key ein.');
+      }
+    });
+
+    // Clear API key from localStorage
+    document.getElementById('clearApiKey').addEventListener('click', () => {
+      localStorage.removeItem('openAiApiKey');
+      document.getElementById('apiKey').value = '';
+      alert('OpenAI API Key erfolgreich gelöscht!');
+    });
+
+    // Fetch news function
+    async function fetchNews() {
+      try {
+        const apiToken = '64d7d0670ee1f8.90133693'; // Your API token
+        const ticker = document.getElementById('tickerInput').value.trim();
+        if (!ticker) {
+          alert('Bitte geben Sie einen Aktien-Ticker ein.');
+          return;
+        }
+
+        const numNewsItems = parseInt(document.getElementById('numNewsItems').value);
+        const offset = 0;
+        const limit = numNewsItems;
+
+        const url = `https://eodhd.com/api/news?api_token=${apiToken}&s=${ticker}&offset=${offset}&limit=${limit}`;
+
+        const newsResultsDiv = document.getElementById('newsResults');
+        newsResultsDiv.innerHTML = '<div class="text-center py-4">⏳ News werden geladen...</div>';
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+          newsResultsDiv.innerHTML = '<div class="text-center py-4 text-yellow-400">⚠️ Keine News gefunden für den angegebenen Ticker.</div>';
+          return;
+        }
+
+        displayNews(data, numNewsItems);
+      } catch (error) {
+        console.error("An error occurred:", error);
+        const newsResultsDiv = document.getElementById('newsResults');
+        newsResultsDiv.innerHTML = `<div class="text-center py-4 text-red-400">❌ Fehler beim Abrufen der News: ${error.message}</div>`;
+      }
+    }
+
+    // Display news function
+    function displayNews(newsData, numNewsItems) {
+      const newsResultsDiv = document.getElementById('newsResults');
+      newsResultsDiv.innerHTML = '';
+
+      // Sort news by date (newest first)
+      newsData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Get the specified number of news items
+      const latestNews = newsData.slice(0, numNewsItems);
+
+      if (latestNews.length === 0) {
+        newsResultsDiv.innerHTML = '<div class="text-center py-4 text-yellow-400">⚠️ Keine relevanten News gefunden.</div>';
+        return;
+      }
+
+      latestNews.forEach((newsItem, index) => {
+        const newsItemDiv = document.createElement('div');
+        newsItemDiv.className = 'news-item bg-gray-800 p-4 rounded shadow';
+
+        // Format the article content with better readability
+        const formattedContent = formatArticleContent(newsItem.content || 'Kein Inhalt verfügbar.');
+
+        newsItemDiv.innerHTML = `
+          <h3 class="text-lg font-bold text-cyan-300 mb-1">${newsItem.title}</h3>
+          <p class="text-sm text-gray-400 mb-2">📅 ${new Date(newsItem.date).toLocaleString('de-DE')}</p>
+          <div class="flex gap-2 mt-2">
+            <a href="${newsItem.link}" target="_blank" class="text-cyan-400 underline text-sm">🔗 Quelle</a>
+            <button class="show-more text-cyan-400 underline text-sm" onclick="toggleText(${index})">📖 Mehr anzeigen</button>
+            <button class="analyze text-green-400 underline text-sm" onclick="analyzeNews(${index})">🧠 Analysieren</button>
+          </div>
+          <div id="content${index}" class="hidden-text text-gray-300">
+            <div class="article-content">${formattedContent}</div>
+          </div>
+          <div id="analysis${index}" class="hidden-text text-green-300"></div>
+        `;
+
+        newsResultsDiv.appendChild(newsItemDiv);
+      });
+    }
+
+    // Format article content for better readability
+    function formatArticleContent(content) {
+      if (!content || content === 'Kein Inhalt verfügbar.') {
+        return content;
+      }
+
+      // Split content into paragraphs based on double line breaks
+      const paragraphs = content.split(/\n\s*\n/);
+
+      // Join paragraphs with HTML paragraph tags
+      return paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+    }
+
+    // Toggle text visibility
+    function toggleText(index) {
+      const contentDiv = document.getElementById('content' + index);
+      contentDiv.style.display = contentDiv.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Analyze news function
+    async function analyzeNews(index) {
+      const analysisDiv = document.getElementById('analysis' + index);
+      const newsItem = document.querySelectorAll('.news-item')[index];
+
+      if (!newsItem) {
+        analysisDiv.innerHTML = '<p class="text-red-400">❌ News-Artikel nicht gefunden.</p>';
+        return;
+      }
+
+      const title = newsItem.querySelector('h3').textContent;
+      const date = newsItem.querySelector('p').textContent;
+      const content = document.getElementById('content' + index).textContent;
+
+      const apiKey = document.getElementById('apiKey').value;
+      if (!apiKey) {
+        analysisDiv.innerHTML = '<p class="text-yellow-400">⚠️ Für die KI-Analyse wird ein OpenAI API Key benötigt. Geben Sie Ihren Key ein und versuchen Sie es erneut.</p>';
+        return;
+      }
+
+      analysisDiv.innerHTML = '<p class="text-blue-400">🧠 GPT analysiert die News...</p>';
+      analysisDiv.style.display = 'block';
+
+      try {
+        const prompt = `Analysiere die folgende Finanznachricht und gib eine detaillierte Analyse zurück, die folgende Punkte enthält:
+        1. Kurze Zusammenfassung der Nachricht
+        2. Potenzielle Auswirkungen auf den Aktienmarkt
+        3. Mögliche Handelsstrategien
+        4. Risiken und Herausforderungen
+        5. Aktuellen Markttrends und Kontext
+
+        Nachricht:
+        Titel: ${title}
+        Datum: ${date}
+        Inhalt: ${content}`;
+
+        const analysis = await callOpenAI(apiKey, prompt);
+
+        if (analysis && analysis !== "⚠️ Keine Antwort erhalten.") {
+          // Format the analysis content for better readability
+          const formattedAnalysis = formatAnalysisContent(analysis);
+
+          analysisDiv.innerHTML = `
+            <h4 class="text-lg font-bold text-green-300 mb-2">🧠 KI-Analyse:</h4>
+            <div class="analysis-content">${formattedAnalysis}</div>
+            <div class="flex gap-2 mt-2">
+              <button class="export-analysis bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-sm" onclick="exportAnalysis(${index}, '${encodeURIComponent(title)}')">📤 Export als TXT</button>
+            </div>
+          `;
+        } else {
+          analysisDiv.innerHTML = '<p class="text-red-400">❌ Keine Analyse vom KI-Modell erhalten.</p>';
+        }
+      } catch (error) {
+        analysisDiv.innerHTML = `<p class="text-red-400">❌ Fehler bei der Analyse: ${error.message}</p>`;
+      }
+    }
+
+    // Format analysis content for better readability
+    function formatAnalysisContent(content) {
+      if (!content) {
+        return content;
+      }
+
+      // Split content into paragraphs based on double line breaks
+      const paragraphs = content.split(/\n\s*\n/);
+
+      // Join paragraphs with HTML paragraph tags
+      return paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+    }
+
+    // Call OpenAI API
+    async function callOpenAI(apiKey, prompt) {
+      try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "gpt-5-nano",
+            messages: [
+              {
+                role: "system",
+                content: "Du bist ein hochpräziser Finanzanalytiker. Analysiere Finanznachrichten und gib fundierte, professionelle Analysen zurück. Gib Marktkontext, potenzielle Auswirkungen, Handelsstrategien, Risiken und den aktuellen Marktstand wieder – alles in klarer, professioneller Sprache."
+              },
+              { role: "user", content: prompt }
+            ]
+          })
+        });
+
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || "⚠️ Keine Antwort erhalten.";
+      } catch (err) {
+        return "❌ OpenAI Fehler: " + err.message;
+      }
+    }
+
+    // Export analysis as TXT
+    function exportAnalysis(index, title) {
+      const analysisDiv = document.getElementById('analysis' + index);
+      const analysisText = analysisDiv.innerText;
+
+      if (!analysisText || analysisText.includes('🧠 GPT analysiert die News...')) {
+        alert('⚠️ Keine Analyse zum Exportieren verfügbar.');
+        return;
+      }
+
+      const newsItem = document.querySelectorAll('.news-item')[index];
+      const date = newsItem.querySelector('p').textContent;
+
+      let exportText = `# Domvs Avrea Financial News Analysis Export\n\n`;
+      exportText += `Export erstellt: ${new Date().toLocaleString('de-DE')}\n\n`;
+      exportText += `## ${decodeURIComponent(title)}\n`;
+      exportText += `**Datum:** ${date}\n\n`;
+      exportText += `**KI-Analyse:**\n${analysisText}\n`;
+
+      const blob = new Blob([exportText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `domvs-avrea-${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      alert("📤 Analyse erfolgreich als TXT-Datei heruntergeladen!");
+    }
+
+    // Initialize application
+    window.onload = () => {
+      // Fetch news for default ticker on page load
+      fetchNews();
+    };
+  </script>
+</body>
+</html>

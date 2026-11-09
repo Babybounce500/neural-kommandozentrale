@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEURAL KOMMANDOZENTRALE v2</title>
+<style>
+:root{
+  --bg:#05070a; --panel:#0c1118; --border:rgba(0,212,255,.22); --accent:#00d4ff;
+  --green:#00ff88; --red:#ff3b5c; --gold:#ffd23f; --violet:#b56bff; --muted:#7c8a94; --text:#e8f2f6;
+  --mono:'JetBrains Mono','Courier New',monospace; --head:'Orbitron',sans-serif;
+}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--mono);overflow:hidden}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap}
+.h-title{font-family:var(--head);font-size:13px;letter-spacing:2px;color:var(--accent);text-shadow:0 0 10px rgba(0,212,255,.5)}
+.h-sub{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:2px}
+.tabbar{display:flex;gap:4px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.tab-btn{font-family:var(--mono);font-size:9.5px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:4px;cursor:pointer;white-space:nowrap;}
+.tab-btn.active{background:rgba(0,212,255,.14);color:var(--accent);border-color:var(--accent);}
+.layout{display:grid;grid-template-columns:1fr 420px;height:calc(100vh - 104px)}
+.main-pane{position:relative;background:#000;border-right:1px solid var(--border);}
+.main-pane iframe{width:100%;height:100%;border:none;background:#fff;display:none;}
+.main-pane iframe.active{display:block;}
+.empty-state{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;}
+.chat-pane{display:flex;flex-direction:column;background:var(--panel);}
+.chat-log{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;}
+.msg{font-size:11.5px;line-height:1.6;padding:8px 10px;border-radius:6px;white-space:pre-wrap;word-break:break-word;}
+.msg.user{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);align-self:flex-end;}
+.msg.assistant{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);}
+.msg.tool-chip{background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.3);color:var(--gold);font-size:10px;}
+.msg.sys{color:var(--muted);font-size:10px;border:none;background:none;padding:2px 4px;}
+.msg.err{color:var(--red);}
+.chart-embed{border:1px solid var(--violet);border-radius:6px;overflow:hidden;margin-top:4px;background:#fff;}
+.chart-embed iframe{width:100%;height:260px;border:none;}
+.chart-embed .chart-label{background:rgba(181,107,255,.15);color:var(--violet);font-size:9px;padding:4px 8px;}
+.chat-input-row{display:flex;gap:6px;padding:10px;border-top:1px solid var(--border);}
+.chat-input-row input{flex:1;background:#0a0e14;border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:11px;padding:9px 10px;border-radius:4px;}
+.btn{font-family:var(--head);font-size:9px;letter-spacing:1px;padding:9px 14px;border-radius:4px;border:none;cursor:pointer;background:var(--accent);color:#000;font-weight:700;white-space:nowrap;}
+.btn:disabled{background:#1a3a42;color:#3a6a75;cursor:not-allowed;}
+.quick-row{display:flex;gap:6px;padding:0 10px 8px;flex-wrap:wrap;}
+.quick-btn{font-size:9px;background:rgba(0,212,255,.08);border:1px solid var(--border);color:var(--accent);padding:4px 8px;border-radius:3px;cursor:pointer;}
+@media(max-width:900px){.layout{grid-template-columns:1fr;grid-template-rows:50vh 1fr;}.main-pane{border-right:none;border-bottom:1px solid var(--border);}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="h-title">⬡ NEURAL KOMMANDOZENTRALE v2</div>
+    <div class="h-sub">8 LIVE-TOOLS · ECHTES TOOL-CALLING · CHARTS INLINE IM CHAT</div>
+  </div>
+  <select class="tab-btn" id="modelSelect" style="cursor:pointer;">
+    <option value="gpt-4o-mini">GPT-4o-mini</option>
+    <option value="claude">Claude (proxy)</option>
+  </select>
+</header>
+<div class="tabbar" id="tabBar"></div>
+<div class="layout">
+  <div class="main-pane" id="mainPane">
+    <div class="empty-state" id="emptyState">Tab wählen oder die KI fragen…</div>
+  </div>
+  <div class="chat-pane">
+    <div class="chat-log" id="chatLog"></div>
+    <div class="quick-row">
+      <button class="quick-btn" onclick="sendQuick('Scanne DAX 40 mit Trend-Rider und fasse die Top-3-Signale zusammen.')">📈 DAX-Scan</button>
+      <button class="quick-btn" onclick="sendQuick('Zeig mir den Trend-Rider-Chart für die aktuelle Auswahl direkt hier im Chat.')">📊 Chart zeigen</button>
+      <button class="quick-btn" onclick="sendQuick('Was zeigt Funds-Mix gerade an?')">🏦 Funds-Mix</button>
+    </div>
+    <div class="chat-input-row">
+      <input id="chatInput" placeholder="z.B. 'analysiere DAX mit Trend-Rider'" onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="btn" id="sendBtn" onclick="sendMessage()">SENDEN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   8 FEATURED TOOLS — same-origin iframes, lazy-loaded on first open
+   ════════════════════════════════════════════════════════════════════ */
+const TOOLS = {
+  trendrider: { file: 'TREND-RIDER.html',          label: '📈 Trend-Rider',      runBtnHint: /scan|run|start/i,              inputHint: /custom|symbol|scan/i },
+  trendchart: { file: 'TREND-RIDER-CHART.html',     label: '📊 Trend-Chart',      runBtnHint: /laden|load|analy[sz]e|chart/i, inputHint: /symbol|ticker/i },
+  quantumvol: { file: 'QUANTUM-VOLUME-FINAL.html',  label: '📦 Quantum-Volume',   runBtnHint: /analy[sz]e|scan|run/i,         inputHint: /symbol|ticker/i },
+  fundsmix:   { file: 'FUNDS-MIX (1).html',         label: '🏦 Funds-Mix',        runBtnHint: /scan|analy[sz]e|run|load/i,    inputHint: /fund|symbol|search|suche/i },
+  bonds:      { file: 'BONDS-BLOOMBERG.html',       label: '💵 Bonds-Bloomberg',  runBtnHint: /calc|berechnen|run/i,          inputHint: /price|yield|coupon/i },
+  xtrackers:  { file: 'XTRACKERS-FINAL-UPDATED.html', label: '📑 Xtrackers-ETF',  runBtnHint: /scan|analy[sz]e|run|load/i,    inputHint: /symbol|ticker|etf/i },
+  hedging:    { file: 'HEDGING-FINAL (2).html',     label: '🛡️ Hedging-Engine',  runBtnHint: /generate|berechnen|run|hedge/i, inputHint: /symbol|ticker/i },
+  dudebank:   { file: 'DUDE-BANK-INDEX.html',       label: '📚 Dude-Bank',        runBtnHint: null,                          inputHint: null }
+};
+
+const PROXY_URL = 'https://theserver-open-ai.replit.app/api/chat'; // secure proxy, no client-side key — ever
+
+const tabBar      = document.getElementById('tabBar');
+const mainPane     = document.getElementById('mainPane');
+const emptyState   = document.getElementById('emptyState');
+const chatLog      = document.getElementById('chatLog');
+const chatInput    = document.getElementById('chatInput');
+const sendBtn      = document.getElementById('sendBtn');
+const iframes      = {}; // key -> <iframe> element, created lazily
+let   activeTool   = null;
+let   messages     = [];
+
+/* ════════════════════════════════════════════════════════════════════
+   TAB MANAGEMENT — lazy iframe creation, !initialized guard pattern
+   ════════════════════════════════════════════════════════════════════ */
+tabBar.innerHTML = Object.entries(TOOLS).map(([k, t]) => `<button class="tab-btn" id="tabbtn-${k}" onclick="openTool('${k}')">${t.label}</button>`).join('');
+
+function openTool(key) {
+  if (!TOOLS[key]) return;
+  activeTool = key;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tabbtn-' + key); if (btn) btn.classList.add('active');
+  emptyState.style.display = 'none';
+  Object.values(iframes).forEach(f => f.classList.remove('active'));
+  if (!iframes[key]) {
+    const f = document.createElement('iframe');
+    f.src = TOOLS[key].file;
+    mainPane.appendChild(f);
+    iframes[key] = f;
+  }
+  iframes[key].classList.add('active');
+  return waitForFrameReady(key);
+}
+function waitForFrameReady(key, ms = 6000) {
+  return new Promise(resolve => {
+    const f = iframes[key];
+    const t0 = Date.now();
+    (function poll() {
+      try { if (f.contentDocument?.body) return resolve(true); } catch {}
+      if (Date.now() - t0 > ms) return resolve(false);
+      setTimeout(poll, 150);
+    })();
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   DOM-CONTROL ENGINE — identical, proven helpers (see IFRAME-BOT-V2.html)
+   ════════════════════════════════════════════════════════════════════ */
+function frameDoc(key) {
+  const f = iframes[key]; if (!f) return null;
+  try { const doc = f.contentDocument || f.contentWindow?.document; return doc?.querySelector ? doc : null; }
+  catch { return null; }
+}
+function getFieldLabel(el, doc) {
+  const trim = s => (s || '').replace(/\s+/g, ' ').trim().substring(0, 60);
+  if (el.id) { const lbl = doc.querySelector(`label[for="${CSS.escape(el.id)}"]`); if (lbl) return trim(lbl.textContent); }
+  const al = el.getAttribute('aria-label'); if (al) return trim(al);
+  const parentLabel = el.closest('label'); if (parentLabel) return trim(parentLabel.textContent);
+  let prev = el.previousElementSibling;
+  while (prev) { const t = trim(prev.textContent); if (t && !['INPUT','SELECT','TEXTAREA','BUTTON'].includes(prev.tagName)) return t; prev = prev.previousElementSibling; }
+  return trim(el.placeholder || el.name || el.id || '');
+}
+function getVisibleFields(doc) {
+  const QUERY = 'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]),textarea, select, [contenteditable="true"], [contenteditable=""]';
+  const seen = new Set(); const items = [];
+  doc.querySelectorAll(QUERY).forEach(el => {
+    if (seen.has(el)) return; seen.add(el);
+    const r = el.getBoundingClientRect();
+    const ce = el.getAttribute('contenteditable') != null;
+    if (ce ? r.width <= 10 : (r.width <= 0 || r.height <= 0)) return;
+    const elType = el.type?.toLowerCase() || el.tagName.toLowerCase();
+    const label = getFieldLabel(el, doc);
+    let kind = elType === 'select-one' || el.tagName === 'SELECT' ? 'select' : elType === 'checkbox' ? 'checkbox' : (r.height > 80 ? 'editor' : 'input');
+    const currentVal = el.type === 'checkbox' ? (el.checked ? 'checked' : 'unchecked') : (el.value || el.textContent || '').trim().substring(0, 40);
+    items.push({ el, top: r.top, left: r.left, kind, ph: (el.placeholder||'').toLowerCase(), id: el.id, label, currentVal });
+  });
+  items.sort((a, b) => (Math.round(a.top / 10) - Math.round(b.top / 10)) || (a.left - b.left));
+  return items.map((item, i) => ({ ...item, index: i + 1 }));
+}
+function writeToField(el, rawText) {
+  const text = rawText.replace(/\\n/g, '\n');
+  const elDoc = el.ownerDocument;
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+    try {
+      const win = elDoc.defaultView;
+      const proto = el.tagName === 'INPUT' ? win.HTMLInputElement.prototype : win.HTMLTextAreaElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+      if (setter) setter.call(el, text); else el.value = text;
+    } catch { el.value = text; }
+  } else { el.value = text; }
+  ['keydown', 'keyup', 'input', 'change'].forEach(ev => el.dispatchEvent(new Event(ev, { bubbles: true, cancelable: true })));
+}
+function getButtonLabel(el) {
+  const txt = el.textContent.trim();
+  return txt ? txt.substring(0, 50) : (el.getAttribute('aria-label') || el.value || el.id || el.tagName).substring(0, 50);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   TOOL FUNCTIONS — "finished analyses as real functions"
+   run_tool_analysis(): generically fills the tool's primary input (if any),
+   clicks its primary action button, waits, then scrapes the rendered
+   result as structured JSON — no refactor of the 6 target files needed,
+   reuses the exact proven DOM-scraping approach from IFRAME-BOT-V2.
+   ════════════════════════════════════════════════════════════════════ */
+function extractToolState(key) {
+  const doc = frameDoc(key); if (!doc) return { ok: false, error: 'tool not loaded' };
+  const fields = getVisibleFields(doc).map(f => ({ index: f.index, kind: f.kind, label: f.label, value: f.currentVal }));
+  const isVis = el => { try { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; } catch { return false; } };
+  const buttons = Array.from(doc.querySelectorAll('button,[role="button"]')).filter(isVis).map(getButtonLabel).slice(0, 25);
+  const headings = Array.from(doc.querySelectorAll('h1,h2,h3')).map(h => h.textContent.trim()).filter(Boolean).slice(0, 8);
+  const tables = Array.from(doc.querySelectorAll('table')).slice(0, 3).map(t =>
+    Array.from(t.querySelectorAll('tr')).slice(0, 30).map(tr => Array.from(tr.children).map(td => td.textContent.trim()))
+  );
+  return { ok: true, tool: TOOLS[key].label, url: doc.title, headings, fields, buttons, tables };
+}
+
+async function runToolAnalysis(key, query) {
+  if (!TOOLS[key]) return { ok: false, error: 'unknown tool', available: Object.keys(TOOLS) };
+  await openTool(key);
+  const ready = await waitForFrameReady(key);
+  if (!ready) return { ok: false, error: 'tool failed to load in time' };
+  const doc = frameDoc(key);
+  if (!doc) return { ok: false, error: 'iframe inaccessible' };
+
+  const cfg = TOOLS[key];
+  let inputFilled = null;
+  if (query && cfg.inputHint) {
+    const fields = getVisibleFields(doc);
+    const target = fields.find(f => cfg.inputHint.test(f.label + ' ' + f.ph + ' ' + f.id) && ['input', 'editor', 'search'].includes(f.kind));
+    if (target) { writeToField(target.el, query); inputFilled = target.label; }
+  }
+
+  let clicked = null;
+  if (cfg.runBtnHint) {
+    const isVis = el => { try { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; } catch { return false; } };
+    const btn = Array.from(doc.querySelectorAll('button,[role="button"],input[type="submit"]')).filter(isVis).find(b => cfg.runBtnHint.test(getButtonLabel(b)));
+    if (btn) { btn.click(); clicked = getButtonLabel(btn); }
+  }
+
+  // give the tool time to render (most of these are either instant or run their own live-fetch loop)
+  await new Promise(r => setTimeout(r, clicked ? 2500 : 800));
+  const state = extractToolState(key);
+  return { ...state, inputFilled, clicked };
+}
+
+function renderChartEmbed(key) {
+  const div = document.createElement('div');
+  div.className = 'chart-embed';
+  div.innerHTML = `<div class="chart-label">📊 ${TOOLS[key].label} — live</div><iframe src="${TOOLS[key].file}"></iframe>`;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+const TOOL_FNS = {
+  async run_tool_analysis(args) { return await runToolAnalysis(args.tool, args.query); },
+  navigate_to_tool(args) { if (!TOOLS[args.tool]) return { ok: false, error: 'unknown tool' }; openTool(args.tool); return { ok: true, opened: TOOLS[args.tool].label }; },
+  extract_data(args) { return extractToolState(args.tool || activeTool); },
+  show_chart_inline(args) {
+    if (!TOOLS[args.tool]) return { ok: false, error: 'unknown tool' };
+    renderChartEmbed(args.tool);
+    return { ok: true, shown: TOOLS[args.tool].label, note: 'chart rendered inline in the chat for the user to see' };
+  }
+};
+
+const TOOLS_SCHEMA = [
+  { type: 'function', function: { name: 'run_tool_analysis', description: 'Führt eines der 8 Finance-Tools aus: öffnet den Tab, füllt optional ein Eingabefeld (Symbol/Markt/Fonds), klickt den primären Scan/Analyse-Button, und liefert das Ergebnis (Tabellen, Felder) als strukturierte Daten zurück.', parameters: { type: 'object', properties: { tool: { type: 'string', enum: Object.keys(TOOLS) }, query: { type: 'string', description: 'optionales Symbol, Markt oder Suchbegriff' } }, required: ['tool'] } } },
+  { type: 'function', function: { name: 'navigate_to_tool', description: 'Öffnet nur den Tab eines Tools, ohne etwas auszuführen.', parameters: { type: 'object', properties: { tool: { type: 'string', enum: Object.keys(TOOLS) } }, required: ['tool'] } } },
+  { type: 'function', function: { name: 'extract_data', description: 'Liest den aktuellen Zustand eines bereits geöffneten Tools aus (oder des aktiven Tabs, wenn kein Tool angegeben).', parameters: { type: 'object', properties: { tool: { type: 'string', enum: Object.keys(TOOLS) } } } } },
+  { type: 'function', function: { name: 'show_chart_inline', description: 'Rendert ein Live-Iframe des angegebenen Tools direkt in der Chat-Konversation, damit der Nutzer den Chart sofort sieht, ohne den Tab zu wechseln.', parameters: { type: 'object', properties: { tool: { type: 'string', enum: Object.keys(TOOLS) } }, required: ['tool'] } } }
+];
+
+const SYSTEM_PROMPT = `Du bist die NEURAL KOMMANDOZENTRALE -- ein KI-Agent über 8 Finance-Tools (${Object.keys(TOOLS).join(', ')}). Nutze run_tool_analysis, um eine Analyse wirklich auszuführen und echte Daten zu bekommen -- rate niemals Zahlen. Nutze show_chart_inline, wenn der Nutzer einen Chart sehen will, damit er direkt im Chat erscheint statt nur beschrieben zu werden. Antworte auf Deutsch, knapp, mit den echten extrahierten Zahlen.`;
+
+/* ════════════════════════════════════════════════════════════════════
+   CHAT / AGENT LOOP — secure proxy, no client-side API key (ai-agent.html pattern)
+   ════════════════════════════════════════════════════════════════════ */
+function logMsg(role, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+async function callProxy(msgsForApi, model) {
+  const res = await fetch(PROXY_URL, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, stream: false, messages: msgsForApi, tools: TOOLS_SCHEMA, tool_choice: 'auto' }),
+    signal: AbortSignal.timeout(45000)
+  });
+  if (!res.ok) throw new Error('Proxy HTTP ' + res.status);
+  return res.json();
+}
+
+async function runAgent(userText) {
+  if (!messages.length) messages.push({ role: 'system', content: SYSTEM_PROMPT });
+  messages.push({ role: 'user', content: userText });
+  const model = document.getElementById('modelSelect').value;
+
+  for (let round = 0; round < 5; round++) {
+    let data;
+    try { data = await callProxy(messages, model); }
+    catch (e) { logMsg('err', '✗ Proxy-Fehler: ' + e.message); return; }
+    const msg = data.choices?.[0]?.message;
+    if (!msg) { logMsg('err', '✗ Unerwartete Antwort vom Proxy.'); return; }
+    messages.push(msg);
+
+    if (msg.tool_calls && msg.tool_calls.length) {
+      for (const tc of msg.tool_calls) {
+        let args = {};
+        try { args = JSON.parse(tc.function.arguments || '{}'); } catch (e) {}
+        logMsg('tool-chip', '🔧 ' + tc.function.name + '(' + JSON.stringify(args) + ')');
+        const fn = TOOL_FNS[tc.function.name];
+        let result;
+        try { result = fn ? await fn(args) : { ok: false, error: 'unknown tool: ' + tc.function.name }; }
+        catch (e) { result = { ok: false, error: e.message }; }
+        messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
+      }
+      continue;
+    }
+    logMsg('assistant', msg.content || '(keine Textantwort)');
+    return;
+  }
+  logMsg('sys', '⚠ Zu viele Tool-Runden -- abgebrochen.');
+}
+
+async function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  chatInput.value = '';
+  logMsg('user', text);
+  sendBtn.disabled = true;
+  await runAgent(text);
+  sendBtn.disabled = false;
+}
+function sendQuick(text) { chatInput.value = text; sendMessage(); }
+
+logMsg('sys', 'Bereit. 8 Tools verfügbar, echtes Tool-Calling (🔧-Chips), kein API-Key im Browser. Tab wählen oder die KI direkt fragen.');
+</script>
+</body>
+</html>

@@ -1,0 +1,2641 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALLIANZ Investment Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e8eef5 100%);
+            color: #0045A8;
+            line-height: 1.6;
+        }
+        
+        nav {
+            background: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
+            border-bottom: 3px solid #0045A8;
+            box-shadow: 0 2px 8px rgba(0, 69, 168, 0.15);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        nav h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: #0045A8;
+            letter-spacing: 2px;
+        }
+        
+        nav .timestamp {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            color: #475569;
+        }
+        
+        nav .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        nav input {
+            padding: 10px 16px;
+            border: 2px solid #0045A8;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0045A8;
+            background: white;
+            min-width: 180px;
+        }
+        
+        nav select {
+            padding: 10px 16px;
+            border: 2px solid #0045A8;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0045A8;
+            background: white;
+            min-width: 200px;
+            cursor: pointer;
+        }
+        
+        nav button {
+            padding: 10px 20px;
+            background: #0045A8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        nav button:hover {
+            background: #002a5c;
+        }
+        
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .price-header {
+            background: linear-gradient(135deg, rgba(0, 69, 168, 0.05) 0%, rgba(192, 192, 192, 0.05) 100%);
+            border: 2px solid #C0C0C0;
+            box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: white;
+            border: 2px solid #0045A8;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 61, 130, 0.1);
+        }
+        
+        .price-header .label {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #0045A8;
+            margin-bottom: 12px;
+        }
+        
+        .price-header .symbol {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            color: #0045A8;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+        
+        .price-header .price-row {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            align-items: baseline;
+        }
+        
+        .price-header .price {
+            font-size: 36px;
+            font-weight: 900;
+            color: #0045A8;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .price-header .currency {
+            font-size: 28px;
+            color: #0045A8;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .metric-card {
+            background: white;
+            border: 2px solid #0045A8;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 61, 130, 0.05);
+        }
+        
+        .metric-card .label {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #0045A8;
+            margin-bottom: 16px;
+        }
+        
+        .metric-card .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #0045A8;
+        }
+        
+        .metric-card .subtext {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            color: #475569;
+            margin-top: 8px;
+            line-height: 1.8;
+        }
+        
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .strategy-card {
+            background: #1a1a2e;
+            border: 2px solid #3a3a4e;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .strategy-card .title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: white;
+            margin-bottom: 16px;
+        }
+        
+        .strategy-card .signal-row {
+            margin-bottom: 16px;
+        }
+        
+        .strategy-card .signal-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .strategy-card .signal-value {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .strategy-card .signal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .strategy-card .signal-text {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .strategy-card .pnl-row {
+            margin-bottom: 16px;
+        }
+        
+        .strategy-card .pnl-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        
+        .strategy-card .pnl-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            font-weight: 900;
+        }
+        
+        .pnl-positive { color: #22c55e; }
+        .pnl-negative { color: #ef4444; }
+        
+        .strategy-card .description {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            border-left: 3px solid #475569;
+        }
+        
+        .strategy-card .description-text {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 11px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        
+        .chart-section {
+            background: white;
+            border: 2px solid #0045A8;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        
+        .chart-section .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #0045A8;
+            margin-bottom: 20px;
+        }
+        
+        .indicators-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .indicator-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .indicator-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #0045A8;
+        }
+        
+        .indicator-checkbox label {
+            color: #0045A8;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .controls-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 13px;
+        }
+        
+        .btn-primary {
+            background: #0045A8;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #002a5c;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #0045A8;
+            border: 2px solid #0045A8;
+        }
+        
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+        
+        .btn-success {
+            background: #16a34a;
+            color: white;
+            font-weight: 700;
+        }
+        
+        .btn-success:hover {
+            background: #15803d;
+        }
+        
+        .timeframes-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .timeframe-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #0045A8;
+            color: #0045A8;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        .timeframe-btn.active {
+            background: #0045A8;
+            color: white;
+        }
+        
+        .chart-canvas {
+            width: 100%;
+            min-height: 420px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+            }
+            nav .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            nav input, nav select {
+                width: 100%;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script>
+        // === XTRACKERS STYLE FETCH ARCHITECTURE ===
+        const API_BASE = 'https://gemini-os.replit.app/api/eod';
+        
+        let currentSymbol = 'DE0005152409.EUFUND';
+        let currentChart = null;
+        let activeDays = 365;
+        
+        let showSMA20 = true;   
+        let showSMA50 = true;   
+        let showSMA200 = true;  
+        
+        let fetchedHistoricalCache = [];
+        let latestRealtimeQuote = null;
+        let latestLivePrice = null;  // ← LIVE PRICE for signal calculations
+        let currentFastSignal = null;  // ← STORE LATEST SIGNALS FOR CHART
+        let currentMacroSignal = null;
+        let entryPoints = [];          // ← STORE ALL ENTRY POINTS WITH DATES
+        
+        let viewportStartIndex = null;
+        let viewportEndIndex = null;
+
+
+        function updateTimestamp() {
+            const now = new Date();
+            const date = now.toLocaleDateString('de-DE');
+            const time = now.toLocaleTimeString('de-DE', { hour12: false });
+            document.getElementById('timestamp').textContent = date + ', ' + time;
+        }
+        setInterval(updateTimestamp, 1000);
+
+        // === XTRACKERS STYLE SMA CALCULATION ===
+        function computeSMA(prices, windowSize) {
+            let result = [];
+            for (let i = 0; i < prices.length; i++) {
+                if (i < windowSize - 1) {
+                    result.push(null);
+                } else {
+                    let sum = 0;
+                    for (let j = 0; j < windowSize; j++) sum += prices[i - j];
+                    result.push(parseFloat((sum / windowSize).toFixed(4)));
+                }
+            }
+            return result;
+        }
+
+        // === REAL METRICS CALCULATION ===
+        function calculateRSI(closes, period = 14) {
+            if (closes.length < period + 1) return 0;
+            let gains = 0, losses = 0;
+            for (let i = closes.length - period; i < closes.length; i++) {
+                const change = closes[i] - closes[i - 1];
+                if (change > 0) gains += change;
+                else losses += Math.abs(change);
+            }
+            const avgGain = gains / period;
+            const avgLoss = losses / period;
+            const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+            return parseFloat((100 - (100 / (1 + rs))).toFixed(2));
+        }
+
+        function calculateMetrics(historicalData) {
+            if (!historicalData || historicalData.length < 14) {
+                return null;
+            }
+
+            const closes = historicalData.map(d => d.close);
+            const currentPrice = closes[closes.length - 1];
+            const firstPrice = closes[0];
+            
+            // 1. PERFORMANCE
+            const performance = ((currentPrice - firstPrice) / firstPrice) * 100;
+            
+            // 2. HIGH / LOW
+            const high = Math.max(...closes);
+            const low = Math.min(...closes);
+            
+            // 3. VOLATILITY (StdDev)
+            const mean = closes.reduce((a, b) => a + b) / closes.length;
+            const variance = closes.reduce((a, b) => a + Math.pow(b - mean, 2)) / closes.length;
+            const volatility = Math.sqrt(variance);
+            const volatilityPercent = (volatility / mean) * 100;
+            
+            // 4. RSI (14 Tage)
+            const rsi = calculateRSI(closes, 14);
+            
+            // 5. SMA SIGNALS
+            const sma20 = computeSMA(closes, 20);
+            const sma50 = computeSMA(closes, 50);
+            const sma200 = computeSMA(closes, 200);
+            
+            let lastSMA20 = null, lastSMA50 = null, lastSMA200 = null;
+            for (let i = sma20.length - 1; i >= 0; i--) {
+                if (sma20[i] !== null) { lastSMA20 = sma20[i]; break; }
+            }
+            for (let i = sma50.length - 1; i >= 0; i--) {
+                if (sma50[i] !== null) { lastSMA50 = sma50[i]; break; }
+            }
+            for (let i = sma200.length - 1; i >= 0; i--) {
+                if (sma200[i] !== null) { lastSMA200 = sma200[i]; break; }
+            }
+            
+            return {
+                performance: performance,
+                high: high,
+                low: low,
+                volatility: volatilityPercent,
+                rsi: rsi,
+                sma20: lastSMA20,
+                sma50: lastSMA50,
+                sma200: lastSMA200,
+                currentPrice: currentPrice
+            };
+        }
+
+        // === NEW STRATEGY ANALYSIS (from XTRACKers) ===
+        let globalFastSignal = null;
+        let globalMacroSignal = null;
+
+        function analyzeStrategyFramework(allPrices) {
+            globalFastSignal = null;
+            globalMacroSignal = null;
+
+            if (allPrices.length < 50) {
+                document.getElementById('strategy-1-signal').textContent = "--";
+                document.getElementById('strategy-1-pnl').textContent = "N/A";
+                return;
+            }
+
+            const sma20 = computeSMA(allPrices, 20);
+            const sma50 = computeSMA(allPrices, 50);
+            const sma200 = computeSMA(allPrices, 200);
+
+            const lastIdx = allPrices.length - 1;
+            const currentPrice = allPrices[lastIdx];
+
+            // 1. Scan: Kurzfristiger Cross (SMA 20/50)
+            let fastText = "Trend stabil";
+            for (let i = lastIdx; i >= 50; i--) {
+                if (sma20[i] && sma50[i] && sma20[i-1] && sma50[i-1]) {
+                    if (sma20[i] > sma50[i] && sma20[i-1] <= sma50[i-1]) {
+                        fastText = `FAST L 🟢 (${fetchedHistoricalCache[i].date})`;
+                        globalFastSignal = { globalIndex: i, type: 'FAST L', entryPrice: allPrices[i], date: fetchedHistoricalCache[i].date };
+                        break;
+                    }
+                    if (sma20[i] < sma50[i] && sma20[i-1] >= sma50[i-1]) {
+                        fastText = `FAST S 🔴 (${fetchedHistoricalCache[i].date})`;
+                        globalFastSignal = { globalIndex: i, type: 'FAST S', entryPrice: allPrices[i], date: fetchedHistoricalCache[i].date };
+                        break;
+                    }
+                }
+            }
+            document.getElementById('strategy-1-signal').textContent = fastText;
+            
+            // Set the date
+            if (globalFastSignal) {
+                document.getElementById('strategy-1-date').textContent = globalFastSignal.date;
+            } else {
+                document.getElementById('strategy-1-date').textContent = '---';
+            }
+
+            const pnlCrossEl = document.getElementById('strategy-1-pnl');
+            if (globalFastSignal) {
+                let pnlPct = ((currentPrice - globalFastSignal.entryPrice) / globalFastSignal.entryPrice) * 100;
+                if (globalFastSignal.type === 'FAST S') pnlPct = -pnlPct;
+                
+                globalFastSignal.livePnl = `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%`;
+                pnlCrossEl.textContent = globalFastSignal.livePnl;
+                pnlCrossEl.className = pnlPct >= 0 ? 'pnl-value pnl-positive' : 'pnl-value pnl-negative';
+            } else {
+                pnlCrossEl.textContent = "--";
+                pnlCrossEl.className = 'pnl-value';
+            }
+
+            // 2. Scan: Langfristiger Filter (Kurs vs. SMA 200)
+            if (allPrices.length >= 200 && sma200[lastIdx]) {
+                let macroText = "Kein Strukturbruch";
+                for (let i = lastIdx; i >= 200; i--) {
+                    if (sma200[i] && sma200[i-1]) {
+                        let pCurr = allPrices[i];
+                        let pPrev = allPrices[i-1];
+                        let smaCurr = sma200[i];
+                        let smaPrev = sma200[i-1];
+
+                        if (pCurr >= smaCurr && pPrev < smaPrev) {
+                            macroText = `MACRO L 🟢 (${fetchedHistoricalCache[i].date})`;
+                            globalMacroSignal = { globalIndex: i, type: 'MACRO L', entryPrice: allPrices[i], date: fetchedHistoricalCache[i].date };
+                            break;
+                        }
+                        if (pCurr < smaCurr && pPrev >= smaPrev) {
+                            macroText = `MACRO S 🔴 (${fetchedHistoricalCache[i].date})`;
+                            globalMacroSignal = { globalIndex: i, type: 'MACRO S', entryPrice: allPrices[i], date: fetchedHistoricalCache[i].date };
+                            break;
+                        }
+                    }
+                }
+                document.getElementById('strategy-2-signal').textContent = macroText;
+                
+                // Set the date
+                if (globalMacroSignal) {
+                    document.getElementById('strategy-2-date').textContent = globalMacroSignal.date;
+                } else {
+                    document.getElementById('strategy-2-date').textContent = '---';
+                }
+
+                const pnlMacroEl = document.getElementById('strategy-2-pnl');
+                if (globalMacroSignal) {
+                    let pnlPct = ((currentPrice - globalMacroSignal.entryPrice) / globalMacroSignal.entryPrice) * 100;
+                    if (globalMacroSignal.type === 'MACRO S') pnlPct = -pnlPct;
+
+                    globalMacroSignal.livePnl = `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%`;
+                    pnlMacroEl.textContent = globalMacroSignal.livePnl;
+                    pnlMacroEl.className = pnlPct >= 0 ? 'pnl-value pnl-positive' : 'pnl-value pnl-negative';
+                } else {
+                    pnlMacroEl.textContent = "--";
+                    pnlMacroEl.className = 'pnl-value';
+                }
+            } else {
+                document.getElementById('strategy-2-signal').textContent = "Warte auf Historie";
+                document.getElementById('strategy-2-pnl').textContent = "N/A";
+                document.getElementById('strategy-2-date').textContent = '---';
+            }
+            
+            // Update chart signal label
+            updateChartSignalLabel();
+        }
+
+        function updateMetricsDisplay(metrics, currentPrice) {
+            // This function is now replaced by analyzeStrategyFramework
+            // Keep it for compatibility but it does nothing
+        }
+
+        function updateChartSignalLabel() {
+            // Display the most recent signal on the chart
+            let signalText = '⚡ CROSS: ' + (currentFastSignal ? currentFastSignal.signal : 'N/A');
+            signalText += ' | 📊 MACRO: ' + (currentMacroSignal ? currentMacroSignal.signal : 'N/A');
+            
+            const chartSignalEl = document.getElementById('chart-signal-label');
+            if (chartSignalEl) {
+                chartSignalEl.textContent = signalText;
+            }
+        }
+
+        // === FETCH REALTIME QUOTE ===
+        async function fetchRealtimeQuote(symbol) {
+            try {
+                const res = await fetch(API_BASE + '?symbol=' + symbol + '&endpoint=real-time&fmt=json');
+                if (!res.ok) { return null; }
+                return await res.json();
+            } catch (e) {
+                console.error('fetchRealtimeQuote error:', e);
+                return null;
+            }
+        }
+
+        // === FETCH HISTORICAL SERIES ===
+        async function fetchHistoricalSeries(symbol) {
+            try {
+                const res = await fetch(API_BASE + '?symbol=' + symbol + '&endpoint=historical&fmt=json');
+                if (!res.ok) {return [];
+                }
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    return data.map(item => ({
+                        date: item.date,
+                        open: parseFloat(item.open || 0),
+                        high: parseFloat(item.high || 0),
+                        low: parseFloat(item.low || 0),
+                        close: parseFloat(item.close || 0)
+                    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+                }
+                return [];
+            } catch (e) {return [];
+            }
+        }
+
+        // === RENDER PRICE HEADER ===
+        function getSymbolFullName(symbol) {
+            // ✅ Get full name from dropdown options
+            const selector = document.getElementById('symbol-selector');
+            if (!selector) return symbol;
+            
+            // Remove .EUFUND suffix for matching
+            let searchSymbol = symbol.replace('.EUFUND', '').replace('.XETRA', '').trim();
+            
+            // Try exact match first
+            for (let option of selector.options) {
+                if (option.value === searchSymbol) {
+                    const text = option.textContent.trim();
+                    // Handle both "CODE - NAME" and just "NAME" formats
+                    if (text.includes(' - ')) {
+                        const parts = text.split(' - ');
+                        return parts.length > 1 ? parts[1].trim() : text;
+                    }
+                    return text;
+                }
+            }
+            
+            return symbol;
+        }
+
+        function renderBannerDisplay(quote) {
+            const header = document.getElementById('price-symbol').parentElement.parentElement;
+            if (!quote) {
+                const fullName = getSymbolFullName(currentSymbol);
+                document.getElementById('price-symbol').textContent = fullName;
+                document.getElementById('price-value').textContent = '--';
+                return;
+            }
+            latestRealtimeQuote = quote;
+            
+            // ✅ Show full name instead of just code
+            const fullName = getSymbolFullName(currentSymbol);
+            document.getElementById('price-symbol').textContent = fullName || quote.code || currentSymbol;
+            document.getElementById('price-value').textContent = parseFloat(quote.close || 0).toFixed(2);
+        }
+
+        // === CHART ENTRY FLAG PLUGIN ===
+        // === CHART PLUGINS (from XTRACKers) ===
+        const multiSignalFlagPlugin = {
+            id: 'multiSignalFlagPlugin',
+            afterDatasetsDraw(chart) {
+                if (!fetchedHistoricalCache.length || viewportStartIndex === null) return;
+                
+                const ctx = chart.ctx;
+                const meta = chart.getDatasetMeta(0);
+
+                function drawMiniFlag(signalObj, label, offsetHeight, isLong) {
+                    if (!signalObj || signalObj.globalIndex < viewportStartIndex || signalObj.globalIndex > viewportEndIndex) return;
+                    
+                    const sliceIdx = signalObj.globalIndex - viewportStartIndex;
+                    if (!meta.data[sliceIdx]) return;
+
+                    const { x, y } = meta.data[sliceIdx].getProps(['x', 'y'], true);
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x, y - offsetHeight);
+                    ctx.stroke();
+
+                    ctx.fillStyle = isLong ? '#22c55e' : '#ef4444';
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    
+                    const boxWidth = 54;
+                    const boxHeight = 14;
+                    const boxX = x - 27; 
+                    const boxY = y - offsetHeight - boxHeight;
+
+                    ctx.beginPath();
+                    ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px "Roboto Mono", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(label, boxX + (boxWidth / 2), boxY + (boxHeight / 2) + 0.5);
+                    ctx.restore();
+                }
+
+                if (globalFastSignal) {
+                    const isL = globalFastSignal.type === 'FAST L';
+                    drawMiniFlag(globalFastSignal, isL ? 'FAST L' : 'FAST S', 24, isL);
+                }
+
+                if (globalMacroSignal) {
+                    const isL = globalMacroSignal.type === 'MACRO L';
+                    drawMiniFlag(globalMacroSignal, isL ? 'MACRO L' : 'MACRO S', 10, isL);
+                }
+            }
+        };
+        Chart.register(multiSignalFlagPlugin);
+
+        function calculateEntryPoints(data, dates) {
+            const closes = data.map(d => d.close);
+            const sma20 = computeSMA(closes, 20);
+            const sma50 = computeSMA(closes, 50);
+            const sma200 = computeSMA(closes, 200);
+            const points = [];
+            
+            // === FAST SIGNALS (SMA20/50 Crosses) ===
+            for (let i = 1; i < closes.length; i++) {
+                if (sma20[i-1] === null || sma50[i-1] === null || 
+                    sma20[i] === null || sma50[i] === null) continue;
+                
+                // Golden Cross: SMA20 crosses above SMA50 (LONG entry)
+                if (sma20[i-1] <= sma50[i-1] && sma20[i] > sma50[i]) {
+                    points.push({
+                        date: dates[i],
+                        price: closes[i],
+                        emoji: '🔼',
+                        color: '#22c55e',
+                        type: 'LONG',
+                        signal: 'FAST'
+                    });
+                }
+                // Death Cross: SMA20 crosses below SMA50 (SHORT entry)
+                else if (sma20[i-1] > sma50[i-1] && sma20[i] <= sma50[i]) {
+                    points.push({
+                        date: dates[i],
+                        price: closes[i],
+                        emoji: '🔽',
+                        color: '#ef4444',
+                        type: 'SHORT',
+                        signal: 'FAST'
+                    });
+                }
+            }
+            
+            // === MACRO SIGNALS (Price/SMA200 Crosses) ===
+            for (let i = 1; i < closes.length; i++) {
+                if (sma200[i-1] === null || sma200[i] === null) continue;
+                
+                // Price crosses above SMA200 (Macro LONG)
+                if (closes[i-1] <= sma200[i-1] && closes[i] > sma200[i]) {
+                    points.push({
+                        date: dates[i],
+                        price: closes[i],
+                        emoji: '📈',
+                        color: '#10b981',
+                        type: 'LONG',
+                        signal: 'MACRO'
+                    });
+                }
+                // Price crosses below SMA200 (Macro SHORT)
+                else if (closes[i-1] > sma200[i-1] && closes[i] <= sma200[i]) {
+                    points.push({
+                        date: dates[i],
+                        price: closes[i],
+                        emoji: '📉',
+                        color: '#dc2626',
+                        type: 'SHORT',
+                        signal: 'MACRO'
+                    });
+                }
+            }
+            return points;
+        }
+
+        function getLatestEntryPoints(allPoints) {
+            // ← SHOW LATEST 2 ENTRY POINTS (FAST + MACRO, most recent)
+            if (allPoints.length === 0) return [];
+            
+            // Sort by date descending
+            const sorted = [...allPoints].sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
+            
+            // Return the 2 most recent entries
+            return sorted.slice(0, 2);
+        }
+
+        // === DRAW CHART (XTRACKERS STYLE) ===
+        function drawChartUI() {
+            if (!fetchedHistoricalCache.length) return;
+            
+            // ✅ UPDATE CHART SYMBOL NAME (show full name, not code)
+            const chartSymbolNameEl = document.getElementById('chart-symbol-name');
+            if (chartSymbolNameEl) {
+                const fullName = getSymbolFullName(currentSymbol);
+                chartSymbolNameEl.textContent = fullName || currentSymbol;
+            }
+            
+            if (viewportStartIndex === null || viewportEndIndex === null) {
+                viewportEndIndex = fetchedHistoricalCache.length - 1;
+                viewportStartIndex = Math.max(0, viewportEndIndex - activeDays + 1);
+            }
+
+            const subset = fetchedHistoricalCache.slice(viewportStartIndex, viewportEndIndex + 1);
+            const ctx = document.getElementById('assetChart');
+            if (!ctx) return;
+            
+            if (currentChart) { currentChart.destroy(); }
+
+            const dates = subset.map(d => d.date);
+            const closePrices = subset.map(d => d.close);
+
+            // GLOBAL SMA BERECHNUNG (wichtig!)
+            const globalPrices = fetchedHistoricalCache.map(d => d.close);
+            const globalSMA20 = computeSMA(globalPrices, 20).slice(viewportStartIndex, viewportEndIndex + 1);
+            const globalSMA50 = computeSMA(globalPrices, 50).slice(viewportStartIndex, viewportEndIndex + 1);
+            const globalSMA200 = computeSMA(globalPrices, 200).slice(viewportStartIndex, viewportEndIndex + 1);
+
+            // MAIN PRICE DATASET
+            let chartDataset = {
+                label: currentSymbol + ' Price',
+                data: closePrices,
+                borderColor: '#0045A8',
+                borderWidth: 2.5,
+                pointRadius: subset.length > 150 ? 0 : 3,
+                pointBackgroundColor: '#0045A8',
+                tension: 0.3,
+                fill: true,
+                backgroundColor: 'rgba(0, 61, 130, 0.08)'
+            };
+
+            let datasets = [chartDataset];
+
+            if (showSMA20) {
+                datasets.push({
+                    label: 'SMA 20 (Fast)',
+                    data: globalSMA20,
+                    borderColor: '#16a34a',
+                    borderWidth: 2,
+                    borderDash: [6, 4],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.3
+                });
+            }
+
+            if (showSMA50) {
+                datasets.push({
+                    label: 'SMA 50 (Trend)',
+                    data: globalSMA50,
+                    borderColor: '#f59e0b',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.3
+                });
+            }
+
+            if (showSMA200) {
+                datasets.push({
+                    label: 'SMA 200 (Macro)',
+                    data: globalSMA200,
+                    borderColor: '#8b5cf6',
+                    borderWidth: 2.5,
+                    borderDash: [10, 5],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.3
+                });
+            }
+
+            currentChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: { labels: dates, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { 
+                            labels: { 
+                                color: '#0045A8', 
+                                font: { family: 'Roboto Mono', size: 12, weight: 'bold' },
+                                padding: 16
+                            } 
+                        },
+                        tooltip: { 
+                            backgroundColor: '#ffffff', 
+                            borderColor: '#0045A8', 
+                            borderWidth: 1,
+                            titleColor: '#0045A8',
+                            bodyColor: '#0045A8'
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { color: '#e2e8f0' }, 
+                            ticks: { color: '#0045A8', font: { family: 'Roboto Mono', weight: 'bold' } } 
+                        },
+                        y: { 
+                            grid: { color: '#e2e8f0' }, 
+                            ticks: { color: '#0045A8', font: { family: 'Roboto Mono', weight: 'bold' } } 
+                        }
+                    }
+                },
+                plugins: [multiSignalFlagPlugin]
+            });
+
+            // === UPDATE CHART INFO LABEL ===
+            // ✅ FIXED: Calculate metrics with CURRENT SUBSET (visible chart data), not all historical data
+            const metrics = calculateMetrics(subset);
+            if (metrics) {
+                document.getElementById('chart-perf').textContent = 
+                    'Perf: ' + (metrics.performance >= 0 ? '+' : '') + metrics.performance.toFixed(2) + '%';
+                document.getElementById('chart-vol').textContent = 
+                    'Vol: ' + metrics.volatility.toFixed(2) + '%';
+                document.getElementById('chart-rsi').textContent = 
+                    'RSI: ' + metrics.rsi.toFixed(2);
+            }
+
+            // === UPDATE SIGNALS WITH LIVE PRICE ===
+            // ✅ FIXED: Use analyzeStrategyFramework (XTRACKers-style) for proper crossover detection
+            const allPrices = fetchedHistoricalCache.map(d => d.close);
+            analyzeStrategyFramework(allPrices);
+
+            updateTimestamp();
+        }
+
+        // === PIPELINE WORKFLOW (XTRACKERS STYLE) ===
+        async function pipelineWorkflowLoad(symbol) {
+            currentSymbol = symbol.trim().toUpperCase();
+            
+            // ✅ Suffix handling is done by changeSymbol() for dropdown
+            // Manual input should provide exact symbol format
+            
+            // .EUFUND Symbole haben NUR historische Daten, kein real-time
+            let realtimeResult = null;
+            if (!currentSymbol.includes('.EUFUND')) {
+                realtimeResult = await fetchRealtimeQuote(currentSymbol);
+            }
+            
+            const historicalDataArray = await fetchHistoricalSeries(currentSymbol);
+
+            fetchedHistoricalCache = historicalDataArray;
+            viewportStartIndex = null;
+            viewportEndIndex = null;
+
+            // ← STORE LIVE PRICE FOR SIGNAL CALCULATIONS
+            const lastPrice = historicalDataArray.length ? 
+                historicalDataArray[historicalDataArray.length - 1].close : 0;
+            
+            if (realtimeResult && realtimeResult.close) {
+                latestLivePrice = realtimeResult.close;
+            } else if (historicalDataArray.length) {
+                latestLivePrice = lastPrice;
+            }
+
+            // Calculate change percentage from first historical price
+            let changePct = 0;
+            if (historicalDataArray.length > 1) {
+                const firstPrice = historicalDataArray[0].close;
+                changePct = ((lastPrice - firstPrice) / firstPrice) * 100;
+            }
+
+            renderBannerDisplay(realtimeResult || (historicalDataArray.length ? {
+                code: currentSymbol,
+                close: latestLivePrice || lastPrice,
+                change_p: changePct
+            } : null));
+
+            drawChartUI();
+        }
+
+        // === NAVIGATION BUTTONS (XTRACKERS STYLE) ===
+        function chartZoom(direction) {
+            if (!fetchedHistoricalCache.length) return;
+            
+            let currentLength = viewportEndIndex - viewportStartIndex + 1;
+            let step = Math.ceil(currentLength * 0.15);
+
+            if (direction === 'in') {
+                if (currentLength <= 10) return;
+                viewportStartIndex = Math.min(viewportEndIndex - 10, viewportStartIndex + step);
+            } else if (direction === 'out') {
+                if (currentLength >= fetchedHistoricalCache.length) return;
+                viewportStartIndex = Math.max(0, viewportStartIndex - step);
+                viewportEndIndex = Math.min(fetchedHistoricalCache.length - 1, viewportEndIndex + step);
+            } else if (direction === 'left') {
+                step = Math.ceil(currentLength * 0.2);
+                if (viewportStartIndex - step >= 0) {
+                    viewportStartIndex -= step;
+                    viewportEndIndex -= step;
+                } else {
+                    viewportEndIndex = currentLength - 1;
+                    viewportStartIndex = 0;
+                }
+            } else if (direction === 'right') {
+                step = Math.ceil(currentLength * 0.2);
+                if (viewportEndIndex + step < fetchedHistoricalCache.length) {
+                    viewportStartIndex += step;
+                    viewportEndIndex += step;
+                } else {
+                    viewportEndIndex = fetchedHistoricalCache.length - 1;
+                    viewportStartIndex = Math.max(0, viewportEndIndex - currentLength + 1);
+                }
+            }
+            
+            drawChartUI();
+        }
+
+        function updateChartVisibility() {
+            showSMA20 = document.getElementById('toggle-sma20').checked;
+            showSMA50 = document.getElementById('toggle-sma50').checked;
+            showSMA200 = document.getElementById('toggle-sma200').checked;
+            drawChartUI();
+        }
+
+        function setTimeframe(tf) {
+            activeDays = tf === '3M' ? 90 : tf === '1Y' ? 365 : tf === '3Y' ? 1095 : 1825;
+            viewportStartIndex = null;
+            viewportEndIndex = null;
+            
+            document.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            drawChartUI();
+        }
+
+        function loadPrice() {
+            // ✅ FIXED: Removed reference to non-existent 'current-symbol' element
+            // This function is no longer used since we use manual ticker input
+        }
+
+        function changeSymbol() {
+            const selector = document.getElementById('symbol-selector');
+            if (selector.value) {
+                // ✅ From dropdown: Add .EUFUND suffix
+                let symbol = selector.value;
+                if (!symbol.includes('.')) {
+                    symbol += '.EUFUND';
+                }
+                pipelineWorkflowLoad(symbol);
+            }
+        }
+
+        function loadManualTicker() {
+            const tickerInput = document.getElementById('manual-ticker');
+            const ticker = tickerInput.value.trim().toUpperCase();
+            
+            if (!ticker) {
+                alert('Bitte einen Ticker eingeben');
+                return;
+            }
+            
+            // ✅ Manual input: Use EXACTLY what user enters (NO auto-suffix)
+            // If user enters "DE0008471400" → load "DE0008471400"
+            // If user enters "DBXD.XETRA" → load "DBXD.XETRA"
+            
+            // Clear dropdown selection
+            document.getElementById('symbol-selector').value = '';
+            
+            // Load the symbol as-is (no suffix added)
+            pipelineWorkflowLoad(ticker);
+            
+            // Clear input after loading
+            tickerInput.value = '';
+        }
+        
+        // Add Enter key support for manual ticker
+        document.addEventListener('DOMContentLoaded', function() {
+            const manualTickerInput = document.getElementById('manual-ticker');
+            if (manualTickerInput) {
+                manualTickerInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        loadManualTicker();
+                    }
+                });
+            }
+        });
+
+        function exportChart() {
+            if (!currentChart) {
+                alert('Chart nicht verfügbar');
+                return;
+            }
+            try {
+                // Create a new canvas with white background
+                const canvas = document.createElement('canvas');
+                canvas.width = currentChart.canvas.width;
+                canvas.height = currentChart.canvas.height;
+                const ctx = canvas.getContext('2d');
+                
+                // Fill with white background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw the chart onto the white background
+                ctx.drawImage(currentChart.canvas, 0, 0);
+                
+                // Download
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'allianz-chart-' + (currentSymbol || 'chart') + '.png';
+                link.click();
+            } catch (e) {
+                alert('PNG Export fehlgeschlagen: ' + e.message);
+            }
+        }
+
+        function exportReport() {
+            const symbol = currentSymbol || 'N/A';
+            const lastPrice = fetchedHistoricalCache.length ? fetchedHistoricalCache[fetchedHistoricalCache.length - 1].close : 0;
+            
+            let report = 'ALLIANZ INVESTMENT & BÖRSEN-TOOLS - REPORT\n';
+            report += '==========================================\n\n';
+            report += 'Symbol: ' + symbol + '\n';
+            report += 'Fonds: ' + document.getElementById('chart-symbol-name').textContent + '\n';
+            report += 'Generated: ' + new Date().toLocaleString('de-DE') + '\n';
+            report += 'Data Points: ' + fetchedHistoricalCache.length + '\n';
+            report += 'Last Price: €' + lastPrice.toFixed(2) + '\n\n';
+            
+            report += '--- FAST SIGNAL (SMA 20/50) ---\n';
+            report += 'Signal: ' + document.getElementById('strategy-1-signal').textContent + '\n';
+            report += 'Date: ' + document.getElementById('strategy-1-date').textContent + '\n';
+            report += 'Return: ' + document.getElementById('strategy-1-pnl').textContent + '\n\n';
+            
+            report += '--- MACRO SIGNAL (Price/SMA 200) ---\n';
+            report += 'Signal: ' + document.getElementById('strategy-2-signal').textContent + '\n';
+            report += 'Date: ' + document.getElementById('strategy-2-date').textContent + '\n';
+            report += 'Return: ' + document.getElementById('strategy-2-pnl').textContent + '\n';
+
+            const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'report-' + (currentSymbol || 'allianz') + '.txt';
+            link.click();
+        }
+
+        // === INIT ===
+        window.addEventListener('load', function() {
+            pipelineWorkflowLoad(currentSymbol);
+        });
+    </script>
+</head>
+<body>
+    <nav>
+        <h1>ALLIANZ GLOBAL TERMINAL</h1>
+        <div class="timestamp" id="timestamp">12.06.26, 16:42:01</div>
+        <div class="controls">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <!-- Manual Ticker Search -->
+                <div style="display: flex; gap: 6px; align-items: center; background: rgba(0, 61, 165, 0.1); border: 1px solid rgba(0, 61, 165, 0.6); border-radius: 6px; padding: 6px 10px;">
+                    <input type="text" id="manual-ticker" placeholder="Ticker eingeben..." style="background: transparent; border: none; outline: none; color: #0045A8; font-weight: bold; font-family: 'Courier New', monospace; width: 150px;" />
+                    <button onclick="loadManualTicker()" style="background: #0045A8; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Courier New', monospace; font-size: 12px;">GO</button>
+                </div>
+                
+                <!-- Symbol Dropdown -->
+                <select id="symbol-selector" onchange="changeSymbol()">
+                <option value="">--- Allianz Fonds wählen ---</option>
+                <option value="AT0000824685">ALLIANZ INVEST RENTENFONDS-A</option>
+                <option value="AT0000848791">ALLIANZ INVEST VORSORGEFND-A</option>
+                <option value="AT0000A05GX3">Allianz Invest Eurorent A</option>
+                <option value="AT0000A19NT8">ALLIANZ NACHHLTGKTS-RNTNFDS</option>
+                <option value="DE0006372477">Allianz Strategie 2031 Plus</option>
+                <option value="DE0006372501">Allianz Multi Manager Global Balanced P EUR</option>
+                <option value="DE0008471038">Allianz Adifonds A EUR</option>
+                <option value="DE0008471061">Allianz Adiverba A EUR</option>
+                <option value="DE0008471400">ALLIANZ RENTENFONDS</option>
+                <option value="DE0008471467">Allianz Global Equity Dividend A EUR</option>
+                <option value="DE0008471913">Allianz Mobil-Fonds A EUR</option>
+                <option value="DE0008475013">Allianz Thesaurus AT EUR</option>
+                <option value="DE0008475039">Allianz US Large Cap Growth A EUR</option>
+                <option value="DE0008475047">ALLIANZ EURO RENTENFONDS-A</option>
+                <option value="DE0008475054">ALLIANZ INTL RENTENFNDS-A</option>
+                <option value="DE0008475062">Allianz VermÃ¶gensbildung Deutschland A EUR</option>
+                <option value="DE0008475070">Allianz Interglobal A EUR</option>
+                <option value="DE0008475096">ALLIANZ ROHSTOFFFONDS A</option>
+                <option value="DE0008475112">ALLIANZ FDS JAPAN A (EUR)</option>
+                <option value="DE0008475120">Allianz Informationstechnologie A EUR</option>
+                <option value="DE0008476011">Allianz Fonds Schweiz A EUR</option>
+                <option value="DE0008476037">ALLIANZ EUROPAZINS-A</option>
+                <option value="DE0008481813">Allianz VermÃ¶gensbildung Europa A EUR</option>
+                <option value="DE0008481862">Allianz Biotechnologie A EUR</option>
+                <option value="DE0009764431">ALLIANZ SGB RENTEN</option>
+                <option value="DE0009797209">Allianz Fondsvorsorge 1947-1951 AT EUR</option>
+                <option value="DE0009797217">Allianz Fondsvorsorge 1952-1956 AT EUR</option>
+                <option value="DE0009797225">Allianz Fondsvorsorge 1957-1966 AT EUR</option>
+                <option value="DE0009797233">Allianz Fondsvorsorge 1967-1976 AT EUR</option>
+                <option value="DE0009797241">Allianz Fondsvorsorge 1977-1996 AT EUR</option>
+                <option value="DE0009797258">Allianz Strategiefonds Balance A EUR</option>
+                <option value="DE0009797266">Allianz Strategiefonds Wachstum A EUR</option>
+                <option value="DE0009797274">Allianz Strategiefonds Wachstum Plus A EUR</option>
+                <option value="DE0009797282">Allianz Strategiefonds StabilitÃ¤t A EUR</option>
+                <option value="DE0009797316">Allianz Strategiefonds Wachstum Plus I EUR</option>
+                <option value="DE0009797480">Allianz Euro Rentenfonds P EUR</option>
+                <option value="DE0009797514">Allianz Fonds Schweiz A CHF</option>
+                <option value="DE0009797530">Allianz Nebenwerte Deutschland I EUR</option>
+                <option value="DE0009797563">Allianz Interglobal P EUR</option>
+                <option value="DE0009797571">Allianz Strategiefonds Balance PT2 EUR</option>
+                <option value="DE0009797621">Allianz Strategiefonds StabilitÃ¤t A2 EUR</option>
+                <option value="DE0009797639">Allianz Strategiefonds Wachstum A2 EUR</option>
+                <option value="DE0009797647">Allianz Strategiefonds StabilitÃ¤t AT EUR</option>
+                <option value="DE0009797670">Allianz Euro Rentenfonds AT EUR</option>
+                <option value="DE0009797688">Allianz Interglobal AT EUR</option>
+                <option value="DE000A14N9S1">Allianz Strategiefonds Wachstum I EUR</option>
+                <option value="DE000A14N9Y9">Allianz Strategiefonds Balance IT2 EUR</option>
+                <option value="DE000A2AMPK6">Allianz Strategiefonds StabilitÃ¤t IT2 EUR</option>
+                <option value="DE000A2AMPL4">Allianz Strategiefonds Wachstum IT2 EUR</option>
+                <option value="DE000A2AMPQ3">Allianz Flexi Rentenfonds IT2 EUR</option>
+                <option value="DE000A2ATB57">Allianz Nebenwerte Deutschland A20 EUR</option>
+                <option value="DE000A2ATB65">Allianz Nebenwerte Deutschland I20 EUR</option>
+                <option value="DE000A2ATB73">Allianz VermÃ¶gensbildung Deutschland A20 EUR</option>
+                <option value="DE000A2DU115">Allianz Nebenwerte Deutschland German Mid Cap Equi</option>
+                <option value="DE000A2DU123">Allianz Adiverba Global Financials Equity AT</option>
+                <option value="DE000A2DU131">Allianz VermÃ¶gensbildung Deutschl German Equity V</option>
+                <option value="DE000A2DU149">Allianz VermÃ¶gensbildung Deutschl German Equity V</option>
+                <option value="DE000A2DU164">Allianz Nebenwerte Deutschland German Mid Cap Equi</option>
+                <option value="DE000A2DU1H7">Allianz Strategiefonds Balance R EUR</option>
+                <option value="DE000A2DU1J3">Allianz Strategiefonds StabilitÃ¤t R EUR</option>
+                <option value="DE000A2DU1M7">Allianz Vermögensbildung Europa - Actions Europe V</option>
+                <option value="DE000A2DU1N5">Allianz VermÃ¶gensbildung Europa -P- EUR</option>
+                <option value="DE000A2DU1P0">Allianz Adiverba - P - EUR</option>
+                <option value="DE000A2DU1R6">Allianz Nebenwerte Deutschland - P - EUR</option>
+                <option value="ES0108192008">Allianz Bolsa EspaÃ±ola FI</option>
+                <option value="ES0108203003">Allianz Conservador Dinamico FI</option>
+                <option value="ES0108232002">Allianz Cartera Dinamica FI</option>
+                <option value="ES0108240005">Allianz Cartera Decidida FI</option>
+                <option value="ES0108373004">Allianz Cartera Moderada FI</option>
+                <option value="FR0000011884">ALLIANZ MONETAIRE-C</option>
+                <option value="FR0000011975">Allianz Actions Euro Innovation C</option>
+                <option value="FR0000017329">Allianz Valeurs Durables RC</option>
+                <option value="FR0000449274">Allianz Multi Dynamisme C</option>
+                <option value="FR0000449282">Allianz Multi Equilibre C</option>
+                <option value="FR0000449290">Allianz Multi Harmonie C</option>
+                <option value="FR0000449431">Allianz Actions Euro Convictions C</option>
+                <option value="FR0000945453">Allianz Actions France D</option>
+                <option value="FR0000975880">Allianz Actions AÃ©quitas R C/D</option>
+                <option value="FR0000981219">Allianz Team RC</option>
+                <option value="FR0000992349">Allianz Multi Rendement RÃ©el C</option>
+                <option value="FR0000994782">Allianz Actions Euro PME-ETI RC</option>
+                <option value="FR0007017579">Allianz Multi TempÃ©rÃ© ISR C/D</option>
+                <option value="FR0007472691">Allianz Euro High Yield RD</option>
+                <option value="FR0007492749">Allianz Actions Emergentes C</option>
+                <option value="FR0010004663">Allianz Actions Euro C</option>
+                <option value="FR0010017731">Allianz SÃ©curicash SRI IC</option>
+                <option value="FR0010032326">Allianz Euro High Yield RC</option>
+                <option value="FR0010117341">ALLIANZ SECURITE-C</option>
+                <option value="FR0010117416">Allianz SÃ©curitÃ© D</option>
+                <option value="FR0010339481">Allianz Valeurs Durables IC</option>
+                <option value="FR0010371609">Allianz Euro High Yield I C/D</option>
+                <option value="FR0010451260">Allianz Team IC</option>
+                <option value="FR0010785865">Allianz SÃ©curicash SRI RC</option>
+                <option value="FR0010914572">Allianz Euro Oblig Court Terme ISR I C/D</option>
+                <option value="FR0010959916">Allianz Euro High Yield ID</option>
+                <option value="FR0011350669">Allianz Team Formule 1 RC</option>
+                <option value="FR0011374057">Allianz Actions AÃ©quitas WC</option>
+                <option value="FR0011387299">Allianz Euro Oblig Court Terme ISR RC</option>
+                <option value="FR0011530096">Allianz Euro High Yield ITD</option>
+                <option value="FR0011963222">Allianz Epargne Durable C</option>
+                <option value="FR0011964691">Allianz Epargne Horizon Long Terme C</option>
+                <option value="FR0011964725">Allianz Epargne MonÃ©taire ISR C</option>
+                <option value="FR0011964733">Allianz Epargne Profil Equilibre C</option>
+                <option value="FR0011964758">Allianz Epargne Rendement RÃ©el C</option>
+                <option value="FR0011964774">Allianz Epargne Flexible C</option>
+                <option value="FR0013063542">Allianz Actions Euro PME-ETI WC</option>
+                <option value="FR0013087053">Allianz Cash Facility Fund R1 D</option>
+                <option value="FR0013106713">Allianz SÃ©curicash SRI WC</option>
+                <option value="FR0013285004">Allianz Actions AÃ©quitas MC</option>
+                <option value="FR0013285012">Allianz Euro High Yield MC</option>
+                <option value="FR0013285038">Allianz Euro Oblig Court Terme ISR MC</option>
+                <option value="FR0013285087">Allianz Valeurs Durables MC</option>
+                <option value="FR0013287844">Allianz Valeurs Durables WC</option>
+                <option value="FR0013300407">Allianz Actions Euro Convictions MC</option>
+                <option value="FR0013309218">Allianz Euro Oblig Court Terme ISR WC</option>
+                <option value="FR0013321510">Allianz Team MC</option>
+                <option value="FR0013358579">Allianz Euro Oblig Court Terme ISR RC2</option>
+                <option value="FR0013498482">Allianz Multi Harmonie MC</option>
+                <option value="FR0013498490">Allianz Multi Equilibre MC</option>
+                <option value="FR0013498516">Allianz Multi Dynamisme MC</option>
+                <option value="FR0013507894">Allianz Multi Rendement RÃ©el MC</option>
+                <option value="FR0013533247">Allianz Actions Euro PME-ETI MC</option>
+                <option value="FR0014003X00">Allianz Valeurs Durables RD</option>
+                <option value="FR0014006AL8">Allianz Patrimonial Diversifie RC</option>
+                <option value="FR0014007G98">Allianz Actions AÃ©quitas RC2</option>
+                <option value="FR0050000928">Allianz Team Formule 1 IC</option>
+                <option value="GB0008078692">OMR Allianz UK Equity Income in GB</option>
+                <option value="GB0008179540">OMR Allianz UK Equity Income Pn GTR in GB</option>
+                <option value="GB0031382988">Allianz Continental European A in GB</option>
+                <option value="GB0031383390">Allianz Gilt Yield I Inc</option>
+                <option value="GB0031383408">Allianz Strategic Bond A TR in GB</option>
+                <option value="GB0031383515">Allianz UK Listed Opportunities A in GB</option>
+                <option value="GB0031383952">Allianz UK Listed Equity Income A TR in GB</option>
+                <option value="GB0031384257">Allianz Total Return Asian Equity A in GB</option>
+                <option value="GB0033584052">Av Allianz Gilt Yield EP GTR in GB</option>
+                <option value="GB00B012GZ15">OMR Allianz Strategic Bond Pn GTR in GB</option>
+                <option value="GB00B012YJ13">OMR Allianz UK Mid Cap in GB</option>
+                <option value="GB00B012YK28">OMR Allianz UK Mid-Cap Pn GTR in GB</option>
+                <option value="GB00B013HL76">OMR Allianz Strategic Bond in GB</option>
+                <option value="GB00B06T9362">Allianz Strategic Bond Fund C Inc</option>
+                <option value="GB00B0WDH725">Allianz Emerging Markets Equity A Acc in GB</option>
+                <option value="GB00B0WDH832">Allianz Emerging Markets Equity Fund C Acc</option>
+                <option value="GB00B0Z89W39">OMR Allianz Emerging Markets Equity Pn GTR in GB</option>
+                <option value="GB00B0Z8G115">OMR Allianz Emerging Markets Equity in GB</option>
+                <option value="GB00B124Y607">CLI Allianz Emerging Markets Equity in GB</option>
+                <option value="GB00B1FRQV53">Allianz Total Return Asian Equity C Inc</option>
+                <option value="GB00B1GC4V53">Sterling Allianz Emerging Markets Equity in GB</option>
+                <option value="GB00B1GJZY66">Zurich Allianz Emerging Markets Equity ZP GTR in G</option>
+                <option value="GB00B3DBDK18">Phoenix Wealth Allianz Gilt Yield Pn S4 GTR in GB</option>
+                <option value="GB00B3L7GW45">Sterling Allianz Gilt Yield in GB</option>
+                <option value="GB00B3L7HM12">Zurich Allianz Gilt Yield ZP GTR in GB</option>
+                <option value="GB00B3Q8YX99">Allianz Continental European Fund Class C Shares A</option>
+                <option value="GB00B4MSMQ93">Zurich Allianz Emerging Markets Equity AL in GB</option>
+                <option value="GB00B5B19762">Zurich Allianz Emerging Markets Equity Pn Capital </option>
+                <option value="GB00B5KMGS05">Zurich Allianz Emerging Markets Equity G4 AL in GB</option>
+                <option value="GB00B82ZGC20">Allianz UK Equity Income Fund Class C Shares Incom</option>
+                <option value="GB00B8BB9445">Allianz UK & European Investment Funds - Allianz U</option>
+                <option value="GB00B97FHL09">OMR Quilter Investors Europe (ex UK) Equity Growth</option>
+                <option value="GB00B9GYC791">OMR Quilter Investors Europe (ex UK) Equity Growth</option>
+                <option value="GB00BDD4M697">Allianz Index-Linked Gilt W Acc in GB</option>
+                <option value="GB00BDD4M705">Allianz Index-Linked Gilt W Inc TR in GB</option>
+                <option value="GB00BDD4M812">Allianz Index-Linked Gilt E Acc in GB</option>
+                <option value="GB00BDD4M929">Allianz Index-Linked Gilt E Inc TR in GB</option>
+                <option value="GB00BF13KT15">Allianz UK & European Investment Funds - Allianz U</option>
+                <option value="GB00BF77W579">Canlife Allianz Gilt Yield Pn GTR in GB</option>
+                <option value="GB00BJ1DZT42">Allianz Strategic Bond Fund I Acc</option>
+                <option value="GB00BJJQ5060">Allianz Global Multi Sector Credit W Acc GBP in GB</option>
+                <option value="GB00BJJQDK21">Allianz Global Multi Sector Credit W Inc GBP TR in</option>
+                <option value="GB00BKYRTL03">OMR Allianz Gilt Yield (I) in GB</option>
+                <option value="GB00BKYRTM10">OMR Allianz Gilt Yield (I) Pn GTR in GB</option>
+                <option value="GB00BMG9ZZ41">Allianz China A-Shares Equity W Acc GBP in GB</option>
+                <option value="GB00BMH6XK58">Allianz UK Listed Equity Income E Inc GBP TR in GB</option>
+                <option value="GB00BMH6XL65">Allianz UK Listed Equity Income W Inc GBP TR in GB</option>
+                <option value="GB00BMW0MF04">Allianz Continental European S Inc GBP TR in GB**</option>
+                <option value="GB00BNVT3L81">Allianz UK Listed Opportunities E Acc GBP in GB**</option>
+                <option value="GB00BP5X3981">Allianz UK Listed Equity Income C Acc TR in GB**</option>
+                <option value="GB00BVYJ2G95">Allianz Total Return Asian Equity C Acc</option>
+                <option value="GB00BYMVB724">Allianz RiskMaster Conservative Multi Asset Y Acc </option>
+                <option value="GB00BYMVB948">Allianz RiskMaster Moderate Multi Asset Y Acc in G</option>
+                <option value="GB00BYMVBC71">Allianz RiskMaster Growth Multi Asset Y Acc in GB*</option>
+                <option value="GB00BYQ02F07">Allianz Continental European S in GB**</option>
+                <option value="GB00BYQ91V66">Allianz Best Styles Global AC Equity I Acc in GB</option>
+                <option value="GB00BYQ91X80">Allianz Best Styles Global AC Equity Fund C Accumu</option>
+                <option value="GB00BYT2QW81">Allianz Strategic Bond Fund I Inc</option>
+                <option value="GB00BYZQQN57">Allianz UK Listed Opportunities O Acc in GB**</option>
+                <option value="GB00BYZQV633">Allianz Emerging Markets Equity O Acc in GB**</option>
+                <option value="GB00BYZQV963">Allianz Best Styles Global AC Equity O Acc in GB**</option>
+                <option value="IE00BMTVHT52">Premium Selection UCITS ICAV - Allianz All China E</option>
+                <option value="IE00BMTVHW81">Premium Selection UCITS ICAV - Allianz All China E</option>
+                <option value="IE00BMTVHY06">Premium Selection UCITS ICAV - Allianz All China E</option>
+                <option value="IM00B3FD1345">QIN IM USD Allianz Oriental Income USD in GB</option>
+                <option value="IM00BDX8PH35">FPIL Allianz GEM Equity High Dividend in GB</option>
+                <option value="IM00BDX8PL70">FPIL Allianz Japan Equity in GB</option>
+                <option value="IT0000380045">ALLIANZ REDDITO EURO-L</option>
+                <option value="IT0000382983">Allianz Global Multi-Asset Credit Fund</option>
+                <option value="IT0000386562">Allianz Azioni America</option>
+                <option value="IT0000386588">Allianz Azioni Europa</option>
+                <option value="IT0001187423">Allianz Azioni Paesi Emergenti</option>
+                <option value="IT0003081509">Allianz MultiPartner - Multi20</option>
+                <option value="IT0003081574">Allianz MultiPartner - Multi90</option>
+                <option value="IT0003624472">ALLIANZ OBBLIGAZIONI BR TR-A</option>
+                <option value="IT0004287840">Allianz Azioni Italia All Stars A</option>
+                <option value="IT0005251092">Allianz Azioni Italia All Stars P</option>
+                <option value="LU0057107152">Allianz Money Market US $ A USD</option>
+                <option value="LU0087342167">Allianz PIMCO High Yield Income Fund</option>
+                <option value="LU0158827195">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU0158827518">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU0158827781">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU0158827948">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU0158828326">Allianz Rcm Global Sustainability Ct</option>
+                <option value="LU0165915058">ALLIANZ EURO BOND-AT EUR</option>
+                <option value="LU0165915215">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU0165915488">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU0165915991">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU0178431259">Allianz Global Investors Fund - Allianz Treasury S</option>
+                <option value="LU0178432067">ALLIANZ TRSRY SHRT PLS-I EUR</option>
+                <option value="LU0178439310">Allianz Rcm Best Styles Euroland At</option>
+                <option value="LU0178439401">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU0178439666">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU0178440839">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU0239368102">ALLIANZ FINANZPLAN 2035A</option>
+                <option value="LU0239368953">ALLIANZ FINANZPLAN 2040A</option>
+                <option value="LU0239384059">ALLIANZ FINANZPLAN 2050A</option>
+                <option value="LU0256839274">Allianz Europe Equity Growth Cl AT Acc EUR</option>
+                <option value="LU0256839860">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0256839944">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU0256840447">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU0256840793">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU0256843979">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU0256844787">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU0256863811">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU0256863902">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU0256880153">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0256881128">Allianz Rcm Europe Eq Growth It</option>
+                <option value="LU0256881474">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0256881631">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0256881987">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0256883504">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0256884064">Allianz Rcm Euroland Growth It </option>
+                <option value="LU0256884577">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU0256905836">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0264555375">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0268212239">Allianz Multi Asset Risk Control -A- EUR</option>
+                <option value="LU0279127962">Allianz Strategie 2036 Plus AT EUR</option>
+                <option value="LU0293294277">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU0293294434">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU0293295324">ALLIANZ ENHNCD ST EU-I13EUR</option>
+                <option value="LU0293295597">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU0293313325">Allianz Rcm Bric At</option>
+                <option value="LU0293313671">Allianz GEM Equity High Dividend CT-EUR</option>
+                <option value="LU0293313911">Allianz Global Investors Fund - Allianz GEM Equity</option>
+                <option value="LU0293314059">Allianz Global Investors Fund - Allianz GEM Equity</option>
+                <option value="LU0293314216">Allianz Global Investors Fund - Allianz GEM Equity</option>
+                <option value="LU0293315023">Allianz Global Investors Fund - Allianz Europe Sma</option>
+                <option value="LU0293315296">Allianz Europe Small Cap</option>
+                <option value="LU0293315536">Allianz Global Investors Fund - Allianz Europe Sma</option>
+                <option value="LU0293315882">Allianz Global Investors Fund - Allianz Europe Sma</option>
+                <option value="LU0293315965">Allianz Global Investors Fund - Allianz Europe Sma</option>
+                <option value="LU0294427389">Allianz Global Investors Fund - Allianz Europe Sma</option>
+                <option value="LU0342677829">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU0342679015">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU0348723411">Allianz Global Hi-Tech Growth A NAV USD TR in GB</option>
+                <option value="LU0348735423">Allianz Global Investors Fund - Allianz Hong Kong </option>
+                <option value="LU0348738526">Allianz Rcm Hong Kong It Usd </option>
+                <option value="LU0348740696">Allianz India Equity AT EUR</option>
+                <option value="LU0348740779">Allianz India Equity AT USD</option>
+                <option value="LU0348742635">Allianz Global Investors Fund - Allianz India Equi</option>
+                <option value="LU0348744680">Allianz Global Investors Fund - Allianz Indonesia </option>
+                <option value="LU0348744763">Allianz Global Investors Fund - Allianz Indonesia </option>
+                <option value="LU0348751388">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU0348752352">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU0348753244">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU0348755371">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU0348766576">Allianz Global Investors Fund - Allianz Little Dra</option>
+                <option value="LU0348767384">Allianz Global Investors Fund - Allianz Little Dra</option>
+                <option value="LU0348783233">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU0348784041">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU0348784397">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU0348786764">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU0348786921">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU0348788117">Allianz Global Investors Fund - Allianz Emerging A</option>
+                <option value="LU0348814566">Allianz Global Investors Fund - Allianz Total Retu</option>
+                <option value="LU0348814723">Allianz Total Return Asian Equity A NAV USD TR in </option>
+                <option value="LU0348816934">Allianz Global Investors Fund - Allianz Total Retu</option>
+                <option value="LU0348822403">Allianz Global Investors Fund - Allianz Total Retu</option>
+                <option value="LU0348824870">Allianz Global Investors Fund - Allianz Total Retu</option>
+                <option value="LU0348825174">Allianz Global Investors Fund - Allianz China Equi</option>
+                <option value="LU0348825331">Allianz Global Investors Fund - Allianz China Equi</option>
+                <option value="LU0348826909">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU0348827113">Allianz Global Investors Fund - Allianz China Equi</option>
+                <option value="LU0348827899">Allianz Global Investors Fund - Allianz China Equi</option>
+                <option value="LU0348831818">Allianz Rcm China It Usd </option>
+                <option value="LU0352312184">Allianz Strategy 50 CT EUR</option>
+                <option value="LU0352312341">Allianz Strategy 50 IT EUR</option>
+                <option value="LU0352312697">Allianz Strategy 50 WT EUR</option>
+                <option value="LU0352312853">Allianz Strategy 75 CT EUR</option>
+                <option value="LU0352313075">Allianz Strategy 75 IT EUR</option>
+                <option value="LU0352313232">Allianz Strategy 75 WT EUR</option>
+                <option value="LU0384037296">Allianz Asian Multi Asset Income Plus Fund (ACC)</option>
+                <option value="LU0384039318">Allianz Global Investors Fund - Allianz Asian Mult</option>
+                <option value="LU0396102724">Allianz Rcm Little Dragons Ct2 Eur </option>
+                <option value="LU0398560341">Allianz Strategy 15 W EUR Inc</option>
+                <option value="LU0398560424">Allianz Strategy 15 WT EUR</option>
+                <option value="LU0414045582">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU0414045822">Allianz Rcm European Dividend At </option>
+                <option value="LU0414046390">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU0414047018">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU0414047281">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU0414047448">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU0414047521">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU0417273140">Allianz Global Investors Fund - Allianz Volatility</option>
+                <option value="LU0417516571">Allianz Oriental Income Cl AT Acc SGD</option>
+                <option value="LU0417516738">Allianz Hong Kong Equity AT Acc SGD</option>
+                <option value="LU0417516902">Allianz China Equity Cl AT Acc SGD</option>
+                <option value="LU0417517546">Allianz US Equity Cl AT Acc SGD</option>
+                <option value="LU0482909818">Allianz Global Investors Fund - Allianz Euro High </option>
+                <option value="LU0482909909">Allianz Global Investors Fund - Allianz Euro High </option>
+                <option value="LU0482910154">Allianz Global Investors Fund - Allianz Euro High </option>
+                <option value="LU0482910402">Allianz Euro High Yield Bond</option>
+                <option value="LU0488056044">Allianz Asian Multi Income Plus Cl AM DIS USD</option>
+                <option value="LU0516397667">Allianz US High Yield Cl AM DIS USD</option>
+                <option value="LU0516398475">Allianz Global Investors Fund - Allianz US High Yi</option>
+                <option value="LU0535372949">Allianz Strategy 50 NT EUR</option>
+                <option value="LU0535373087">Allianz Strategy 75 NT EUR</option>
+                <option value="LU0542493225">Allianz Dynamic Commodities A NAV EUR TR in GB</option>
+                <option value="LU0542500375">Allianz Global Investors Fund - Allianz Dynamic Co</option>
+                <option value="LU0542501423">Allianz Global Investors Fund - Allianz Dynamic Co</option>
+                <option value="LU0542502157">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0542502314">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0542502405">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0542502660">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0589944643">Allianz Global Investors Fund - Allianz Global Met</option>
+                <option value="LU0589944726">Allianz Global Investors Fund - Allianz Global Met</option>
+                <option value="LU0604763499">Allianz Europe Equity Growth P NAV GBP TR in GB</option>
+                <option value="LU0604766674">Allianz Global Metals and Mining AT-EUR</option>
+                <option value="LU0604768290">Allianz Global Investors Fund - Allianz Global Met</option>
+                <option value="LU0631904975">Allianz Renminbi Fixed Income A NAV USD TR in GB</option>
+                <option value="LU0631905352">Allianz Global Investors Fund - Allianz Renminbi F</option>
+                <option value="LU0634319239">Allianz Global Investors Fund - Allianz Renminbi F</option>
+                <option value="LU0648978533">Allianz US High Yield AM NAV HKD TR in GB</option>
+                <option value="LU0649033221">Allianz US High Yield Cl AM DIS H2-AUD</option>
+                <option value="LU0674994412">Allianz Global Investors Fund - Allianz US High Yi</option>
+                <option value="LU0676280711">Allianz Global Investors Fund - Allianz US High Yi</option>
+                <option value="LU0676280802">Allianz US High Yield Cl AM DIS H2-GBP</option>
+                <option value="LU0678493965">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU0685229519">ALLIANZ INCOME AND GRW-ITH2E</option>
+                <option value="LU0689472784">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU0706716205">Allianz Global Investors Fund - Allianz Convertibl</option>
+                <option value="LU0706716387">Allianz Global Investors Fund - Allianz Convertibl</option>
+                <option value="LU0706716544">Allianz Convertible Bond</option>
+                <option value="LU0706716890">Allianz Global Investors Fund - Allianz Euro Inves</option>
+                <option value="LU0706717195">Allianz Global Investors Fund - Allianz SDG Euro C</option>
+                <option value="LU0706717278">Allianz Euro Investment Grade</option>
+                <option value="LU0706717351">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU0706717518">ALLIANZ-ADVANCED FI EUR - W</option>
+                <option value="LU0706718169">Allianz Flexi Asia Bond Cl AM DIS H2-SGD</option>
+                <option value="LU0706718243">Allianz Flexi Asia Bond Cl AM DIS H2-AUD</option>
+                <option value="LU0706718326">Allianz Flexi Asia Bond Cl AM DIS H2-GBP</option>
+                <option value="LU0706718672">Allianz Flexi Asia Bond Cl AM DIS H2-EUR</option>
+                <option value="LU0706718839">ALLIANZ FLEXI ASIA BD-I EUR</option>
+                <option value="LU0709024276">Allianz Global Investors Fund - Allianz Convertibl</option>
+                <option value="LU0709024359">Allianz Global Investors Fund - Allianz SDG Euro C</option>
+                <option value="LU0739342060">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU0745992494">Allianz Flexi Asia Bond</option>
+                <option value="LU0745992734">Allianz Flexi Asia Bond Cl AM DIS USD</option>
+                <option value="LU0758899339">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU0761598746">Allianz US High Yield Cl AM DIS H2-SGD</option>
+                <option value="LU0766462104">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU0788520111">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU0788520384">Allianz Best Styles US Equity WT USD</option>
+                <option value="LU0792749094">Allianz Global Investors Fund - Allianz Renminbi F</option>
+                <option value="LU0795385821">Allianz Global Investors Fund - Allianz US High Yi</option>
+                <option value="LU0811902674">Allianz Global Investors Fund - Allianz Flexi Asia</option>
+                <option value="LU0811903136">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0815945463">Allianz HKD Income AM USD</option>
+                <option value="LU0820561818">Allianz Income and Growth Cl AM DIS USD</option>
+                <option value="LU0820561909">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU0820562030">Allianz Income and Growth Cl AM DIS H2-AUD</option>
+                <option value="LU0820562113">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU0820562386">Allianz Income and Growth Cl AM DIS H2-GBP</option>
+                <option value="LU0827474353">Allianz Europe Equity Growth Cl AT Acc H2-SGD</option>
+                <option value="LU0835205153">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU0837062107">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0840615578">Allianz Global Investors Fund - Allianz German Equ</option>
+                <option value="LU0840617350">Allianz Global Investors Fund - Allianz German Equ</option>
+                <option value="LU0840619489">Allianz Global Investors Fund - Allianz German Equ</option>
+                <option value="LU0852482198">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU0856992614">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU0856992960">ALLIANZ ADV FX INC SH DUR-W</option>
+                <option value="LU0857590862">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0857590946">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU0882150443">Allianz Strategy 15 IT EUR</option>
+                <option value="LU0885397702">Allianz Global Small Cap Equity IT USD</option>
+                <option value="LU0889221072">Allianz Global Investors Fund - Allianz Euro High </option>
+                <option value="LU0908554172">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0908554255">Allianz Europe Equity Gr Sel A EUR</option>
+                <option value="LU0908554339">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0908815078">Allianz Global Investors Fund - Allianz Flexi Asia</option>
+                <option value="LU0913601281">Allianz Income and Growth Cl AM DIS H2-EUR</option>
+                <option value="LU0918141887">Allianz Total Return Asian Equity AM DIS USD</option>
+                <option value="LU0918147579">Allianz Total Return Asian Equity AM DIS H2-AUD</option>
+                <option value="LU0918644872">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0920782991">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0920783023">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0920783379">Allianz Europe Equity Growth Select Cl AT Acc H2-S</option>
+                <option value="LU0920783882">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0920839346">Allianz Europe Equity Growth Select Cl AT Acc EUR</option>
+                <option value="LU0920839429">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU0920840948">Allianz Europe Equity Growth Select Cl AT Acc H2-U</option>
+                <option value="LU0926784405">Allianz Global Investors Fund - Allianz Flexi Asia</option>
+                <option value="LU0933100637">Allianz Best Styles US Equity AT NAV EUR in GB</option>
+                <option value="LU0933100983">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU0943347566">Allianz Income and Growth Cl AM DIS H2-SGD</option>
+                <option value="LU0951484251">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU0962745302">Allianz Global Investors Fund - Allianz Global Sma</option>
+                <option value="LU0962745484">Allianz Global Investors Fund - Allianz Global Sma</option>
+                <option value="LU0962745641">Allianz Global Investors Fund - Allianz Global Sma</option>
+                <option value="LU0963586101">Allianz Global Investors Fund - Allianz Global Sma</option>
+                <option value="LU0964807845">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU0971552673">Allianz European Equity Dividend Cl AM DIS H2-USD</option>
+                <option value="LU0971552756">Allianz European Equity Dividend Cl AM DIS H2-AUD</option>
+                <option value="LU0971552913">Allianz European Equity Dividend Cl AM DIS EUR</option>
+                <option value="LU0972998891">Allianz Global Investors Fund - Allianz Convertibl</option>
+                <option value="LU0976572031">Allianz Global Investors Fund - Allianz Euro High </option>
+                <option value="LU0980730948">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU0982019712">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU0982019803">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU0988442017">Allianz Global Investors Fund - Allianz Euro Infla</option>
+                <option value="LU0988443411">Allianz Global Investors Fund - Allianz Euro Infla</option>
+                <option value="LU0988443767">Allianz Global Investors Fund - Allianz Euro Infla</option>
+                <option value="LU0994605391">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1000922390">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU1015032169">ALLIANZ INC AND GR-P EUR</option>
+                <option value="LU1019963369">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1019963526">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1019989323">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1019989752">Allianz Dyn MltAst Stgy SRI50 W EUR</option>
+                <option value="LU1030382433">Allianz Global Investors Fund - Allianz Global Sma</option>
+                <option value="LU1033710234">ALLIANZ EM SH DUR BD-IH2 EUR</option>
+                <option value="LU1046248800">Allianz European Equity Dividend Cl AM DIS H2-SGD</option>
+                <option value="LU1046250293">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1050568937">ALLIANZ INCOME & GROW-PH2EUR</option>
+                <option value="LU1055786526">Allianz Asian Small Cap Equity AT15 USD</option>
+                <option value="LU1056556225">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1061991912">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1064047555">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1064047639">Allianz Emerging Markets Short Duration Bond AM (H</option>
+                <option value="LU1064047712">Allianz Emerging Markets Short Duration Bond CT (H</option>
+                <option value="LU1066236941">Allianz Emerging Markets Short Duration Bond P2 (H</option>
+                <option value="LU1068093993">Allianz Emerging Markets Equity Opportunities WT2 </option>
+                <option value="LU1069922661">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1069922828">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1070113664">ALLIANZ INCM&GRWTH-AT H2 EUR</option>
+                <option value="LU1073005974">Allianz Global Investors Fund - Allianz Euro Infla</option>
+                <option value="LU1075359262">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1078006381">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU1079477284">Allianz Emerging Markets Short Duration Bond AT (H</option>
+                <option value="LU1089087859">Allianz Global Investors Fund - Allianz Dynamic As</option>
+                <option value="LU1089088071">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1089088154">Allianz Dyn MltAst Stgy SRI15 I EUR</option>
+                <option value="LU1089088311">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1089088402">Allianz Dyn MltAst Stgy SRI75 I EUR</option>
+                <option value="LU1089088741">Allianz Global Investors Fund - Allianz Floating R</option>
+                <option value="LU1089089129">Allianz Global Investors Fund - Allianz Floating R</option>
+                <option value="LU1089089392">Allianz Global Investors Fund - Allianz Floating R</option>
+                <option value="LU1093406186">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1093406269">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1093406343">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1093407077">Allianz Global Investors Fund - Allianz Dynamic As</option>
+                <option value="LU1093758610">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1100107371">ALLIANZ- FLT RT NOT PLS-VZA</option>
+                <option value="LU1105468828">Allianz Total Return Asian Equity AM DIS H2-SGD</option>
+                <option value="LU1106426361">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU1110566418">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU1111123128">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1113653189">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1129901515">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1132057099">Allianz Global Investors Fund - Allianz Treasury S</option>
+                <option value="LU1132059038">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1136106207">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1136108591">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1136108757">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1136180780">Allianz Income and Growth RM (H2-GBP) NAV GBP TR i</option>
+                <option value="LU1143163779">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1143164405">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU1145024482">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1145028129">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1145632938">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1145633233">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1145633407">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1149865690">Allianz Euro Credit SRI R NAV EUR TR in GB</option>
+                <option value="LU1149865930">ALLIANZ EURO CREDIT SRI-A</option>
+                <option value="LU1157231629">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1173934701">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1173934883">Allianz Europe Equity Growth Select RT NAV EUR TR </option>
+                <option value="LU1173934966">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1173935005">Allianz European Equity Dividend RT NAV EUR in GB*</option>
+                <option value="LU1173935260">Allianz Best Styles Global Equity RT NAV EUR TR in</option>
+                <option value="LU1173935690">Allianz Emerging Markets Equity RT NAV EUR in GB**</option>
+                <option value="LU1173935773">Allianz Global Sustainability RT NAV EUR in GB**</option>
+                <option value="LU1173936078">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1173936409">Allianz Global Investors Fund - Allianz Euro High </option>
+                <option value="LU1190323003">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1192665567">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU1198880772">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1202635105">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1202788789">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU1205638155">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1208857828">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1209235446">ALLIANZ-ADV FIX INC GLBL-A</option>
+                <option value="LU1211504250">Allianz Global Investors Fund - Allianz High Divid</option>
+                <option value="LU1211504334">Allianz Global Investors Fund - Allianz High Divid</option>
+                <option value="LU1211504417">Allianz Global Investors Fund - Allianz High Divid</option>
+                <option value="LU1211504680">Allianz High Dividend Asia Pacific Equity AM NAV U</option>
+                <option value="LU1211504847">Allianz Global Investors Fund - Allianz High Divid</option>
+                <option value="LU1211504920">Allianz Global Investors Fund - Allianz High Divid</option>
+                <option value="LU1211505067">Allianz Global Investors Fund - Allianz High Divid</option>
+                <option value="LU1211505810">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1211506032">Allianz Best Styles Pacific Eq A EUR</option>
+                <option value="LU1211506388">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1214459304">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU1221075150">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1221649186">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU1228143191">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1231155380">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU1233302857">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU1250163083">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU1250163679">Allianz Strategy 50 PT EUR</option>
+                <option value="LU1250163752">Allianz Strategy 50 PT USD</option>
+                <option value="LU1250164214">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU1254136416">ALLIANZ CAP PLUS-AT</option>
+                <option value="LU1254136507">Allianz Global Investors Fund - Allianz Capital Pl</option>
+                <option value="LU1254137224">Allianz Global Investors Fund - Allianz Capital Pl</option>
+                <option value="LU1254137497">ALLIANZ GL INV-GL OPP BOND-A</option>
+                <option value="LU1254140285">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1254140442">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1254141333">Allianz Emerging Asia Equity RT NAV EUR TR in GB**</option>
+                <option value="LU1254141416">Allianz Oriental Income RT NAV EUR TR in GB**</option>
+                <option value="LU1255915404">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU1255915586">Allianz Income and Growth RT NAV USD TR in GB**</option>
+                <option value="LU1255915826">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1255916048">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1255916394">ALLIANZ INCOME & GRW-RMH2EUR</option>
+                <option value="LU1260871014">Allianz Advcd Fxd Inc Glb Aggt A EUR</option>
+                <option value="LU1269085392">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU1269171986">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1272325553">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1275815337">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1278851099">Allianz Global Investors Fund - Allianz Floating R</option>
+                <option value="LU1282649224">Allianz Asian Multi Income Plus Cl AMg DIS H2-AUD</option>
+                <option value="LU1282649570">Allianz Asian Multi Income Plus Cl AMg DIS H2-GBP</option>
+                <option value="LU1282649810">Allianz Asian Multi Income Plus Cl AMg DIS H2-SGD</option>
+                <option value="LU1282649901">Allianz Dynamic Asian High Yield Bond Cl AMg DIS U</option>
+                <option value="LU1282650156">Allianz Dynamic Asian High Yield Bond Cl AMg DIS H</option>
+                <option value="LU1282650313">Allianz Dynamic Asian High Yield Bond Cl AMg DIS H</option>
+                <option value="LU1282650669">Allianz Dynamic Asian High Yield Bond Cl AMg DIS H</option>
+                <option value="LU1282651477">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1282651634">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1282651717">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1282651808">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1282651980">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1282652012">Allianz US Short Dur Hi Inc Bd W USD</option>
+                <option value="LU1288334045">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU1288334391">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1291192091">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1291196241">Allianz Global Investors Fund - Allianz Capital Pl</option>
+                <option value="LU1293640337">ALLIANZ-EURO BD ST1-2PL-WT</option>
+                <option value="LU1297615988">ALLIANZ GREEN BOND-I EUR</option>
+                <option value="LU1297616010">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1297616101">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1297616283">Allianz Green Bond R NAV EUR TR in GB</option>
+                <option value="LU1297616366">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1304665596">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1304665752">Allianz Global Investors Fund - Allianz Convertibl</option>
+                <option value="LU1304665836">Allianz Global Investors Fund - Allianz Euro Infla</option>
+                <option value="LU1304665919">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1304666057">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1306617181">Allianz Europe Equity SRI CT2 NAV EUR in GB</option>
+                <option value="LU1311290685">Allianz Asian Multi Income Plus Cl AMg DIS H2-EUR</option>
+                <option value="LU1311290768">Allianz Dynamic Asian High Yield Bond Cl AMg DIS H</option>
+                <option value="LU1311290925">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1322973121">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1322973477">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1322973634">Allianz US Short Duration High Income Bond Cl AM D</option>
+                <option value="LU1327551674">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1328247389">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1328247892">Allianz US Short Duration High Income Bond Cl AM D</option>
+                <option value="LU1328248510">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1331159357">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1363153583">Allianz Global Opportunistic Bond CT NAV EUR in GB</option>
+                <option value="LU1363153740">Allianz US Short Duration High Income Bond Fund AT</option>
+                <option value="LU1363153823">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1363154557">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1363154805">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1363155018">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1363155109">Allianz Europe Small Cap Equity RT NAV EUR in GB**</option>
+                <option value="LU1366192091">Allianz Global Investors Fund - Allianz AI Income </option>
+                <option value="LU1377962367">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1377963175">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1377963258">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1377963332">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1377965030">Allianz Convertible Bond RT NAV EUR in GB**</option>
+                <option value="LU1377965386">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1377965469">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1377965543">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1383852487">Allianz Global Investors Fund - Allianz Floating R</option>
+                <option value="LU1387904524">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1400636491">Allianz Europe Income and Growth Cl AMg DIS H2-USD</option>
+                <option value="LU1400636574">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1400636657">Allianz Europe Income and Growth Cl AMg DIS H2-SGD</option>
+                <option value="LU1400636731">Allianz Europe Income and Growth Cl AMg DIS H2-AUD</option>
+                <option value="LU1400636814">Allianz Europe Income and Growth Cl AMg DIS EUR</option>
+                <option value="LU1400636905">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1400637036">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1405890390">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU1405890473">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1405890556">Allianz Strategy 50 P EUR</option>
+                <option value="LU1418646292">Allianz Global Investors Fund - Allianz Selection </option>
+                <option value="LU1418653660">Allianz Global Investors Fund - Allianz Selection </option>
+                <option value="LU1428085879">ALLIANZ GBL INVESTORS LUXEMBOURG SA ALLIANZ GLOBAL</option>
+                <option value="LU1428085952">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1451583386">Allianz US Short Duration High Income Bond Cl AM D</option>
+                <option value="LU1451583543">Allianz Global Investors Fund - Allianz Floating R</option>
+                <option value="LU1451583626">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1459823677">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1459823750">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1459824303">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1459824568">Allianz Global Investors Fund - Allianz Strategy S</option>
+                <option value="LU1459824642">Allianz Global Investors Fund - Allianz Strategy S</option>
+                <option value="LU1462180164">Allianz Global Investors Fund - Allianz Strategy S</option>
+                <option value="LU1462191526">Allianz Global Investors Fund - Allianz Strategy S</option>
+                <option value="LU1462192250">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1462192417">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1462192680">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1479563717">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU1479563808">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU1479564012">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1479564103">Allianz Global Investors Fund - Allianz Euro High </option>
+                <option value="LU1479564368">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1480268660">Allianz Global Investors Fund - Allianz Global Mul</option>
+                <option value="LU1480268744">Allianz Global Multi-Asset Credit AT NAV USD in GB</option>
+                <option value="LU1480269049">Allianz Global Investors Fund - Allianz Global Mul</option>
+                <option value="LU1480269551">Allianz Global Investors Fund - Allianz Global Mul</option>
+                <option value="LU1480269718">Allianz Global Investors Fund - Allianz Global Mul</option>
+                <option value="LU1480270054">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU1480270641">Allianz Global Investors Fund - Allianz Global Mul</option>
+                <option value="LU1480270997">Allianz Global High Yield A NAV USD TR in GB</option>
+                <option value="LU1480271961">Allianz Global Investors Fund - Allianz Global Hig</option>
+                <option value="LU1480272183">Allianz Global Investors Fund - Allianz Global Hig</option>
+                <option value="LU1480276689">Allianz Global Credit SRI IT NAV USD in GB</option>
+                <option value="LU1480276846">Allianz Global Investors Fund - Allianz Global Cre</option>
+                <option value="LU1481687926">Allianz Multi Asset Long Short AT (H2-EUR) NAV EUR</option>
+                <option value="LU1481688148">Allianz Global Investors Fund - Allianz Multi Asse</option>
+                <option value="LU1481688817">Allianz Global Investors Fund - Allianz Multi Asse</option>
+                <option value="LU1483495336">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1492452518">Allianz Global Investors Fund - Allianz Flexi Asia</option>
+                <option value="LU1492452609">Allianz Dynamic Asian High Yield Bond Cl AMg DIS S</option>
+                <option value="LU1496822955">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1504570760">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU1504570844">Allianz Global Investors Fund - Allianz Global Hig</option>
+                <option value="LU1504571149">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1505874849">ALLIANZ CREDIT OPPOR-IT13EUR</option>
+                <option value="LU1505875739">Allianz Global Investors Fund - Allianz Selection </option>
+                <option value="LU1508476725">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1508476998">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1516272009">Allianz Global Investors Fund - Allianz Global Opp</option>
+                <option value="LU1516272181">Allianz US Short Duration High Income Bond Cl AM D</option>
+                <option value="LU1516272264">Allianz US Short Duration High Income Bond Cl AM D</option>
+                <option value="LU1518687030">Allianz Global Investors Fund - Allianz Euro Inves</option>
+                <option value="LU1522997029">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1527139833">Allianz Global Investors Fund - Allianz Global Hig</option>
+                <option value="LU1542252181">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1543696782">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1543697327">Allianz Global Investors Fund - Allianz Dynamic As</option>
+                <option value="LU1546388817">Allianz Global Investors Fund - Allianz US High Yi</option>
+                <option value="LU1548496022">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1548496451">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548496618">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548496709">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548496964">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548497186">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548497426">Allianz Global Artificial Intelligence AT Acc USD</option>
+                <option value="LU1548497699">Allianz Global Artificial Intelligence AT Acc EUR</option>
+                <option value="LU1548497772">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548499042">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548499471">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548499711">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1548499802">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1551013342">Allianz Income and Growth Cl AMg2 DIS USD</option>
+                <option value="LU1551013425">Allianz Income and Growth Cl AMg2 DIS H2-SGD</option>
+                <option value="LU1560902550">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1560902808">Allianz American Income AM NAV TR in GB</option>
+                <option value="LU1560903285">Allianz US Short Duration High Income Bond Cl AM D</option>
+                <option value="LU1560904093">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1563397410">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1563397766">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1566179385">ALLIANZ GLOBAL INVESTORS FUND GREEN BOND P2 H2 GBP</option>
+                <option value="LU1574759913">Allianz Global Investors Fund - Allianz Dynamic As</option>
+                <option value="LU1574760846">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1575694655">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1579352243">Allianz Emerging Markets Short Duration Bond IT NA</option>
+                <option value="LU1584111725">Allianz Global Investors Fund - Allianz Multi Asse</option>
+                <option value="LU1586358795">Allianz Global Investors Fund - Allianz Volatility</option>
+                <option value="LU1594335520">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1597244760">Allianz Global Investors Fund - Allianz Volatility</option>
+                <option value="LU1597245148">Allianz Global Investors Fund - Allianz Volatility</option>
+                <option value="LU1597245494">Allianz Global Investors Fund - Allianz Volatility</option>
+                <option value="LU1597245650">Allianz Volatility Strategy</option>
+                <option value="LU1597246039">Allianz Global Artificial Intelligence RT NAV EUR </option>
+                <option value="LU1597246385">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1597253084">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU1597343745">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU1597343828">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU1597344123">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU1602090547">Allianz Global Investors Fund - Allianz US Short D</option>
+                <option value="LU1602090620">Allianz Emerging Markets Short Duration Bond WT (H</option>
+                <option value="LU1602091867">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1602092162">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1602092246">Allianz Global Investors Fund - Allianz Treasury S</option>
+                <option value="LU1602092592">Allianz Global Investors Fund - Allianz Volatility</option>
+                <option value="LU1625122699">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1629312619">Allianz Global Investors Fund - Allianz Floating R</option>
+                <option value="LU1629892602">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1633808388">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1633808545">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1633808628">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1633808891">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1633809436">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1637612893">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1641601064">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1645745040">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1645745123">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1645745396">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1645745552">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1645745636">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1645746105">Allianz Europe Equity Growth RT Acc NAV EUR TR in </option>
+                <option value="LU1645746287">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1652854685">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1652855146">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1652855229">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1652855492">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1657048275">Allianz Global Investors Fund - Allianz Euro High </option>
+                <option value="LU1664206874">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU1664206957">Allianz Global Investors Fund - Allianz European E</option>
+                <option value="LU1670756490">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU1673098791">Allianz Strategy 15 RT NAV EUR in GB**</option>
+                <option value="LU1673099179">Allianz Strategy 50 RT EUR</option>
+                <option value="LU1673099500">Allianz Strategy 75 RT EUR</option>
+                <option value="LU1677193176">Allianz Advanced Fixed Income Short Duration RT NA</option>
+                <option value="LU1677194497">Allianz Global Investors Fund - Allianz Floating R</option>
+                <option value="LU1677195031">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1677195205">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1677197599">Allianz Global Investors Fund - Allianz Multi Asse</option>
+                <option value="LU1685826841">Allianz US Short Duration High Income Bond R NAV U</option>
+                <option value="LU1685826924">Allianz Global Investors Fund - Allianz Strategy S</option>
+                <option value="LU1685828201">Allianz GIF Volatility Strategy R NAV EUR TR in GB</option>
+                <option value="LU1685828383">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1687709011">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU1687709441">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1687709524">Allianz Global Investors Fund - Allianz Volatility</option>
+                <option value="LU1698898050">Allianz Global Artificial Intelligence RT</option>
+                <option value="LU1706852297">Allianz Global Investors Fund - Allianz Convertibl</option>
+                <option value="LU1706852370">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU1706852453">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU1706852537">Allianz Global Investors Fund - Allianz Dynamic As</option>
+                <option value="LU1706852701">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1720045712">Allianz Global Investors Fund - IndexManagement Su</option>
+                <option value="LU1720045803">Allianz Global Investors Fund - IndexManagement Ba</option>
+                <option value="LU1720045985">Allianz Global Investors Fund - IndexManagement Wa</option>
+                <option value="LU1720046017">Allianz Global Investors Fund - IndexManagement Ch</option>
+                <option value="LU1720046108">Allianz Global Investors Fund - Allianz Global Flo</option>
+                <option value="LU1720050555">Allianz All China Equity RT Acc NAV USD in GB**</option>
+                <option value="LU1720050803">Allianz All China Eq Cl AT Acc USD</option>
+                <option value="LU1720050985">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1720051017">Allianz Global Artificial Intelligence AT Acc H2-S</option>
+                <option value="LU1728567212">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU1728567568">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1728569424">ALLIANZ EUROPEAN BOND UNC-IT</option>
+                <option value="LU1740659344">Allianz Global Floating Rate Notes Plus RT NAV USD</option>
+                <option value="LU1740659690">Allianz Global Floating Rate Notes Plus Cl AT Acc </option>
+                <option value="LU1740659856">Allianz Global Investors Fund - Allianz Global Flo</option>
+                <option value="LU1740661167">Allianz Global Floating Rate Notes Plus Fund (ACC)</option>
+                <option value="LU1740661324">Allianz Global Investors Fund - Allianz Global Flo</option>
+                <option value="LU1740661597">Allianz Global Investors Fund - Allianz Global Flo</option>
+                <option value="LU1740822603">Allianz Global Investors Fund - Allianz GEM Equity</option>
+                <option value="LU1752423928">Allianz Global Investors Fund - Allianz US High Yi</option>
+                <option value="LU1752424579">Allianz Global Investors Fund - Allianz Euro Infla</option>
+                <option value="LU1752424900">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1752425386">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU1752425543">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU1766616152">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU1780482011">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1780482102">Allianz Flexi Asia Bond RM NAV USD TR in GB**</option>
+                <option value="LU1794554391">Allianz Emerging Markets Select Bond AMg NAV USD T</option>
+                <option value="LU1794554805">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1797226666">Allianz Credit Opportunities WT9 NAV EUR in GB</option>
+                <option value="LU1835929719">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU1835930212">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU1835930303">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU1846562301">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU1846562483">Allianz Global Floating Rate Notes Plus Cl AMg Dis</option>
+                <option value="LU1846563374">Allianz Global Floating Rate Notes Plus Cl AMg Dis</option>
+                <option value="LU1851368412">Allianz Global Floating Rate Notes Plus Cl AT Acc </option>
+                <option value="LU1858968115">Allianz Global Investors Fund - Allianz Global Cre</option>
+                <option value="LU1858968891">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU1858969279">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU1859410190">Allianz Global Investors Fund - Allianz Global Flo</option>
+                <option value="LU1859410604">Allianz Global Investors Fund - Allianz Global Flo</option>
+                <option value="LU1861127097">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU1861128061">Allianz Global Water R NAV USD TR in GB</option>
+                <option value="LU1861128228">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU1861128574">Allianz Global Investors Fund - Allianz Global Sma</option>
+                <option value="LU1865149808">Allianz Global Investors Fund - Allianz Climate Tr</option>
+                <option value="LU1865149980">Allianz Global Investors Fund - Allianz Climate Tr</option>
+                <option value="LU1865150210">Allianz Global Investors Fund - Allianz Climate Tr</option>
+                <option value="LU1867686047">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU1869426988">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1873969643">Allianz Global Investors Fund - Allianz Global Flo</option>
+                <option value="LU1877639325">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1890834598">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU1890834838">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU1890834911">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU1896600654">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1896600738">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU1901057841">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1901058575">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU1901058732">Allianz Global Investors Fund - Allianz Strategy S</option>
+                <option value="LU1901058815">Allianz Global Investors Fund - Allianz Strategy S</option>
+                <option value="LU1906304982">Allianz Strategy 75 A2 EUR</option>
+                <option value="LU1914381329">Allianz Best Styles Global Equity Cl ET Acc H2-SGD</option>
+                <option value="LU1917777192">Allianz Global Investors Fund - Allianz Climate Tr</option>
+                <option value="LU1917777945">Allianz Thematica Cl AT Acc USD</option>
+                <option value="LU1923143488">Allianz Global Investors Fund - Allianz Dynamic As</option>
+                <option value="LU1931535857">Allianz Pet and Animal Wellbeing A EUR</option>
+                <option value="LU1931535931">Allianz Pet and Animal Wellbeing AT EUR</option>
+                <option value="LU1931536079">Allianz Pet and Animal Wellbeing A H2 EUR</option>
+                <option value="LU1931536152">Allianz Pet and Animal Wellbeing AT H2 EUR</option>
+                <option value="LU1931536236">Allianz Pet and Animal Wellbeing IT EUR</option>
+                <option value="LU1931536319">Allianz Pet and Animal Wellbeing RT EUR</option>
+                <option value="LU1931536400">Allianz Pet and Animal Wellbeing P10 USD</option>
+                <option value="LU1931536582">Allianz Pet and Animal Wellbeing P10 H2 EUR</option>
+                <option value="LU1931536665">Allianz Pet and Animal Wellbeing P10 H2 CHF</option>
+                <option value="LU1931536749">Allianz Pet and Animal Wellbeing W EUR</option>
+                <option value="LU1931536822">Allianz Pet and Animal Wellbeing RT NAV USD in GB</option>
+                <option value="LU1941710565">Allianz Japan Smaller Companies Equity A NAV EUR T</option>
+                <option value="LU1941712264">Allianz Pet and Animal Wellbeing A USD</option>
+                <option value="LU1941712348">Allianz Pet and Animal Wellbeing AT USD</option>
+                <option value="LU1941714476">Allianz Europe Small and Micro Cap Equity Allianz </option>
+                <option value="LU1942584290">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1942584456">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU1946895353">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU1946895437">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU1946895510">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU1946895601">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1946895866">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1951921383">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1953143499">Allianz Pet and Animal Wellbeing AT H2 CHF</option>
+                <option value="LU1953143572">Allianz Pet and Animal Wellbeing P EUR</option>
+                <option value="LU1953144034">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1953144117">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1953144208">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1953144380">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1953145197">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1953145353">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU1958620012">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1958620103">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1958620285">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1958620368">Allianz Emerging Markets Sovereign Bond IT NAV USD</option>
+                <option value="LU1958620525">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1958620871">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1961090724">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1961090997">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1961091706">Allianz Global Investors Fund - Allianz Euro Gover</option>
+                <option value="LU1970681679">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU1971343642">Allianz Strategy 75 P EUR</option>
+                <option value="LU1974909183">Allianz Emerging Markets SRI Corporate Bond WT USD</option>
+                <option value="LU1974910355">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU1981791327">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU1982187079">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU1992126489">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU1992126646">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU1992126729">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU1992126992">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU1992127024">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU1992127297">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU1992127537">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU1992127610">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU1992127701">Allianz Global Investors Fund - Allianz US Equity </option>
+                <option value="LU1992133188">Allianz Emerging Markets SRI Corporate Bond AT (H2</option>
+                <option value="LU1992135399">Allianz Global Investors Fund - Allianz Global Int</option>
+                <option value="LU1992136363">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU1992136520">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU1992136876">Allianz Global Investors Fund - Allianz Euro Gover</option>
+                <option value="LU1997245094">Allianz China A Shares AT Acc SGD</option>
+                <option value="LU1997245177">Allianz China A Shares AT Acc USD</option>
+                <option value="LU1997245250">Allianz Global Investors Fund - Allianz China A Sh</option>
+                <option value="LU1997245508">Allianz Global Investors Fund - Allianz China A Sh</option>
+                <option value="LU1997245847">Allianz Global Investors Fund - Allianz China A Sh</option>
+                <option value="LU1997246142">Allianz Global Investors Fund - Allianz China A-Sh</option>
+                <option value="LU2002383623">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU2002383896">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU2002383979">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU2002517923">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU2002518228">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU2009011938">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2009012159">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2009012233">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2010169089">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU2014481662">Allianz Global Investors Fund - Allianz Global Opp</option>
+                <option value="LU2014482397">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2016772035">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU2016772118">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU2023250504">Allianz Thematica Cl AMg DIS H2-SGD</option>
+                <option value="LU2023250769">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2023250843">Allianz Thematica Cl AT DIS H2-SGD</option>
+                <option value="LU2023251221">Allianz Global Sustainability Fund A M(DIST) (Unhe</option>
+                <option value="LU2025541991">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2025542452">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2025542882">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2028103732">Allianz Global Sustainability Fund A Mg (DIST) (Un</option>
+                <option value="LU2028906522">Allianz Strategic Bond RT USD in GB</option>
+                <option value="LU2034156724">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2034157706">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2034159157">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2034159405">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2034161138">Allianz Global Investors Fund - Allianz Euro Gover</option>
+                <option value="LU2041105730">Allianz Emerging Markets Sel Bd A H2EUR</option>
+                <option value="LU2043819098">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU2048585439">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2048585512">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2048585785">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2048586593">Allianz Smart Energy RT Acc USD in GB</option>
+                <option value="LU2048586759">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2048587138">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2048588888">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2048589423">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2049825206">Allianz Global High Yield Cl AMg Dis H2-SGD</option>
+                <option value="LU2052517310">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2052517583">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2060905614">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2064238111">Allianz Strategy 15 C2 EUR</option>
+                <option value="LU2064238384">Allianz Strategy 50 C2 EUR</option>
+                <option value="LU2066004206">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2066004388">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2066004545">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2066004891">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2069287352">Allianz Global Investors Fund - Allianz Dynamic As</option>
+                <option value="LU2072100485">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2081471026">Premium Savings Solutions - Allianz Protect 85 I</option>
+                <option value="LU2089280825">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2089281393">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2089283258">Allianz Global Sustainability Fund A M(DIST) (Hedg</option>
+                <option value="LU2089284900">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2092387641">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU2092388458">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU2092388706">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2092390199">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU2093606593">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU2105731785">Allianz Strategy 15 AT H USD</option>
+                <option value="LU2105731942">Allianz Strategy 50 AT H USD</option>
+                <option value="LU2105732163">Allianz Strategy 75 AT H USD</option>
+                <option value="LU2106854131">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2106854214">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2106854487">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2111349929">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2111350000">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2111350182">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2115180148">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2121415777">Premium Savings Solutions - Allianz Protect 85 S</option>
+                <option value="LU2137116013">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2153615278">Allianz Global Investors Fund - Allianz Selection </option>
+                <option value="LU2153615351">Allianz Global Investors Fund - Allianz Selection </option>
+                <option value="LU2153615435">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU2158812706">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2179888883">Allianz Global Investors Fund - Allianz Euro Credi</option>
+                <option value="LU2181605739">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU2190101332">Allianz Global Investors Fund - Allianz Advanced F</option>
+                <option value="LU2190493234">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2201842932">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2202893389">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU2202893462">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU2202893546">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU2207432506">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU2207432928">Allianz Global Investors Fund - Allianz Strategic </option>
+                <option value="LU2208987847">Allianz Advanced Fixed Income Euro Aggregate WT5 (</option>
+                <option value="LU2211813873">Allianz Global Investors Fund - Allianz Clean Plan</option>
+                <option value="LU2211814095">Allianz Global Investors Fund - Allianz Clean Plan</option>
+                <option value="LU2211814251">Allianz Global Investors Fund - Allianz Clean Plan</option>
+                <option value="LU2211814681">Allianz Global Investors Fund - Allianz Clean Plan</option>
+                <option value="LU2211814764">Allianz Clean Planet RT USD in GB</option>
+                <option value="LU2211814848">Allianz Global Investors Fund - Allianz Clean Plan</option>
+                <option value="LU2211815142">Allianz Global Investors Fund - Allianz Positive C</option>
+                <option value="LU2211815498">Allianz Global Investors Fund - Allianz Positive C</option>
+                <option value="LU2211815654">Allianz Global Investors Fund - Allianz Positive C</option>
+                <option value="LU2211816207">Allianz Positive Change RT USD in GB</option>
+                <option value="LU2211816389">Allianz Global Investors Fund - Allianz Positive C</option>
+                <option value="LU2211816975">Allianz Global Investors Fund - Allianz Positive C</option>
+                <option value="LU2211817197">Allianz Global Investors Fund - Allianz Food Secur</option>
+                <option value="LU2211817601">Allianz Global Investors Fund - Allianz Food Secur</option>
+                <option value="LU2211817866">Allianz Global Investors Fund - Allianz Food Secur</option>
+                <option value="LU2211817940">Allianz Global Investors Fund - Allianz Food Secur</option>
+                <option value="LU2211818674">Allianz Food Security RT USD in GB</option>
+                <option value="LU2211818757">Allianz Global Investors Fund - Allianz Food Secur</option>
+                <option value="LU2215374088">Allianz Global Investors Fund - Allianz Food Secur</option>
+                <option value="LU2215374161">Allianz Global Investors Fund - Allianz Food Secur</option>
+                <option value="LU2219639627">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2223787966">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2226247547">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2226248511">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU2229750422">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU2229750935">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU2229751313">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU2232014741">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2240143094">Allianz Global Investors Fund - Allianz Flexi Asia</option>
+                <option value="LU2243729733">Allianz Dynamic Allc Pl Eq AT EUR</option>
+                <option value="LU2249096160">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU2264183349">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU2265250683">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU2265250766">Allianz Global Investors Fund - Allianz Global Wat</option>
+                <option value="LU2271345774">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2271345857">Allianz Global Investors Fund - Allianz Global Sus</option>
+                <option value="LU2271346079">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU2272731600">Allianz Global Intelligent Cities Fund AM (DIST)</option>
+                <option value="LU2276587388">Allianz Global Investors Fund - Allianz Green Futu</option>
+                <option value="LU2278554956">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU2286300715">Allianz Global Investors Fund - Allianz Cyber Secu</option>
+                <option value="LU2286300806">Allianz Global Investors Fund - Allianz Cyber Secu</option>
+                <option value="LU2286300988">Allianz Global Investors Fund - Allianz Cyber Secu</option>
+                <option value="LU2286301010">Allianz Global Investors Fund - Allianz Cyber Secu</option>
+                <option value="LU2286301101">Allianz Global Investors Fund - Allianz Cyber Secu</option>
+                <option value="LU2286301283">Allianz Cyber Security RT Acc USD in GB</option>
+                <option value="LU2286301523">Allianz Global Investors Fund - Allianz Cyber Secu</option>
+                <option value="LU2290907638">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU2305038858">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2305039153">Allianz Global Investors Fund - Allianz Europe Inc</option>
+                <option value="LU2305039666">Allianz Global Investors Fund - Allianz China A-Sh</option>
+                <option value="LU2305039823">Allianz Emerging Markets Short Duration Bond W7 (H</option>
+                <option value="LU2307734751">Allianz Global Investors Fund - Allianz Global Met</option>
+                <option value="LU2308715668">Allianz Global Investors Fund - Allianz Global Int</option>
+                <option value="LU2309373897">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU2310407577">AMSelect - Allianz Europe Equity Growth Classic Ac</option>
+                <option value="LU2310407650">AMSelect - Allianz Europe Equity Growth I Acc EUR</option>
+                <option value="LU2310407734">AMSelect - Allianz Europe Equity Growth Privilege </option>
+                <option value="LU2314670253">Allianz Global Investors Fund - Allianz Dynamic Co</option>
+                <option value="LU2322448791">Allianz Global Intelligent Cities Fund AMg (DIST)</option>
+                <option value="LU2325213093">Allianz Global Investors Fund - Allianz Oriental I</option>
+                <option value="LU2334260911">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2334261059">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2334261133">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2337294180">Allianz Global Investors Fund - Allianz Capital Pl</option>
+                <option value="LU2337294263">Allianz Global Investors Fund - Allianz Capital Pl</option>
+                <option value="LU2337294347">Allianz Global Investors Fund - Allianz Capital Pl</option>
+                <option value="LU2349350111">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU2357305700">Allianz Global Investors Fund - Allianz Global Art</option>
+                <option value="LU2357305882">Allianz Global Investors Fund - Allianz Cyber Secu</option>
+                <option value="LU2362992013">Allianz Global Investors Fund - Allianz Global Int</option>
+                <option value="LU2364420633">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364420716">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364420807">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364420989">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364421102">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364421284">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364421367">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364421441">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364421524">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364421797">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364421870">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364421953">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364422092">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2364422175">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2369574541">Allianz Pet and Animal Wellbeing RT H2 EUR</option>
+                <option value="LU2384081480">Allianz Global Investors Fund - Allianz Green Bond</option>
+                <option value="LU2384383811">Allianz Global Investors Fund - Allianz Global Int</option>
+                <option value="LU2387748960">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU2387749000">Allianz Global Investors Fund - Allianz Global Equ</option>
+                <option value="LU2391782781">Allianz Global Investors Fund - Allianz Capital Pl</option>
+                <option value="LU2393953414">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU2399975627">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2399975890">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU2399975973">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU2400032525">Allianz Climate Trnstn Crdt AT (EUR)</option>
+                <option value="LU2400955485">Allianz Global Investors Fund - Allianz Dynamic As</option>
+                <option value="LU2401737783">Allianz Global Investors Fund - Allianz Strategy4L</option>
+                <option value="LU2401737866">Allianz Global Investors Fund - Allianz Strategy4L</option>
+                <option value="LU2403377547">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU2406543186">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2408365059">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU2412112158">AMSelect - Allianz Euro Credit Classic EUR Capital</option>
+                <option value="LU2412114444">AMSelect - Allianz Euro Credit Privilege EUR Distr</option>
+                <option value="LU2412114527">AMSelect - Allianz Euro Credit Privilege EUR Capit</option>
+                <option value="LU2412114873">AMSelect - Allianz Euro Credit I EUR Capitalisatio</option>
+                <option value="LU2412114956">AMSelect - Allianz Euro Credit Classic EUR Distrib</option>
+                <option value="LU2414745260">Allianz Pet and Animal Wellbeing WT EUR</option>
+                <option value="LU2420271244">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU2425618134">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2437558591">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU2437558757">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU2437558831">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2444843523">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU2444843796">Allianz Global Investors Fund - Allianz Euro Bond </option>
+                <option value="LU2449769723">Allianz Global Investors Fund - Allianz Euro Infla</option>
+                <option value="LU2449769996">Allianz Global Water P EUR</option>
+                <option value="LU2455351556">Allianz Global Investors Fund - Allianz Global Div</option>
+                <option value="LU2462157400">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU2462157582">Allianz Global Income A EUR</option>
+                <option value="LU2462157749">Allianz Global Investors Fund - Allianz Global Inc</option>
+                <option value="LU2469825975">Allianz Global Investors Fund - Allianz Dynamic Mu</option>
+                <option value="LU2476274647">Allianz Global Investors Fund - Allianz China Futu</option>
+                <option value="LU2476275297">Allianz Global Investors Fund - Allianz China Futu</option>
+                <option value="LU2476275453">Allianz Global Investors Fund - Allianz China Futu</option>
+                <option value="LU2482157471">Allianz Global Investors Fund - Allianz High Divid</option>
+                <option value="LU2488821666">Allianz Global Investors Fund - Allianz China Futu</option>
+                <option value="LU2488821740">Allianz Global Investors Fund - Allianz Global Met</option>
+                <option value="LU2503856176">Allianz Global Investors Fund - Allianz Credit Opp</option>
+                <option value="LU2512304473">Allianz Global Investors Fund - Allianz Global Met</option>
+                <option value="LU2514904908">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2514905038">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2514905111">Allianz Global Investors Fund - Allianz Better Wor</option>
+                <option value="LU2514905202">Allianz Global Investors Fund - Allianz Capital Pl</option>
+                <option value="LU2525676073">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2531762024">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU2531762297">Allianz Global Investors Fund - Allianz Enhanced S</option>
+                <option value="LU2545180189">Allianz Global Investors Fund - Allianz All China </option>
+                <option value="LU2545180262">Allianz Global Investors Fund - Allianz Dynamic Co</option>
+                <option value="LU2547933452">Allianz Global Investors Fund - Allianz Thematica </option>
+                <option value="LU2550038793">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2553805677">Allianz Global Investors Fund - Allianz US High Yi</option>
+                <option value="LU2560091881">Allianz Global Investors Fund - Allianz Global Opp</option>
+                <option value="LU2560092004">Allianz Global Investors Fund - Allianz Global Opp</option>
+                <option value="LU2571887368">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2571887442">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2575877977">Allianz Euro Cash AT EUR</option>
+                <option value="LU2593587103">Allianz US Investment Grade Credit Fund P H2 EUR</option>
+                <option value="LU2593587285">Allianz US Investment Grade Credit Fund RT H2 EUR</option>
+                <option value="LU2593587525">Allianz US Investment Grade Credit Fund R H2 EUR</option>
+                <option value="LU2593587798">Allianz US Investment Grade Credit Fund WT H2 EUR</option>
+                <option value="LU2593588176">Allianz US Investment Grade Credit Fund W H2 EUR</option>
+                <option value="LU2593588259">Allianz US Investment Grade Credit Fund IT H2 EUR</option>
+                <option value="LU2593588416">Allianz US Investment Grade Credit Fund I H2 EUR</option>
+                <option value="LU2593588762">Allianz US Investment Grade Credit Fund AT H2 EUR</option>
+                <option value="LU2593588846">Allianz US Investment Grade Credit Fund AT USD</option>
+                <option value="LU2593588929">Allianz US Investment Grade Credit Fund A H2 EUR</option>
+                <option value="LU2593589141">Allianz US Investment Grade Credit Fund PT H2 EUR</option>
+                <option value="LU2595019204">onemarkets Allianz Conservative MA Fund B EUR Acc</option>
+                <option value="LU2595019543">onemarkets Allianz Conservative MA Fund M EUR Acc</option>
+                <option value="LU2595019626">onemarkets Allianz Conservative MA Fund MD EUR Inc</option>
+                <option value="LU2610451846">Allianz Global Diversified Div WQg EUR</option>
+                <option value="LU2613274492">Allianz US Investment Grade Credit Fund WT3 H2-EUR</option>
+                <option value="LU2636795127">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU2636795390">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU2637966594">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2637966677">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2637966750">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2637966834">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2645735726">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2647374433">Allianz Global Investors Fund - Allianz US Large C</option>
+                <option value="LU2647374516">Allianz Global Investors Fund - Allianz US Large C</option>
+                <option value="LU2647374862">Allianz Global Investors Fund - Allianz US Large C</option>
+                <option value="LU2649201592">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2654762793">Allianz Global Investors Fund - Allianz SDG Euro C</option>
+                <option value="LU2654762876">Allianz Global Investors Fund - Allianz SDG Euro C</option>
+                <option value="LU2676398683">Allianz Global Investors Fund - Allianz Euroland E</option>
+                <option value="LU2676398766">Allianz Global Investors Fund - Allianz Europe Equ</option>
+                <option value="LU2696130504">Allianz Global Investors Fund - Allianz China Equi</option>
+                <option value="LU2696130686">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU2696137269">Allianz Strategy 15 AT EUR</option>
+                <option value="LU2720182869">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2720183081">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2720183164">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2724466870">Allianz Global Investors Fund - Allianz Emerging M</option>
+                <option value="LU2724466953">Allianz China A Shares AT2 H2 EUR</option>
+                <option value="LU2730223331">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2730223414">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2730223505">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2730223687">Allianz Global Investors Fund - Allianz Target Mat</option>
+                <option value="LU2743032984">Allianz Gbl Allocation Opps A (EUR)</option>
+                <option value="LU2743033016">Allianz Global Allocation Opportunities P (EUR)</option>
+                <option value="LU2743033107">Allianz Global Allocation Opportunities I (EUR)</option>
+                <option value="LU2743033289">Allianz Global Allocation Opportunities WT (H-EUR)</option>
+                <option value="LU2743033362">Allianz Global Allocation Opportunities AT (EUR)</option>
+                <option value="LU2743033446">Allianz Global Allocation Opportunities W9 (EUR)</option>
+                <option value="LU2756315821">Allianz Global Investors Fund - Allianz Income and</option>
+                <option value="LU2757363416">Allianz Global Investors Fund - Allianz Global Inc</option>
+                <option value="LU2757505578">Allianz Global Investors Fund - Allianz Smart Ener</option>
+                <option value="LU2758035617">Allianz Global Investors Fund - Allianz Japan Equi</option>
+                <option value="LU2829845390">Allianz TargetMat â‚¬ Bd IV Rndit+IV A EUR</option>
+                <option value="LU3027984353">Allianz Global Investors Fund - Allianz Best Style</option>
+                <option value="LU3074453104">Allianz Best Styls US Sm Cp Eq A EUR Inc</option>
+                <option value="LU3204039286">Allianz Global Investors Fund - Allianz European A</option>
+                <option value="LU3204039369">Allianz Global Investors Fund - Allianz European A</option>
+                        </select>
+        </div>
+    </nav>
+
+    <main>
+        <div class="price-header">
+            <div class="label">Allianz Global Matrix</div>
+            <div class="symbol" id="price-symbol">ALLIANZ</div>
+            <div class="price-row">
+                <span class="currency">€</span>
+                <span class="price" id="price-value">228.70</span>
+            </div>
+        </div>
+
+        <div class="strategy-grid">
+            <div class="strategy-card">
+                <div class="title">⚡ Fast Cross-Analysis (SMA 20/50)</div>
+                <div class="signal-row">
+                    <div class="signal-label">Letztes Signal:</div>
+                    <div class="signal-value">
+                        <div class="signal-dot" style="background: #22c55e;"></div>
+                        <span class="signal-text" id="strategy-1-signal">LONG @ 209.45</span>
+                    </div>
+                </div>
+                <div class="signal-row">
+                    <div class="signal-label">Signal-Datum:</div>
+                    <div class="signal-value" style="font-size: 0.85rem; color: #666;">
+                        <span id="strategy-1-date">---</span>
+                    </div>
+                </div>
+                <div class="pnl-row">
+                    <div class="pnl-label">Signal-Rendite (Live):</div>
+                    <div class="pnl-value pnl-positive" id="strategy-1-pnl">+4.99%</div>
+                </div>
+                <div class="description">
+                    <div class="description-text">Fast-PAL Tracker: Praesentuale Rendite des aktuellen Live-Kurses bezogen auf das letzte generierte FAST L oder FAST S Signal.</div>
+                </div>
+            </div>
+
+            <div class="strategy-card">
+                <div class="title">📊 Long-Term Macro Trend Filter (Price vs. SMA 200)</div>
+                <div class="signal-row">
+                    <div class="signal-label">Letztes Signal:</div>
+                    <div class="signal-value">
+                        <div class="signal-dot" style="background: #ef4444;"></div>
+                        <span class="signal-text" id="strategy-2-signal">SHORT @ 212.30</span>
+                    </div>
+                </div>
+                <div class="signal-row">
+                    <div class="signal-label">Signal-Datum:</div>
+                    <div class="signal-value" style="font-size: 0.85rem; color: #666;">
+                        <span id="strategy-2-date">---</span>
+                    </div>
+                </div>
+                <div class="pnl-row">
+                    <div class="pnl-label">Macro-Rendite (Live):</div>
+                    <div class="pnl-value pnl-negative" id="strategy-2-pnl">-0.6%</div>
+                </div>
+                <div class="description">
+                    <div class="description-text">Macro-PAL Tracker: Ermittelt das aktuelle Anlagergenis seit dem Ausbruch unter/ueber den institutionellen Trendfilter SMA 200.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <div class="section-title" style="margin-bottom: 8px;">Indikatoren &amp; Chart Analysis</div>
+                    <div style="font-family: 'Roboto Mono', monospace; font-size: 14px; font-weight: 700; color: #0045A8;" id="chart-symbol-name">ALLIANZ - Fonds wählen</div>
+                </div>
+                <div class="timeframes-row" style="margin: 0; gap: 8px;">
+                    <button class="timeframe-btn" onclick="setTimeframe('3M')">3M</button>
+                    <button class="timeframe-btn active" id="tf-1y" onclick="setTimeframe('1Y')">1Y</button>
+                    <button class="timeframe-btn" onclick="setTimeframe('3Y')">3Y</button>
+                    <button class="timeframe-btn" onclick="setTimeframe('5Y')">5Y</button>
+                </div>
+            </div>
+            
+            <div class="indicators-row">
+                <div class="indicator-checkbox">
+                    <input type="checkbox" id="toggle-sma20" checked onchange="updateChartVisibility()">
+                    <label for="toggle-sma20">SMA 20 (Fast)</label>
+                </div>
+                <div class="indicator-checkbox">
+                    <input type="checkbox" id="toggle-sma50" checked onchange="updateChartVisibility()">
+                    <label for="toggle-sma50">SMA 50 (Trend)</label>
+                </div>
+                <div class="indicator-checkbox">
+                    <input type="checkbox" id="toggle-sma200" checked onchange="updateChartVisibility()">
+                    <label for="toggle-sma200">SMA 200 (Macro)</label>
+                </div>
+            </div>
+            
+            <div class="controls-row">
+                <button class="btn btn-primary" onclick="chartZoom('left')">◄ Links</button>
+                <button class="btn btn-secondary" onclick="chartZoom('out')">— Zoom Out</button>
+                <button class="btn btn-secondary" onclick="chartZoom('in')">+ Zoom In</button>
+                <button class="btn btn-primary" onclick="chartZoom('right')">Rechts ►</button>
+                <button class="btn btn-success" onclick="exportChart()">📥 Export PNG</button>
+                <button class="btn btn-success" onclick="exportReport()">📄 Report TXT</button>
+            </div>
+            
+            <div class="chart-canvas" style="position: relative;">
+                <div id="chart-info-label" style="position: absolute; top: 8px; left: 8px; background: rgba(0, 61, 130, 0.9); color: white; padding: 8px 12px; border-radius: 6px; font-family: 'Roboto Mono', monospace; font-size: 11px; z-index: 100; white-space: nowrap;">
+                    <span id="chart-perf">Perf: --</span> | <span id="chart-vol">Vol: --</span> | <span id="chart-rsi">RSI: --</span>
+                </div>
+                <div id="chart-signal-label" style="position: absolute; bottom: 12px; right: 12px; background: rgba(0, 61, 130, 0.95); color: #fbbf24; padding: 8px 14px; border-radius: 6px; font-family: 'Roboto Mono', monospace; font-size: 12px; font-weight: bold; z-index: 100; white-space: nowrap;">
+                    ⚡ CROSS: N/A | 📊 MACRO: N/A
+                </div>
+                <canvas id="assetChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+<script>
+/* ── SMART DROPDOWN: ALLIANZ GLOBAL ──────────────────────────────────── */
+(function () {
+    var ACCENT = '#0045A8';
+    var CATS = [
+        { label: '♻️ ESG & Nachhaltigkeit',      kw: ['nachhaltig','valeurs durables','sustainab','sri','isr','tempéré isr','epargne durable','securicash sri','oblig court terme isr','epargne monetaire isr','rcm global sustainab','responsib','best styles'] },
+        { label: '🎯 Altersvorsorge / Vorsorge',  kw: ['fondsvorsorge','finanzplan','vorsorgefnd','strategie 2031','strategie 2036','epargne horizon','riskmaster','multi manager global'] },
+        { label: '📊 Strategiefonds / Multi-Asset',kw: ['strategiefonds','multi asset','multi dynamisme','multi equilibre','multi harmonie','multi tempéré','multi rendement','multi partner','multipartner','team formule','epargne profil','epargne flexible','patrimonial','cartera','allocation','flexi renten'] },
+        { label: '📈 Aktien Deutschland',          kw: ['vermögensbildung deutschland','nebenwerte deutsch','adifonds','adiverba','thesaurus','mobil-fonds','azioni italia','trc deutsch','sgb renten'] },
+        { label: '🇪🇺 Aktien Europa',              kw: ['vermögensbildung europa','europe equity','euroland equity','europe small','continental european','uk listed','uk equity','actions euro','actions france','bolsa española','actions aéquitas','actions euro pme','euro stoxx'] },
+        { label: '🌍 Aktien Global & EM',          kw: ['global equity','global sustainab','global hi-tech','bric','gem equity','emerging','little dragon','azioni america','azioni paesi emergenti','all china','global multi','oriental income','us equities','global ac equity','fos'] },
+        { label: '🌏 Aktien Asien & Japan',        kw: ['japan equity','japan a','asian equity','total return asian','china a-shares','jpmorgan japan','oriental income','hong kong','india','indonesia','littled ragon'] },
+        { label: '🇺🇸 Aktien USA',                 kw: ['us large cap','us equity','azioni america'] },
+        { label: '🇨🇭 Länder-Fonds',              kw: ['fonds schweiz','schweiz'] },
+        { label: '🏥 Thematisch & Sektor',         kw: ['biotechnologie','rohstoff','informationstechnologie','index-linked gilt','high tech','semiconductor','technology'] },
+        { label: '🏦 Anleihen / Renten',           kw: ['rentenfonds','renten','bond','gilt','oblig','high yield','credit','europazins','obbligazioni','fixed interest','strategic bond','euro renten','euro bond','enhanced short','pimco high','treasury','short term','money market us'] },
+        { label: '💰 Geldmarkt',                  kw: ['monétaire','money market','sécuricash','sécurité','securite','securicash','cash facility','trsry','épargne monétaire','epargne monetaire','sécu'] },
+        { label: '🏢 UK Pension & Insurance',      kw: ['pn gtr in gb','pn gtr','av allianz','omer allianz','omr allianz','cli allianz','sterling allianz','zurich allianz','canlife allianz','phoenix wealth','fpil allianz','qin im'] },
+    ];
+
+    function initSmartDropdown(selId, cats, accent) {
+        var sel = document.getElementById(selId);
+        if (!sel) return;
+        var allOpts = Array.from(sel.options).filter(function(o) { return o.value; });
+        if (!allOpts.length) return;
+        var ph = sel.options[0];
+
+        function classify(t) {
+            t = t.toLowerCase();
+            for (var i = 0; i < cats.length; i++) {
+                var c = cats[i];
+                for (var j = 0; j < c.kw.length; j++) { if (t.indexOf(c.kw[j]) !== -1) return c.label; }
+            }
+            return '📋 Sonstige';
+        }
+
+        var groups = {};
+        allOpts.forEach(function(opt) {
+            var t = opt.textContent.trim();
+            var cat = classify(t);
+            (groups[cat] = groups[cat] || []).push({ v: opt.value, t: t });
+        });
+        Object.keys(groups).forEach(function(c) {
+            groups[c].sort(function(a, b) { return a.t.localeCompare(b.t, 'de'); });
+        });
+
+        sel.innerHTML = '';
+        ph.textContent = '--- Allianz: ' + allOpts.length + ' Fonds wählen ---';
+        sel.appendChild(ph);
+        cats.concat([{ label: '📋 Sonstige', kw: [] }]).forEach(function(c) {
+            var items = groups[c.label]; if (!items || !items.length) return;
+            var g = document.createElement('optgroup');
+            g.label = c.label + '  (' + items.length + ')';
+            items.forEach(function(item) {
+                var o = document.createElement('option'); o.value = item.v; o.textContent = item.t; g.appendChild(o);
+            });
+            sel.appendChild(g);
+        });
+
+        // Search filter
+        var si = document.createElement('input');
+        si.type = 'text';
+        si.placeholder = '🔍 ' + allOpts.length + ' Allianz Fonds suchen…';
+        si.style.cssText = 'background:rgba(0,69,168,.08);border:1px solid ' + accent + '88;border-radius:4px;color:' + accent + ';padding:5px 10px;font:bold 12px "Courier New",monospace;outline:none;width:230px;flex-shrink:0;';
+        var snap = sel.innerHTML;
+        si.oninput = function () {
+            var q = this.value.toLowerCase().trim();
+            if (!q) { sel.innerHTML = snap; return; }
+            var tmp = document.createElement('select'); tmp.innerHTML = snap;
+            var hits = Array.from(tmp.querySelectorAll('option')).filter(function(o) {
+                return o.value && o.textContent.toLowerCase().indexOf(q) !== -1;
+            });
+            sel.innerHTML = '';
+            var ph2 = document.createElement('option'); ph2.value = '';
+            ph2.textContent = hits.length ? '🔍 ' + hits.length + ' Treffer' : '❌ Kein Treffer';
+            sel.appendChild(ph2);
+            hits.forEach(function(o) { sel.appendChild(o.cloneNode(true)); });
+        };
+        if (sel.parentNode) sel.parentNode.insertBefore(si, sel);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { initSmartDropdown('symbol-selector', CATS, ACCENT); });
+    } else {
+        initSmartDropdown('symbol-selector', CATS, ACCENT);
+    }
+})();
+</script>
+</body>
+</html>

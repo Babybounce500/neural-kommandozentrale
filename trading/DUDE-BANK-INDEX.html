@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUDE BANK — Knowledge Base Index</title>
+<style>
+  :root {
+    --bg: #060606;
+    --surface: #0e0e0e;
+    --card: #131313;
+    --border: #222;
+    --gold: #c9a84c;
+    --gold2: #f5d47a;
+    --text: #ddd;
+    --muted: #444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  .header {
+    background: linear-gradient(135deg, #0a0800 0%, #161200 40%, #0a0800 100%);
+    border-bottom: 1px solid #2a2200;
+    padding: 64px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(201,168,76,0.04) 0%, transparent 50%);
+  }
+  .header-logo { font-size: 11px; letter-spacing: 6px; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; opacity: 0.7; }
+  .header h1 { font-size: clamp(36px, 7vw, 72px); font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+  .header h1 .d { color: var(--gold2); }
+  .header h1 .b { color: #eee; }
+  .header h1 .eg { font-size: 0.5em; color: var(--gold); vertical-align: super; font-weight: 400; letter-spacing: 2px; }
+  .header-tagline { font-size: 15px; color: #555; margin-top: 16px; letter-spacing: 1px; }
+  .header-source {
+    margin-top: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-size: 12px;
+    color: var(--gold);
+  }
+  .header-source span { opacity: 0.6; }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-item {
+    background: var(--surface);
+    padding: 20px;
+    text-align: center;
+  }
+  .stat-num { font-size: 28px; font-weight: 900; color: var(--gold2); font-family: monospace; }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+  /* MODULE GRID */
+  .modules-container { max-width: 1100px; margin: 0 auto; padding: 64px 24px; }
+  .modules-title { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-bottom: 32px; text-align: center; }
+  .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+
+  .module-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+  .module-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+  .module-color-bar { height: 4px; }
+  .module-body { padding: 24px; }
+  .module-number { font-size: 10px; font-family: monospace; letter-spacing: 3px; margin-bottom: 12px; opacity: 0.5; }
+  .module-icon { font-size: 36px; margin-bottom: 16px; }
+  .module-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; line-height: 1.2; }
+  .module-desc { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 20px; }
+  .module-highlights { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+  .highlight-item { font-size: 12px; color: #888; display: flex; gap: 8px; align-items: flex-start; }
+  .highlight-dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+  .module-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border); }
+  .module-count { font-size: 11px; color: var(--muted); }
+  .module-arrow { font-size: 16px; }
+
+  /* COLORS — Knowledge Base */
+  .color-gold { background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+  .color-green { background: linear-gradient(90deg, #2ea043, #56d364); }
+  .color-blue { background: linear-gradient(90deg, #1f6feb, #58a6ff); }
+  .color-purple { background: linear-gradient(90deg, #6e40c9, #bc8cff); }
+  .color-orange { background: linear-gradient(90deg, #9e6a03, #d29922); }
+  .color-red { background: linear-gradient(90deg, #b91c1c, #f85149); }
+
+  /* COLORS — Live Apps */
+  .color-teal   { background: linear-gradient(90deg, #0d9488, #14b8a6, #34d399); }
+  .color-violet { background: linear-gradient(90deg, #5b21b6, #7c3aed, #a855f7); }
+  .color-cyan   { background: linear-gradient(90deg, #0891b2, #06b6d4, #22d3ee); }
+  .color-rose   { background: linear-gradient(90deg, #9f1239, #f43f5e, #fb7185); }
+  .color-amber  { background: linear-gradient(90deg, #92400e, #d97706, #fbbf24); }
+  .color-indigo { background: linear-gradient(90deg, #312e81, #4338ca, #818cf8); }
+  .color-lime   { background: linear-gradient(90deg, #365314, #65a30d, #a3e635); }
+  .color-sky    { background: linear-gradient(90deg, #075985, #0284c7, #38bdf8); }
+
+  .card-gold:hover   { border-color: var(--gold); }
+  .card-green:hover  { border-color: #3fb950; }
+  .card-blue:hover   { border-color: #58a6ff; }
+  .card-purple:hover { border-color: #bc8cff; }
+  .card-orange:hover { border-color: #d29922; }
+  .card-red:hover    { border-color: #f85149; }
+  .card-teal:hover   { border-color: #14b8a6; }
+  .card-violet:hover { border-color: #a855f7; }
+  .card-cyan:hover   { border-color: #06b6d4; }
+  .card-rose:hover   { border-color: #f43f5e; }
+  .card-amber:hover  { border-color: #fbbf24; }
+  .card-indigo:hover { border-color: #818cf8; }
+  .card-lime:hover   { border-color: #a3e635; }
+  .card-sky:hover    { border-color: #38bdf8; }
+
+  .dot-gold   { background: var(--gold); }
+  .dot-green  { background: #3fb950; }
+  .dot-blue   { background: #58a6ff; }
+  .dot-purple { background: #bc8cff; }
+  .dot-orange { background: #d29922; }
+  .dot-red    { background: #f85149; }
+  .dot-teal   { background: #14b8a6; }
+  .dot-violet { background: #a855f7; }
+  .dot-cyan   { background: #06b6d4; }
+  .dot-rose   { background: #f43f5e; }
+  .dot-amber  { background: #fbbf24; }
+  .dot-indigo { background: #818cf8; }
+  .dot-lime   { background: #a3e635; }
+  .dot-sky    { background: #38bdf8; }
+
+  .title-gold   { color: var(--gold2); }
+  .title-green  { color: #7ee787; }
+  .title-blue   { color: #a5d6ff; }
+  .title-purple { color: #d2a8ff; }
+  .title-orange { color: #f0b429; }
+  .title-red    { color: #ff7b72; }
+  .title-teal   { color: #5eead4; }
+  .title-violet { color: #e9d5ff; }
+  .title-cyan   { color: #a5f3fc; }
+  .title-rose   { color: #fda4af; }
+  .title-amber  { color: #fde68a; }
+  .title-indigo { color: #c7d2fe; }
+  .title-lime   { color: #d9f99d; }
+  .title-sky    { color: #bae6fd; }
+
+  .arrow-gold   { color: var(--gold); }
+  .arrow-green  { color: #3fb950; }
+  .arrow-blue   { color: #58a6ff; }
+  .arrow-purple { color: #bc8cff; }
+  .arrow-orange { color: #d29922; }
+  .arrow-red    { color: #f85149; }
+  .arrow-teal   { color: #14b8a6; }
+  .arrow-violet { color: #a855f7; }
+  .arrow-cyan   { color: #06b6d4; }
+  .arrow-rose   { color: #f43f5e; }
+  .arrow-amber  { color: #fbbf24; }
+  .arrow-indigo { color: #818cf8; }
+  .arrow-lime   { color: #a3e635; }
+  .arrow-sky    { color: #38bdf8; }
+
+  /* LIVE APP LAUNCH SECTION */
+  .section-divider {
+    max-width: 1100px; margin: 0 auto 48px; padding: 0 24px;
+    display: flex; align-items: center; gap: 20px;
+  }
+  .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider-text {
+    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--muted); white-space: nowrap;
+  }
+
+  /* Featured TAB-INDEX hero card */
+  .featured-card {
+    background: linear-gradient(135deg, #060e1a 0%, #0a1628 50%, #060e1a 100%);
+    border: 1px solid #1e3a5f;
+    border-radius: 16px;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    grid-column: 1 / -1;
+    position: relative;
+  }
+  .featured-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(6,182,212,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(139,92,246,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .featured-card:hover {
+    transform: translateY(-4px);
+    border-color: #06b6d4;
+    box-shadow: 0 16px 60px rgba(6,182,212,0.15);
+  }
+  .featured-inner {
+    display: flex; align-items: center; gap: 32px;
+    padding: 28px 32px;
+  }
+  .featured-icon { font-size: 52px; flex-shrink: 0; }
+  .featured-content { flex: 1; }
+  .featured-badge {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: #06b6d4; margin-bottom: 8px; opacity: 0.8;
+    font-family: monospace;
+  }
+  .featured-title {
+    font-size: 26px; font-weight: 900; color: #e0f2fe;
+    margin-bottom: 8px; letter-spacing: -0.5px;
+  }
+  .featured-desc { font-size: 13px; color: #4a6080; line-height: 1.6; }
+  .featured-tags {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+  }
+  .featured-tag {
+    font-size: 10px; padding: 4px 10px; border-radius: 20px;
+    border: 1px solid rgba(6,182,212,0.3);
+    color: #06b6d4; font-family: monospace; letter-spacing: 0.5px;
+  }
+  .featured-arrow {
+    font-size: 28px; color: #06b6d4; flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .featured-card:hover .featured-arrow { transform: translateX(4px); }
+
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; font-family: monospace; letter-spacing: 1px;
+    color: #22c55e; padding: 3px 8px; border-radius: 4px;
+    background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
+    margin-bottom: 8px;
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #22c55e;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* CONTEXT BLOCK */
+  .context-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 48px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .ctx-title { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .ctx-body { font-size: 13px; color: #666; line-height: 1.8; }
+  .ctx-body strong { color: var(--text); }
+  .ctx-body em { color: var(--gold); font-style: normal; }
+
+  /* FOOTER */
+  footer { text-align: center; padding: 48px 24px; color: #333; font-size: 12px; border-top: 1px solid var(--border); }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .modules-grid { grid-template-columns: 1fr; }
+    .header { padding: 40px 16px; }
+    .modules-container { padding: 32px 16px; }
+    .stats-bar { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">DUDE BANK eG — Knowledge Base</div>
+  <h1>
+    <span class="d">DUDE</span> <span class="b">BANK</span> <span class="eg">eG</span>
+  </h1>
+  <div class="header-tagline">
+    Von Van Tharp bis Kerbholz · Von Salamanca bis Smart Contract · Von Magritte bis DeFi
+  </div>
+  <div class="header-source">
+    <span>Quelle:</span> DUDE-BANK-CONVO.txt · 5.942 Zeilen Gemini-Konversation · destilliert 2026
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">5.942</div><div class="stat-label">Zeilen Review</div></div>
+  <div class="stat-item"><div class="stat-num">29</div><div class="stat-label">HTML Module</div></div>
+  <div class="stat-item"><div class="stat-num">12</div><div class="stat-label">Live-Trading-Apps</div></div>
+  <div class="stat-item"><div class="stat-num">44</div><div class="stat-label">Magritte Bilder</div></div>
+  <div class="stat-item"><div class="stat-num">700+</div><div class="stat-label">Jahre Geschichte</div></div>
+  <div class="stat-item"><div class="stat-num">1M</div><div class="stat-label">Dude Vision</div></div>
+  <div class="stat-item"><div class="stat-num">1 Mrd.</div><div class="stat-label">€ Kapitalziel</div></div>
+  <div class="stat-item"><div class="stat-num">12</div><div class="stat-label">KI-Agenten</div></div>
+  <div class="stat-item"><div class="stat-num">1864</div><div class="stat-label">Raiffeisen Ursprung</div></div>
+</div>
+
+<!-- CONTEXT -->
+<div style="padding:32px 24px 0;">
+  <div class="context-block">
+    <div class="ctx-title">Was ist das hier?</div>
+    <div class="ctx-body">
+      Diese Knowledge Base dokumentiert und destilliert eine <strong>5.942-zeilige Gemini-Konversation</strong>
+      (DUDE-BANK-CONVO.txt) über das Konzept der <em>DUDE BANK eG</em> —
+      eine genossenschaftliche DeFi-Bank, die Raiffeisens Solidaritätsprinzip mit moderner
+      Blockchain-Technologie kombiniert.
+      <br><br>
+      Die Konversation berührt <strong>Van K. Tharps Trading-Psychologie</strong>, <strong>René Magrittes Philosophie</strong>
+      der Repräsentation, <strong>700 Jahre Kirchenrecht und Zinsgeschichte</strong>, die <strong>Schule von Salamanca</strong>,
+      den <strong>Contractus Trinus der Fugger (1515)</strong>, <strong>Templer-Banking</strong>,
+      <strong>Kerbholz als Blockchain-Vorläufer</strong> und die <strong>japanische Dojima Reisbörse (1697)</strong>.
+      <br><br>
+      Jedes der 11 Module ist eine eigenständige, vollständige HTML-Dokumentation —
+      bereit zur Weiterentwicklung, Skalierung und Präsentation. Kein Backend nötig. Vollständig standalone.
+    </div>
+  </div>
+</div>
+
+<!-- MODULE GRID -->
+<div class="modules-container">
+  <div class="modules-title">DIE 17 WISSENSMODULE — KLICKEN ZUM ÖFFNEN</div>
+
+  <div class="modules-grid">
+
+    <!-- MODUL 1: MAGRITTE GALLERY -->
+    <a href="DUDE-MAGRITTE-GALLERY.html" class="module-card card-gold">
+      <div class="module-color-bar color-gold"></div>
+      <div class="module-body">
+        <div class="module-number">MODUL 01</div>
+        <div class="module-icon">🎨</div>
+        <div class="module-title title-gold">Magritte Gallery</div>
+        <div class="module-desc">
+          Alle 44 surrealistischen Bildmantras aus der Konversation —
+          vollständig extrahiert, kategorisiert und als AI Image Prompts aufbereitet.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item">
+            <div class="highlight-dot dot-gold"></div>
+            <span>44 Magritte Bilder · 54 „Ceci n'est pas" Quotes</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-gold"></div>
+            <span>Kategorisiert: Trading · Genossenschaft · KI · Kerbholz · Templer</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-gold"></div>
+            <span>DALL-E / Midjourney / Stable Diffusion Prompts ready</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-gold"></div>
+            <span>Deutsche Übersetzung + Kontext für jedes Bild</span>
+          </div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">44 Bildprompts · 11 Kategorien</div>
+          <div class="module-arrow arrow-gold">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 2: HISTORISCHE FINANZEVOLUTION -->
+    <a href="DUDE-HISTORY-FINANCE.html" class="module-card card-blue">
+      <div class="module-color-bar color-blue"></div>
+      <div class="module-body">
+        <div class="module-number">MODUL 02</div>
+        <div class="module-icon">📜</div>
+        <div class="module-title title-blue">Historische Finanzevolution</div>
+        <div class="module-desc">
+          Von Thales (250 v.Chr.) bis Dude Bank (2026) — vollständige Chronik der Finanzinnovation
+          als interaktive Timeline mit DNA-Kette und Vergleichstabellen.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item">
+            <div class="highlight-dot dot-blue"></div>
+            <span>Schule von Salamanca → Lucrum Cessans → Periculum</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-blue"></div>
+            <span>Templer Banking · Kerbholz · Contractus Trinus (Fugger 1515)</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-blue"></div>
+            <span>VOC 1602 · Tulpenmanie · Dojima Reisbörse · Homma Candlesticks</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-blue"></div>
+            <span>Europa vs. Asien Vergleichstabelle · UTXO → Kerbholz Parallele</span>
+          </div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">8 Epochen · 250 v.Chr.–2026</div>
+          <div class="module-arrow arrow-blue">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 3: THEOLOGIE & KIRCHE -->
+    <a href="DUDE-THEOLOGY-CHURCH.html" class="module-card card-orange">
+      <div class="module-color-bar color-orange"></div>
+      <div class="module-body">
+        <div class="module-number">MODUL 03</div>
+        <div class="module-icon">⛪</div>
+        <div class="module-title title-orange">Theologie & Wucherdebatte</div>
+        <div class="module-desc">
+          Kirchliche Zinsverbote, Salamanca-Moraltheologie, Contractus Trinus, Etymologie
+          von „Interest" und die Kreditkarten-Parallele zum mittelalterlichen Schadensersatz-Trick.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item">
+            <div class="highlight-dot dot-orange"></div>
+            <span>Lateran II (1139) bis Washington Consensus (1989)</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-orange"></div>
+            <span>„id quod interest" → Etymologie von Interest/Zinsen</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-orange"></div>
+            <span>Kreditkarte = Mittelalterlicher Zinsfrist-Trick 2.0</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-orange"></div>
+            <span>Monti di Pietà → DeFi Collateral Lending</span>
+          </div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">1139–2026 · Kirchenrecht bis DeFi</div>
+          <div class="module-arrow arrow-orange">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 4: GENOSSENSCHAFT -->
+    <a href="DUDE-GENOSSENSCHAFT.html" class="module-card card-green">
+      <div class="module-color-bar color-green"></div>
+      <div class="module-body">
+        <div class="module-number">MODUL 04</div>
+        <div class="module-icon">🤝</div>
+        <div class="module-title title-green">Raiffeisen & Genossenschaft</div>
+        <div class="module-desc">
+          Vollständige GenG-Mechanik: 1 Dude = 1 Vote, Geschäftsguthaben, Agio/Über-Pari,
+          Haftungskaskade, Eigen-Kollateral-Risiko, Sweat Equity und Social Recovery.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item">
+            <div class="highlight-dot dot-green"></div>
+            <span>6 Raiffeisen-Prinzipien für die Dude Bank</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-green"></div>
+            <span>Agio-Szenarien: Über-Pari · Al Pari · Unter-Pari</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-green"></div>
+            <span>Haftungskaskade: Eigenkapital → Hybridanleihe → Senior</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-green"></div>
+            <span>ERC-4337 Social Recovery: 3 Guardian Dudes</span>
+          </div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">GenG-Grundlagen · Sweat Equity · DeFi</div>
+          <div class="module-arrow arrow-green">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 5: DUDE BANK CONCEPT -->
+    <a href="DUDE-BANK-CONCEPT.html" class="module-card card-purple">
+      <div class="module-color-bar color-purple"></div>
+      <div class="module-body">
+        <div class="module-number">MODUL 05</div>
+        <div class="module-icon">🏦</div>
+        <div class="module-title title-purple">DUDE BANK Vollkonzept</div>
+        <div class="module-desc">
+          1M × 1.000 € = 1 Mrd. Kapital, Multi-Agent KI-System, vollständiges Organigramm,
+          DeFi-Bausteine, Rulebook, Erprobter-Dude-Filter und regulatorische Realitätsprüfung.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item">
+            <div class="highlight-dot dot-purple"></div>
+            <span>MAS Organigramm: CEO → CRO → CFO/COO/CMO → Sub-Agents</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-purple"></div>
+            <span>12 KI-Agenten: Kredit · Liquidation · Trading · Refactoring · Bounty</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-purple"></div>
+            <span>DeFi-Bausteine: AMM · Collateral · Auto-Liquidation · Governance Token</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-purple"></div>
+            <span>⚠ Regulatorische Realität: GenG § 24 · BaFin MaRisk · DSGVO Art. 22</span>
+          </div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Vollkonzept · KI Governance · Regulatorik</div>
+          <div class="module-arrow arrow-purple">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 6: VAN THARP -->
+    <a href="DUDE-VAN-THARP.html" class="module-card card-red">
+      <div class="module-color-bar color-red"></div>
+      <div class="module-body">
+        <div class="module-number">MODUL 06</div>
+        <div class="module-icon">📊</div>
+        <div class="module-title title-red">Van K. Tharp Framework</div>
+        <div class="module-desc">
+          R-Multiples, 4 Position-Sizing-Modelle, Drawdown-Asymmetrie-Mathematik, 7 Trader-Profile,
+          6 Markttypen, Handelspsychologie und Magritte × Tharp Philosophie.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item">
+            <div class="highlight-dot dot-red"></div>
+            <span>R-Multiple Formel · Erwartungswert-Kalkulation</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-red"></div>
+            <span>7 Trader: Mary/Dick/Victor/Ellen/Ken/Nancy/Eric</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-red"></div>
+            <span>Drawdown-Asymmetrie: −50% DD braucht +100% Recovery</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot dot-red"></div>
+            <span>Homma Munehisa: OHLC-Psychologie × KI-Trading-Engine</span>
+          </div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Clever Traden 2.0 · Psychologie · Methodik</div>
+          <div class="module-arrow arrow-red">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 9: JESSE LIVERMORE -->
+    <a href="JESSE-LIVERMORE.html" class="module-card" style="border-color:#2d1520;" onmouseover="this.style.borderColor='#dc2626';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#2d1520';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#991b1b,#dc2626,#c9a84c)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#dc262655">MODUL 09</div>
+        <div class="module-icon">🐻</div>
+        <div class="module-title" style="color:#fca5a5">Jesse Livermore</div>
+        <div class="module-desc">
+          The Great Bear of Wall Street. Shortetete 1907 und 1929. Machte $100M in einem Jahr.
+          Starb mittellos. Pivotal Points, Probe-Strategie, Pyramidierung, Line of Least Resistance —
+          zeitlose Methodik einer amerikanischen Tragödie.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#dc2626"></div><span>Pivotal Points · Line of Least Resistance · Probe-Strategie</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#c9a84c"></div><span>$100M Short auf den Crash 1929 — auditiert</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#22c55e"></div><span>Pyramidierung auf Stärke · Nie Averaging Down</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#ef4444"></div><span>12 Eiserne Regeln · Gruppen-Theorie · Zeitfenster</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">1877–1940 · The Boy Plunger</div>
+          <div class="module-arrow" style="color:#dc2626">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 10: ANDRE KOSTOLANY -->
+    <a href="ANDRE-KOSTOLANY.html" class="module-card" style="border-color:#211d38;" onmouseover="this.style.borderColor='#7c3aed';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#211d38';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#7c3aed,#a78bfa,#d97706)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#7c3aed55">MODUL 10</div>
+        <div class="module-icon">🎭</div>
+        <div class="module-title" style="color:#ddd6fe">André Kostolany</div>
+        <div class="module-desc">
+          Der letzte große Spekulant. Budapest–Paris. 70 Jahre an der Börse.
+          Geld + Gedanken = Börse. Hartgesottene vs. Zittrige. Der Mann und sein Hund.
+          Europäische Börsenphilosophie at its finest.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#7c3aed"></div><span>Geld + Gedanken = Börse (B = G × P)</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#d97706"></div><span>Hartgesottene vs. Zittrige · 4 Börsenphasen</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#10b981"></div><span>Mann und Hund · Phantasie · Schlaftabletten-Prinzip</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#e11d48"></div><span>Inflation & Sachwerte · 11 Bücher · TV-Legende</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">1906–1999 · Budapest–Paris</div>
+          <div class="module-arrow" style="color:#7c3aed">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 11: TURTLE TRADING -->
+    <a href="TURTLE-TRADING.html" class="module-card" style="border-color:#122b22;" onmouseover="this.style.borderColor='#14b8a6';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#122b22';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#0d9488,#22c55e,#f59e0b)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#0d948855">MODUL 11</div>
+        <div class="module-icon">🐢</div>
+        <div class="module-title" style="color:#5eead4">Turtle Trading</div>
+        <div class="module-desc">
+          Richard Dennis vs. William Eckhardt 1983: Kann Trading gelehrt werden?
+          23 Laien, 2 Wochen Training, $175M Profit in 4 Jahren. Das vollständige System:
+          20/55-Day Breakout, ATR Position Sizing, 2N Stop, Pyramidierung.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#0d9488"></div><span>System 1 (20-Tag) + System 2 (55-Tag Breakout)</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#22c55e"></div><span>N = ATR · Unit Sizing · 2N Stop Loss</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#f59e0b"></div><span>4 Units Pyramide · Portfolio-Limits · Märkte</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#ef4444"></div><span>Warum manche scheiterten · Die erfolgreichen Turtles</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">Dennis · $175M · 1984–1988</div>
+          <div class="module-arrow" style="color:#14b8a6">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 8: LARRY WILLIAMS -->
+    <a href="LARRY-WILLIAMS.html" class="module-card" style="border-color:#1c2836;" onmouseover="this.style.borderColor='#f59e0b';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#1c2836';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#f59e0b,#f97316,#22c55e)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#f59e0b55">MODUL 08</div>
+        <div class="module-icon">🏆</div>
+        <div class="module-title" style="color:#fbbf24">Larry Williams</div>
+        <div class="module-desc">
+          World Cup Champion 1987 — $10.000 → $1.147.607 in 12 Monaten (11.376%).
+          COT-Report-Pioneer, Erfinder von Williams %R, Ultimate Oscillator & 3-10 Oscillator.
+          50 Jahre destilliert in einem Framework.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item">
+            <div class="highlight-dot" style="background:#f59e0b"></div>
+            <span>Williams %R · Ultimate Oscillator · 3-10 Oscillator</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot" style="background:#22c55e"></div>
+            <span>COT Report: Commercials vs. Specs vs. Retail</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot" style="background:#14b8a6"></div>
+            <span>Open Interest Matrix · 4 Markt-Zustandsdiagnosen</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot" style="background:#f97316"></div>
+            <span>Saisonalität · Triple-Confirmation Setup · 10 Kernregeln</span>
+          </div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">11.376% · World Record · 1942–heute</div>
+          <div class="module-arrow" style="color:#f59e0b">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 7: GENITUS DUDE FACTORY -->
+    <a href="GENITUS-DUDE-FACTORY.html" class="module-card" style="border-color:#151f3a;" onmouseover="this.style.borderColor='#00d4ff';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#151f3a';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#00d4ff,#7c3aed,#10b981)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#00d4ff55">MODUL 07</div>
+        <div class="module-icon">🤖</div>
+        <div class="module-title" style="color:#7ee8fa">GENITUS DUDE FACTORY</div>
+        <div class="module-desc">
+          Das DUDE BANK Prinzip — angewandt auf KI-Software & Automationen.
+          Genitus Inc. als kooperative AI Software Factory: 1 Dev Dude = 1 Vote,
+          Revenue Share statt Dividenden, Code statt Kapital.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item">
+            <div class="highlight-dot" style="background:#00d4ff"></div>
+            <span>41+ KI-Tools · CelestiaOS · GlobalFintech · myautomation.pro</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot" style="background:#7c3aed"></div>
+            <span>1000 Dev Dudes × 1000h Code = AI Factory (Raiffeisen-Prinzip)</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot" style="background:#10b981"></div>
+            <span>DEV-ORCHESTRATOR KI-Agent · 5-stufige Onboarding-Pipeline</span>
+          </div>
+          <div class="highlight-item">
+            <div class="highlight-dot" style="background:#f59e0b"></div>
+            <span>Revenue Share 40% · Bounty System · Social Recovery 2/3 Guardians</span>
+          </div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">Daniel Gereci CEO · Newark DE · 2026</div>
+          <div class="module-arrow" style="color:#00d4ff">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 12: JIM ROGERS -->
+    <a href="JIM-ROGERS.html" class="module-card" style="border-color:#2d1500;" onmouseover="this.style.borderColor='#f97316';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#2d1500';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#92400e,#f97316,#f59e0b)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#f9731655">MODUL 12</div>
+        <div class="module-icon">🛢️</div>
+        <div class="module-title" style="color:#fed7aa">Jim Rogers</div>
+        <div class="module-desc">
+          The Commodity King. Quantum Fund Co-Gründer mit George Soros — 4.200% Rendite 1973–1980.
+          Mit 37 in Rente. Weltreise mit dem Motorrad (Guinness-Rekord). Rogers International
+          Commodities Index. Contrarian Global Macro: Kaufe was alle hassen.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#f97316"></div><span>RICI Index · 38 Rohstoffe · Supercycles (15–20 Jahre)</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#f59e0b"></div><span>Quantum Fund +4.200% vs. S&P +47% (1973–1980)</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#22c55e"></div><span>Supply/Demand Analysis · Contrarian Macro</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#ef4444"></div><span>China Bull seit 1984 · Short Citigroup 2006</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">1942 · Omaha → Singapore · Commodity King</div>
+          <div class="module-arrow" style="color:#f97316">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 13: WARREN BUFFETT -->
+    <a href="WARREN-BUFFETT.html" class="module-card" style="border-color:#0d2918;" onmouseover="this.style.borderColor='#10b981';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#0d2918';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#065f46,#10b981,#f59e0b)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#10b98155">MODUL 13</div>
+        <div class="module-icon">🏰</div>
+        <div class="module-title" style="color:#6ee7b7">Warren Buffett</div>
+        <div class="module-desc">
+          The Oracle of Omaha. Berkshire Hathaway. Benjamin Grahams bester Schüler —
+          übertrifft jedoch den Meister. Economic MOAT, Intrinsic Value, Margin of Safety,
+          Circle of Competence. 20%+ CAGR über 60 Jahre.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#10b981"></div><span>Economic MOAT · 5 Typen · Burggraben-Framework</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#f59e0b"></div><span>Intrinsic Value · Margin of Safety · Mr. Market</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#3b82f6"></div><span>Berkshire Float System · Insurance als Leverage</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#ef4444"></div><span>Circle of Competence · 9 Metriken · Key Holdings</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">1930 · Omaha · $1.000 → $800.000+ (BRK.A)</div>
+          <div class="module-arrow" style="color:#10b981">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 14: KIYOSAKI -->
+    <a href="RICH-DAD-KIYOSAKI.html" class="module-card" style="border-color:#2d1010;" onmouseover="this.style.borderColor='#ef4444';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#2d1010';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#991b1b,#ef4444,#f59e0b)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#ef444455">MODUL 14</div>
+        <div class="module-icon">📕</div>
+        <div class="module-title" style="color:#fca5a5">Robert Kiyosaki</div>
+        <div class="module-desc">
+          Rich Dad Poor Dad. 32 Millionen Bücher · 51 Sprachen. Asset vs. Liability.
+          Cash Flow Quadrant (ESBI). Good Debt vs. Bad Debt. 4 Asset-Klassen.
+          Finanzielle Freiheit: Passives Einkommen ≥ Ausgaben.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#ef4444"></div><span>ESBI Quadrant · Von E zu I migrieren</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#f59e0b"></div><span>Asset = bringt Geld rein · Liability = nimmt Geld raus</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#22c55e"></div><span>Good Debt (OPM) · Real Estate Cash Flow</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#8b5cf6"></div><span>Financial IQ · Steuer-Strategie B-Quadrant</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">1947 · Hawaii · Rich Dad Poor Dad 1997</div>
+          <div class="module-arrow" style="color:#ef4444">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 15: GEORGE SOROS -->
+    <a href="GEORGE-SOROS.html" class="module-card" style="border-color:#2d2800;" onmouseover="this.style.borderColor='#eab308';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#2d2800';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#92400e,#eab308,#fde047)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#eab30855">MODUL 15</div>
+        <div class="module-icon">💷</div>
+        <div class="module-title" style="color:#fef08a">George Soros</div>
+        <div class="module-desc">
+          The Man Who Broke the Bank of England. $1 Milliarde Gewinn an einem einzigen Tag (Black
+          Wednesday, 1992). Quantum Fund mit Jim Rogers. Reflexivitätstheorie: Warum Märkte
+          strukturell nie effizient sein können. Karl Poppers Fallibilismus als Trading-Philosophie.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#eab308"></div><span>Reflexivitätstheorie · Boom-Bust Loops · Fallibilismus</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#f59e0b"></div><span>Black Wednesday 1992 · $1 Mrd. in einem Tag · GBP Short</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#22c55e"></div><span>Quantum Fund mit Rogers · 30%+ CAGR 1969–2000</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#3b82f6"></div><span>Open Society · $32 Mrd. Philanthropie · Karl Popper</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">1930 · Budapest → New York · The Reflexivity Man</div>
+          <div class="module-arrow" style="color:#eab308">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 16: RAY DALIO -->
+    <a href="RAY-DALIO.html" class="module-card" style="border-color:#0d0f2e;" onmouseover="this.style.borderColor='#6366f1';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#0d0f2e';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#312e81,#6366f1,#818cf8)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#6366f155">MODUL 16</div>
+        <div class="module-icon">⚙️</div>
+        <div class="module-title" style="color:#c7d2fe">Ray Dalio</div>
+        <div class="module-desc">
+          Bridgewater Associates — größter Hedgefonds der Welt ($150 Mrd. AUM). How the Economic
+          Machine Works: 3 Kräfte (Produktivität, kurze Zyklen, lange Schulden-Zyklen).
+          All Weather Portfolio · Beautiful Deleveraging · Radical Transparency · Principles.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#6366f1"></div><span>3 Kräfte: Produktivität · 5–8J Zyklus · 75–100J Zyklus</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#818cf8"></div><span>All Weather Portfolio · Risk Parity · 4 Jahreszeiten</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#22c55e"></div><span>Beautiful Deleveraging · Austerität + QE Balance</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#f59e0b"></div><span>Principles · Radical Transparency · Ideen-Meritokratie</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">1949 · Queens NY · Bridgewater 1975</div>
+          <div class="module-arrow" style="color:#6366f1">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODUL 17: BEHAVIORAL FINANCE -->
+    <a href="BEHAVIORAL-FINANCE.html" class="module-card" style="border-color:#062030;" onmouseover="this.style.borderColor='#0ea5e9';this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.4)'" onmouseout="this.style.borderColor='#062030';this.style.transform='';this.style.boxShadow=''">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#0369a1,#0ea5e9,#a855f7)"></div>
+      <div class="module-body">
+        <div class="module-number" style="color:#0ea5e955">MODUL 17</div>
+        <div class="module-icon">🧠</div>
+        <div class="module-title" style="color:#bae6fd">Behavioral Finance</div>
+        <div class="module-desc">
+          Die Wissenschaft warum 95% der Trader scheitern. Kahneman & Tversky: Prospect Theory,
+          System 1 vs System 2. 12 kognitive Biases mit Trader-Beispielen und Fixes.
+          Mental Accounting (Thaler). Behavioral Alpha: Die Biases anderer ausnutzen.
+        </div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot" style="background:#0ea5e9"></div><span>Prospect Theory · Loss Aversion 2× · S-Kurve</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#a855f7"></div><span>System 1 (Emotion) vs System 2 (Analyse) · Dual Process</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#ef4444"></div><span>12 Biases: Confirmation · Anchoring · Disposition · FOMO</span></div>
+          <div class="highlight-item"><div class="highlight-dot" style="background:#22c55e"></div><span>Behavioral Alpha · Pre-Trade Checkliste · Selbst-Diagnose</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count" style="color:#334155">Kahneman Nobel 2002 · Thaler Nobel 2017 · Shiller Nobel 2013</div>
+          <div class="module-arrow" style="color:#0ea5e9">→</div>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- LIVE TRADING APPS SECTION                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-text">⬡ LIVE TRADING APPS — MIT ECHTZEIT-KURSVERSORGUNG</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<div class="modules-container" style="padding-top:0;">
+  <div class="modules-title">12 LIVE-APPS MIT API-KURSVERSORGUNG · GEMINI-BUILT · REAL-WORLD TESTED</div>
+
+  <div class="modules-grid">
+
+    <!-- FEATURED: TAB-INDEX TERMINAL -->
+    <a href="DUDE%20BANK/TAB-INDEX.html" class="featured-card">
+      <div class="module-color-bar" style="background:linear-gradient(90deg,#06b6d4,#7c3aed,#06b6d4);height:3px;"></div>
+      <div class="featured-inner">
+        <div class="featured-icon">⬡</div>
+        <div class="featured-content">
+          <div class="live-badge"><div class="live-dot"></div>LIVE API AKTIV</div>
+          <div class="featured-badge">MASTER LAUNCHER · MODUL 18</div>
+          <div class="featured-title">DUDE BANK Trading Terminal</div>
+          <div class="featured-desc">Alle 12 Live-Apps in einem einzigen tabbed Interface. Smooth Tab-Navigation, Lazy Loading (API nur bei Klick), Keyboard-Steuerung (← →), Live-Uhr. Jede App direkt ansteuerbar ohne Seitenreload.</div>
+          <div class="featured-tags">
+            <span class="featured-tag">12 APPS</span>
+            <span class="featured-tag">LAZY LOADING</span>
+            <span class="featured-tag">KEYBOARD NAV</span>
+            <span class="featured-tag">LIVE CLOCK</span>
+            <span class="featured-tag">OPEN-BB API</span>
+          </div>
+        </div>
+        <div class="featured-arrow">→</div>
+      </div>
+    </a>
+
+    <!-- MODULE 19: TURTLE ENGINE -->
+    <a href="DUDE%20BANK/TURTLE-BREAKOUT-ENGINE.html" class="module-card card-teal" style="border-color:#0a2e2a;">
+      <div class="module-color-bar color-teal"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#14b8a655;">MODUL 19</div>
+        <div class="module-icon">🐢</div>
+        <div class="module-title title-teal">Turtle Breakout Engine</div>
+        <div class="module-desc">Richard Dennis Original-Regelwerk live implementiert. Donchian-Ausbruch, N-basiertes Unit-Sizing, 4-Unit-Pyramidierung, Unified System Stop (2N unter letzter Unit) + Portfolio-Limits.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-teal"></div><span>Unit = 1% Konto / N (ATR) · Pyramidierung 0.5N-Steps</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>Unified Stop: 5N×Qty max. Verlust bei voller Pyramide</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-amber"></div><span>Portfolio-Limits: max 4/6/10/12 Units</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-rose"></div><span>System 1 (20T) vs System 2 (55T) Kanal-Auswahl</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Dennis · $175M · 1983</div>
+          <div class="module-arrow arrow-teal">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 20: LIVERMORE MATRIX -->
+    <a href="DUDE%20BANK/JESSE-LIVERMORE-MATRIX.html" class="module-card card-green" style="border-color:#0a2010;">
+      <div class="module-color-bar color-green"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#22c55e55;">MODUL 20</div>
+        <div class="module-icon">📈</div>
+        <div class="module-title title-green">Livermore Pivot Matrix</div>
+        <div class="module-desc">Jesse Livermore Pyramidierungs-System live: Pivotal Point-Erkennung, 4-Tranche-Aufbau (20/20/30/30%), Probe-Strategie, Eisenregel-Exit wenn Probe unter Pivot fällt.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>Probe (+0%) · Aufbau (+3%) · Hauptwelle (+7%) · Final (+12%)</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-teal"></div><span>Durchschnittspreis-Berechnung der aktiven Tranchen</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-rose"></div><span>Eisenregel: Unter Pivot → SOFORT alle Tranchen EXIT</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-amber"></div><span>Failed-Probe-Alert mit exaktem Stop-Level</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Livermore · 1877–1940</div>
+          <div class="module-arrow arrow-green">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 21: THARP EXPECTANCY -->
+    <a href="DUDE%20BANK/VAN-THARP-EXPECTANCY.html" class="module-card card-blue" style="border-color:#0a1530;">
+      <div class="module-color-bar color-blue"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#3b82f655;">MODUL 21</div>
+        <div class="module-icon">📊</div>
+        <div class="module-title title-blue">Tharp Expectancy Engine</div>
+        <div class="module-desc">R-Multiple Trade-Journal mit Live-Erwartungswert. Positionsgröße via Stop-Abstand, Trade-Log, Trefferquote — plus SQN (System Quality Number): die einzige Zahl die wirklich zählt.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-blue"></div><span>E(R) = Σ R / N · Live R-Multiple Journal</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-cyan"></div><span>SQN = Mean(R)/StdDev(R)×√N · 5-Tier Rating</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>SQN >3 = Exzellent · >5 = Weltklasse</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-violet"></div><span>Position Sizing: $ absolut oder % vom Kurs</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Van Tharp · SQN · R-Multiples</div>
+          <div class="module-arrow arrow-blue">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 22: THARP QUALITY ENGINE -->
+    <a href="DUDE%20BANK/THARP-EXPECTANCY-ENGINE.html" class="module-card card-violet" style="border-color:#150e28;">
+      <div class="module-color-bar color-violet"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#a855f755;">MODUL 22</div>
+        <div class="module-icon">🧪</div>
+        <div class="module-title title-violet">Tharp Quality Engine</div>
+        <div class="module-desc">Theoretische Systemkalibrierung: Trefferquote × Avg Win/Loss → Erwartungswert + Jahresprojektion. Nancy-Effekt-Detektion (hohe Winrate, katastrophale Verluste). Jetzt mit Systemfrequenz-Input.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-violet"></div><span>E = P(W)×AvgW − P(L)×AvgL · Tharp Score</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-amber"></div><span>Jahresprojektion: E×1R×Trades p.a. in Dollar + ROI%</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-rose"></div><span>Nancy-Effekt: 70% Win-Rate kann trotzdem ruinieren</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>7 Trader-Archetypen: Victor / Ellen / Nancy / Eric…</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Tharp Score · Win-Rate Trap · Projektion</div>
+          <div class="module-arrow arrow-violet">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 23: DRAWDOWN TRACKER -->
+    <a href="DUDE%20BANK/VAN-THARP-DRAWDOWN.html" class="module-card card-orange" style="border-color:#201000;">
+      <div class="module-color-bar color-orange"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#f9731655;">MODUL 23</div>
+        <div class="module-icon">📉</div>
+        <div class="module-title title-orange">Drawdown Tracker</div>
+        <div class="module-desc">Equity-Kurve aus R-Multiple Trades mit Peak-Drawdown-Berechnung. 6-stufiges Warnsystem (5%→10%→15%★→20%→25%→30%) mit exakter Recovery-% Anzeige. DUDE BANK 15%-Limit integriert.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-orange"></div><span>Peak-Drawdown = (Peak − Aktuell) / Peak × 100</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-rose"></div><span>15% ★ DUDE BANK Limit: Trading-Stopp Pflicht</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-amber"></div><span>Recovery-Formel: 1/(1−DD%) − 1 bei jedem Alert</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>Erwartungswert + Win-Rate Berechnung live</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Tharp · DD Asymmetrie · DUDE BANK Limit</div>
+          <div class="module-arrow arrow-orange">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 24: MATHEMATICS OF RUIN -->
+    <a href="DUDE%20BANK/MATHEMATICS-OF-RUIN.html" class="module-card card-red" style="border-color:#280a0a;">
+      <div class="module-color-bar color-red"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#ef444455;">MODUL 24</div>
+        <div class="module-icon">💀</div>
+        <div class="module-title title-red">Mathematics of Ruin</div>
+        <div class="module-desc">Recovery-Mathematik: wie viel % braucht man um von einem Verlust zurückzukommen? DUDE BANK Buchgewinn-Stop (10% der Gewinne schützen), -15% als absolute Limit-Linie. Entry + Stop → Gewinntabelle.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-red"></div><span>Spiegel-Phänomen: −50% braucht +100% Recovery</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-amber"></div><span>DUDE BANK 10% Buchgewinn-Stop: schütze 90% des Gains</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-orange"></div><span>−15% ★ absolute Rote Linie (visuell markiert)</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-cyan"></div><span>Live Entry + Stop → Performance-Tabelle dynamisch</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Risk of Ruin · Recovery Math · DUDE Stop</div>
+          <div class="module-arrow arrow-red">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 25: ROGERS SUPERCYCLE RADAR -->
+    <a href="DUDE%20BANK/ROGERS-SUPERCYCLE-RADAR.html" class="module-card card-amber" style="border-color:#201000;">
+      <div class="module-color-bar color-amber"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#fbbf2455;">MODUL 25</div>
+        <div class="module-icon">🚜</div>
+        <div class="module-title title-amber">Rogers Superzyklus Radar</div>
+        <div class="module-desc">Jim Rogers Rohstoff-Superzyklus in 4 Phasen live auswerten. Angebotsseite × Nachfrage-Trend → P1/P2/P3/P4 Phasen-Diagnose. Watchlist: Gold, Silber, Öl, Kupfer, Weizen, Soja, Zucker + 10 Alias-Map.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-amber"></div><span>P1 (Ausverkauf) → P4 (Peak): Rogers 4 Phasen</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-orange"></div><span>7-Rohstoff-Quickbar + GOLD/ÖL/SILBER/KUPFER Aliase</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>Angebotsseite: Ausgetrocknet / Normal / Überangebot</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-rose"></div><span>Hype-Faktor: Wall Street Stimmungsradar</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Jim Rogers · RICI · Supercycles</div>
+          <div class="module-arrow arrow-amber">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 26: SOROS REFLEXIVITY ENGINE -->
+    <a href="DUDE%20BANK/SOROS-REFLEXIVITY-ENGINE.html" class="module-card card-gold" style="border-color:#201800;">
+      <div class="module-color-bar color-gold"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#eab30855;">MODUL 26</div>
+        <div class="module-icon">👁️</div>
+        <div class="module-title title-gold">Soros Reflexivitäts-Engine</div>
+        <div class="module-desc">George Soros Boom-Bust 6-Phasen live diagnostizieren. Eigenen Fair Value eingeben → Kurs-Divergenz in % (±20% fair / ±50% kritisch). Quantum-Fund-Taktik für jede Phase. Regulatory-Override-Detektion.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-gold"></div><span>6-Phasen Reflexivitäts-Loop (Unbemerktes Fundament → Bust)</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-cyan"></div><span>Fair-Value-Input → Kurs-Divergenz-Meter live</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-red"></div><span>+50% Divergenz = KRITISCHE ÜBERBEWERTUNG / Quantum-Alert</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>Regulierungs-Eingriff-Detektor (Schleife bricht)</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Soros · Reflexivität · $1 Mrd./Tag</div>
+          <div class="module-arrow arrow-gold">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 27: KOSTOLANY SPEKTROMETER -->
+    <a href="DUDE%20BANK/KOSTOLANY-SPEKTROMETER.html" class="module-card card-violet" style="border-color:#180e2e;">
+      <div class="module-color-bar color-violet"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#a855f755;">MODUL 27</div>
+        <div class="module-icon">🥚</div>
+        <div class="module-title title-violet">Kostolany Ei-Spektrometer</div>
+        <div class="module-desc">Das Ei des Kostolany (A1–B3) live berechnen: Liquidität × Psychologie = Börsenphase. Vollständige 6×2-Matrix ohne blinde Flecken. A1 (Goldener Einstieg) nur mit hoher Liquidität + Panik erreichbar.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-violet"></div><span>6 Phasen: A1/A2/A3 (Hausse) · B1/B2/B3 (Baisse)</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-gold"></div><span>A1 = Panik + hohe Liquidität → GOLDENER EINSTIEG</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>Hartgesottene vs. Zittrige Eigentümerstruktur</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-cyan"></div><span>Kaffeehaus-Warnungen im echten Kostolany-Stil</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Kostolany · 1906–1999 · Das Ei</div>
+          <div class="module-arrow arrow-violet">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 28: LARRY MACRO -->
+    <a href="DUDE%20BANK/LARRY-MACRO.html" class="module-card card-cyan" style="border-color:#061820;">
+      <div class="module-color-bar color-cyan"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#06b6d455;">MODUL 28</div>
+        <div class="module-icon">📡</div>
+        <div class="module-title title-cyan">Larry Makro-Oszillator</div>
+        <div class="module-desc">Williams %R auf 3 Makro-Zeitfenstern: 100 Tage, 250 Tage (Börsenjahr), 1000 Tage (Epoche). Confluence-Detection: Alle 3 im Keller = statistischer "Unendlich-Edge-Boden". Historisch datenbasiert.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-cyan"></div><span>%R über 100T / 250T / 1000T parallel</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>Confluence: Alle 3 ≤ −80 = CRITICAL BUY SIGNAL</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-amber"></div><span>Epochen-Kapitulation: 4-Jahres-Tief Alarm</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-red"></div><span>Peak-Rausch: 4-Jahres-Hoch Warnung</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Williams %R · 1000T Epoche · Confluence</div>
+          <div class="module-arrow arrow-cyan">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 29: LARRY MICRO -->
+    <a href="DUDE%20BANK/LARRY-MICRO.html" class="module-card card-sky" style="border-color:#051520;">
+      <div class="module-color-bar color-sky"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#38bdf855;">MODUL 29</div>
+        <div class="module-icon">🔬</div>
+        <div class="module-title title-sky">Larry %R Micro-Oszillator</div>
+        <div class="module-desc">Williams %R im kurzfristigen Zeitfenster (14 / 30 / 50 Tage): Überkauft/Überverkauft-Extremzonen präzise messen. Live-Kurs wird direkt in die Formel eingespeist — kein historischer Schlusskurs-Lag.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-sky"></div><span>%R Formel: (HH−Close)/(HH−LL)×−100</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>≤ −80 = ÜBERVERKAUFT · Shorter-Covern-Zwang</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-red"></div><span>≥ −20 = ÜBERKAUFT · FOMO-Warnung</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-cyan"></div><span>Live-API-Kurs in Echtzeit (kein Historical Lag)</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Williams · 14/30/50T · Live %R</div>
+          <div class="module-arrow arrow-sky">→</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- MODULE 30: KIYOSAKI CASHFLOW MATRIX -->
+    <a href="DUDE%20BANK/KIYOSAKI-CASHFLOW-MATRIX.html" class="module-card card-rose" style="border-color:#28080e;">
+      <div class="module-color-bar color-rose"></div>
+      <div class="module-body">
+        <div class="live-badge"><div class="live-dot"></div>LIVE API</div>
+        <div class="module-number" style="color:#f43f5e55;">MODUL 30</div>
+        <div class="module-icon">💰</div>
+        <div class="module-title title-rose">Kiyosaki Cashflow Matrix</div>
+        <div class="module-desc">ESBI Cashflow-Quadrant live: Freiheits-Faktor (passives Einkommen / Ausgaben). Ziel-Gap-Rechner: wie viel fehlt monatlich noch zur Freiheit? Kapital-Äquivalent bei 5% Yield automatisch berechnet.</div>
+        <div class="module-highlights">
+          <div class="highlight-item"><div class="highlight-dot dot-rose"></div><span>Freiheits-Faktor = passiv / Ausgaben × 100%</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-green"></div><span>≥ 100% = Finanziell frei · Kündigung erlaubt</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-amber"></div><span>Gap: $X/Monat fehlen → $Y Kapital bei 5% nötig</span></div>
+          <div class="highlight-item"><div class="highlight-dot dot-violet"></div><span>Quadrant-Highlight: E/S/B/I live hervorgehoben</span></div>
+        </div>
+        <div class="module-footer">
+          <div class="module-count">Kiyosaki · ESBI · Finanzielle Freiheit</div>
+          <div class="module-arrow arrow-rose">→</div>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- REVIEW VERDICT -->
+<div style="max-width:1100px;margin:0 auto;padding:0 24px 64px;">
+  <div class="context-block">
+    <div class="ctx-title">Gesamturteil der Gemini-Konversation</div>
+    <div class="ctx-body">
+      <strong>Stärken (fair bewertet):</strong> Historische Tiefe auf Universitätsniveau. Kerbholz → UTXO,
+      Contractus Trinus → Hybridanleihe, Templer-Chiffre → Multi-Sig: die strukturellen Analogien sind nicht
+      nur unterhaltsam, sie sind konzeptuell präzise. Die Salamanca-Lehren, die Etymologie von „Interest",
+      Homma Munehisa und die Raiffeisen-DNA wurden korrekt und auf hohem Niveau erklärt.
+      Sokrates-Methode: Gemini führte den User konsequent dazu, Agio, Verwässerung, Token-Notwendigkeit
+      und Eigen-Kollateral-Risiko selbst zu erkennen — anstatt sie zu belehren.
+      <br><br>
+      <strong>Schwächen (klar benannt):</strong> <em>GenG § 24</em> (KI kann kein rechtlicher Vorstand sein)
+      wurde in 2.000 Zeilen KI-Governance nie erwähnt. Die <em>eG + MiCA Inkompatibilität</em>
+      (Banklizenz + DeFi-Protokoll gleichzeitig) wurde ignoriert. <em>DSGVO Art. 22</em>
+      (Widerspruchsrecht bei automatisierten Kreditentscheidungen) fehlt komplett.
+      „Absolut unhackbar" für Smart Contracts ist nachweislich falsch.
+      <br><br>
+      <strong>Fazit:</strong> Ein außergewöhnliches Bildungsgespräch über Finanzgeschichte.
+      Als Gründungsberatung für ein reales Finanzunternehmen unvollständig.
+      Vor erstem echten Schritt: <em>Anwalt für GenG-Recht + BaFin-Compliance-Berater.</em>
+    </div>
+  </div>
+</div>
+
+<footer>
+  DUDE BANK eG — Knowledge Base · Extrahiert aus DUDE-BANK-CONVO.txt (5.942 Zeilen) ·
+  Gemini × René Magritte × Van K. Tharp × Raiffeisen × Blockchain × Genitus Inc. · 2026<br>
+  <span style="opacity:0.4;margin-top:8px;display:block">Alle HTML-Files sind vollständig standalone · Kein Backend · Offline nutzbar</span>
+</footer>
+
+</body>
+</html>

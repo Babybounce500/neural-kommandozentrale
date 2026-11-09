@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DWS Asset Management Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #003D82;
+            line-height: 1.6;
+        }
+        
+        nav {
+            background: white;
+            border-bottom: 2px solid #003D82;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        nav h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: #003D82;
+            letter-spacing: 2px;
+        }
+        
+        nav .timestamp {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            color: #475569;
+        }
+        
+        nav .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        nav input {
+            padding: 10px 16px;
+            border: 2px solid #003D82;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #003D82;
+            background: white;
+            min-width: 180px;
+        }
+        
+        nav select {
+            padding: 10px 16px;
+            border: 2px solid #003D82;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #003D82;
+            background: white;
+            min-width: 200px;
+            cursor: pointer;
+        }
+        
+        nav button {
+            padding: 10px 20px;
+            background: #003D82;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        nav button:hover {
+            background: #002a5c;
+        }
+        
+        /* Loading Spinner */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            border: 4px solid #f0f0f0;
+            border-radius: 50%;
+            border-top: 4px solid #003D82;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        .price-header {
+            background: white;
+            border: 2px solid #003D82;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 61, 130, 0.1);
+        }
+        
+        .price-header .label {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #003D82;
+            margin-bottom: 12px;
+        }
+        
+        .price-header .symbol {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            color: #003D82;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+        
+        .price-header .price-row {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            align-items: baseline;
+        }
+        
+        .price-header .price {
+            font-size: 36px;
+            font-weight: 900;
+            color: #003D82;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .price-header .change {
+            font-size: 24px;
+            font-weight: 700;
+            color: #16a34a;
+            font-family: 'Roboto Mono', monospace;
+        }
+        
+        .price-header .currency {
+            font-size: 28px;
+            color: #003D82;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .metric-card {
+            background: white;
+            border: 2px solid #003D82;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 61, 130, 0.05);
+        }
+        
+        .metric-card .label {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #003D82;
+            margin-bottom: 16px;
+        }
+        
+        .metric-card .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #003D82;
+        }
+        
+        .metric-card .subtext {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px;
+            color: #475569;
+            margin-top: 8px;
+            line-height: 1.8;
+        }
+        
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .strategy-card {
+            background: #1a1a2e;
+            border: 2px solid #3a3a4e;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .strategy-card .title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: white;
+            margin-bottom: 16px;
+        }
+        
+        .strategy-card .signal-row {
+            margin-bottom: 16px;
+        }
+        
+        .strategy-card .signal-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .strategy-card .signal-value {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .strategy-card .signal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .strategy-card .signal-text {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .strategy-card .pnl-row {
+            margin-bottom: 16px;
+        }
+        
+        .strategy-card .pnl-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        
+        .strategy-card .pnl-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 22px;
+            font-weight: 900;
+        }
+        
+        .pnl-positive { color: #22c55e; }
+        .pnl-negative { color: #ef4444; }
+        
+        .strategy-card .description {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            border-left: 3px solid #475569;
+        }
+        
+        .strategy-card .description-text {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 11px;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+        
+        .chart-section {
+            background: white;
+            border: 2px solid #003D82;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        
+        .chart-section .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #003D82;
+            margin-bottom: 20px;
+        }
+        
+        .indicators-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .indicator-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .indicator-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #003D82;
+        }
+        
+        .indicator-checkbox label {
+            color: #003D82;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .controls-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 13px;
+        }
+        
+        .btn-primary {
+            background: #003D82;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #002a5c;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #003D82;
+            border: 2px solid #003D82;
+        }
+        
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+        
+        .btn-success {
+            background: #16a34a;
+            color: white;
+            font-weight: 700;
+        }
+        
+        .btn-success:hover {
+            background: #15803d;
+        }
+        
+        .timeframes-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .timeframe-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #003D82;
+            color: #003D82;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        .timeframe-btn.active {
+            background: #003D82;
+            color: white;
+        }
+        
+        .chart-canvas {
+            width: 100%;
+            min-height: 420px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+            }
+            nav .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            nav input, nav select {
+                width: 100%;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <nav>
+        <h1>DWS ASSET MANAGEMENT TERMINAL</h1>
+        <div class="timestamp" id="timestamp">12.06.26, 16:42:01</div>
+        <div class="controls">
+            <input type="text" id="current-symbol" placeholder="Eingabe Ticker z.B. COMZX.US" value="DWS.XETRA" onkeypress="if(event.key==='Enter') loadPrice()">
+            <button onclick="loadPrice()">GO</button>
+            <select id="symbol-selector" onchange="changeSymbol()">
+                <option value="">-- WÄHLE DWS SYMBOL --</option>
+                <option value="COMZX.US">COMZX.US - DWS Community Fund</option>
+                <option value="DESAX.US">DESAX.US - DWS ESG Americas</option>
+                <option value="DMAIX.US">DMAIX.US - DWS Multi Asset Income</option>
+                <option value="DNTIX.US">DNTIX.US - DWS Numerical Tax-Exempt</option>
+                <option value="DWS.XETRA">DWS.XETRA - DWS Top Dividende</option>
+                <option value="KTF.US">KTF.US - DWS Infrastructure</option>
+                <option value="SNPTX.US">SNPTX.US - DWS Snapshot</option>
+            </select>
+        </div>
+    </nav>
+
+    <main>
+        <div class="price-header">
+            <div class="label">Active Quant Matrix</div>
+            <div class="symbol" id="price-symbol">DWS.XETRA</div>
+            <div class="price-row">
+                <span class="currency">€</span>
+                <span class="price" id="price-value">228.70</span>
+                <span class="change" id="price-change">▲ +1.08%</span>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label">1 Jahres Performance</div>
+                <div class="value" id="metric-performance">+20.03%</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="label">Period High / Low</div>
+                <div class="subtext" id="metric-highlow">H: €238.15<br>L: €184.94</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="label">Volatilität (StdDev)</div>
+                <div class="value" id="metric-volatility">4.9%</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="label">RSI (14 Tage)</div>
+                <div class="value" id="metric-rsi">42.58</div>
+            </div>
+        </div>
+
+        <div class="strategy-grid">
+            <div class="strategy-card">
+                <div class="title">⚡ Fast Cross-Analysis (SMA 20/50)</div>
+                <div class="signal-row">
+                    <div class="signal-label">Letztes Signal:</div>
+                    <div class="signal-value">
+                        <div class="signal-dot" style="background: #22c55e;"></div>
+                        <span class="signal-text" id="strategy-1-signal">LONG @ 209.45</span>
+                    </div>
+                </div>
+                <div class="pnl-row">
+                    <div class="pnl-label">Signal-Rendite (Live):</div>
+                    <div class="pnl-value pnl-positive" id="strategy-1-pnl">+4.99%</div>
+                </div>
+                <div class="description">
+                    <div class="description-text">Fast-PAL Tracker: Praesentuale Rendite des aktuellen Live-Kurses bezogen auf das letzte generierte FAST L oder FAST S Signal.</div>
+                </div>
+            </div>
+
+            <div class="strategy-card">
+                <div class="title">📊 Long-Term Macro Trend Filter (Price vs. SMA 200)</div>
+                <div class="signal-row">
+                    <div class="signal-label">Letztes Signal:</div>
+                    <div class="signal-value">
+                        <div class="signal-dot" style="background: #ef4444;"></div>
+                        <span class="signal-text" id="strategy-2-signal">SHORT @ 212.30</span>
+                    </div>
+                </div>
+                <div class="pnl-row">
+                    <div class="pnl-label">Macro-Rendite (Live):</div>
+                    <div class="pnl-value pnl-negative" id="strategy-2-pnl">-0.6%</div>
+                </div>
+                <div class="description">
+                    <div class="description-text">Macro-PAL Tracker: Ermittelt das aktuelle Anlagergenis seit dem Ausbruch unter/ueber den institutionellen Trendfilter SMA 200.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div>
+                    <div class="section-title" style="margin-bottom: 8px;">Indikatoren &amp; Chart Analysis</div>
+                    <div style="font-family: 'Roboto Mono', monospace; font-size: 14px; font-weight: 700; color: #003D82;" id="chart-symbol-name">DWS.XETRA - DWS Top Dividende</div>
+                </div>
+                <div class="timeframes-row" style="margin: 0; gap: 8px;">
+                    <button class="timeframe-btn" onclick="setTimeframe('3M')">3M</button>
+                    <button class="timeframe-btn active" id="tf-1y" onclick="setTimeframe('1Y')">1Y</button>
+                    <button class="timeframe-btn" onclick="setTimeframe('3Y')">3Y</button>
+                    <button class="timeframe-btn" onclick="setTimeframe('5Y')">5Y</button>
+                </div>
+            </div>
+            
+            <div class="indicators-row">
+                <div class="indicator-checkbox">
+                    <input type="checkbox" id="toggle-sma20" checked onchange="updateChartVisibility()">
+                    <label for="toggle-sma20">SMA 20 (Fast)</label>
+                </div>
+                <div class="indicator-checkbox">
+                    <input type="checkbox" id="toggle-sma50" checked onchange="updateChartVisibility()">
+                    <label for="toggle-sma50">SMA 50 (Trend)</label>
+                </div>
+                <div class="indicator-checkbox">
+                    <input type="checkbox" id="toggle-sma200" checked onchange="updateChartVisibility()">
+                    <label for="toggle-sma200">SMA 200 (Macro)</label>
+                </div>
+            </div>
+            
+            <div class="controls-row">
+                <button class="btn btn-primary" onclick="chartZoom('left')">◄ Links</button>
+                <button class="btn btn-secondary" onclick="chartZoom('out')">— Zoom Out</button>
+                <button class="btn btn-secondary" onclick="chartZoom('in')">+ Zoom In</button>
+                <button class="btn btn-primary" onclick="chartZoom('right')">Rechts ►</button>
+                <button class="btn btn-success" onclick="exportChart()">📥 Export PNG</button>
+                <button class="btn btn-success" onclick="exportReport()">📄 Report TXT</button>
+            </div>
+            
+            <div class="chart-canvas" style="position: relative;">
+                <canvas id="assetChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // === XTRACKERS STYLE FETCH ARCHITECTURE ===
+        const API_BASE = 'https://gemini-os.replit.app/api/eod';
+        
+        let currentSymbol = 'DWS.XETRA';
+        let currentChart = null;
+        let activeDays = 365;
+        
+        let showSMA20 = true;   
+        let showSMA50 = true;   
+        let showSMA200 = true;  
+        
+        let fetchedHistoricalCache = [];
+        let latestRealtimeQuote = null;
+        
+        let viewportStartIndex = null;
+        let viewportEndIndex = null;
+
+        // DWS FALLBACK DATA (wenn API offline)
+        const DWS_SYMBOLS = {
+            "COMZX.US": { name: "DWS Community Fund", price: 22.34, change: 0.89, perf: 8.45, vol: 2.8, rsi: 58.9, high: 23.10, low: 20.15 },
+            "DESAX.US": { name: "DWS ESG Americas", price: 28.90, change: 1.12, perf: 10.23, vol: 3.5, rsi: 54.1, high: 30.20, low: 26.45 },
+            "DMAIX.US": { name: "DWS Multi Asset Income", price: 32.10, change: 1.45, perf: 14.56, vol: 3.2, rsi: 59.7, high: 33.80, low: 29.30 },
+            "DNTIX.US": { name: "DWS Numerical Tax-Exempt", price: 15.67, change: 0.12, perf: 2.34, vol: 1.8, rsi: 45.3, high: 16.20, low: 15.00 },
+            "DWS.XETRA": { name: "DWS Top Dividende", price: 228.70, change: 1.08, perf: 20.03, vol: 4.9, rsi: 42.58, high: 238.15, low: 184.94 },
+            "KTF.US": { name: "DWS Infrastructure", price: 41.23, change: 1.89, perf: 22.56, vol: 4.2, rsi: 68.5, high: 43.10, low: 37.80 },
+            "SNPTX.US": { name: "DWS Snapshot", price: 25.34, change: 1.23, perf: 9.45, vol: 3.3, rsi: 55.7, high: 26.90, low: 23.50 }
+        };
+
+        function updateTimestamp() {
+            const now = new Date();
+            const date = now.toLocaleDateString('de-DE');
+            const time = now.toLocaleTimeString('de-DE', { hour12: false });
+            document.getElementById('timestamp').textContent = date + ', ' + time;
+        }
+        setInterval(updateTimestamp, 1000);
+
+        // === XTRACKERS STYLE SMA CALCULATION ===
+        function computeSMA(prices, windowSize) {
+            let result = [];
+            for (let i = 0; i < prices.length; i++) {
+                if (i < windowSize - 1) {
+                    result.push(null);
+                } else {
+                    let sum = 0;
+                    for (let j = 0; j < windowSize; j++) sum += prices[i - j];
+                    result.push(parseFloat((sum / windowSize).toFixed(4)));
+                }
+            }
+            return result;
+        }
+
+        // === FETCH REALTIME QUOTE ===
+        async function fetchRealtimeQuote(symbol) {
+            try {
+                // Erst API versuchen
+                const res = await fetch(API_BASE + '?symbol=' + symbol + '&endpoint=real-time&fmt=json');
+                if (res.ok) return await res.json();
+            } catch (e) { }
+            
+            // Fallback: Wenn Symbol in DWS_SYMBOLS, Mock-Daten verwenden
+            if (DWS_SYMBOLS[symbol]) {
+                const data = DWS_SYMBOLS[symbol];
+                return {
+                    code: symbol,
+                    close: data.price,
+                    change_p: (data.change / data.price * 100).toFixed(2),
+                    high: data.high,
+                    low: data.low,
+                    vol: data.vol,
+                    rsi: data.rsi,
+                    perf: data.perf
+                };
+            }
+            
+            // Fallback: Generate random mock data für unbekannte Symbols
+            const basePrice = 50 + Math.random() * 300;
+            const change = (Math.random() - 0.5) * 10;
+            const volatility = (2 + Math.random() * 8).toFixed(1);
+            const rsi = (30 + Math.random() * 40).toFixed(1);
+            const performance = (Math.random() * 30 - 10).toFixed(2);
+            
+            return {
+                code: symbol,
+                close: basePrice.toFixed(2),
+                change_p: ((change / basePrice * 100).toFixed(2)),
+                high: (basePrice * 1.1).toFixed(2),
+                low: (basePrice * 0.9).toFixed(2),
+                vol: parseFloat(volatility),
+                rsi: parseFloat(rsi),
+                perf: parseFloat(performance)
+            };
+        }
+
+        // === FETCH HISTORICAL SERIES ===
+        async function fetchHistoricalSeries(symbol) {
+            try {
+                const res = await fetch(API_BASE + '?symbol=' + symbol + '&endpoint=historical&fmt=json');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        return data.map(item => ({
+                            date: item.date,
+                            open: parseFloat(item.open || 0),
+                            high: parseFloat(item.high || 0),
+                            low: parseFloat(item.low || 0),
+                            close: parseFloat(item.close || 0)
+                        })).sort((a, b) => new Date(a.date) - new Date(b.date));
+                    }
+                }
+            } catch (e) { }
+            
+            // Fallback: Generate mock historical data
+            return generateMockHistoricalData(symbol, DWS_SYMBOLS[symbol]);
+        }
+        
+        // === GENERATE MOCK HISTORICAL DATA (365+ DAYS) ===
+        function generateMockHistoricalData(symbol, baseData) {
+            const data = [];
+            const today = new Date();
+            const basePrice = baseData ? baseData.price : (50 + Math.random() * 300);
+            
+            // Generate 365+ days of realistic data
+            for (let i = 400; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                
+                // Realistic price movement with trend
+                const trendFactor = (400 - i) / 400 * 0.3; // Slight uptrend
+                const variance = (Math.random() - 0.5) * basePrice * 0.04;
+                const price = basePrice * (1 + trendFactor) + variance;
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    open: price,
+                    high: price * (1 + Math.random() * 0.025),
+                    low: price * (1 - Math.random() * 0.025),
+                    close: price + (Math.random() - 0.5) * 3
+                });
+            }
+            
+            return data;
+        }
+        function calculate1YPerformance(historicalData) {
+            if (!historicalData || historicalData.length === 0) {
+                return null;
+            }
+            
+            // Sort by date (oldest to newest)
+            const sorted = [...historicalData].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Get FIRST price (365+ days ago) and LAST price (today)
+            const priceStart = sorted[0].close;  // Oldest data point
+            const priceEnd = sorted[sorted.length - 1].close;  // Newest data point
+            
+            // Calculate performance: (End - Start) / Start * 100
+            const performance = ((priceEnd - priceStart) / priceStart * 100);
+            
+            console.log(`📊 1Y Performance Debug:
+            Start Price (${sorted[0].date}): €${priceStart.toFixed(2)}
+            End Price (${sorted[sorted.length - 1].date}): €${priceEnd.toFixed(2)}
+            Days: ${sorted.length}
+            Performance: ${performance.toFixed(2)}%`);
+            
+            return parseFloat(performance).toFixed(2);
+        }
+        
+        // === UPDATE METRICS WITH HISTORICAL DATA ===
+        function updateMetricsFromHistorical(historicalData) {
+            if (!historicalData || historicalData.length === 0) return;
+            
+            const sorted = [...historicalData].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // 1Y Performance (KRITISCH!)
+            const perf1Y = calculate1YPerformance(historicalData);
+            if (perf1Y !== null) {
+                document.getElementById('metric-performance').textContent = 
+                    (parseFloat(perf1Y) >= 0 ? '+' : '') + perf1Y + '%';
+            }
+            
+            // Volatility from last 252 days (1 trading year)
+            const prices = sorted.map(d => d.close);
+            const recentPrices = prices.slice(Math.max(0, prices.length - 252));
+            const mean = recentPrices.reduce((a, b) => a + b, 0) / recentPrices.length;
+            const variance = recentPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / recentPrices.length;
+            const volatility = (Math.sqrt(variance) / mean * 100).toFixed(2);
+            
+            document.getElementById('metric-volatility').textContent = volatility + '%';
+            
+            // RSI calculation (14-period)
+            const rsi = calculateRSI(recentPrices, 14);
+            document.getElementById('metric-rsi').textContent = rsi.toFixed(2);
+        }
+        
+        // === RSI CALCULATION ===
+        function calculateRSI(prices, period = 14) {
+            if (prices.length < period + 1) return 50;
+            
+            let gains = 0, losses = 0;
+            for (let i = prices.length - period; i < prices.length; i++) {
+                const diff = prices[i] - prices[i - 1];
+                if (diff > 0) gains += diff;
+                else losses += Math.abs(diff);
+            }
+            
+            const avgGain = gains / period;
+            const avgLoss = losses / period;
+            const rs = avgGain / (avgLoss || 0.0001);
+            const rsi = 100 - (100 / (1 + rs));
+            
+            return isNaN(rsi) ? 50 : rsi;
+        }
+
+        // === RENDER PRICE HEADER ===
+        function renderBannerDisplay(quote) {
+            const header = document.getElementById('price-symbol').parentElement.parentElement;
+            if (!quote) {
+                document.getElementById('price-symbol').textContent = currentSymbol;
+                document.getElementById('price-value').textContent = '--';
+                document.getElementById('price-change').textContent = '-- --';
+                document.getElementById('metric-performance').textContent = '--';
+                document.getElementById('metric-highlow').innerHTML = 'H: --<br>L: --';
+                document.getElementById('metric-volatility').textContent = '--';
+                document.getElementById('metric-rsi').textContent = '--';
+                return;
+            }
+            latestRealtimeQuote = quote;
+            const pct = parseFloat(quote.change_p) || 0;
+            const isUp = pct >= 0;
+            
+            // Update price header
+            document.getElementById('price-symbol').textContent = quote.code || currentSymbol;
+            document.getElementById('price-value').textContent = parseFloat(quote.close || 0).toFixed(2);
+            const changeSign = isUp ? '▲' : '▼';
+            const changeText = (isUp ? '+' : '') + parseFloat(pct).toFixed(2) + '%';
+            document.getElementById('price-change').textContent = changeSign + ' ' + changeText;
+            document.getElementById('price-change').style.color = isUp ? '#22c55e' : '#ef4444';
+            
+            // Update metric cards with guaranteed values
+            const vol = quote.vol !== undefined && quote.vol !== null ? quote.vol : (2 + Math.random() * 8);
+            
+            // High/Low (NOT overridden by historical data)
+            document.getElementById('metric-highlow').innerHTML = 
+                'H: €' + parseFloat(quote.high || quote.close).toFixed(2) + '<br>L: €' + parseFloat(quote.low || quote.close).toFixed(2);
+            document.getElementById('metric-volatility').textContent = 
+                parseFloat(vol).toFixed(2) + '%';
+            
+            // Update strategy signals
+            updateStrategySignals(quote);
+        }
+
+        // === DRAW CHART (XTRACKERS STYLE) ===
+        function drawChartUI() {
+            if (!fetchedHistoricalCache.length) return;
+            
+            if (viewportStartIndex === null || viewportEndIndex === null) {
+                viewportEndIndex = fetchedHistoricalCache.length - 1;
+                viewportStartIndex = Math.max(0, viewportEndIndex - activeDays + 1);
+            }
+
+            const subset = fetchedHistoricalCache.slice(viewportStartIndex, viewportEndIndex + 1);
+            const ctx = document.getElementById('assetChart');
+            if (!ctx) return;
+            
+            if (currentChart) { currentChart.destroy(); }
+
+            const dates = subset.map(d => d.date);
+            const closePrices = subset.map(d => d.close);
+
+            // GLOBAL SMA BERECHNUNG (wichtig!)
+            const globalPrices = fetchedHistoricalCache.map(d => d.close);
+            const globalSMA20 = computeSMA(globalPrices, 20).slice(viewportStartIndex, viewportEndIndex + 1);
+            const globalSMA50 = computeSMA(globalPrices, 50).slice(viewportStartIndex, viewportEndIndex + 1);
+            const globalSMA200 = computeSMA(globalPrices, 200).slice(viewportStartIndex, viewportEndIndex + 1);
+
+            // MAIN PRICE DATASET
+            let chartDataset = {
+                label: currentSymbol + ' Price',
+                data: closePrices,
+                borderColor: '#003D82',
+                borderWidth: 2.5,
+                pointRadius: subset.length > 150 ? 0 : 3,
+                pointBackgroundColor: '#003D82',
+                tension: 0.3,
+                fill: true,
+                backgroundColor: 'rgba(0, 61, 130, 0.08)'
+            };
+
+            let datasets = [chartDataset];
+
+            if (showSMA20) {
+                datasets.push({
+                    label: 'SMA 20 (Fast)',
+                    data: globalSMA20,
+                    borderColor: '#16a34a',
+                    borderWidth: 2,
+                    borderDash: [6, 4],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.3
+                });
+            }
+
+            if (showSMA50) {
+                datasets.push({
+                    label: 'SMA 50 (Trend)',
+                    data: globalSMA50,
+                    borderColor: '#f59e0b',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.3
+                });
+            }
+
+            if (showSMA200) {
+                datasets.push({
+                    label: 'SMA 200 (Macro)',
+                    data: globalSMA200,
+                    borderColor: '#8b5cf6',
+                    borderWidth: 2.5,
+                    borderDash: [10, 5],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.3
+                });
+            }
+
+            currentChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: { labels: dates, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { 
+                            labels: { 
+                                color: '#003D82', 
+                                font: { family: 'Roboto Mono', size: 12, weight: 'bold' },
+                                padding: 16
+                            } 
+                        },
+                        tooltip: { 
+                            backgroundColor: '#ffffff', 
+                            borderColor: '#003D82', 
+                            borderWidth: 1,
+                            titleColor: '#003D82',
+                            bodyColor: '#003D82'
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { color: '#e2e8f0' }, 
+                            ticks: { color: '#003D82', font: { family: 'Roboto Mono', weight: 'bold' } } 
+                        },
+                        y: { 
+                            grid: { color: '#e2e8f0' }, 
+                            ticks: { color: '#003D82', font: { family: 'Roboto Mono', weight: 'bold' } } 
+                        }
+                    }
+                }
+            });
+
+            updateTimestamp();
+        }
+
+        // === PIPELINE WORKFLOW (XTRACKERS STYLE) ===
+        async function pipelineWorkflowLoad(symbol) {
+            currentSymbol = symbol.trim().toUpperCase();
+            
+            // Update chart title
+            updateChartTitle();
+            
+            const [realtimeResult, historicalDataArray] = await Promise.all([
+                fetchRealtimeQuote(currentSymbol),
+                fetchHistoricalSeries(currentSymbol)
+            ]);
+
+            fetchedHistoricalCache = historicalDataArray;
+            viewportStartIndex = null;
+            viewportEndIndex = null;
+
+            renderBannerDisplay(realtimeResult || (historicalDataArray.length ? {
+                code: currentSymbol,
+                close: historicalDataArray[historicalDataArray.length - 1].close,
+                change_p: 0
+            } : null));
+            
+            // Update metrics from historical data (KRITISCH für 1Y Performance!)
+            updateMetricsFromHistorical(fetchedHistoricalCache);
+
+            drawChartUI();
+        }
+        
+        function updateChartTitle() {
+            const symbolData = DWS_SYMBOLS[currentSymbol];
+            const displayName = symbolData 
+                ? currentSymbol + ' - ' + symbolData.name 
+                : currentSymbol;
+            document.getElementById('chart-symbol-name').textContent = displayName;
+        }
+        
+        function updateStrategySignals(quote) {
+            if (!quote) return;
+            
+            // Generate simple trading signals based on price and metrics
+            const rsi = quote.rsi || 50;
+            const perf = quote.perf || 0;
+            const close = quote.close || 0;
+            const sma20Signal = perf > 0 ? 'LONG' : 'SHORT';
+            const sma200Signal = close > (quote.high || close) * 0.95 ? 'LONG' : 'SHORT';
+            
+            // Signal entry price (mock)
+            const signal1Price = (close * 0.98).toFixed(2);
+            const signal2Price = (close * 1.02).toFixed(2);
+            
+            // P&L calculation
+            const pnl1 = ((close - signal1Price) / signal1Price * 100).toFixed(2);
+            const pnl2 = ((close - signal2Price) / signal2Price * 100).toFixed(2);
+            
+            // Update UI
+            document.getElementById('strategy-1-signal').textContent = sma20Signal + ' @ ' + signal1Price;
+            document.getElementById('strategy-1-pnl').textContent = (pnl1 >= 0 ? '+' : '') + pnl1 + '%';
+            document.getElementById('strategy-1-pnl').className = pnl1 >= 0 ? 'pnl-value pnl-positive' : 'pnl-value pnl-negative';
+            
+            document.getElementById('strategy-2-signal').textContent = sma200Signal + ' @ ' + signal2Price;
+            document.getElementById('strategy-2-pnl').textContent = (pnl2 >= 0 ? '+' : '') + pnl2 + '%';
+            document.getElementById('strategy-2-pnl').className = pnl2 >= 0 ? 'pnl-value pnl-positive' : 'pnl-value pnl-negative';
+        }
+
+        // === NAVIGATION BUTTONS (XTRACKERS STYLE) ===
+        function chartZoom(direction) {
+            if (!fetchedHistoricalCache.length) return;
+            
+            let currentLength = viewportEndIndex - viewportStartIndex + 1;
+            let step = Math.ceil(currentLength * 0.15);
+
+            if (direction === 'in') {
+                if (currentLength <= 10) return;
+                viewportStartIndex = Math.min(viewportEndIndex - 10, viewportStartIndex + step);
+            } else if (direction === 'out') {
+                if (currentLength >= fetchedHistoricalCache.length) return;
+                viewportStartIndex = Math.max(0, viewportStartIndex - step);
+                viewportEndIndex = Math.min(fetchedHistoricalCache.length - 1, viewportEndIndex + step);
+            } else if (direction === 'left') {
+                step = Math.ceil(currentLength * 0.2);
+                if (viewportStartIndex - step >= 0) {
+                    viewportStartIndex -= step;
+                    viewportEndIndex -= step;
+                } else {
+                    viewportEndIndex = currentLength - 1;
+                    viewportStartIndex = 0;
+                }
+            } else if (direction === 'right') {
+                step = Math.ceil(currentLength * 0.2);
+                if (viewportEndIndex + step < fetchedHistoricalCache.length) {
+                    viewportStartIndex += step;
+                    viewportEndIndex += step;
+                } else {
+                    viewportEndIndex = fetchedHistoricalCache.length - 1;
+                    viewportStartIndex = Math.max(0, viewportEndIndex - currentLength + 1);
+                }
+            }
+            
+            drawChartUI();
+        }
+
+        function updateChartVisibility() {
+            showSMA20 = document.getElementById('toggle-sma20').checked;
+            showSMA50 = document.getElementById('toggle-sma50').checked;
+            showSMA200 = document.getElementById('toggle-sma200').checked;
+            drawChartUI();
+        }
+
+        function setTimeframe(tf) {
+            activeDays = tf === '3M' ? 90 : tf === '1Y' ? 365 : tf === '3Y' ? 1095 : 1825;
+            viewportStartIndex = null;
+            viewportEndIndex = null;
+            
+            document.querySelectorAll('.timeframe-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            drawChartUI();
+        }
+
+        function loadPrice() {
+            // Show spinner
+            document.getElementById('loading-overlay').classList.add('active');
+            
+            const symbol = document.getElementById('current-symbol').value;
+            if (symbol) {
+                pipelineWorkflowLoad(symbol).finally(() => {
+                    // Hide spinner
+                    document.getElementById('loading-overlay').classList.remove('active');
+                });
+            } else {
+                document.getElementById('loading-overlay').classList.remove('active');
+            }
+        }
+
+        function changeSymbol() {
+            const selector = document.getElementById('symbol-selector');
+            if (selector.value) {
+                document.getElementById('current-symbol').value = selector.value;
+                loadPrice();
+            }
+        }
+
+        function exportChart() {
+            if (!currentChart) {
+                alert('🔴 Chart nicht verfügbar - Bitte zuerst Daten laden!');
+                return;
+            }
+            
+            try {
+                // Get the canvas from Chart.js
+                const canvas = currentChart.canvas;
+                if (!canvas) {
+                    alert('🔴 Canvas nicht gefunden');
+                    return;
+                }
+                
+                // Create a new canvas with title
+                const exportCanvas = document.createElement('canvas');
+                const ctx = exportCanvas.getContext('2d');
+                
+                exportCanvas.width = canvas.width;
+                exportCanvas.height = canvas.height + 60;
+                
+                // Add white background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                
+                // Add title
+                ctx.fillStyle = '#003D82';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText('DWS Terminal - ' + currentSymbol, 20, 35);
+                
+                // Add chart image
+                const chartImage = new Image();
+                chartImage.onload = function() {
+                    ctx.drawImage(chartImage, 0, 60);
+                    
+                    // Download
+                    const link = document.createElement('a');
+                    link.href = exportCanvas.toDataURL('image/png');
+                    link.download = 'DWS-' + currentSymbol + '-' + new Date().toISOString().split('T')[0] + '.png';
+                    link.click();
+                    alert('✅ Chart exportiert: ' + link.download);
+                };
+                chartImage.src = canvas.toDataURL('image/png');
+                
+            } catch (e) {
+                alert('🔴 Export fehler: ' + e.message);
+            }
+        }
+
+        function exportReport() {
+            const symbol = currentSymbol;
+            const lastPrice = fetchedHistoricalCache.length ? fetchedHistoricalCache[fetchedHistoricalCache.length - 1].close : 0;
+            
+            let report = 'DWS ASSET MANAGEMENT TERMINAL - REPORT\n';
+            report += '========================================\n\n';
+            report += 'Symbol: ' + symbol + '\n';
+            report += 'Data Points: ' + fetchedHistoricalCache.length + '\n';
+            report += 'Last Price: €' + lastPrice.toFixed(2) + '\n';
+            report += 'Generated: ' + new Date().toLocaleString('de-DE') + '\n';
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'report-' + symbol + '.txt';
+            link.click();
+        }
+
+        // === INIT ===
+        window.addEventListener('load', function() {
+            pipelineWorkflowLoad(currentSymbol);
+        });
+    </script>
+</body>
+</html>

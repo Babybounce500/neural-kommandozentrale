@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DWS XETRA Verifier - Quick Check</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Roboto Mono', 'Courier New', monospace;
+            background: linear-gradient(135deg, #f8fafc 0%, #e8f0f7 100%);
+            color: #003D82;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-align: center;
+            color: #003D82;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #475569;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            padding: 12px 24px;
+            background: #003D82;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #002a5c;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            border: 2px solid #003D82;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 61, 130, 0.1);
+        }
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #475569;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 900;
+            color: #003D82;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 2px solid #003D82;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #16a34a 0%, #3b82f6 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border: 2px solid #003D82;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 61, 130, 0.1);
+        }
+        th {
+            background: #003D82;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            border: 1px solid #003D82;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            font-size: 12px;
+        }
+        tr:hover {
+            background: #f1f5f9;
+        }
+        .status-ok {
+            color: #16a34a;
+            font-weight: 700;
+        }
+        .status-warn {
+            color: #f59e0b;
+            font-weight: 700;
+        }
+        .status-error {
+            color: #ef4444;
+            font-weight: 700;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #003D82;
+        }
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #003D82;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .export-btn {
+            background: #16a34a;
+        }
+        .export-btn:hover {
+            background: #15803d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 DWS XETRA VERIFIER</h1>
+        <p class="subtitle">Prüft alle beliebten DWS XETRA-gelisteten Produkte auf Datenqualität</p>
+
+        <div class="controls">
+            <button onclick="startVerification()">▶ Alle Symbole prüfen</button>
+            <button onclick="exportCSV()" class="export-btn">📥 Als CSV exportieren</button>
+            <button onclick="location.reload()">🔄 Neu laden</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress">0%</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Geprüft</div>
+                <div class="stat-value" id="stat-checked">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Legitim ✓</div>
+                <div class="stat-value" id="stat-ok" style="color: #16a34a;">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Warnung ⚠</div>
+                <div class="stat-value" id="stat-warn" style="color: #f59e0b;">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Error ✗</div>
+                <div class="stat-value" id="stat-error" style="color: #ef4444;">0</div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Prüfe XETRA Symbole...</p>
+        </div>
+
+        <table id="results-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Symbol</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Price €</th>
+                    <th>Change %</th>
+                    <th>High</th>
+                    <th>Low</th>
+                    <th>Data Points</th>
+                </tr>
+            </thead>
+            <tbody id="results-tbody">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_BASE = 'https://gemini-os.replit.app/api/eod';
+        
+        // Beliebte DWS XETRA Produkte
+        const DWS_XETRA_SYMBOLS = [
+            { symbol: "DBXD.XETRA", name: "Xtrackers DAX UCITS ETF" },
+            { symbol: "DBXP.XETRA", name: "Xtrackers Portfolio UCITS ETF" },
+            { symbol: "DBX0.XETRA", name: "Xtrackers MSCI World UCITS ETF" },
+            { symbol: "DBX1.XETRA", name: "Xtrackers MSCI EM UCITS ETF" },
+            { symbol: "DBXE.XETRA", name: "Xtrackers EURO STOXX 50 UCITS ETF" },
+            { symbol: "DBXA.XETRA", name: "Xtrackers MSCI Europe UCITS ETF" },
+            { symbol: "DBXG.XETRA", name: "Xtrackers Global Govt Bond UCITS ETF" },
+            { symbol: "DBXU.XETRA", name: "Xtrackers MSCI USA UCITS ETF" },
+            { symbol: "DBXJ.XETRA", name: "Xtrackers MSCI Japan UCITS ETF" },
+            { symbol: "DBXK.XETRA", name: "Xtrackers MSCI Korea UCITS ETF" },
+            { symbol: "DBXM.XETRA", name: "Xtrackers MSCI EM Asia UCITS ETF" },
+            { symbol: "DBXN.XETRA", name: "Xtrackers MSCI EM LatAm UCITS ETF" },
+            { symbol: "DBXR.XETRA", name: "Xtrackers MSCI EM Europe UCITS ETF" },
+            { symbol: "DBXS.XETRA", name: "Xtrackers MSCI Brazil UCITS ETF" },
+            { symbol: "DBXT.XETRA", name: "Xtrackers MSCI Taiwan UCITS ETF" },
+            { symbol: "DBXV.XETRA", name: "Xtrackers India UCITS ETF" },
+            { symbol: "DBXW.XETRA", name: "Xtrackers MSCI World Small Cap" },
+            { symbol: "DBXZ.XETRA", name: "Xtrackers MSCI Europe Small Cap" },
+            { symbol: "DWS.XETRA", name: "DWS Top Dividende" },
+            { symbol: "DBXF.XETRA", name: "Xtrackers S&P 500 UCITS ETF" },
+            { symbol: "DBXC.XETRA", name: "Xtrackers STOXX Europe 600 UCITS ETF" },
+            { symbol: "DBXH.XETRA", name: "Xtrackers Global Corporate Bond" },
+            { symbol: "DBXI.XETRA", name: "Xtrackers Emerging Markets Bond" },
+            { symbol: "DBXQ.XETRA", name: "Xtrackers MSCI World Momentum" },
+            { symbol: "DBXY.XETRA", name: "Xtrackers MSCI World Value" },
+            { symbol: "DBXL.XETRA", name: "Xtrackers Russell 2000 UCITS ETF" },
+            { symbol: "DBXO.XETRA", name: "Xtrackers Global Dividend UCITS ETF" },
+            { symbol: "DBXB.XETRA", name: "Xtrackers Bloomberg Commodity UCITS" },
+            { symbol: "XDIV.XETRA", name: "iShares Core Dividend UCITS ETF" },
+            { symbol: "XMEU.XETRA", name: "iShares MSCI Europe UCITS ETF" }
+        ];
+
+        let results = [];
+
+        async function fetchSymbolData(symbol) {
+            try {
+                const [realtimeRes, historicalRes] = await Promise.all([
+                    fetch(API_BASE + '?symbol=' + symbol + '&endpoint=real-time&fmt=json'),
+                    fetch(API_BASE + '?symbol=' + symbol + '&endpoint=historical&fmt=json')
+                ]);
+
+                const realtime = realtimeRes.ok ? await realtimeRes.json() : null;
+                const historical = historicalRes.ok ? await historicalRes.json() : [];
+
+                return {
+                    realtime,
+                    historical: Array.isArray(historical) ? historical : []
+                };
+            } catch (e) {
+                return { realtime: null, historical: [] };
+            }
+        }
+
+        function getStatus(realtime, historical) {
+            if (!realtime || !historical.length) {
+                return { status: 'error', text: 'KEINE DATEN' };
+            }
+            
+            const price = parseFloat(realtime.close || 0);
+            
+            if (isNaN(price) || price === 0 || price === 1) {
+                return { status: 'error', text: 'BAD PRICE (' + price + ')' };
+            }
+            
+            if (price < 1) {
+                return { status: 'warn', text: 'LOW PRICE' };
+            }
+            
+            if (historical.length < 50) {
+                return { status: 'warn', text: 'FEW POINTS (' + historical.length + ')' };
+            }
+            
+            return { status: 'ok', text: '✓ OK' };
+        }
+
+        async function startVerification() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results-table').style.display = 'none';
+            results = [];
+
+            for (let i = 0; i < DWS_XETRA_SYMBOLS.length; i++) {
+                const sym = DWS_XETRA_SYMBOLS[i];
+                const data = await fetchSymbolData(sym.symbol);
+                
+                const statusCheck = getStatus(data.realtime, data.historical);
+                
+                const result = {
+                    index: i + 1,
+                    symbol: sym.symbol,
+                    name: sym.name,
+                    status: statusCheck.status,
+                    statusText: statusCheck.text,
+                    price: data.realtime?.close || 'N/A',
+                    change: data.realtime?.change_p || 'N/A',
+                    high: data.realtime?.high || 'N/A',
+                    low: data.realtime?.low || 'N/A',
+                    dataPoints: data.historical.length
+                };
+                
+                results.push(result);
+                updateUI();
+                
+                await new Promise(r => setTimeout(r, 150));
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results-table').style.display = 'table';
+            renderTable();
+        }
+
+        function updateUI() {
+            const checked = results.length;
+            const ok = results.filter(r => r.status === 'ok').length;
+            const warn = results.filter(r => r.status === 'warn').length;
+            const error = results.filter(r => r.status === 'error').length;
+
+            const percent = Math.round((checked / DWS_XETRA_SYMBOLS.length) * 100);
+
+            document.getElementById('stat-checked').textContent = checked;
+            document.getElementById('stat-ok').textContent = ok;
+            document.getElementById('stat-warn').textContent = warn;
+            document.getElementById('stat-error').textContent = error;
+            document.getElementById('progress').style.width = percent + '%';
+            document.getElementById('progress').textContent = percent + '%';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+
+            results.forEach(r => {
+                const row = document.createElement('tr');
+                const statusClass = 'status-' + r.status;
+                
+                const priceText = typeof r.price === 'number' ? '€' + r.price.toFixed(2) : r.price;
+                const changeText = typeof r.change === 'number' ? (r.change >= 0 ? '+' : '') + r.change.toFixed(2) + '%' : r.change;
+                const highText = typeof r.high === 'number' ? '€' + r.high.toFixed(2) : r.high;
+                const lowText = typeof r.low === 'number' ? '€' + r.low.toFixed(2) : r.low;
+                
+                row.innerHTML = `
+                    <td><strong>${r.index}</strong></td>
+                    <td><strong>${r.symbol}</strong></td>
+                    <td>${r.name}</td>
+                    <td class="${statusClass}">${r.statusText}</td>
+                    <td>${priceText}</td>
+                    <td>${changeText}</td>
+                    <td>${highText}</td>
+                    <td>${lowText}</td>
+                    <td><strong>${r.dataPoints}</strong></td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function exportCSV() {
+            if (!results.length) {
+                alert('Bitte zuerst Symbole prüfen');
+                return;
+            }
+
+            let csv = 'Index,Symbol,Name,Status,Price,Change %,High,Low,Data Points\n';
+            
+            results.forEach(r => {
+                const price = typeof r.price === 'number' ? r.price.toFixed(2) : r.price;
+                const change = typeof r.change === 'number' ? r.change.toFixed(2) : r.change;
+                const high = typeof r.high === 'number' ? r.high.toFixed(2) : r.high;
+                const low = typeof r.low === 'number' ? r.low.toFixed(2) : r.low;
+                
+                csv += `${r.index},"${r.symbol}","${r.name}","${r.statusText}",${price},${change},${high},${low},${r.dataPoints}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'dws-xetra-verification-' + new Date().toISOString().split('T')[0] + '.csv';
+            link.click();
+        }
+    </script>
+</body>
+</html>

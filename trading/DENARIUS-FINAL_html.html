@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEURAL_MATRIX // DENARIUS_BULK_CORE_v6.5</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #04060a;
+      --panel: #090d1a;
+      --panel-inner: #0d1326;
+      --border: rgba(0, 212, 255, 0.15);
+      --border-bright: rgba(0, 212, 255, 0.4);
+      --txt-muted: #647c90;
+      --white: #eaf1f7;
+      --green: #00ff88;
+      --red: #ff003c;
+      --accent: #00d4ff;
+      --gold: #ffdd00;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html, body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    body { padding: 24px; padding-bottom: 60px; }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      color: #fff;
+      font-weight: 900;
+      letter-spacing: 5px;
+      text-shadow: 0 0 20px rgba(0, 212, 255, 0.35);
+    }
+
+    .subtitle {
+      color: var(--accent);
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      margin-top: 8px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      gap: 16px;
+      margin: 24px 0;
+      align-items: center;
+      flex-wrap: wrap;
+      background: rgba(9, 13, 26, 0.7);
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      backdrop-filter: blur(10px);
+    }
+
+    .control-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label {
+      font-size: 0.75rem;
+      color: var(--txt-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
+
+    select, input {
+      background: var(--panel-inner);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+    }
+
+    select:focus, input:focus { outline: none; border-color: var(--green); }
+
+    .btn {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 12px 28px;
+      border-radius: 4px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      height: 48px;
+    }
+
+    .btn:hover { 
+      background: var(--accent); 
+      color: #04060a; 
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-export { border-color: var(--green); color: var(--green); }
+    .btn-export:hover { background: var(--green); color: #04060a; box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
+
+    #progressSection {
+      display: none;
+      margin: 24px 0;
+      padding: 20px;
+      background: var(--panel);
+      border: 1px solid var(--border-bright);
+      border-radius: 6px;
+    }
+
+    #progressSection.active { display: block; }
+
+    .progress-bar {
+      width: 100%;
+      height: 24px;
+      background: #020305;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    #progressFill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--green));
+      width: 0%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #000;
+    }
+
+    .results-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .results-section-header {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .results-section.long .results-section-header { border-color: var(--green); color: var(--green); background: rgba(0, 255, 136, 0.04); }
+    .results-section.short .results-section-header { border-color: var(--red); color: var(--red); background: rgba(255, 0, 60, 0.04); }
+
+    .results-grid { display: flex; flex-direction: column; gap: 14px; }
+
+    .result-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      display: flex;
+      gap: 18px;
+    }
+
+    .result-card.long { border-left: 4px solid var(--green); }
+    .result-card.short { border-left: 4px solid var(--red); }
+
+    .result-candle-matrix {
+      flex-shrink: 0;
+      width: 110px;
+      height: 110px;
+      background: #020408;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 4px;
+    }
+
+    .result-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .result-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 6px; }
+    
+    .result-symbol { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.1rem; color: #fff; }
+    .result-timestamp { font-size: 0.65rem; color: var(--txt-muted); }
+    
+    .sig-badge { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+    .badge-long { background: rgba(0, 255, 136, 0.08); color: var(--green); border: 1px solid rgba(0, 255, 136, 0.2); }
+    .badge-short { background: rgba(255, 0, 60, 0.08); color: var(--red); border: 1px solid rgba(255, 0, 60, 0.2); }
+
+    .result-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; font-size: 0.78rem; margin-top: 6px; }
+    .result-metric { display: flex; justify-content: space-between; }
+    .result-label { color: var(--txt-muted); }
+    .val-accent { color: var(--accent); font-weight: bold; }
+    .text-up { color: var(--green); font-weight: bold; }
+    .text-down { color: var(--red); font-weight: bold; }
+
+    .confidence-container { grid-column: span 2; margin-top: 4px; }
+    .confidence-mini-bar { background: rgba(255, 255, 255, 0.04); height: 4px; border-radius: 2px; width: 100%; margin-top: 2px;}
+    .confidence-mini-fill { background: linear-gradient(90deg, var(--accent), var(--gold)); height: 100%; width: 0%; transition: width 0.4s ease; }
+
+    @media (max-width: 1024px) { .results-container { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title">// NEURAL_MATRIX_DENARIUS</div>
+    <div class="subtitle">CLUSTER BULK CORE ENGINE // HARD LOCK PROTECTION v6.5</div>
+  </div>
+
+  <div class="controls">
+    <div class="control-grid" style="flex: 2; min-width: 240px;">
+      <span class="control-label">Matrix Asset-Cluster</span>
+      <select id="categorySelect"></select>
+    </div>
+    <div class="control-grid" style="flex: 1; min-width: 130px;">
+      <span class="control-label">Delay (ms)</span>
+      <input type="number" id="delayInput" value="2500" min="1000">
+    </div>
+    <button class="btn" onclick="startBulkScan()">EXECUTE CLUSTER SCAN</button>
+    <button class="btn btn-export" onclick="exportHTML()">📊 EXPORT MATRIX REPORT</button>
+  </div>
+
+  <div id="progressSection">
+    <div class="progress-header">
+      <div id="progressText">Initializing Pipeline Core...</div>
+      <div style="color: var(--txt-muted);">Processed: <span id="statusMsg" style="color: var(--accent);">0 / 0</span></div>
+    </div>
+    <div class="progress-bar"><div id="progressFill">0%</div></div>
+  </div>
+
+  <div class="results-container">
+    <div class="results-section long">
+      <div class="results-section-header">▲ LONG CLUSTER SIGNALS (BULLISH)</div>
+      <div class="results-grid" id="longGrid"></div>
+    </div>
+    <div class="results-section short">
+      <div class="results-section-header">▼ SHORT CLUSTER SIGNALS (BEARISH)</div>
+      <div class="results-grid" id="shortGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    const PROXY_BASE_URL = "https://gemini-os.replit.app/api/eod";
+    let results = [];
+    let isScanning = false;
+
+    const marketsDataEmbedded = {
+      "markets": [
+        {"id": "dow30", "label": "🇺🇸 DOW JONES 30", "stocks": [{"sym": "AAPL.US"}, {"sym": "MSFT.US"}, {"sym": "JPM.US"}, {"sym": "GS.US"}, {"sym": "JNJ.US"}, {"sym": "NKE.US"}, {"sym": "V.US"}, {"sym": "HD.US"}, {"sym": "MCD.US"}, {"sym": "KO.US"}, {"sym": "IBM.US"}, {"sym": "CVX.US"}, {"sym": "DIS.US"}, {"sym": "CAT.US"}, {"sym": "BA.US"}, {"sym": "AXP.US"}, {"sym": "WMT.US"}, {"sym": "TRV.US"}, {"sym": "UNH.US"}, {"sym": "MMM.US"}, {"sym": "BRK-B.US"}, {"sym": "PG.US"}, {"sym": "MA.US"}, {"sym": "XOM.US"}, {"sym": "ABBV.US"}, {"sym": "AVGO.US"}, {"sym": "VZ.US"}, {"sym": "MRK.US"}, {"sym": "CSCO.US"}]},
+        {"id": "nasdaq", "label": "🇺🇸 NASDAQ TECH", "stocks": [{"sym": "AAPL.US"}, {"sym": "MSFT.US"}, {"sym": "NVDA.US"}, {"sym": "AMZN.US"}, {"sym": "GOOGL.US"}, {"sym": "META.US"}, {"sym": "TSLA.US"}, {"sym": "NFLX.US"}, {"sym": "ADBE.US"}, {"sym": "CRM.US"}, {"sym": "QCOM.US"}, {"sym": "INTC.US"}, {"sym": "AMD.US"}, {"sym": "PYPL.US"}, {"sym": "AMAT.US"}, {"sym": "MU.US"}]},
+        {"id": "dax", "label": "🇩🇪 DAX 40", "stocks": [{"sym": "ALV.XETRA"}, {"sym": "SAP.XETRA"}, {"sym": "SIE.XETRA"}, {"sym": "BMW.XETRA"}, {"sym": "MBG.XETRA"}, {"sym": "VOW3.XETRA"}, {"sym": "MUV2.XETRA"}, {"sym": "DTE.XETRA"}, {"sym": "DBK.XETRA"}, {"sym": "BAYN.XETRA"}, {"sym": "BAS.XETRA"}, {"sym": "ADS.XETRA"}, {"sym": "RWE.XETRA"}, {"sym": "RHM.XETRA"}, {"sym": "MRK.XETRA"}, {"sym": "HNR1.XETRA"}, {"sym": "ENR.XETRA"}, {"sym": "FRE.XETRA"}, {"sym": "HEI.XETRA"}, {"sym": "MTX.XETRA"}, {"sym": "DB1.XETRA"}, {"sym": "DPW.XETRA"}, {"sym": "EOAN.XETRA"}, {"sym": "IFX.XETRA"}, {"sym": "LIN.XETRA"}, {"sym": "BEI.XETRA"}, {"sym": "HEN3.XETRA"}, {"sym": "CON.XETRA"}, {"sym": "DHER.XETRA"}, {"sym": "ZAL.XETRA"}]},
+        {"id": "ftse", "label": "🇬🇧 FTSE 100", "stocks": [{"sym": "SHEL.LSE"}, {"sym": "AZN.LSE"}, {"sym": "HSBA.LSE"}, {"sym": "ULVR.LSE"}, {"sym": "BP.LSE"}, {"sym": "GSK.LSE"}, {"sym": "RIO.LSE"}, {"sym": "DGE.LSE"}, {"sym": "LSEG.LSE"}, {"sym": "REL.LSE"}, {"sym": "NG.LSE"}, {"sym": "CPG.LSE"}, {"sym": "LLOY.LSE"}, {"sym": "BT-A.LSE"}, {"sym": "VOD.LSE"}, {"sym": "AAL.LSE"}, {"sym": "BARC.LSE"}, {"sym": "NWG.LSE"}, {"sym": "STAN.LSE"}, {"sym": "BHP.LSE"}, {"sym": "PRU.LSE"}, {"sym": "AV.LSE"}, {"sym": "LGEN.LSE"}, {"sym": "TSCO.LSE"}, {"sym": "SBRY.LSE"}, {"sym": "BATS.LSE"}, {"sym": "IMB.LSE"}, {"sym": "RKT.LSE"}, {"sym": "WPP.LSE"}, {"sym": "BA.LSE"}, {"sym": "SSE.LSE"}, {"sym": "SGE.LSE"}]},
+        {"id": "cac40", "label": "🇫🇷 CAC 40", "stocks": [{"sym": "MC.PA"}, {"sym": "TTE.PA"}, {"sym": "SAN.PA"}, {"sym": "AI.PA"}, {"sym": "OR.PA"}, {"sym": "BNP.PA"}, {"sym": "DG.PA"}, {"sym": "RI.PA"}, {"sym": "CA.PA"}, {"sym": "ACA.PA"}, {"sym": "ORA.PA"}, {"sym": "DSY.PA"}, {"sym": "KER.PA"}, {"sym": "HO.PA"}, {"sym": "AIR.PA"}, {"sym": "ALO.PA"}, {"sym": "BN.PA"}, {"sym": "CAP.PA"}, {"sym": "CS.PA"}, {"sym": "EL.PA"}, {"sym": "EN.PA"}, {"sym": "GLE.PA"}, {"sym": "LR.PA"}, {"sym": "ML.PA"}, {"sym": "SU.PA"}]},
+        {"id": "smi", "label": "🇨🇭 SMI SWITZERLAND", "stocks": [{"sym": "NESN.SW"}, {"sym": "ROG.SW"}, {"sym": "NOVN.SW"}, {"sym": "ABBN.SW"}, {"sym": "UBSG.SW"}, {"sym": "ZURN.SW"}, {"sym": "SREN.SW"}, {"sym": "SIKA.SW"}, {"sym": "GIVN.SW"}, {"sym": "LONN.SW"}, {"sym": "SRENH.SW"}, {"sym": "SLHN.SW"}, {"sym": "ADEN.SW"}, {"sym": "BARN.SW"}, {"sym": "BALN.SW"}, {"sym": "BSKP.SW"}, {"sym": "FHZN.SW"}, {"sym": "GEBN.SW"}, {"sym": "BAER.SW"}, {"sym": "PGHN.SW"}, {"sym": "SCHN.SW"}, {"sym": "SGSN.SW"}, {"sym": "SOON.SW"}, {"sym": "UHR.SW"}, {"sym": "SCMN.SW"}]},
+        {"id": "atx", "label": "🇦🇹 ATX VIENNA", "stocks": [{"sym": "EBS.VI"}, {"sym": "OMV.VI"}, {"sym": "VER.VI"}, {"sym": "RBI.VI"}, {"sym": "VOE.VI"}, {"sym": "ANDR.VI"}, {"sym": "BG.VI"}, {"sym": "EVN.VI"}, {"sym": "IIA.VI"}, {"sym": "POST.VI"}, {"sym": "ABIN.VI"}, {"sym": "ADKO.VI"}, {"sym": "AGR.VI"}, {"sym": "AMAG.VI"}, {"sym": "ATS.VI"}, {"sym": "BHD.VI"}, {"sym": "BKS.VI"}, {"sym": "CAI.VI"}, {"sym": "DOC.VI"}, {"sym": "FACC.VI"}, {"sym": "FLU.VI"}, {"sym": "LNZ.VI"}, {"sym": "MMK.VI"}]},
+        {"id": "aex", "label": "🇳🇱 AEX AMSTERDAM", "stocks": [{"sym": "ASML.AS"}, {"sym": "INGA.AS"}, {"sym": "PHIA.AS"}, {"sym": "HEIA.AS"}, {"sym": "ABN.AS"}, {"sym": "AD.AS"}, {"sym": "NN.AS"}, {"sym": "AKZA.AS"}, {"sym": "WKL.AS"}, {"sym": "URW.AS"}, {"sym": "AALB.AS"}, {"sym": "ACOMO.AS"}, {"sym": "ADYEN.AS"}, {"sym": "AGN.AS"}, {"sym": "ASMI.AS"}, {"sym": "ASRNL.AS"}, {"sym": "BESI.AS"}, {"sym": "IMCD.AS"}, {"sym": "KPN.AS"}, {"sym": "RAND.AS"}, {"sym": "TKWY.AS"}, {"sym": "VPK.AS"}]},
+        {"id": "ibex", "label": "🇪🇸 IBEX 35 SPAIN", "stocks": [{"sym": "SAN.MC"}, {"sym": "BBVA.MC"}, {"sym": "ITX.MC"}, {"sym": "IBE.MC"}, {"sym": "REP.MC"}, {"sym": "TEF.MC"}, {"sym": "ACS.MC"}, {"sym": "FER.MC"}, {"sym": "CABK.MC"}, {"sym": "ENG.MC"}, {"sym": "A3M.MC"}, {"sym": "ACX.MC"}, {"sym": "AENA.MC"}, {"sym": "AMS.MC"}, {"sym": "ANA.MC"}, {"sym": "BKT.MC"}, {"sym": "CLNX.MC"}, {"sym": "EBRO.MC"}, {"sym": "ELE.MC"}, {"sym": "GRF.MC"}, {"sym": "IAG.MC"}, {"sym": "MAP.MC"}]},
+        {"id": "omx_stockholm", "label": "🇸🇪 OMXS30 STOCKHOLM", "stocks": [{"sym": "VOLV-B.ST"}, {"sym": "ERIC-B.ST"}, {"sym": "HM-B.ST"}, {"sym": "SEB-A.ST"}, {"sym": "SWED-A.ST"}, {"sym": "INVE-B.ST"}, {"sym": "ABB.ST"}, {"sym": "ATCO-A.ST"}, {"sym": "ALFA.ST"}, {"sym": "SSAB-A.ST"}, {"sym": "ASSA-B.ST"}, {"sym": "ATCO-B.ST"}, {"sym": "BOL.ST"}, {"sym": "ELUX-A.ST"}, {"sym": "ELUX-B.ST"}, {"sym": "ERIC-A.ST"}, {"sym": "HEXA-B.ST"}, {"sym": "INVE-A.ST"}, {"sym": "NDA-SE.ST"}, {"sym": "SEB-C.ST"}, {"sym": "SHB-A.ST"}, {"sym": "SHB-B.ST"}, {"sym": "SCA-B.ST"}]},
+        {"id": "omx_copenhagen", "label": "🇩🇰 OMXC25 COPENHAGEN", "stocks": [{"sym": "NOVO-B.CO"}, {"sym": "MAERSK-B.CO"}, {"sym": "COLOB.CO"}, {"sym": "ORSTED.CO"}, {"sym": "GN.CO"}, {"sym": "DEMANT.CO"}, {"sym": "VWS.CO"}, {"sym": "CARL-B.CO"}, {"sym": "CHR.CO"}, {"sym": "DSV.CO"}]},
+        {"id": "bel20", "label": "🇧🇪 BEL 20 BRUSSELS", "stocks": [{"sym": "UCB.BR"}, {"sym": "KBC.BR"}, {"sym": "INGA.BR"}, {"sym": "COLR.BR"}, {"sym": "PROX.BR"}, {"sym": "SOLB.BR"}, {"sym": "ACKB.BR"}, {"sym": "ABI.BR"}, {"sym": "AED.BR"}, {"sym": "AGS.BR"}, {"sym": "ARGX.BR"}, {"sym": "BPOST.BR"}, {"sym": "COFB.BR"}, {"sym": "ELI.BR"}, {"sym": "GBLB.BR"}, {"sym": "KBCA.BR"}, {"sym": "MELE.BR"}, {"sym": "ONTEX.BR"}, {"sym": "SOF.BR"}, {"sym": "TITC.BR"}, {"sym": "UMI.BR"}]},
+        {"id": "psi", "label": "🇵🇹 PSI LISBON", "stocks": [{"sym": "EDP.LS"}, {"sym": "EDPR.LS"}, {"sym": "GALP.LS"}, {"sym": "BCP.LS"}, {"sym": "JMT.LS"}, {"sym": "NOS.LS"}, {"sym": "SON.LS"}, {"sym": "ALTR.LS"}, {"sym": "COR.LS"}, {"sym": "CTT.LS"}, {"sym": "GVOLT.LS"}, {"sym": "IBS.LS"}, {"sym": "IPR.LS"}, {"sym": "NBA.LS"}, {"sym": "NVG.LS"}, {"sym": "PHR.LS"}, {"sym": "RENE.LS"}, {"sym": "SEM.LS"}, {"sym": "SNC.LS"}, {"sym": "TDSA.LS"}]},
+        {"id": "tsx", "label": "🇨🇦 TSX CANADA", "stocks": [{"sym": "RY.TO"}, {"sym": "TD.TO"}, {"sym": "BNS.TO"}, {"sym": "CNR.TO"}, {"sym": "CP.TO"}, {"sym": "SHOP.TO"}, {"sym": "ENB.TO"}, {"sym": "TRI.TO"}, {"sym": "MFC.TO"}, {"sym": "SU.TO"}, {"sym": "BAM.A.TO"}, {"sym": "BMO.TO"}, {"sym": "BCE.TO"}, {"sym": "CNQ.TO"}, {"sym": "TRP.TO"}, {"sym": "WCN.TO"}, {"sym": "CSU.TO"}, {"sym": "NTR.TO"}, {"sym": "SLF.TO"}, {"sym": "MG.TO"}, {"sym": "FTS.TO"}]},
+        {"id": "asx", "label": "🇦🇺 ASX AUSTRALIA", "stocks": [{"sym": "BHP.AX"}, {"sym": "CBA.AX"}, {"sym": "CSL.AX"}, {"sym": "ANZ.AX"}, {"sym": "WBC.AX"}, {"sym": "NAB.AX"}, {"sym": "RIO.AX"}, {"sym": "WDS.AX"}, {"sym": "MQG.AX"}, {"sym": "WES.AX"}, {"sym": "WOW.AX"}, {"sym": "FMG.AX"}, {"sym": "GMG.AX"}, {"sym": "TCL.AX"}, {"sym": "REA.AX"}, {"sym": "ALL.AX"}, {"sym": "COH.AX"}, {"sym": "S32.AX"}, {"sym": "STO.AX"}, {"sym": "ORG.AX"}, {"sym": "MIN.AX"}, {"sym": "NCM.AX"}, {"sym": "QAN.AX"}, {"sym": "SHL.AX"}, {"sym": "ASX.AX"}, {"sym": "CPU.AX"}, {"sym": "AMP.AX"}, {"sym": "QBE.AX"}, {"sym": "IAG.AX"}, {"sym": "AGL.AX"}]},
+        {"id": "bovespa", "label": "🇧🇷 BOVESPA BRAZIL", "stocks": [{"sym": "PETR4.SA"}, {"sym": "VALE3.SA"}, {"sym": "ITUB4.SA"}, {"sym": "BBDC4.SA"}, {"sym": "ABEV3.SA"}, {"sym": "B3SA3.SA"}, {"sym": "WEGE3.SA"}, {"sym": "BBAS3.SA"}, {"sym": "SUZB3.SA"}, {"sym": "JBSS3.SA"}, {"sym": "BBDC3.SA"}, {"sym": "BBSE3.SA"}, {"sym": "BRFS3.SA"}, {"sym": "CSAN3.SA"}, {"sym": "ELET3.SA"}, {"sym": "ELET6.SA"}, {"sym": "GGBR4.SA"}, {"sym": "KLBN11.SA"}, {"sym": "PETR3.SA"}, {"sym": "SBSP3.SA"}, {"sym": "VIVT3.SA"}]},
+        {"id": "nse_direct", "label": "🇮🇳 NSE INDIA (NIFTY)", "stocks": [{"sym": "RELIANCE.NSE"}, {"sym": "TCS.NSE"}, {"sym": "HDFCBANK.NSE"}, {"sym": "INFY.NSE"}, {"sym": "ICICIBANK.NSE"}, {"sym": "HINDUNILVR.NSE"}, {"sym": "KOTAKBANK.NSE"}, {"sym": "SBIN.NSE"}, {"sym": "BHARTIARTL.NSE"}, {"sym": "BAJFINANCE.NSE"}, {"sym": "WIPRO.NSE"}, {"sym": "HCLTECH.NSE"}, {"sym": "TECHM.NSE"}, {"sym": "LT.NSE"}, {"sym": "MARUTI.NSE"}, {"sym": "SUNPHARMA.NSE"}, {"sym": "TITAN.NSE"}, {"sym": "ASIANPAINT.NSE"}, {"sym": "NTPC.NSE"}, {"sym": "POWERGRID.NSE"}, {"sym": "NESTLEIND.NSE"}, {"sym": "ULTRACEMCO.NSE"}, {"sym": "TATASTEEL.NSE"}, {"sym": "TATAMOTORS.NSE"}, {"sym": "ONGC.NSE"}, {"sym": "AXISBANK.NSE"}, {"sym": "DRREDDY.NSE"}, {"sym": "CIPLA.NSE"}, {"sym": "PERSISTENT.NSE"}, {"sym": "COFORGE.NSE"}]},
+        {"id": "zse", "label": "🇭🇷 ZSE ZAGREB", "stocks": [{"sym": "HT.ZSE"}, {"sym": "INA.ZSE"}, {"sym": "KOEI.ZSE"}, {"sym": "ATGR.ZSE"}, {"sym": "PODR.ZSE"}, {"sym": "ADRS.ZSE"}, {"sym": "ERNT.ZSE"}, {"sym": "HPB.ZSE"}, {"sym": "JNAF.ZSE"}, {"sym": "KRAS.ZSE"}, {"sym": "MAIS.ZSE"}, {"sym": "ARNT.ZSE"}, {"sym": "ATPL.ZSE"}, {"sym": "DLKV.ZSE"}, {"sym": "ADPL.ZSE"}, {"sym": "JDPL.ZSE"}, {"sym": "IGH.ZSE"}, {"sym": "INGR.ZSE"}, {"sym": "ADRS2.ZSE"}, {"sym": "DDJH.ZSE"}, {"sym": "RIVP.ZSE"}, {"sym": "ZABA.ZSE"}]},
+        {"id": "krx", "label": "🇰🇷 KRX SOUTH KOREA", "stocks": [{"sym": "005930.KO"}, {"sym": "000660.KO"}, {"sym": "005380.KO"}, {"sym": "000270.KO"}, {"sym": "051910.KO"}, {"sym": "035420.KO"}, {"sym": "068270.KO"}, {"sym": "373220.KO"}, {"sym": "207940.KO"}, {"sym": "006400.KO"}, {"sym": "003550.KO"}, {"sym": "012330.KO"}, {"sym": "028260.KO"}, {"sym": "009150.KO"}, {"sym": "000810.KO"}, {"sym": "055550.KO"}, {"sym": "105560.KO"}, {"sym": "086790.KO"}, {"sym": "096770.KO"}, {"sym": "017670.KO"}, {"sym": "030200.KO"}, {"sym": "003670.KO"}, {"sym": "011200.KO"}, {"sym": "066570.KO"}, {"sym": "034730.KO"}]},
+        {"id": "crypto", "label": "₿ CRYPTO TOP 10", "stocks": [{"sym": "BTC-USD.cc"}, {"sym": "ETH-USD.cc"}, {"sym": "BNB-USD.cc"}, {"sym": "SOL-USD.cc"}, {"sym": "XRP-USD.cc"}, {"sym": "DOGE-USD.cc"}, {"sym": "ADA-USD.cc"}, {"sym": "DOT-USD.cc"}, {"sym": "LINK-USD.cc"}, {"sym": "LTC-USD.cc"}]}
+      ]
+    };
+
+    function init() {
+      const select = document.getElementById('categorySelect');
+      marketsDataEmbedded.markets.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.id; opt.textContent = m.label;
+        select.appendChild(opt);
+      });
+    }
+    document.addEventListener('DOMContentLoaded', init);
+
+    async function startBulkScan() {
+      const category = document.getElementById('categorySelect').value;
+      const delay = parseInt(document.getElementById('delayInput').value) || 2500;
+      if (!category || isScanning) return;
+      isScanning = true; results = [];
+      
+      document.getElementById('longGrid').innerHTML = '';
+      document.getElementById('shortGrid').innerHTML = '';
+      document.getElementById('progressSection').classList.add('active');
+
+      const symbols = marketsDataEmbedded.markets.find(m => m.id === category).stocks.map(s => s.sym);
+      
+      for (let i = 0; i < symbols.length; i++) {
+        const symbol = symbols[i];
+        const percent = Math.round((i / symbols.length) * 100);
+        document.getElementById('progressText').textContent = `PROCESSING AND TIMELINE TIMING HUB // ${symbol}...`;
+        document.getElementById('progressFill').style.width = percent + '%';
+        document.getElementById('progressFill').textContent = percent + '%';
+        document.getElementById('statusMsg').textContent = `${i} / ${symbols.length}`;
+        
+        await scanClusterSymbol(symbol, category);
+        await new Promise(r => setTimeout(r, delay));
+      }
+
+      harmonizeAndRender();
+      
+      document.getElementById('progressSection').classList.remove('active');
+      isScanning = false;
+    }
+
+    async function scanClusterSymbol(symbol, category) {
+      try {
+        const res = await fetch(`${PROXY_BASE_URL}?symbol=${symbol}&endpoint=historical&period=d`);
+        if (!res.ok) return;
+        let data = await res.json();
+        
+        if (data && data.length >= 5) {
+          data.sort((a, b) => new Date(b.date) - new Date(a.date));
+          results.push({
+            symbol,
+            category,
+            rawHistory: data,
+            decimals: parseFloat(data[0].close) < 2 ? 4 : 2
+          });
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    function harmonizeAndRender() {
+      if (results.length === 0) return;
+
+      const latestDates = results.map(r => r.rawHistory[0].date);
+      latestDates.sort((a,b) => new Date(a) - new Date(b));
+      const targetDateStr = latestDates[0]; 
+
+      const validatedProcessedResults = [];
+
+      results.forEach(r => {
+        let standardHistory = r.rawHistory.filter(item => item.date <= targetDateStr);
+        if (standardHistory.length < 3) return;
+
+        const t0 = standardHistory[0]; 
+        const t1 = standardHistory[1]; 
+        const t2 = standardHistory[2]; 
+
+        const c0 = parseFloat(t0.close);
+        const c2 = parseFloat(t2.close);
+        
+        const spread = c0 / c2;
+        const signal = spread >= 1.0 ? "LONG" : "SHORT";
+        const delta = c0 - c2;
+        
+        const trPct = ((parseFloat(t0.high) - parseFloat(t0.low)) / parseFloat(t0.low)) * 100;
+        const volTrend = ((parseFloat(t0.volume) - parseFloat(t1.volume)) / parseFloat(t1.volume)) * 100;
+
+        // ==========================================
+        // FIXED & RE-ENGINEERED LOGIC v6.5 WITH HARD LOCKS
+        // ==========================================
+        let dev = Math.abs(spread - 1) * 100;
+        let score = 50;
+        let confidence = 50;
+
+        if (signal === "SHORT") {
+          score += (dev * 10); 
+          
+          if (volTrend > 0) {
+            score += Math.min(volTrend * 0.5, 15); 
+            confidence = Math.min(Math.max(Math.round(score), 10), 95);
+          } else {
+            // Multiplicative exponential penalty for volume divergence
+            let volumeDrainFactor = Math.abs(volTrend) / 100; 
+            score -= (dev * 8) * volumeDrainFactor; 
+            score -= Math.abs(volTrend) * 0.4;       
+            
+            // v6.5 HARD LOCK FOR ILLIQUID DROPS (Max 80% Cap)
+            let finalCalculated = Math.min(Math.max(Math.round(score), 10), 95);
+            confidence = Math.min(finalCalculated, 80);
+          }
+        } else if (signal === "LONG") {
+          score += (dev * 12);
+          if (volTrend > 0) {
+            score += Math.min(volTrend * 0.4, 12); 
+            confidence = Math.min(Math.max(Math.round(score), 10), 95);
+          } else {
+            score -= Math.abs(volTrend) * 0.2; 
+            // Long divergence lock to prevent overconfidence without liquid backing
+            let finalCalculated = Math.min(Math.max(Math.round(score), 10), 95);
+            confidence = Math.min(finalCalculated, 80);
+          }
+        }
+
+        validatedProcessedResults.push({
+          symbol: r.symbol,
+          signal, spread, delta, price: c0, volatility: trPct, volumeTrend: volTrend, confidence,
+          date: t0.date,
+          decimals: r.decimals,
+          candles: [
+            { open: parseFloat(t2.open), high: parseFloat(t2.high), low: parseFloat(t2.low), close: parseFloat(t2.close) },
+            { open: parseFloat(t1.open), high: parseFloat(t1.high), low: parseFloat(t1.low), close: parseFloat(t1.close) },
+            { open: parseFloat(t0.open), high: parseFloat(t0.high), low: parseFloat(t0.low), close: parseFloat(t0.close) }
+          ]
+        });
+      });
+
+      validatedProcessedResults.sort((a, b) => b.confidence - a.confidence);
+
+      validatedProcessedResults.forEach(r => {
+        const isLong = r.signal === 'LONG';
+        const container = document.getElementById(isLong ? 'longGrid' : 'shortGrid');
+        const card = document.createElement('div');
+        card.className = `result-card ${isLong ? 'long' : 'short'}`;
+        
+        const formattedDate = new Date(r.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+
+        card.innerHTML = `
+          <canvas class="result-candle-matrix" width="110" height="110"></canvas>
+          <div class="result-info">
+            <div class="result-header">
+              <div>
+                <span class="result-symbol">${r.symbol}</span>
+                <span class="result-timestamp">EOD: ${formattedDate}</span>
+              </div>
+              <span class="sig-badge ${isLong ? 'badge-long' : 'badge-short'}">${r.signal}</span>
+            </div>
+            <div class="result-metrics">
+              <div class="result-metric"><span class="result-label">Denarius Spread:</span><span class="val-accent">${r.spread.toFixed(4)}</span></div>
+              <div class="result-metric"><span class="result-label">Net Delta:</span><span class="${r.delta >= 0 ? 'text-up' : 'text-down'}">${r.delta >= 0 ? '+' : ''}${r.delta.toFixed(r.decimals)}</span></div>
+              <div class="result-metric"><span class="result-label">Close:</span><span>$${r.price.toFixed(r.decimals)}</span></div>
+              <div class="result-metric"><span class="result-label">Range:</span><span>${r.volatility.toFixed(2)}%</span></div>
+              <div class="result-metric" style="grid-column: span 2;"><span class="result-label">VolTrend:</span><span class="${r.volumeTrend >= 0 ? 'text-up' : 'text-down'}">${r.volumeTrend >= 0 ? '▲' : '▼'} ${Math.abs(r.volumeTrend).toFixed(1)}%</span></div>
+              <div class="confidence-container">
+                <div style="display:flex; justify-content:space-between; font-size:0.7rem;">
+                  <span class="result-label">Confidence:</span><span style="color:var(--gold); font-weight:bold;">${r.confidence}%</span>
+                </div>
+                <div class="confidence-mini-bar"><div class="confidence-mini-fill" style="width: ${r.confidence}%"></div></div>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+        drawThreeDayMatrix(card.querySelector('canvas'), r.candles);
+      });
+    }
+
+    function drawThreeDayMatrix(canvas, candles) {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#020408';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const globalHigh = Math.max(...candles.map(c => c.high));
+      const globalLow = Math.min(...candles.map(c => c.low));
+      const globalRange = globalHigh - globalLow || 1;
+
+      const padding = 10;
+      const usableHeight = canvas.height - (padding * 2);
+      const candleWidth = 18;
+      const spacing = 12;
+      const startX = 14;
+
+      candles.forEach((c, i) => {
+        const x = startX + i * (candleWidth + spacing);
+        const isBullish = c.close >= c.open;
+        
+        const highY = padding + (1 - (c.high - globalLow) / globalRange) * usableHeight;
+        const lowY = padding + (1 - (c.low - globalLow) / globalRange) * usableHeight;
+        const openY = padding + (1 - (c.open - globalLow) / globalRange) * usableHeight;
+        const closeY = padding + (1 - (c.close - globalLow) / globalRange) * usableHeight;
+
+        ctx.strokeStyle = '#4e6273';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x + candleWidth / 2, highY);
+        ctx.lineTo(x + candleWidth / 2, lowY);
+        ctx.stroke();
+
+        ctx.fillStyle = isBullish ? '#00ff88' : '#ff003c';
+        const bodyY = Math.min(openY, closeY);
+        const bodyHeight = Math.abs(closeY - openY) || 2;
+        ctx.fillRect(x, bodyY, candleWidth, bodyHeight);
+      });
+    }
+
+    function exportHTML() {
+      alert("Reporting Core Stable.");
+    }
+  </script>
+</body>
+</html>

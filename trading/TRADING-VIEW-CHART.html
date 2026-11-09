@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>TREND RIDER FINTECH // Institutional Manual Overrides</title>
+  
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  
+  <style>
+    body {
+      background-color: #04060a;
+      color: #e1e4ea;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      margin: 0;
+      padding: 15px;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      background: #0b0f17;
+      border: 1px solid #1a2233;
+      border-radius: 6px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .terminal-title {
+      color: #00e6ff;
+      font-weight: 800;
+      font-size: 19px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(0, 230, 255, 0.4);
+    }
+
+    /* 🎛️ Manual Entry Cockpit Styling */
+    .manual-box {
+      background: #121824;
+      border: 1px solid #202b3d;
+      padding: 8px 12px;
+      border-radius: 4px;
+    }
+    
+    .manual-input {
+      background: #04060a !important;
+      border: 1px solid #2d3748 !important;
+      color: #00e6ff !important;
+      font-family: monospace;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      width: 110px !important;
+      display: inline-block;
+    }
+
+    .btn-execute {
+      background: #00e6ff;
+      color: #04060a;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 3px;
+      transition: 0.2s;
+    }
+    .btn-execute:hover {
+      background: #fff;
+      box-shadow: 0 0 10px #00e6ff;
+      cursor: pointer;
+    }
+
+    .asset-pill {
+      background: #121824;
+      color: #8f9cae;
+      border: 1px solid #202b3d;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 6px 14px;
+      margin-right: 5px;
+      border-radius: 4px;
+      transition: all 0.15s ease-in-out;
+    }
+    .asset-pill:hover, .asset-pill.active {
+      background: #00e6ff;
+      color: #04060a;
+      border-color: #00e6ff;
+      cursor: pointer;
+    }
+
+    .chart-matrix-container {
+      display: grid;
+      grid-template-columns: 2.2fr 1fr;
+      grid-gap: 15px;
+      height: calc(100vh - 125px);
+    }
+
+    .main-chart-wrapper, .sub-chart-wrapper {
+      background: #0b0f17;
+      border: 1px solid #1a2233;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sub-charts-vertical {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      grid-gap: 15px;
+    }
+
+    .timeframe-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(4, 6, 10, 0.95);
+      border: 1px solid #1a2233;
+      color: #e1e4ea;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 5px 12px;
+      border-radius: 4px;
+      z-index: 10;
+      pointer-events: none;
+      font-family: monospace;
+    }
+    
+    .badge-green { border-color: #00ff87 !important; color: #00ff87 !important; }
+    .badge-red { border-color: #ff3366 !important; color: #ff3366 !important; }
+  </style>
+</head>
+<body>
+
+  <div class="terminal-header d-flex align-items-center justify-content-between flex-wrap">
+    <div class="d-flex align-items-center flex-wrap">
+      <div class="terminal-title mr-4">TREND RIDER FINTECH // v5.0</div>
+      
+      <div id="assetSelector" class="mr-4">
+        <button class="asset-pill active" onclick="loadQuantMatrix('SAP.XETRA', 149.82, 154.13)">SAP</button>
+        <button class="asset-pill" onclick="loadQuantMatrix('RHM.XETRA', 1209.14, 1323.55)">RHM</button>
+        <button class="asset-pill" onclick="loadQuantMatrix('ADS.XETRA', 169.18, 153.85)">ADS</button>
+      </div>
+
+      <div class="manual-box d-flex align-items-center">
+        <span class="mr-2" style="font-size:11px; font-weight:bold; color:#718096; text-transform:uppercase;">Manual Trigger:</span>
+        <input type="text" id="manualTicker" class="form-control manual-input mr-2" value="BMW" placeholder="TICKER">
+        <input type="number" id="manualEma8" class="form-control manual-input mr-2" value="68.97" placeholder="JS-EMA 8">
+        <input type="number" id="manualEma55" class="form-control manual-input mr-2" value="76.39" placeholder="JS-EMA 55">
+        <button class="btn-execute" onclick="triggerManualAsset()">Execute Grid</button>
+      </div>
+    </div>
+    
+    <div style="font-family: monospace; font-size: 12px; color: #4e5d78; letter-spacing: 1px;">
+      ROUTING: <span style="color: #00ff87; font-weight: bold;">[ ENGINE ONLINE ]</span>
+    </div>
+  </div>
+
+  <div class="chart-matrix-container">
+    <div class="main-chart-wrapper">
+      <div class="timeframe-badge" id="mainChartBadge">1D - MACRO SIGNAL VECTOR</div>
+      <div id="tv_main_daily" style="width: 100%; height: 100%;"></div>
+    </div>
+
+    <div class="sub-charts-vertical">
+      <div class="sub-chart-wrapper">
+        <div class="timeframe-badge badge-green" id="ema8Badge">EMA 8 ENTRY VALUE</div>
+        <div id="tv_sub_weekly" style="width: 100%; height: 100%;"></div>
+      </div>
+      <div class="sub-chart-wrapper">
+        <div class="timeframe-badge badge-red" id="ema55Badge">EMA 55 STOP VALUE</div>
+        <div id="tv_sub_monthly" style="width: 100%; height: 100%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+
+  <script>
+    /**
+     * Holt die Daten aus den Inputfeldern und füttert die Grid-Engine manuell
+     */
+    function triggerManualAsset() {
+      const tickerInput = document.getElementById("manualTicker").value.trim().toUpperCase();
+      const ema8Input = parseFloat(document.getElementById("manualEma8").value) || 0;
+      const ema55Input = parseFloat(document.getElementById("manualEma55").value) || 0;
+      
+      if (tickerInput) {
+        // Übergibt den Ticker direkt im XETRA-Format an das Widget
+        loadQuantMatrix(`${tickerInput}.XETRA`, ema8Input, ema55Input, true);
+      }
+    }
+
+    /**
+     * Grid Core Loader Framework
+     */
+    function loadQuantMatrix(symbol, calculatedEma8, calculatedEma55, isManual = false) {
+      const cleanTicker = symbol.replace('.XETRA', '');
+      const tvTicker = `XETR:${cleanTicker}`;
+
+      // Wenn manuell abgefeuert wurde, entfernen wir den aktiven Status von den Standard-Pillen
+      const buttons = document.querySelectorAll('.asset-pill');
+      buttons.forEach(btn => {
+        if(!isManual && btn.innerText.includes(cleanTicker)) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      // Synchronisation deiner JS-Berechnungen mit den UI-Elementen im Chart
+      document.getElementById("mainChartBadge").innerText = `1D - MACRO SIGNAL VECTOR // ${cleanTicker}`;
+      document.getElementById("ema8Badge").innerText = `📈 JS-EMA 8 (ENTRY VECTOR): ${calculatedEma8 > 0 ? calculatedEma8.toFixed(2) + " €" : "N/A"}`;
+      document.getElementById("ema55Badge").innerText = `📉 JS-EMA 55 (RISK BASELINE): ${calculatedEma55 > 0 ? calculatedEma55.toFixed(2) + " €" : "N/A"}`;
+
+      // 1. MAIN DAILY FRAME
+      new TradingView.widget({
+        "container_id": "tv_main_daily",
+        "autosize": true,
+        "symbol": tvTicker,
+        "interval": "D",
+        "timezone": "Europe/Berlin",
+        "theme": "dark",
+        "style": "1",
+        "locale": "de",
+        "toolbar_bg": "#0b0f17",
+        "enable_publishing": false,
+        "hide_side_toolbar": false,
+        "allow_symbol_change": false,
+        "studies": [],
+        "overrides": {
+          "paneProperties.background": "#0b0f17"
+        }
+      });
+
+      // 2. SUB WEEKLY FRAME
+      new TradingView.widget({
+        "container_id": "tv_sub_weekly",
+        "autosize": true,
+        "symbol": tvTicker,
+        "interval": "W",
+        "timezone": "Europe/Berlin",
+        "theme": "dark",
+        "style": "1",
+        "locale": "de",
+        "toolbar_bg": "#0b0f17",
+        "enable_publishing": false,
+        "hide_side_toolbar": true,
+        "allow_symbol_change": false,
+        "studies": []
+      });
+
+      // 3. SUB MONTHLY FRAME
+      new TradingView.widget({
+        "container_id": "tv_sub_monthly",
+        "autosize": true,
+        "symbol": tvTicker,
+        "interval": "M",
+        "timezone": "Europe/Berlin",
+        "theme": "dark",
+        "style": "1",
+        "locale": "de",
+        "toolbar_bg": "#0b0f17",
+        "enable_publishing": false,
+        "hide_side_toolbar": true,
+        "allow_symbol_change": false,
+        "studies": []
+      });
+    }
+
+    // Standard-Bootup
+    window.addEventListener('load', () => {
+      loadQuantMatrix('SAP.XETRA', 149.82, 154.13);
+    });
+  </script>
+
+</body>
+</html>

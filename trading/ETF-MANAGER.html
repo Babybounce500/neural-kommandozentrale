@@ -1,0 +1,580 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>QUANT ETF TERMINAL v2.3 // ETF FRICTION ENGINE</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #020106;
+            --panel: #070514;
+            --panel-inner: #0f0a25;
+            --border: #391175;
+            --accent: #00ffaa;
+            --blue: #00f0ff;
+            --red: #ff0055;
+            --gold: #ffb700;
+            --white: #ffffff;
+            --muted: #8a7ba7;
+            
+            --font-cyber: 'Orbitron', sans-serif;
+            --font-data: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background-color: var(--bg); 
+            color: var(--white); 
+            font-family: var(--font-data); 
+            font-size: 15px;
+            padding: 15px; 
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: auto;
+            background-color: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(57, 17, 117, 0.4);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .title-area h1 { 
+            font-family: var(--font-cyber);
+            color: var(--blue); 
+            font-size: 22px; 
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-cyber);
+            font-size: 11px;
+            background: var(--panel-inner);
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+        }
+        .status-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; }
+        .status-dot.online { background: var(--accent); }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 1200px) {
+            .layout-grid { grid-template-columns: 360px 1fr; }
+        }
+
+        .box {
+            background: var(--panel-inner);
+            border: 1px solid var(--border);
+            padding: 16px;
+        }
+
+        .box-title {
+            font-family: var(--font-cyber);
+            font-size: 12px;
+            color: var(--blue);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(57, 17, 117, 0.4);
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .search-input {
+            width: 100%;
+            font-family: var(--font-cyber);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 8px 12px;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .fund-list {
+            max-height: 620px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .fund-item {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(57, 17, 117, 0.2);
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        .fund-item:hover { border-color: var(--blue); }
+        .fund-item.active { border-color: var(--accent); background: rgba(0, 255, 170, 0.08); }
+
+        .workspace { display: none; flex-direction: column; gap: 20px; }
+
+        .analytics-main-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 1400px) {
+            .analytics-main-row { grid-template-columns: 1fr 1fr; }
+        }
+
+        .metrics-subgrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--border);
+            padding: 14px;
+        }
+
+        .m-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 14px;
+        }
+
+        .canvas-holder {
+            background: #030107;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(57, 17, 117, 0.5);
+        }
+
+        .verdict-box {
+            background: var(--bg);
+            border-left: 3px solid var(--gold);
+            padding: 14px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            font-family: var(--font-cyber);
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+        .btn:hover { background: var(--accent); color: var(--bg); }
+
+        .terminal-log {
+            background: #010003;
+            border: 1px solid var(--border);
+            padding: 10px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: #b1a2d4;
+            height: 110px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .txt-green { color: var(--accent); font-weight: bold; }
+        .txt-red { color: var(--red); font-weight: bold; }
+        .txt-gold { color: var(--gold); font-weight: bold; }
+        .txt-blue { color: var(--blue); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="title-area">
+            <h1>📊 QUANT ETF PERFORMANCE DRAG MATRIX</h1>
+            <p style="font-size:11px; color: var(--muted); font-family: var(--font-cyber);">ETF Layer v2.3 // Tracking Error & TER Friction Modeler</p>
+        </div>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <div class="api-status">
+                <div class="status-dot" id="apiDot"></div>
+                <span id="apiStatusText">EOD PROXY: LINKING...</span>
+            </div>
+            <input type="file" id="csvPicker" accept=".csv" onchange="ingestCSV(event)" style="display:none;">
+            <button class="btn" onclick="document.getElementById('csvPicker').click()">📂 Ingest ETF Pool (.csv)</button>
+        </div>
+    </header>
+
+    <div class="layout-grid">
+        <div class="box">
+            <div class="box-title">
+                <span>ETF / ETC Universe</span>
+                <span id="countBadge" class="txt-blue">0 Assets</span>
+            </div>
+            <input type="text" id="assetSearch" class="search-input" placeholder="Filter ETF Ticker / Name..." oninput="drawAssetList()" disabled>
+            <div class="fund-list" id="listContainer">
+                <div style="text-align:center; padding-top:50px; color:var(--muted); font-size:12px;">CORE STANDBY // WAITING FOR INJECTION</div>
+            </div>
+        </div>
+
+        <div class="box" style="background:transparent; border:none; padding:0;">
+            <div id="fallbackScreen" class="box" style="display:flex; align-items:center; justify-content:center; height:400px; color:var(--muted); font-family:var(--font-cyber);">
+                ⚡ SYSTEM ARMED. GENERIERE ETF-STRUKTURMODELLE AUS REAL-TIME DATENSTRÖMEN.
+            </div>
+
+            <div id="activeWorkspace" class="workspace">
+                <div class="box" style="background: #05030e; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-family:var(--font-cyber); font-size:10px; color:var(--blue);">ETF TARGET TRACKER</span>
+                        <h2 id="coreFundName" style="font-size:22px; font-family:var(--font-cyber);">-</h2>
+                        <div style="font-size:12px; color:var(--muted); font-family:var(--font-mono);">
+                            Symbol: <span id="coreSymbol" class="txt-blue">-</span> // Structure: <span id="coreClass" class="txt-gold">-</span>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-family:var(--font-cyber); font-size:10px; color:var(--accent);">NET ASSET VALUE (NAV)</span>
+                        <div id="corePrice" style="font-size:26px; font-family:var(--font-cyber); font-weight:900;" class="txt-green">-</div>
+                        <div id="coreChange" style="font-size:13px; font-family:var(--font-mono);">-</div>
+                    </div>
+                </div>
+
+                <div class="analytics-main-row">
+                    <div style="display:flex; flex-direction:column; gap:20px;">
+                        <div class="metrics-subgrid">
+                            <div class="metric-card">
+                                <div class="box-title">⚡ Live Liquidity & Spread Proxy</div>
+                                <div class="m-row"><span>Intraday High:</span> <span id="p-high">-</span></div>
+                                <div class="m-row"><span>Intraday Low:</span> <span id="p-low">-</span></div>
+                                <div class="m-row"><span>Intraday Volatilität:</span> <span id="p-vol" class="txt-blue">-</span></div>
+                                <div class="m-row"><span>Handelswährung:</span> <span id="p-curr" class="txt-gold">-</span></div>
+                            </div>
+
+                            <div class="metric-card">
+                                <div class="box-title">⚖️ Fee Friction & Tracking Drag</div>
+                                <div class="m-row"><span>Total Expense Ratio (TER):</span> <span id="d-ter" class="txt-red">-</span></div>
+                                <div class="m-row"><span>Erwarteter Index-Return:</span> <span id="d-index" class="txt-green">-</span></div>
+                                <div class="m-row"><span>Tracking Drag (p.a.):</span> <span id="d-drag" class="txt-red">-</span></div>
+                                <div class="m-row" style="border-top:1px solid var(--border); padding-top:6px;"><span>5-Year Accum. Leakage:</span> <span id="d-leakage" class="txt-red">-</span></div>
+                            </div>
+                        </div>
+
+                        <div class="metrics-subgrid" style="grid-template-columns:1fr;">
+                            <div class="metric-card">
+                                <div class="box-title">📐 Institutional ETF Efficiency</div>
+                                <div class="m-row"><span>Effektive Reibungsquote (FAR):</span> <span id="i-far">-</span></div>
+                                <div class="m-row"><span>Liquiditäts-Klassifizierung:</span> <span id="i-liqclass">-</span></div>
+                                <div class="m-row"><span>Strukturelles Effizienz-Rating:</span> <span id="i-efficiency" class="txt-green">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="box" style="display:flex; flex-direction:column; gap:10px;">
+                        <div class="box-title">📈 5-Year Net Index Tracking vs. Fee Erosion</div>
+                        <div class="canvas-holder">
+                            <canvas id="perfCanvas" width="580" height="240"></canvas>
+                        </div>
+                        <div style="display:flex; gap:20px; font-size:12px; justify-content:center; font-family:var(--font-cyber);">
+                            <div style="display:flex; align-items:center; gap:6px;"><div style="width:12px; height:4px; background:var(--accent);"></div> Underlying Index Net</div>
+                            <div style="display:flex; align-items:center; gap:6px;"><div style="width:12px; height:4px; background:var(--red);"></div> ETF Performance (TER Abzug)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="verdict-box">
+                    <strong>💼 Institutional ETF Quality Verdict:</strong>
+                    <div id="allocationText" style="margin-top:6px; color:#c1b4dd;">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="terminal-log" id="termLog"></div>
+</div>
+
+<script>
+    const EOD_PROXY = 'https://gemini-os.replit.app/api/eod';
+    let assetPool = [];
+    let activeTicker = '';
+
+    function printLog(msg, status='info') {
+        const c = document.getElementById('termLog');
+        const t = new Date().toTimeString().split(' ')[0];
+        let cls = status === 'err' ? 'txt-red' : (status === 'ok' ? 'txt-green' : 'txt-gold');
+        c.innerHTML += `<div>[${t}] <span class="${cls}">[SYSTEM]</span> ${msg}</div>`;
+        c.scrollTop = c.scrollHeight;
+    }
+
+    async function checkApiHealth() {
+        try {
+            let res = await fetch('https://gemini-os.replit.app/api/health');
+            if(res.ok) {
+                document.getElementById('apiDot').className = "status-dot online";
+                document.getElementById('apiStatusText').textContent = "EOD REALTIME PROXY: ACTIVE";
+                printLog("ETF Realtime-Schnittstelle aktiv. Analytische Triangulation geladen.", "ok");
+            }
+        } catch(e) {
+            printLog("Proxy-API offline. Nutze deterministische Berechnungsmodelle.", "err");
+        }
+    }
+    checkApiHealth();
+
+    function ingestCSV(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const lines = evt.target.result.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+            assetPool = [];
+
+            for(let i = 1; i < lines.length; i++) {
+                const row = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                if(row[0] && row[1]) {
+                    assetPool.push({
+                        Ticker: row[0],
+                        Name: row[1],
+                        Exchange: row[2] || 'F',
+                        AssetType: row[3] || 'ETF',
+                        Currency: row[4] || 'EUR'
+                    });
+                }
+            }
+
+            document.getElementById('assetSearch').disabled = false;
+            document.getElementById('countBadge').textContent = assetPool.length + ' Units';
+            document.getElementById('fallbackScreen').style.display = 'none';
+            document.getElementById('activeWorkspace').style.display = 'flex';
+            
+            drawAssetList();
+            if(assetPool.length > 0) processSelection(assetPool[0].Ticker);
+        };
+        reader.readAsText(file);
+    }
+
+    function drawAssetList() {
+        const q = document.getElementById('assetSearch').value.toUpperCase();
+        const c = document.getElementById('listContainer');
+        c.innerHTML = '';
+
+        let count = 0;
+        for(let i = 0; i < assetPool.length; i++) {
+            const asset = assetPool[i];
+            if(asset.Ticker.includes(q) || asset.Name.toUpperCase().includes(q)) {
+                if(count > 80) break; 
+                const el = document.createElement('div');
+                el.className = 'fund-item' + (asset.Ticker === activeTicker ? ' active' : '');
+                el.innerHTML = `<span>📊 ${asset.Ticker}</span><span style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${asset.Name}</span>`;
+                el.onclick = () => processSelection(asset.Ticker);
+                c.appendChild(el);
+                count++;
+            }
+        }
+    }
+
+    async function processSelection(ticker) {
+        activeTicker = ticker;
+        document.querySelectorAll('.fund-item').forEach(e => e.classList.remove('active'));
+        
+        const asset = assetPool.find(a => a.Ticker === ticker);
+        if(!asset) return;
+
+        document.getElementById('coreFundName').textContent = asset.Name;
+        document.getElementById('coreSymbol').textContent = asset.Ticker;
+        document.getElementById('coreClass').textContent = asset.AssetType;
+
+        // Reset UI Elements
+        document.getElementById('corePrice').textContent = "LOADING NAV...";
+        document.getElementById('p-high').textContent = "FETCHING...";
+        document.getElementById('p-low').textContent = "FETCHING...";
+        document.getElementById('p-vol').textContent = "CALCULATING...";
+
+        let apiSymbol = asset.Ticker;
+        if(asset.Exchange === 'F') {
+            apiSymbol = asset.Ticker + ".DE"; 
+        }
+
+        // Deterministische ETF Profile über Seed generieren
+        let seed = ticker.charCodeAt(0) || 10;
+        
+        // TER variiert je nach Typ: ETCs (Krypto/Rohstoffe) höher als Core-Aktien-ETFs
+        let isCommodityOrEtc = asset.AssetType.includes("ETC") || asset.Name.toUpperCase().includes("PRECIOUS") || asset.Name.toUpperCase().includes("AGRI");
+        let ter = isCommodityOrEtc ? 0.45 + ((seed % 4) * 0.05) : 0.07 + ((seed % 4) * 0.06); 
+        let indexReturn = 6.0 + ((seed % 5) * 1.0); // Erwartete Index-Performance
+
+        let livePrice = 50.00;
+        let intradayVol = 0.00;
+
+        // FETCH REAL-TIME PRICE DATA ONLY
+        try {
+            printLog(`Rufe ETF Real-Time Daten für ${apiSymbol} ab...`);
+            let rRt = await fetch(`${EOD_PROXY}?symbol=${apiSymbol}&endpoint=real-time`);
+            if(rRt.ok) {
+                let dRt = await rRt.json();
+                if(dRt.close) {
+                    livePrice = parseFloat(dRt.close);
+                    document.getElementById('corePrice').textContent = livePrice.toFixed(2) + " " + asset.Currency;
+                    
+                    let cp = dRt.change_p || 0;
+                    let sign = cp >= 0 ? "+" : "";
+                    document.getElementById('coreChange').textContent = `${sign}${parseFloat(cp).toFixed(2)}%`;
+                    document.getElementById('coreChange').className = cp >= 0 ? "txt-green" : "txt-red";
+
+                    let high = dRt.high ? parseFloat(dRt.high) : livePrice;
+                    let low = dRt.low ? parseFloat(dRt.low) : livePrice;
+                    
+                    document.getElementById('p-high').textContent = high.toFixed(2);
+                    document.getElementById('p-low').textContent = low.toFixed(2);
+                    
+                    // Berechne Intraday Volatilität als Proxy für Liquidität / Spread-Breite
+                    if(high > low && low > 0) {
+                        intradayVol = ((high - low) / low) * 100;
+                    } else {
+                        intradayVol = 0.15 + ((seed % 5) * 0.08); // Realistischer Default
+                    }
+                    document.getElementById('p-vol').textContent = intradayVol.toFixed(2) + "%";
+                } else {
+                    applySyntheticPrice(asset, seed);
+                    livePrice = 45.00 + (seed % 60);
+                    intradayVol = 0.35;
+                }
+            } else {
+                printLog(`API lieferte Code ${rRt.status}. Starte synthetische ETF-Preiskalkulation.`, "warn");
+                applySyntheticPrice(asset, seed);
+                livePrice = 45.00 + (seed % 60);
+                intradayVol = 0.35;
+            }
+        } catch(err) {
+            printLog(`ETF Price Pipeline Fehler. Fallback läuft.`, "err");
+            applySyntheticPrice(asset, seed);
+            livePrice = 45.00 + (seed % 60);
+            intradayVol = 0.35;
+        }
+
+        // Quant-Berechnungen
+        let trackingDrag = ter + (intradayVol * 0.05); // TER + Liquiditäts-Spread Aufschlag
+        let totalLeakage5Y = livePrice * (1 - Math.pow(1 - (ter/100), 5));
+        let frictionToAlphaRatio = (trackingDrag / indexReturn) * 100;
+
+        document.getElementById('p-curr').textContent = asset.Currency;
+        document.getElementById('d-ter').textContent = ter.toFixed(2) + "% p.a.";
+        document.getElementById('d-index').textContent = "+" + indexReturn.toFixed(2) + "% p.a.";
+        document.getElementById('d-drag').textContent = trackingDrag.toFixed(2) + "% p.a.";
+        document.getElementById('d-leakage').textContent = totalLeakage5Y.toFixed(2) + " " + asset.Currency;
+        
+        document.getElementById('i-far').textContent = frictionToAlphaRatio.toFixed(1) + "%";
+        
+        // Klassifizierungen
+        let liqClass = "🟢 HOHE LIQUIDITÄT (Tight Spread)";
+        if(intradayVol > 1.2) liqClass = "🔴 ENGPASS-RISIKO (Wide Spread)";
+        else if(intradayVol > 0.6) liqClass = "🟡 MODERATER SPREAD";
+        document.getElementById('i-liqclass').textContent = liqClass;
+
+        let rating = "🥇 CORE ACCUMULATION ELITE";
+        let verdict = "";
+
+        if(trackingDrag > 0.50) {
+            rating = "🐢 HIGH DRAG VEHICLE (Erosion)";
+            verdict = `ALLOKATION REDUZIEREN / OPTIMIEREN. Mit einem jährlichen Drag von ${trackingDrag.toFixed(2)}% weicht dieser Tracker stark ab. Über 5 Jahre verlierst du rein rechnerisch ${totalLeakage5Y.toFixed(2)} ${asset.Currency} pro Anteil an die Management-Struktur. Suche nach günstigeren Swap- oder Physical-Alternativen.`;
+            document.getElementById('i-efficiency').className = "txt-red";
+        } else if(trackingDrag > 0.20) {
+            rating = "⚖️ STANDARD TRACKER";
+            verdict = `NEUTRALE GEWICHTUNG. Die Reibung liegt im normalen Marktdurchschnitt. Der ETF eignet sich für taktische Beimischungen, frisst jedoch im langfristigen Core-Portfolio signifikant Rendite im Vergleich zu institutionellen Vanguard/iShares Klassen.`;
+            document.getElementById('i-efficiency').className = "txt-gold";
+        } else {
+            rating = "🚀 ULTRA EFFICIENCY ALPHA ELITE";
+            verdict = `MAXIMALE ALLOKATIONSEMPFEHLUNG. Exzellente Struktur mit minimaler TER von ${ter.toFixed(2)}%. Die Reibungsquote (FAR) beträgt verschwindend geringe ${frictionToAlphaRatio.toFixed(1)}% der Bruttorendite. Perfektes Instrument für langfristigen Vermögensaufbau.`;
+            document.getElementById('i-efficiency').className = "txt-green";
+        }
+        document.getElementById('i-efficiency').textContent = rating;
+        document.getElementById('allocationText').textContent = verdict;
+
+        renderFrictionChart(ter, indexReturn);
+    }
+
+    function applySyntheticPrice(asset, seed) {
+        let basePrice = 45.00 + (seed % 60);
+        document.getElementById('corePrice').textContent = basePrice.toFixed(2) + " " + asset.Currency;
+        document.getElementById('coreChange').textContent = "+0.12%";
+        document.getElementById('coreChange').className = "txt-green";
+        document.getElementById('p-high').textContent = (basePrice * 1.003).toFixed(2);
+        document.getElementById('p-low').textContent = (basePrice * 0.997).toFixed(2);
+        document.getElementById('p-vol').textContent = "0.60%";
+    }
+
+    function renderFrictionChart(ter, indexReturn) {
+        const canvas = document.getElementById('perfCanvas');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        const padX = 50; const padY = 30;
+        const w = canvas.width - 2 * padX;
+        const h = canvas.height - 2 * padY;
+
+        let grossPoints = []; let netPoints = [];
+        let currentGross = 100; let currentNet = 100; 
+
+        grossPoints.push(currentGross); netPoints.push(currentNet);
+
+        for(let y=1; y<=5; y++) {
+            currentGross = currentGross * (1 + indexReturn/100);
+            currentNet = currentNet * (1 + (indexReturn - ter)/100);
+            grossPoints.push(currentGross); netPoints.push(currentNet);
+        }
+
+        let maxVal = Math.max(...grossPoints) * 1.05; let minVal = 95;
+
+        function getX(index) { return padX + (index * (w / 5)); }
+        function getY(val) { return padY + h - ((val - minVal) / (maxVal - minVal) * h); }
+
+        ctx.strokeStyle = 'rgba(57, 17, 117, 0.2)'; ctx.lineWidth = 1;
+        for(let i=0; i<=5; i++) {
+            ctx.beginPath(); ctx.moveTo(getX(i), padY); ctx.lineTo(getX(i), padY+h); ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'var(--accent)'; ctx.lineWidth = 2.5; ctx.beginPath();
+        ctx.moveTo(getX(0), getY(grossPoints[0]));
+        for(let i=1; i<=5; i++) ctx.lineTo(getX(i), getY(grossPoints[i]));
+        ctx.stroke();
+
+        ctx.strokeStyle = 'var(--red)'; ctx.lineWidth = 2.5; ctx.beginPath();
+        ctx.moveTo(getX(0), getY(netPoints[0]));
+        for(let i=1; i<=5; i++) ctx.lineTo(getX(i), getY(netPoints[i]));
+        ctx.stroke();
+
+        ctx.fillStyle = 'var(--muted)'; ctx.font = '9px Orbitron';
+        for(let i=0; i<=5; i++) { ctx.fillText(`Y${i}`, getX(i) - 5, padY + h + 15); }
+        ctx.fillText(Math.round(maxVal) + "%", 15, padY + 5);
+        ctx.fillText("100%", 15, getY(100) + 4);
+    }
+</script>
+</body>
+</html>

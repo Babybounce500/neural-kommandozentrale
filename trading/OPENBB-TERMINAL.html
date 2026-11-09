@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ OpenBB Terminal — Local API Tester</title>
+  <style>
+    :root {
+      --bg:#0b0e14; --bg2:#141a24; --bg3:#1a2333; --border:#2d3748;
+      --accent:#00e6ff; --green:#00ff87; --red:#ff3366; --yellow:#ecc94b;
+      --purple:#9c6fbe; --text:#e1e4ea; --muted:#718096;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+           background: var(--bg); color: var(--text); font-size: 13px; display: flex; flex-direction: column; }
+
+    /* ── Header ── */
+    .header {
+      background: var(--bg2); border-bottom: 1px solid var(--border);
+      padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .header-title { color: var(--accent); font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background .4s; }
+    .status-dot.online  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.offline { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+    .status-label { font-size: 11px; color: var(--muted); }
+    .header-spacer { flex: 1; }
+    .server-input { background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+                    padding: 4px 8px; border-radius: 4px; font-size: 12px; width: 220px; font-family: inherit; }
+    .btn { background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+           padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit;
+           transition: border-color .2s, color .2s; }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
+    .btn-primary:hover { background: #00c4e0; border-color: #00c4e0; color: #000; }
+
+    /* ── Layout ── */
+    .layout { display: flex; flex: 1; overflow: hidden; }
+    .sidebar { width: 200px; background: var(--bg2); border-right: 1px solid var(--border);
+               display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+    .sidebar-section { padding: 8px 12px 4px; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .nav-item { padding: 8px 14px; cursor: pointer; border-left: 3px solid transparent;
+                transition: background .15s, border-color .15s; color: var(--muted); font-size: 12px; }
+    .nav-item:hover { background: var(--bg3); color: var(--text); }
+    .nav-item.active { background: rgba(0,230,255,.08); border-left-color: var(--accent); color: var(--accent); }
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── Tab panels ── */
+    .panel { display: none; flex: 1; overflow-y: auto; padding: 16px; flex-direction: column; gap: 12px; }
+    .panel.active { display: flex; }
+
+    /* ── Cards ── */
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 14px; }
+    .card-title { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-size: 11px; color: var(--muted); }
+    .input { background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+             padding: 6px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; min-width: 120px; }
+    .input:focus { outline: none; border-color: var(--accent); }
+    .select { background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+              padding: 6px 10px; border-radius: 4px; font-size: 12px; font-family: inherit; cursor: pointer; }
+    .sep { height: 1px; background: var(--border); margin: 8px 0; }
+
+    /* ── Output ── */
+    .out-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .out-header { background: var(--bg3); padding: 8px 14px; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+    .out-label { color: var(--text); font-size: 12px; font-weight: 600; }
+    .out-actions { margin-left: auto; display: flex; gap: 6px; }
+    .out-body { padding: 12px; min-height: 60px; max-height: 600px; overflow-y: auto; }
+    .loading { color: var(--yellow); font-size: 12px; padding: 8px 0; }
+    .err-msg { color: var(--red); font-size: 12px; padding: 8px 0; background: rgba(255,51,102,.08); border-radius: 4px; padding: 8px; }
+
+    /* ── Table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .data-table th { background: var(--bg3); color: var(--accent); padding: 6px 8px; text-align: left;
+                      border-bottom: 1px solid var(--border); font-weight: 600; white-space: nowrap; }
+    .data-table td { padding: 5px 8px; border-bottom: 1px solid rgba(45,55,72,.5); white-space: nowrap; }
+    .data-table tr:hover td { background: rgba(0,230,255,.04); }
+    .num-green { color: var(--green); }
+    .num-red   { color: var(--red); }
+    .num-muted { color: var(--muted); }
+
+    /* ── Quote card ── */
+    .quote-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .quote-cell { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 10px; }
+    .quote-cell .label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+    .quote-cell .value { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    /* ── Setup tab ── */
+    .setup-block { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 12px; }
+    .setup-block h3 { color: var(--accent); font-size: 13px; margin-bottom: 8px; }
+    .code-block { background: #0a0c10; border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px;
+                  font-family: inherit; font-size: 12px; color: var(--green); line-height: 1.6; overflow-x: auto; }
+    .setup-note { color: var(--muted); font-size: 11px; margin-top: 6px; line-height: 1.5; }
+    .tag { display: inline-block; background: rgba(0,230,255,.12); color: var(--accent); border-radius: 3px;
+           padding: 1px 6px; font-size: 10px; margin-right: 4px; }
+
+    /* ── News ── */
+    .news-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .news-item:last-child { border-bottom: none; }
+    .news-title { color: var(--text); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    .news-meta  { color: var(--muted); font-size: 11px; display: flex; gap: 12px; }
+    .news-link  { color: var(--accent); text-decoration: none; font-size: 11px; }
+    .news-link:hover { text-decoration: underline; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════ HEADER ══════════════════════════ -->
+<div class="header">
+  <span class="header-title">⚡ OpenBB Terminal</span>
+  <div class="status-dot" id="status-dot"></div>
+  <span class="status-label" id="status-label">Not connected</span>
+  <div class="header-spacer"></div>
+  <input class="server-input" id="server-url" value="http://localhost:6900" placeholder="http://localhost:6900">
+  <button class="btn btn-primary" onclick="checkConnection()">🔌 Connect</button>
+</div>
+
+<!-- ══════════════════════════ LAYOUT ══════════════════════════ -->
+<div class="layout">
+
+  <!-- Sidebar nav -->
+  <div class="sidebar">
+    <div class="sidebar-section">Navigation</div>
+    <div class="nav-item active" id="nav-setup"   onclick="showPanel('setup')">⚙ Setup / Docs</div>
+    <div class="nav-item"        id="nav-equity"  onclick="showPanel('equity')">📈 Equity</div>
+    <div class="nav-item"        id="nav-crypto"  onclick="showPanel('crypto')">₿ Crypto</div>
+    <div class="nav-item"        id="nav-macro"   onclick="showPanel('macro')">🌍 Macro / FRED</div>
+    <div class="nav-item"        id="nav-fund"    onclick="showPanel('fund')">📊 Fundamentals</div>
+    <div class="nav-item"        id="nav-news"    onclick="showPanel('news')">📰 News</div>
+    <div class="nav-item"        id="nav-raw"     onclick="showPanel('raw')">🔬 Raw API</div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+
+    <!-- ═══ SETUP PANEL ═══ -->
+    <div class="panel active" id="panel-setup">
+      <div class="setup-block">
+        <h3>1. Python Installation</h3>
+        <div class="code-block">pip install openbb openbb-yfinance openbb-api</div>
+        <p class="setup-note">Installs the OpenBB Platform core + yfinance provider (free, no key needed) + the local REST API server.</p>
+      </div>
+      <div class="setup-block">
+        <h3>2. Start the API Server</h3>
+        <div class="code-block">python -c "import openbb_api; openbb_api.main()"</div>
+        <p class="setup-note">Or alternatively:</p>
+        <div class="code-block" style="margin-top:6px">openbb-api --host 127.0.0.1 --port 6900</div>
+        <p class="setup-note">Server starts at <strong style="color:var(--accent)">http://localhost:6900</strong> — the interactive Swagger docs are at <strong style="color:var(--accent)">/docs</strong>.</p>
+      </div>
+      <div class="setup-block">
+        <h3>3. Available Free Endpoints (yfinance provider)</h3>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+          <div><span class="tag">GET</span> <code style="color:var(--yellow)">/api/v1/equity/price/historical</code> — OHLCV historisch</div>
+          <div><span class="tag">GET</span> <code style="color:var(--yellow)">/api/v1/equity/price/quote</code> — Realtime Quote</div>
+          <div><span class="tag">GET</span> <code style="color:var(--yellow)">/api/v1/crypto/price/historical</code> — Crypto OHLCV</div>
+          <div><span class="tag">GET</span> <code style="color:var(--yellow)">/api/v1/equity/fundamental/income</code> — Income Statement</div>
+          <div><span class="tag">GET</span> <code style="color:var(--yellow)">/api/v1/equity/fundamental/balance</code> — Balance Sheet</div>
+          <div><span class="tag">GET</span> <code style="color:var(--yellow)">/api/v1/equity/news</code> — Company News</div>
+          <div><span class="tag">GET</span> <code style="color:var(--yellow)">/api/v1/economy/fred_series</code> — FRED (requires free FRED key)</div>
+        </div>
+      </div>
+      <div class="setup-block">
+        <h3>4. FRED API Key (für Makro-Daten)</h3>
+        <div class="code-block">obb.account.login(pat="your_personal_access_token")</div>
+        <p class="setup-note">Kostenlos registrieren auf <strong style="color:var(--accent)">fred.stlouisfed.org/docs/api/api_key.html</strong> — dann im FRED-Tab eintragen.</p>
+      </div>
+      <div class="setup-block">
+        <h3>5. Connection Test</h3>
+        <p class="setup-note">Klicke oben rechts auf <strong style="color:var(--accent)">🔌 Connect</strong> — der Status-Indikator wird grün wenn der Server läuft.</p>
+        <div style="margin-top:8px">
+          <button class="btn btn-primary" onclick="checkConnection()">🔌 Verbindung testen</button>
+          <span id="setup-conn-result" style="margin-left:10px;font-size:12px;color:var(--muted)"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ EQUITY PANEL ═══ -->
+    <div class="panel" id="panel-equity">
+
+      <!-- Quote -->
+      <div class="card">
+        <div class="card-title">📊 Quote — Realtime / Delayed</div>
+        <div class="row">
+          <div class="field">
+            <label>Symbol</label>
+            <input class="input" id="eq-quote-sym" value="AAPL" style="width:100px" onkeydown="if(event.key==='Enter')fetchQuote()">
+          </div>
+          <button class="btn btn-primary" onclick="fetchQuote()">▶ Fetch Quote</button>
+        </div>
+      </div>
+      <div class="out-card" id="out-quote" style="display:none">
+        <div class="out-header">
+          <span class="out-label" id="out-quote-label">Quote</span>
+          <div class="out-actions">
+            <button class="btn" onclick="copyOut('out-quote-body')">⎘ Copy</button>
+            <button class="btn" onclick="exportOut('out-quote-body','quote')">↓ JSON</button>
+          </div>
+        </div>
+        <div class="out-body" id="out-quote-body"></div>
+      </div>
+
+      <!-- Historical -->
+      <div class="card">
+        <div class="card-title">📈 Historical Price — OHLCV</div>
+        <div class="row">
+          <div class="field"><label>Symbol</label><input class="input" id="eq-hist-sym" value="AAPL" style="width:100px"></div>
+          <div class="field">
+            <label>Interval</label>
+            <select class="select" id="eq-hist-int">
+              <option value="1d" selected>1d</option>
+              <option value="1wk">1wk</option>
+              <option value="1mo">1mo</option>
+            </select>
+          </div>
+          <div class="field"><label>Start</label><input class="input" id="eq-hist-start" value="2024-01-01" style="width:110px" type="date"></div>
+          <div class="field"><label>End</label><input class="input" id="eq-hist-end" style="width:110px" type="date"></div>
+          <button class="btn btn-primary" onclick="fetchEquityHist()">▶ Fetch</button>
+        </div>
+      </div>
+      <div class="out-card" id="out-eq-hist" style="display:none">
+        <div class="out-header">
+          <span class="out-label" id="out-eq-hist-label">Historical</span>
+          <div class="out-actions">
+            <button class="btn" onclick="copyOut('out-eq-hist-body')">⎘ Copy</button>
+            <button class="btn" onclick="exportOut('out-eq-hist-body','equity_hist')">↓ JSON</button>
+          </div>
+        </div>
+        <div class="out-body" id="out-eq-hist-body"></div>
+      </div>
+    </div>
+
+    <!-- ═══ CRYPTO PANEL ═══ -->
+    <div class="panel" id="panel-crypto">
+      <div class="card">
+        <div class="card-title">₿ Crypto Historical</div>
+        <div class="row">
+          <div class="field">
+            <label>Symbol (yfinance format)</label>
+            <input class="input" id="cr-sym" value="BTC-USD" style="width:120px" placeholder="BTC-USD">
+          </div>
+          <div class="field">
+            <label>Interval</label>
+            <select class="select" id="cr-int">
+              <option value="1d" selected>1d</option>
+              <option value="1h">1h</option>
+              <option value="1wk">1wk</option>
+            </select>
+          </div>
+          <div class="field"><label>Start</label><input class="input" id="cr-start" value="2024-01-01" type="date" style="width:110px"></div>
+          <div class="field"><label>End</label><input class="input" id="cr-end" type="date" style="width:110px"></div>
+          <button class="btn btn-primary" onclick="fetchCrypto()">▶ Fetch</button>
+        </div>
+        <p style="color:var(--muted);font-size:11px;margin-top:8px">ℹ yfinance Crypto-Symbole: <code style="color:var(--yellow)">BTC-USD</code>, <code style="color:var(--yellow)">ETH-USD</code>, <code style="color:var(--yellow)">SOL-USD</code></p>
+      </div>
+      <div class="out-card" id="out-crypto" style="display:none">
+        <div class="out-header">
+          <span class="out-label" id="out-crypto-label">Crypto</span>
+          <div class="out-actions">
+            <button class="btn" onclick="copyOut('out-crypto-body')">⎘ Copy</button>
+            <button class="btn" onclick="exportOut('out-crypto-body','crypto_hist')">↓ JSON</button>
+          </div>
+        </div>
+        <div class="out-body" id="out-crypto-body"></div>
+      </div>
+    </div>
+
+    <!-- ═══ MACRO PANEL ═══ -->
+    <div class="panel" id="panel-macro">
+      <div class="card">
+        <div class="card-title">🌍 FRED Economic Series</div>
+        <div class="row">
+          <div class="field">
+            <label>FRED Series ID</label>
+            <input class="input" id="fred-id" value="GDP" style="width:120px" placeholder="GDP, CPIAUCSL...">
+          </div>
+          <div class="field"><label>Start</label><input class="input" id="fred-start" value="2020-01-01" type="date" style="width:110px"></div>
+          <div class="field"><label>FRED API Key</label><input class="input" id="fred-key" placeholder="optional" style="width:160px" type="password"></div>
+          <button class="btn btn-primary" onclick="fetchFred()">▶ Fetch</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+          <span style="font-size:11px;color:var(--muted)">Quick:</span>
+          <button class="btn" onclick="setFred('GDP')">GDP</button>
+          <button class="btn" onclick="setFred('CPIAUCSL')">CPI</button>
+          <button class="btn" onclick="setFred('UNRATE')">Unemployment</button>
+          <button class="btn" onclick="setFred('FEDFUNDS')">Fed Funds Rate</button>
+          <button class="btn" onclick="setFred('T10Y2Y')">Yield Curve (10Y-2Y)</button>
+          <button class="btn" onclick="setFred('DXY')">DXY</button>
+          <button class="btn" onclick="setFred('VIXCLS')">VIX</button>
+          <button class="btn" onclick="setFred('M2SL')">M2 Money Supply</button>
+        </div>
+      </div>
+      <div class="out-card" id="out-fred" style="display:none">
+        <div class="out-header">
+          <span class="out-label" id="out-fred-label">FRED</span>
+          <div class="out-actions">
+            <button class="btn" onclick="copyOut('out-fred-body')">⎘ Copy</button>
+            <button class="btn" onclick="exportOut('out-fred-body','fred')">↓ JSON</button>
+          </div>
+        </div>
+        <div class="out-body" id="out-fred-body"></div>
+      </div>
+    </div>
+
+    <!-- ═══ FUNDAMENTALS PANEL ═══ -->
+    <div class="panel" id="panel-fund">
+      <div class="card">
+        <div class="card-title">📊 Income Statement</div>
+        <div class="row">
+          <div class="field"><label>Symbol</label><input class="input" id="fund-inc-sym" value="AAPL" style="width:100px"></div>
+          <div class="field">
+            <label>Period</label>
+            <select class="select" id="fund-inc-period">
+              <option value="annual" selected>Annual</option>
+              <option value="quarter">Quarter</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Limit</label>
+            <select class="select" id="fund-inc-limit">
+              <option value="4" selected>4</option>
+              <option value="8">8</option>
+              <option value="12">12</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="fetchIncome()">▶ Fetch Income</button>
+        </div>
+      </div>
+      <div class="out-card" id="out-income" style="display:none">
+        <div class="out-header">
+          <span class="out-label" id="out-income-label">Income Statement</span>
+          <div class="out-actions">
+            <button class="btn" onclick="copyOut('out-income-body')">⎘ Copy</button>
+            <button class="btn" onclick="exportOut('out-income-body','income')">↓ JSON</button>
+          </div>
+        </div>
+        <div class="out-body" id="out-income-body"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏦 Balance Sheet</div>
+        <div class="row">
+          <div class="field"><label>Symbol</label><input class="input" id="fund-bal-sym" value="AAPL" style="width:100px"></div>
+          <div class="field">
+            <label>Period</label>
+            <select class="select" id="fund-bal-period">
+              <option value="annual" selected>Annual</option>
+              <option value="quarter">Quarter</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="fetchBalance()">▶ Fetch Balance</button>
+        </div>
+      </div>
+      <div class="out-card" id="out-balance" style="display:none">
+        <div class="out-header">
+          <span class="out-label" id="out-balance-label">Balance Sheet</span>
+          <div class="out-actions">
+            <button class="btn" onclick="copyOut('out-balance-body')">⎘ Copy</button>
+            <button class="btn" onclick="exportOut('out-balance-body','balance')">↓ JSON</button>
+          </div>
+        </div>
+        <div class="out-body" id="out-balance-body"></div>
+      </div>
+    </div>
+
+    <!-- ═══ NEWS PANEL ═══ -->
+    <div class="panel" id="panel-news">
+      <div class="card">
+        <div class="card-title">📰 Company News</div>
+        <div class="row">
+          <div class="field"><label>Symbol</label><input class="input" id="news-sym" value="AAPL" style="width:100px" onkeydown="if(event.key==='Enter')fetchNews()"></div>
+          <div class="field">
+            <label>Limit</label>
+            <select class="select" id="news-limit">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="fetchNews()">▶ Fetch News</button>
+        </div>
+      </div>
+      <div class="out-card" id="out-news" style="display:none">
+        <div class="out-header">
+          <span class="out-label" id="out-news-label">News</span>
+          <div class="out-actions">
+            <button class="btn" onclick="copyOut('out-news-body')">⎘ Copy</button>
+          </div>
+        </div>
+        <div class="out-body" id="out-news-body"></div>
+      </div>
+    </div>
+
+    <!-- ═══ RAW API PANEL ═══ -->
+    <div class="panel" id="panel-raw">
+      <div class="card">
+        <div class="card-title">🔬 Raw API Explorer</div>
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>Endpoint (path after server URL)</label>
+            <input class="input" id="raw-path" value="/api/v1/equity/price/quote" style="width:100%" placeholder="/api/v1/...">
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <div class="field" style="flex:1">
+            <label>Query Parameters (JSON object)</label>
+            <textarea class="input" id="raw-params" rows="4" style="width:100%;resize:vertical;font-family:inherit">{"symbol": "AAPL", "provider": "yfinance"}</textarea>
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn btn-primary" onclick="fetchRaw()">▶ Execute Request</button>
+          <span style="color:var(--muted);font-size:11px;padding:6px">GET {server}{path}?{params}</span>
+        </div>
+        <div style="margin-top:10px">
+          <div class="card-title" style="font-size:11px;margin-bottom:6px">Quick Endpoints</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            <button class="btn" onclick="setRaw('/api/v1/equity/price/quote',{symbol:'AAPL',provider:'yfinance'})">Quote AAPL</button>
+            <button class="btn" onclick="setRaw('/api/v1/equity/price/historical',{symbol:'TSLA',start_date:'2024-01-01',provider:'yfinance'})">Hist TSLA</button>
+            <button class="btn" onclick="setRaw('/api/v1/crypto/price/historical',{symbol:'BTC-USD',start_date:'2024-01-01',provider:'yfinance'})">BTC-USD</button>
+            <button class="btn" onclick="setRaw('/api/v1/equity/fundamental/income',{symbol:'MSFT',period:'annual',limit:4,provider:'yfinance'})">Income MSFT</button>
+            <button class="btn" onclick="setRaw('/api/v1/equity/news',{symbol:'NVDA',limit:10,provider:'yfinance'})">News NVDA</button>
+            <button class="btn" onclick="setRaw('/api/v1/economy/fred_series',{symbol:'GDP',start_date:'2020-01-01',provider:'fred'})">GDP (FRED)</button>
+          </div>
+        </div>
+      </div>
+      <div class="out-card" id="out-raw" style="display:none">
+        <div class="out-header">
+          <span class="out-label" id="out-raw-label">Response</span>
+          <div class="out-actions">
+            <button class="btn" onclick="copyOut('out-raw-body')">⎘ Copy JSON</button>
+            <button class="btn" onclick="exportRaw()">↓ JSON</button>
+          </div>
+        </div>
+        <div class="out-body" id="out-raw-body"></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CORE
+══════════════════════════════════════════════════════════════ */
+function serverUrl() {
+  return (document.getElementById('server-url').value || 'http://localhost:6900').replace(/\/$/, '');
+}
+
+async function obbCall(path, params = {}) {
+  const url = new URL(serverUrl() + path);
+  Object.entries(params).forEach(([k, v]) => { if (v !== '' && v != null) url.searchParams.set(k, v); });
+  const res = await fetch(url.toString(), { signal: AbortSignal.timeout(15000) });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status}: ${txt.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+/* ── Connection check ── */
+async function checkConnection() {
+  const dot   = document.getElementById('status-dot');
+  const label = document.getElementById('status-label');
+  const sres  = document.getElementById('setup-conn-result');
+  dot.className = 'status-dot';
+  label.textContent = 'Connecting…';
+  try {
+    const data = await obbCall('/api/v1/equity/price/quote', { symbol: 'AAPL', provider: 'yfinance' });
+    dot.className = 'status-dot online';
+    label.textContent = `Connected — ${serverUrl()}`;
+    if (sres) sres.textContent = '✅ Server erreichbar!';
+    if (sres) sres.style.color = 'var(--green)';
+  } catch (e) {
+    dot.className = 'status-dot offline';
+    label.textContent = 'Offline — server not reachable';
+    if (sres) sres.textContent = `❌ ${e.message}`;
+    if (sres) sres.style.color = 'var(--red)';
+  }
+}
+
+/* ── Panel navigation ── */
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+/* ── Output helpers ── */
+function showOut(cardId, label, bodyHtml) {
+  const card = document.getElementById(cardId);
+  card.style.display = 'block';
+  document.getElementById(cardId + '-label').textContent = label;
+  document.getElementById(cardId + '-body').innerHTML = bodyHtml;
+  card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function loadingOut(cardId, label) {
+  showOut(cardId, label, '<div class="loading">⏳ Loading…</div>');
+}
+function errOut(cardId, label, msg) {
+  showOut(cardId, label, `<div class="err-msg">⚠ ${escHtml(msg)}</div>`);
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ── Table renderer ── */
+function renderTable(results) {
+  if (!Array.isArray(results) || !results.length) return '<div class="loading">No data returned.</div>';
+  const cols = Object.keys(results[0]);
+  const rows = results.slice(0, 500);
+  const headerHtml = cols.map(c => `<th>${escHtml(c)}</th>`).join('');
+  const rowsHtml = rows.map(r =>
+    '<tr>' + cols.map(c => {
+      const v = r[c];
+      if (v == null) return `<td class="num-muted">—</td>`;
+      const s = typeof v === 'number' ? v.toLocaleString() : String(v);
+      const cls = typeof v === 'number' ? (v > 0 ? 'num-green' : v < 0 ? 'num-red' : '') : '';
+      return `<td class="${cls}">${escHtml(s)}</td>`;
+    }).join('') + '</tr>'
+  ).join('');
+  return `<div style="overflow-x:auto"><table class="data-table"><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div><div style="color:var(--muted);font-size:11px;margin-top:6px">${rows.length} rows${results.length > 500 ? ' (capped at 500)' : ''}</div>`;
+}
+
+/* ── Copy / Export ── */
+function copyOut(bodyId) {
+  const text = document.getElementById(bodyId).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+function exportOut(bodyId, name) {
+  const text = document.getElementById(bodyId).dataset.json || document.getElementById(bodyId).innerText;
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([text], { type: 'application/json' })),
+    download: `obb_${name}_${Date.now()}.json`
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+let _lastRawJson = '';
+function exportRaw() {
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([_lastRawJson], { type: 'application/json' })),
+    download: `obb_raw_${Date.now()}.json`
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EQUITY
+══════════════════════════════════════════════════════════════ */
+async function fetchQuote() {
+  const sym = document.getElementById('eq-quote-sym').value.trim().toUpperCase();
+  if (!sym) return;
+  loadingOut('out-quote', `Quote — ${sym}`);
+  try {
+    const data = await obbCall('/api/v1/equity/price/quote', { symbol: sym, provider: 'yfinance' });
+    const results = data.results || data.data || [];
+    if (!results.length) { errOut('out-quote', `Quote — ${sym}`, 'No data returned'); return; }
+    const q = results[0];
+    const fields = [
+      ['Symbol',       q.symbol ?? sym],
+      ['Last Price',   q.last_price ?? q.price ?? q.close ?? '—'],
+      ['Change',       q.change ?? '—'],
+      ['Change %',     q.change_percent ?? '—'],
+      ['Bid',          q.bid ?? '—'],
+      ['Ask',          q.ask ?? '—'],
+      ['Volume',       q.volume ?? '—'],
+      ['Avg Vol',      q.average_volume ?? '—'],
+      ['52W High',     q.year_high ?? '—'],
+      ['52W Low',      q.year_low ?? '—'],
+      ['Mkt Cap',      q.market_cap ?? '—'],
+      ['P/E',          q.pe_ratio ?? '—'],
+      ['Exchange',     q.exchange ?? '—'],
+      ['Updated',      q.last_trade_timestamp ?? q.timestamp ?? '—'],
+    ];
+    const quoteHtml = '<div class="quote-grid">' + fields.map(([l, v]) => {
+      const isNeg = typeof v === 'number' && v < 0;
+      const isPos = typeof v === 'number' && v > 0;
+      const cls = isNeg ? 'num-red' : isPos ? 'num-green' : '';
+      const display = typeof v === 'number' ? v.toLocaleString() : String(v);
+      return `<div class="quote-cell"><div class="label">${l}</div><div class="value ${cls}">${escHtml(display)}</div></div>`;
+    }).join('') + '</div>';
+    const body = document.getElementById('out-quote-body');
+    body.innerHTML = quoteHtml;
+    body.dataset.json = JSON.stringify(results, null, 2);
+    document.getElementById('out-quote').style.display = 'block';
+    document.getElementById('out-quote-label').textContent = `Quote — ${sym}`;
+  } catch (e) { errOut('out-quote', `Quote — ${sym}`, e.message); }
+}
+
+async function fetchEquityHist() {
+  const sym   = document.getElementById('eq-hist-sym').value.trim().toUpperCase();
+  const intv  = document.getElementById('eq-hist-int').value;
+  const start = document.getElementById('eq-hist-start').value;
+  const end   = document.getElementById('eq-hist-end').value;
+  if (!sym) return;
+  loadingOut('out-eq-hist', `Historical — ${sym}`);
+  try {
+    const params = { symbol: sym, interval: intv, provider: 'yfinance' };
+    if (start) params.start_date = start;
+    if (end)   params.end_date   = end;
+    const data = await obbCall('/api/v1/equity/price/historical', params);
+    const results = data.results || data.data || [];
+    const body = document.getElementById('out-eq-hist-body');
+    body.innerHTML = renderTable(results.slice().reverse());
+    body.dataset.json = JSON.stringify(results, null, 2);
+    document.getElementById('out-eq-hist').style.display = 'block';
+    document.getElementById('out-eq-hist-label').textContent = `Historical — ${sym} (${results.length} bars)`;
+  } catch (e) { errOut('out-eq-hist', `Historical — ${sym}`, e.message); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CRYPTO
+══════════════════════════════════════════════════════════════ */
+async function fetchCrypto() {
+  const sym   = document.getElementById('cr-sym').value.trim().toUpperCase();
+  const intv  = document.getElementById('cr-int').value;
+  const start = document.getElementById('cr-start').value;
+  const end   = document.getElementById('cr-end').value;
+  if (!sym) return;
+  loadingOut('out-crypto', `Crypto — ${sym}`);
+  try {
+    const params = { symbol: sym, interval: intv, provider: 'yfinance' };
+    if (start) params.start_date = start;
+    if (end)   params.end_date   = end;
+    const data = await obbCall('/api/v1/crypto/price/historical', params);
+    const results = data.results || data.data || [];
+    const body = document.getElementById('out-crypto-body');
+    body.innerHTML = renderTable(results.slice().reverse());
+    body.dataset.json = JSON.stringify(results, null, 2);
+    document.getElementById('out-crypto').style.display = 'block';
+    document.getElementById('out-crypto-label').textContent = `${sym} (${results.length} bars)`;
+  } catch (e) { errOut('out-crypto', `Crypto — ${sym}`, e.message); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MACRO / FRED
+══════════════════════════════════════════════════════════════ */
+function setFred(id) { document.getElementById('fred-id').value = id; }
+
+async function fetchFred() {
+  const id    = document.getElementById('fred-id').value.trim().toUpperCase();
+  const start = document.getElementById('fred-start').value;
+  const key   = document.getElementById('fred-key').value.trim();
+  if (!id) return;
+  loadingOut('out-fred', `FRED — ${id}`);
+  try {
+    const params = { symbol: id, provider: 'fred' };
+    if (start) params.start_date = start;
+    if (key)   params.fred_api_key = key;
+    const data = await obbCall('/api/v1/economy/fred_series', params);
+    const results = data.results || data.data || [];
+    const body = document.getElementById('out-fred-body');
+    body.innerHTML = renderTable(results.slice().reverse());
+    body.dataset.json = JSON.stringify(results, null, 2);
+    document.getElementById('out-fred').style.display = 'block';
+    document.getElementById('out-fred-label').textContent = `FRED — ${id} (${results.length} points)`;
+  } catch (e) { errOut('out-fred', `FRED — ${id}`, e.message); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FUNDAMENTALS
+══════════════════════════════════════════════════════════════ */
+async function fetchIncome() {
+  const sym    = document.getElementById('fund-inc-sym').value.trim().toUpperCase();
+  const period = document.getElementById('fund-inc-period').value;
+  const limit  = document.getElementById('fund-inc-limit').value;
+  if (!sym) return;
+  loadingOut('out-income', `Income — ${sym}`);
+  try {
+    const data = await obbCall('/api/v1/equity/fundamental/income', { symbol: sym, period, limit, provider: 'yfinance' });
+    const results = data.results || data.data || [];
+    const body = document.getElementById('out-income-body');
+    body.innerHTML = renderTable(results);
+    body.dataset.json = JSON.stringify(results, null, 2);
+    document.getElementById('out-income').style.display = 'block';
+    document.getElementById('out-income-label').textContent = `Income Statement — ${sym}`;
+  } catch (e) { errOut('out-income', `Income — ${sym}`, e.message); }
+}
+
+async function fetchBalance() {
+  const sym    = document.getElementById('fund-bal-sym').value.trim().toUpperCase();
+  const period = document.getElementById('fund-bal-period').value;
+  if (!sym) return;
+  loadingOut('out-balance', `Balance — ${sym}`);
+  try {
+    const data = await obbCall('/api/v1/equity/fundamental/balance', { symbol: sym, period, limit: 4, provider: 'yfinance' });
+    const results = data.results || data.data || [];
+    const body = document.getElementById('out-balance-body');
+    body.innerHTML = renderTable(results);
+    body.dataset.json = JSON.stringify(results, null, 2);
+    document.getElementById('out-balance').style.display = 'block';
+    document.getElementById('out-balance-label').textContent = `Balance Sheet — ${sym}`;
+  } catch (e) { errOut('out-balance', `Balance — ${sym}`, e.message); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NEWS
+══════════════════════════════════════════════════════════════ */
+async function fetchNews() {
+  const sym   = document.getElementById('news-sym').value.trim().toUpperCase();
+  const limit = document.getElementById('news-limit').value;
+  if (!sym) return;
+  loadingOut('out-news', `News — ${sym}`);
+  try {
+    const data = await obbCall('/api/v1/equity/news', { symbol: sym, limit, provider: 'yfinance' });
+    const results = data.results || data.data || [];
+    if (!results.length) { errOut('out-news', `News — ${sym}`, 'No news found'); return; }
+    const html = results.map(n => `
+      <div class="news-item">
+        <div class="news-title">${escHtml(n.title || '—')}</div>
+        <div class="news-meta">
+          <span>${escHtml(n.source || n.publisher || '—')}</span>
+          <span>${n.date ? new Date(n.date).toLocaleString() : '—'}</span>
+          ${n.url ? `<a class="news-link" href="${escHtml(n.url)}" target="_blank">→ Read</a>` : ''}
+        </div>
+        ${n.text ? `<div style="color:var(--muted);font-size:11px;margin-top:4px;max-height:4em;overflow:hidden">${escHtml(n.text.slice(0,300))}…</div>` : ''}
+      </div>`).join('');
+    const body = document.getElementById('out-news-body');
+    body.innerHTML = html;
+    document.getElementById('out-news').style.display = 'block';
+    document.getElementById('out-news-label').textContent = `News — ${sym} (${results.length})`;
+  } catch (e) { errOut('out-news', `News — ${sym}`, e.message); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RAW EXPLORER
+══════════════════════════════════════════════════════════════ */
+function setRaw(path, params) {
+  document.getElementById('raw-path').value = path;
+  document.getElementById('raw-params').value = JSON.stringify(params, null, 2);
+}
+
+async function fetchRaw() {
+  const path = document.getElementById('raw-path').value.trim();
+  let params = {};
+  try { params = JSON.parse(document.getElementById('raw-params').value || '{}'); } catch(e) {
+    errOut('out-raw', 'Raw', 'Invalid JSON in params: ' + e.message); return;
+  }
+  if (!path) return;
+  loadingOut('out-raw', path);
+  try {
+    const data = await obbCall(path, params);
+    _lastRawJson = JSON.stringify(data, null, 2);
+    const results = data.results || data.data || (Array.isArray(data) ? data : null);
+    let bodyHtml;
+    if (results && results.length) {
+      bodyHtml = renderTable(results) + `<details style="margin-top:12px"><summary style="cursor:pointer;color:var(--muted);font-size:11px">▶ Raw JSON</summary><pre style="font-size:11px;color:var(--muted);overflow-x:auto;margin-top:6px">${escHtml(_lastRawJson.slice(0, 20000))}</pre></details>`;
+    } else {
+      bodyHtml = `<pre style="font-size:11px;color:var(--green);overflow-x:auto">${escHtml(_lastRawJson.slice(0, 20000))}</pre>`;
+    }
+    const body = document.getElementById('out-raw-body');
+    body.innerHTML = bodyHtml;
+    document.getElementById('out-raw').style.display = 'block';
+    document.getElementById('out-raw-label').textContent = path;
+  } catch (e) {
+    errOut('out-raw', path, e.message);
+    _lastRawJson = '';
+  }
+}
+
+/* ── Init ── */
+window.addEventListener('DOMContentLoaded', () => {
+  // set today as default end date
+  const today = new Date().toISOString().slice(0,10);
+  ['eq-hist-end','cr-end','fred-end'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = today;
+  });
+  // auto-check connection after short delay
+  setTimeout(checkConnection, 800);
+});
+</script>
+</body>
+</html>

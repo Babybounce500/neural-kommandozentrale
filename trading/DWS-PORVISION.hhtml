@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DWS & GENERALI • COMPLETE FUNDS DATABASE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0a0f0a; color: #e0e0e0; font-family: sans-serif; }
+        .glass { background: rgba(10, 20, 10, 0.9); border: 1px solid rgba(0, 255, 136, 0.2); }
+        .fund-row:hover { background: rgba(0, 255, 136, 0.05); }
+        .copy-btn { 
+            padding: 3px 8px; font-size: 10px; background: rgba(0, 255, 136, 0.1); 
+            border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 3px; cursor: pointer; 
+        }
+        .copy-btn:hover { background: rgba(0, 255, 136, 0.2); }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-[1600px] mx-auto">
+        <header class="mb-6 pb-4 border-b border-green-900/30">
+            <h1 class="text-4xl font-bold text-green-400 mb-2">DWS & GENERALI • COMPLETE FUNDS DATABASE</h1>
+            <p class="text-gray-500">Alle Investmentfonds mit ISIN, WKN, Ticker & Produktschlüssel • 2025</p>
+            <div class="mt-4">
+                <input type="text" id="search" placeholder="🔍 Suche..." class="w-full p-3 bg-gray-900 border border-green-900/50 rounded text-green-400" onkeyup="filterTable()">
+            </div>
+        </header>
+
+        <div class="glass rounded-xl overflow-x-auto">
+            <table class="w-full text-sm" id="fundsTable">
+                <thead class="bg-black/50 sticky top-0">
+                    <tr>
+                        <th class="p-3 text-left text-green-400">#</th>
+                        <th class="p-3 text-left text-green-400">ANBIETER</th>
+                        <th class="p-3 text-left text-green-400">FONDSNAME</th>
+                        <th class="p-3 text-left text-green-400">ISIN</th>
+                        <th class="p-3 text-left text-green-400">WKN</th>
+                        <th class="p-3 text-left text-green-400">PRODUKTSCHL.</th>
+                        <th class="p-3 text-left text-green-400">KATEGORIE</th>
+                        <th class="p-3 text-right text-green-400">PROVISION</th>
+                        <th class="p-3 text-left text-green-400">US TICKER</th>
+                    </tr>
+                </thead>
+                <tbody>
+<!-- DWS AKTIENFONDS -->
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">1</td><td class="p-3">DWS</td><td class="p-3">DWS ESG Investa</td>
+<td class="p-3 font-mono text-xs">DE0008474024</td><td class="p-3 font-mono text-xs">847402</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Europa ESG</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">2</td><td class="p-3">DWS</td><td class="p-3">DWS European Opportunities</td>
+<td class="p-3 font-mono text-xs">LU0360479896</td><td class="p-3 font-mono text-xs">DWS0M4</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Europa</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">3</td><td class="p-3">DWS</td><td class="p-3">DWS Invest ESG Top Euroland</td>
+<td class="p-3 font-mono text-xs">LU0145649762</td><td class="p-3 font-mono text-xs">578933</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Eurozone</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">4</td><td class="p-3">DWS</td><td class="p-3">DWS Eurovesta</td>
+<td class="p-3 font-mono text-xs">DE0009769869</td><td class="p-3 font-mono text-xs">976986</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Eurozone</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">5</td><td class="p-3">DWS</td><td class="p-3">DWS US Growth</td>
+<td class="p-3 font-mono text-xs">DE0008476524</td><td class="p-3 font-mono text-xs">847652</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien USA</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">6</td><td class="p-3">DWS</td><td class="p-3">DWS Invest Top Asia</td>
+<td class="p-3 font-mono text-xs">LU0145649259</td><td class="p-3 font-mono text-xs">978931</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Asien</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">7</td><td class="p-3">DWS</td><td class="p-3">DWS Osteuropa</td>
+<td class="p-3 font-mono text-xs">DE0009769836</td><td class="p-3 font-mono text-xs">976983</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Osteuropa</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">8</td><td class="p-3">DWS</td><td class="p-3">DWS SDG Global Equities</td>
+<td class="p-3 font-mono text-xs">LU1891311430</td><td class="p-3 font-mono text-xs">DWS26Z</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Global ESG</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">9</td><td class="p-3">DWS</td><td class="p-3">DWS ESG Akkumula</td>
+<td class="p-3 font-mono text-xs">DE0008474008</td><td class="p-3 font-mono text-xs">847400</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Global</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">10</td><td class="p-3">DWS</td><td class="p-3">DWS Vermögensbildungsfonds I</td>
+<td class="p-3 font-mono text-xs">DE0008476284</td><td class="p-3 font-mono text-xs">847628</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Deutschland</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">11</td><td class="p-3">DWS</td><td class="p-3">DWS Global Value</td>
+<td class="p-3 font-mono text-xs">LU0347176552</td><td class="p-3 font-mono text-xs">DWS0KX</td>
+<td class="p-3">48/xxx</td><td class="p-3">Aktien Global Value</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">12</td><td class="p-3">DWS</td><td class="p-3">DWS ESG Top Asien LC</td>
+<td class="p-3 font-mono text-xs">LU0273158872</td><td class="p-3 font-mono text-xs">DWS0F2</td>
+<td class="p-3">48/226</td><td class="p-3">Aktien Asien ESG</td><td class="p-3 text-right">18‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">13</td><td class="p-3">DWS</td><td class="p-3">DWS Deutschland LC</td>
+<td class="p-3 font-mono text-xs">DE0008490962</td><td class="p-3 font-mono text-xs">849096</td>
+<td class="p-3">-</td><td class="p-3">Aktien Deutschland</td><td class="p-3 text-right">5%</td><td class="p-3">-</td>
+</tr>
+
+<!-- DWS US TICKER FUNDS -->
+<tr class="fund-row border-b border-gray-800 bg-green-900/10">
+<td class="p-3">14</td><td class="p-3">DWS</td><td class="p-3 font-bold">DWS Science & Technology</td>
+<td class="p-3 font-mono text-xs">US25158K1034</td><td class="p-3 font-mono text-xs">A0MNRK</td>
+<td class="p-3">-</td><td class="p-3">Tech USA</td><td class="p-3 text-right">5.75%</td>
+<td class="p-3"><button class="copy-btn text-green-400" onclick="copy('KTCAX.US')">KTCAX.US</button></td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-green-900/10">
+<td class="p-3">15</td><td class="p-3">DWS</td><td class="p-3 font-bold">DWS Core Equity Fund</td>
+<td class="p-3 font-mono text-xs">US25158W5582</td><td class="p-3 font-mono text-xs">A0MPPE</td>
+<td class="p-3">-</td><td class="p-3">Aktien USA</td><td class="p-3 text-right">5.75%</td>
+<td class="p-3"><button class="copy-btn text-green-400" onclick="copy('SUWZX.US')">SUWZX.US</button></td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-green-900/10">
+<td class="p-3">16</td><td class="p-3">DWS</td><td class="p-3 font-bold">DWS CROCI U.S. Fund</td>
+<td class="p-3 font-mono text-xs">US25158W1218</td><td class="p-3 font-mono text-xs">A0MPPC</td>
+<td class="p-3">-</td><td class="p-3">Value USA</td><td class="p-3 text-right">5.75%</td>
+<td class="p-3"><button class="copy-btn text-green-400" onclick="copy('DCUSX.US')">DCUSX.US</button></td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-green-900/10">
+<td class="p-3">17</td><td class="p-3">DWS</td><td class="p-3 font-bold">DWS Capital Growth Fund</td>
+<td class="p-3 font-mono text-xs">US25158W2265</td><td class="p-3 font-mono text-xs">A0MPPD</td>
+<td class="p-3">-</td><td class="p-3">Growth USA</td><td class="p-3 text-right">5.75%</td>
+<td class="p-3"><button class="copy-btn text-green-400" onclick="copy('SGROX.US')">SGROX.US</button></td>
+</tr>
+
+<!-- DWS RENTENFONDS -->
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">18</td><td class="p-3">DWS</td><td class="p-3">DWS Eurorenta</td>
+<td class="p-3 font-mono text-xs">DE0009769794</td><td class="p-3 font-mono text-xs">976979</td>
+<td class="p-3">48/xxx</td><td class="p-3">Renten EUR</td><td class="p-3 text-right">13,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">19</td><td class="p-3">DWS</td><td class="p-3">DWS Invest Euro Corporate Bonds</td>
+<td class="p-3 font-mono text-xs">LU0616839501</td><td class="p-3 font-mono text-xs">DWS0VU</td>
+<td class="p-3">48/xxx</td><td class="p-3">Corporate Bonds</td><td class="p-3 text-right">13,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">20</td><td class="p-3">DWS</td><td class="p-3">DWS Vermögensbildungsfonds R</td>
+<td class="p-3 font-mono text-xs">DE0009774794</td><td class="p-3 font-mono text-xs">977479</td>
+<td class="p-3">48/xxx</td><td class="p-3">Renten Mixed</td><td class="p-3 text-right">13,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">21</td><td class="p-3">DWS</td><td class="p-3">DWS Covered Bond Fund</td>
+<td class="p-3 font-mono text-xs">LU0273155753</td><td class="p-3 font-mono text-xs">DWS0F0</td>
+<td class="p-3">48/701</td><td class="p-3">Pfandbriefe</td><td class="p-3 text-right">1,2‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">22</td><td class="p-3">DWS</td><td class="p-3">DWS ESG Zinseinkommen LD</td>
+<td class="p-3 font-mono text-xs">DE0009848119</td><td class="p-3 font-mono text-xs">984811</td>
+<td class="p-3">48/173</td><td class="p-3">ESG Bonds</td><td class="p-3 text-right">9‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">23</td><td class="p-3">DWS</td><td class="p-3">DWS Invest ESG Euro Bonds (Short)</td>
+<td class="p-3 font-mono text-xs">LU0616839188</td><td class="p-3 font-mono text-xs">DWS0VR</td>
+<td class="p-3">48/25</td><td class="p-3">Short Bonds</td><td class="p-3 text-right">4,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-green-900/10">
+<td class="p-3">24</td><td class="p-3">DWS</td><td class="p-3 font-bold">DWS Emerging Markets Fixed Income</td>
+<td class="p-3 font-mono text-xs">US25158W3461</td><td class="p-3 font-mono text-xs">A0MPPF</td>
+<td class="p-3">-</td><td class="p-3">EM Bonds</td><td class="p-3 text-right">4.75%</td>
+<td class="p-3"><button class="copy-btn text-green-400" onclick="copy('SCEMX.US')">SCEMX.US</button></td>
+</tr>
+
+<!-- DWS IMMOBILIEN -->
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">25</td><td class="p-3">DWS</td><td class="p-3">grundbesitz Fokus Deutschland</td>
+<td class="p-3 font-mono text-xs">DE000A2DMYY9</td><td class="p-3 font-mono text-xs">A2DMYY</td>
+<td class="p-3">48/208</td><td class="p-3">Immobilien DE</td><td class="p-3 text-right">18‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">26</td><td class="p-3">DWS</td><td class="p-3">grundbesitz europa</td>
+<td class="p-3 font-mono text-xs">DE0009807016</td><td class="p-3 font-mono text-xs">980701</td>
+<td class="p-3">48/xxx</td><td class="p-3">Immobilien EU</td><td class="p-3 text-right">45%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">27</td><td class="p-3">DWS</td><td class="p-3">grundbesitz global</td>
+<td class="p-3 font-mono text-xs">DE0009807057</td><td class="p-3 font-mono text-xs">980705</td>
+<td class="p-3">48/xxx</td><td class="p-3">Immobilien Global</td><td class="p-3 text-right">45%</td><td class="p-3">-</td>
+</tr>
+
+<!-- DWS MISCHFONDS (28-39) -->
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">28</td><td class="p-3">DWS</td><td class="p-3">DWS Global Protect 80</td>
+<td class="p-3 font-mono text-xs">LU0347711507</td><td class="p-3 font-mono text-xs">DWS0L0</td>
+<td class="p-3">48/362</td><td class="p-3">Mischfonds</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">29</td><td class="p-3">DWS</td><td class="p-3">DWS Vermögensmandat-Dynamik</td>
+<td class="p-3 font-mono text-xs">DE000DWS1C14</td><td class="p-3 font-mono text-xs">DWS1C1</td>
+<td class="p-3">48/xxx</td><td class="p-3">Misch Dynamisch</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">30</td><td class="p-3">DWS</td><td class="p-3">DWS Sachwerte</td>
+<td class="p-3 font-mono text-xs">DE000DWS1EG4</td><td class="p-3 font-mono text-xs">DWS1EG</td>
+<td class="p-3">48/xxx</td><td class="p-3">Sachwerte</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">31</td><td class="p-3">DWS</td><td class="p-3">Champions Select Dynamic LD</td>
+<td class="p-3 font-mono text-xs">LU0273158955</td><td class="p-3 font-mono text-xs">DWS0F3</td>
+<td class="p-3">48/xxx</td><td class="p-3">Mischfonds</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">32</td><td class="p-3">DWS</td><td class="p-3">StepInvest Concept Kaldemorgen</td>
+<td class="p-3 font-mono text-xs">DE000DWS2TR9</td><td class="p-3 font-mono text-xs">DWS2TR</td>
+<td class="p-3">48/xxx</td><td class="p-3">Misch Flexibel</td><td class="p-3 text-right">20‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">33</td><td class="p-3">DWS</td><td class="p-3">StepInvest Top Dividende</td>
+<td class="p-3 font-mono text-xs">DE000DWS2TS7</td><td class="p-3 font-mono text-xs">DWS2TS</td>
+<td class="p-3">48/xxx</td><td class="p-3">Dividenden</td><td class="p-3 text-right">20‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">34</td><td class="p-3">DWS</td><td class="p-3">DWS Vermögensmandat-Balance</td>
+<td class="p-3 font-mono text-xs">DE000DWS1C22</td><td class="p-3 font-mono text-xs">DWS1C2</td>
+<td class="p-3">48/xxx</td><td class="p-3">Misch Ausgewogen</td><td class="p-3 text-right">20‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">35</td><td class="p-3">DWS</td><td class="p-3">Champions Select Balance LD</td>
+<td class="p-3 font-mono text-xs">LU0273158872</td><td class="p-3 font-mono text-xs">DWS0F2</td>
+<td class="p-3">48/xxx</td><td class="p-3">Mischfonds</td><td class="p-3 text-right">20‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">36</td><td class="p-3">DWS</td><td class="p-3">DWS Multi Opportunities</td>
+<td class="p-3 font-mono text-xs">DE000DWS0WN9</td><td class="p-3 font-mono text-xs">DWS0WN</td>
+<td class="p-3">48/220</td><td class="p-3">Multi-Strategy</td><td class="p-3 text-right">18‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">37</td><td class="p-3">DWS</td><td class="p-3">DWS Vermögensmandat-Defensiv</td>
+<td class="p-3 font-mono text-xs">DE000DWS1C30</td><td class="p-3 font-mono text-xs">DWS1C3</td>
+<td class="p-3">48/xxx</td><td class="p-3">Misch Defensiv</td><td class="p-3 text-right">13,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">38</td><td class="p-3">DWS</td><td class="p-3">Allianz Capital Plus Global C2</td>
+<td class="p-3 font-mono text-xs">LU0256839944</td><td class="p-3 font-mono text-xs">A0J3UF</td>
+<td class="p-3">48/xxx</td><td class="p-3">Global Allocation</td><td class="p-3 text-right">13,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">39</td><td class="p-3">DWS</td><td class="p-3">DWS Invest Conservative Opportunities</td>
+<td class="p-3 font-mono text-xs">LU0273152164</td><td class="p-3 font-mono text-xs">DWS0EU</td>
+<td class="p-3">48/240</td><td class="p-3">Konservativ</td><td class="p-3 text-right">9‰</td><td class="p-3">-</td>
+</tr>
+
+<!-- DWS ALTERSVORSORGE (40-46) -->
+<tr class="fund-row border-b border-gray-800 bg-yellow-900/10">
+<td class="p-3">40</td><td class="p-3">DWS</td><td class="p-3">Vermögenssparplan 3%</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">48/118</td><td class="p-3">Sparplan</td><td class="p-3 text-right">50%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-yellow-900/10">
+<td class="p-3">41</td><td class="p-3">DWS</td><td class="p-3">Vermögenssparplan 4%</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">48/120</td><td class="p-3">Sparplan</td><td class="p-3 text-right">50%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-yellow-900/10">
+<td class="p-3">42</td><td class="p-3">DWS</td><td class="p-3">Vermögenssparplan 5%</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">48/122</td><td class="p-3">Sparplan</td><td class="p-3 text-right">50%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-yellow-900/10">
+<td class="p-3">43</td><td class="p-3">DWS</td><td class="p-3">DWS RiesterRente Premium 2.0</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">48/xxx</td><td class="p-3">Riester</td><td class="p-3 text-right">45,5%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-yellow-900/10">
+<td class="p-3">44</td><td class="p-3">DWS</td><td class="p-3">DWS VermögensSparplan Premium 2.0</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">48/xxx</td><td class="p-3">Premium</td><td class="p-3 text-right">45,5%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-yellow-900/10">
+<td class="p-3">45</td><td class="p-3">DWS</td><td class="p-3">DWS RiesterRente Premium</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">48/xxx</td><td class="p-3">Riester</td><td class="p-3 text-right">40%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-yellow-900/10">
+<td class="p-3">46</td><td class="p-3">DWS</td><td class="p-3">DWS VermögensSparplan Premium</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">48/xxx</td><td class="p-3">Premium</td><td class="p-3 text-right">40%</td><td class="p-3">-</td>
+</tr>
+
+<!-- GENERALI FUNDS (47-54) -->
+<tr class="fund-row border-b border-gray-800 bg-purple-900/10">
+<td class="p-3">47</td><td class="p-3">GENERALI</td><td class="p-3">Generali Komfort Dynamik Europa</td>
+<td class="p-3 font-mono text-xs">LU0100847093</td><td class="p-3 font-mono text-xs">921702</td>
+<td class="p-3">-</td><td class="p-3">Aktien Europa</td><td class="p-3 text-right">4%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-purple-900/10">
+<td class="p-3">48</td><td class="p-3">GENERALI</td><td class="p-3">GIS Sycomore Sustainable European Equity</td>
+<td class="p-3 font-mono text-xs">LU0145456207</td><td class="p-3 font-mono text-xs">577692</td>
+<td class="p-3">-</td><td class="p-3">ESG Europa</td><td class="p-3 text-right">-</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-purple-900/10">
+<td class="p-3">49</td><td class="p-3">GENERALI</td><td class="p-3">GIS Euro Short Term Bond DX (Award 2025)</td>
+<td class="p-3 font-mono text-xs">LU0145485214</td><td class="p-3 font-mono text-xs">621817</td>
+<td class="p-3">-</td><td class="p-3">Short Bonds EUR</td><td class="p-3 text-right">3%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-purple-900/10">
+<td class="p-3">50</td><td class="p-3">GENERALI</td><td class="p-3">GIS Central & Eastern European Bond</td>
+<td class="p-3 font-mono text-xs">LU0145481221</td><td class="p-3">-</td>
+<td class="p-3">-</td><td class="p-3">CEE Bonds</td><td class="p-3 text-right">-</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-purple-900/10">
+<td class="p-3">51</td><td class="p-3">GENERALI</td><td class="p-3">GIS Central & Eastern EU Equity DX (Lipper 2024)</td>
+<td class="p-3 font-mono text-xs">LU0145471693</td><td class="p-3 font-mono text-xs">621727</td>
+<td class="p-3">-</td><td class="p-3">CEE Aktien</td><td class="p-3 text-right">5%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-purple-900/10">
+<td class="p-3">52</td><td class="p-3">GENERALI</td><td class="p-3">GIS Global Multi Asset Income DX (Lipper UK+NL)</td>
+<td class="p-3 font-mono text-xs">LU1357655627</td><td class="p-3 font-mono text-xs">A2AE5U</td>
+<td class="p-3">-</td><td class="p-3">Multi-Asset Income</td><td class="p-3 text-right">5%</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-purple-900/10">
+<td class="p-3">53</td><td class="p-3">GENERALI</td><td class="p-3">Generali SMART Funds BEST SELECTION</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">-</td><td class="p-3">Fund-of-Funds</td><td class="p-3 text-right">-</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800 bg-purple-900/10">
+<td class="p-3">54</td><td class="p-3">GENERALI</td><td class="p-3">Generali Global ESG</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">-</td><td class="p-3">Global ESG</td><td class="p-3 text-right">-</td><td class="p-3">-</td>
+</tr>
+
+<!-- FONDSDEPOT BANK (55-59) -->
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">55</td><td class="p-3">FONDSDEPOT</td><td class="p-3">FondsDepot Bank Aktienfonds</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">40/xxx</td><td class="p-3">Aktien</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">56</td><td class="p-3">FONDSDEPOT</td><td class="p-3">Allianz Euro Rentenfonds A EUR</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">40/41</td><td class="p-3">Renten EUR</td><td class="p-3 text-right">1,2‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">57</td><td class="p-3">FONDSDEPOT</td><td class="p-3">Mischfonds Dynamik</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">40/xxx</td><td class="p-3">Misch Dynamisch</td><td class="p-3 text-right">22,5‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">58</td><td class="p-3">FONDSDEPOT</td><td class="p-3">Mischfonds Balance</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">40/190</td><td class="p-3">Misch Ausgewogen</td><td class="p-3 text-right">20‰</td><td class="p-3">-</td>
+</tr>
+<tr class="fund-row border-b border-gray-800">
+<td class="p-3">59</td><td class="p-3">FONDSDEPOT</td><td class="p-3">Mischfonds Konservativ</td>
+<td class="p-3">-</td><td class="p-3">-</td>
+<td class="p-3">40/xxx</td><td class="p-3">Konservativ</td><td class="p-3 text-right">13,5‰</td><td class="p-3">-</td>
+</tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- STATS -->
+        <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass rounded p-4 text-center">
+                <div class="text-3xl font-bold text-green-400">46</div>
+                <div class="text-xs text-gray-500">DWS Fonds</div>
+            </div>
+            <div class="glass rounded p-4 text-center">
+                <div class="text-3xl font-bold text-purple-400">8</div>
+                <div class="text-xs text-gray-500">Generali Fonds</div>
+            </div>
+            <div class="glass rounded p-4 text-center">
+                <div class="text-3xl font-bold text-yellow-400">5</div>
+                <div class="text-xs text-gray-500">FondsDepot Bank</div>
+            </div>
+            <div class="glass rounded p-4 text-center">
+                <div class="text-3xl font-bold text-green-400">5</div>
+                <div class="text-xs text-gray-500">US Ticker verfügbar</div>
+            </div>
+        </div>
+
+        <div class="mt-4 glass rounded p-4 text-sm text-gray-400">
+            <strong class="text-green-400">📌 LEGENDE:</strong> 
+            Grün hinterlegt = US Ticker verfügbar für EOD Terminal • 
+            Gelb hinterlegt = Altersvorsorge-Produkte • 
+            Lila hinterlegt = Generali Fonds •
+            ‰ = pro Tausend (Promille) • % = Prozent
+        </div>
+    </div>
+
+    <script>
+        function copy(text) {
+            navigator.clipboard.writeText(text);
+            alert(`✓ ${text} kopiert!`);
+        }
+        
+        function filterTable() {
+            const input = document.getElementById('search').value.toLowerCase();
+            const rows = document.querySelectorAll('.fund-row');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

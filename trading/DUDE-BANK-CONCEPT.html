@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUDE BANK eG — Konzept & KI-Governance</title>
+<style>
+  :root {
+    --bg: #0a0a12;
+    --surface: #12121e;
+    --card: #161624;
+    --border: #22223a;
+    --purple: #a371f7;
+    --purple2: #d2a8ff;
+    --gold: #c9a84c;
+    --gold2: #f5d47a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --red: #f85149;
+    --orange: #d29922;
+    --teal: #26c6da;
+    --text: #c9d1d9;
+    --muted: #3d3d5c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .header {
+    background: linear-gradient(135deg, #0a0a18 0%, #12122a 50%, #0a0a18 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(163,113,247,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(201,168,76,0.06) 0%, transparent 60%);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--purple); margin-bottom: 12px; }
+  .header h1 { font-size: clamp(28px, 5vw, 52px); font-weight: 900; color: var(--text); }
+  .header h1 .dude { color: var(--gold2); }
+  .header h1 .bank { color: var(--purple2); }
+  .header-sub { margin-top: 12px; font-size: 14px; color: #555; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+  .content { max-width: 1000px; margin: 0 auto; padding: 48px 24px; }
+
+  .section-header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple); margin-bottom: 4px; }
+  .section-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .section-gap { margin-top: 56px; }
+
+  /* VISION CARDS */
+  .vision-hero {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .vision-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(163,113,247,0.06) 0%, transparent 70%);
+  }
+  .formula-display {
+    text-align: center;
+    padding: 32px;
+    background: #0d0d1a;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+  }
+  .formula-big { font-size: clamp(22px, 4vw, 42px); font-weight: 900; letter-spacing: 2px; }
+  .formula-big .num { color: var(--gold2); }
+  .formula-big .op { color: var(--muted); margin: 0 12px; }
+  .formula-big .eq { color: var(--purple2); margin: 0 12px; }
+  .formula-big .result { color: var(--green); }
+  .formula-sub { font-size: 13px; color: #555; margin-top: 12px; }
+
+  /* ORGANIGRAMM */
+  .org-chart { margin-bottom: 32px; }
+  .org-level { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .org-level-label { text-align: center; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .org-node {
+    border-radius: 8px;
+    padding: 14px 20px;
+    text-align: center;
+    min-width: 140px;
+  }
+  .org-node-title { font-size: 12px; font-weight: 700; }
+  .org-node-desc { font-size: 10px; margin-top: 4px; opacity: 0.7; }
+  .org-connector { text-align: center; font-size: 20px; color: var(--muted); margin: 4px 0; }
+
+  .node-red { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3); }
+  .node-red .org-node-title { color: var(--red); }
+  .node-purple { background: rgba(163,113,247,0.1); border: 1px solid rgba(163,113,247,0.3); }
+  .node-purple .org-node-title { color: var(--purple2); }
+  .node-blue { background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.3); }
+  .node-blue .org-node-title { color: var(--blue); }
+  .node-green { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3); }
+  .node-green .org-node-title { color: var(--green); }
+  .node-gold { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); }
+  .node-gold .org-node-title { color: var(--gold2); }
+  .node-teal { background: rgba(38,198,218,0.1); border: 1px solid rgba(38,198,218,0.3); }
+  .node-teal .org-node-title { color: var(--teal); }
+  .node-orange { background: rgba(210,153,34,0.1); border: 1px solid rgba(210,153,34,0.3); }
+  .node-orange .org-node-title { color: var(--orange); }
+
+  /* AGENT DETAIL CARDS */
+  .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .agent-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .agent-card:hover { border-color: var(--purple); }
+  .agent-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .agent-icon { font-size: 24px; }
+  .agent-name { font-size: 14px; font-weight: 700; }
+  .agent-role { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; opacity: 0.6; }
+  .agent-body { font-size: 12px; color: #8b949e; line-height: 1.7; }
+  .agent-body strong { color: var(--text); }
+  .agent-veto {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .veto-yes { background: rgba(248,81,73,0.1); color: var(--red); border: 1px solid rgba(248,81,73,0.2); }
+  .veto-no { background: rgba(63,185,80,0.1); color: var(--green); border: 1px solid rgba(63,185,80,0.2); }
+
+  /* TABLE */
+  .info-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .info-table th { background: rgba(163,113,247,0.08); color: var(--purple); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+  .info-table td { padding: 10px 14px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .info-table tr:nth-child(even) td { background: rgba(163,113,247,0.02); }
+  .info-table td:first-child { color: var(--text); font-weight: 600; }
+  .info-table .val-green { color: var(--green); font-weight: 700; }
+  .info-table .val-red { color: var(--red); font-weight: 700; }
+  .info-table .val-gold { color: var(--gold); font-weight: 700; }
+  .info-table .val-purple { color: var(--purple2); font-weight: 700; }
+
+  /* WARNING BOX */
+  .warning-box {
+    background: rgba(248,81,73,0.06);
+    border: 1px solid rgba(248,81,73,0.2);
+    border-left: 4px solid var(--red);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .warning-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .warning-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .warning-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+
+  /* INFO CARD */
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .info-card-year { font-size: 11px; font-family: monospace; color: var(--purple); letter-spacing: 2px; margin-bottom: 8px; }
+  .info-card-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .info-card-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .info-card-body strong { color: var(--text); }
+
+  .magritte-quote {
+    font-style: italic;
+    font-size: 12px;
+    color: #a371f744;
+    padding-left: 12px;
+    border-left: 2px solid rgba(163,113,247,0.2);
+    margin-top: 12px;
+  }
+
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 10px; background: rgba(163,113,247,0.1); color: var(--purple); border: 1px solid rgba(163,113,247,0.2); }
+  .tag-red { background: rgba(248,81,73,0.1); color: var(--red); border-color: rgba(248,81,73,0.2); }
+  .tag-green { background: rgba(63,185,80,0.1); color: var(--green); border-color: rgba(63,185,80,0.2); }
+  .tag-gold { background: rgba(201,168,76,0.1); color: var(--gold); border-color: rgba(201,168,76,0.2); }
+
+  @media (max-width: 600px) {
+    .content { padding: 24px 12px; }
+    .agent-grid { grid-template-columns: 1fr; }
+    .org-level { flex-direction: column; align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK eG — Vollständiges Konzept</div>
+  <h1><span class="dude">DUDE</span> <span class="bank">BANK</span> eG</h1>
+  <p class="header-sub">
+    Die komplette Blaupause: Vision, Multi-Agent KI-System, DeFi-Mechaniken, Rulebook,
+    Organigramm und regulatorische Realitätsprüfung — aus 5.942 Zeilen Gemini-Konversation destilliert.
+  </p>
+</div>
+
+<div class="content">
+
+  <!-- VISION -->
+  <div class="section-header">
+    <div class="section-label">Vision</div>
+    <div class="section-title">Die 1-Milliarden-Formel</div>
+  </div>
+
+  <div class="vision-hero">
+    <div class="formula-display">
+      <div class="formula-big">
+        <span class="num">1.000.000</span>
+        <span class="op">×</span>
+        <span class="num">1.000 €</span>
+        <span class="eq">=</span>
+        <span class="result">1 Mrd. €</span>
+      </div>
+      <div class="formula-sub">1 Million Dudes × 1.000 € Mindest-Geschäftsguthaben = Erstes Milliarden-DeFi-Genossenschaft-Kapital</div>
+    </div>
+    <div class="info-card-body">
+      Das Grundprinzip ist radikal einfach: <strong>Jeder Dude bringt 1.000 €.</strong> Nicht mehr, nicht weniger für den Einstieg.
+      Kein Minimum für Reiche, kein Maximum für Arme — alle starten gleich. 1 Dude = 1 Anteil = 1 Vote = 1.000 €.
+      <br><br>
+      Mit einer Million Mitgliedern entsteht ein Kapitalpuffer von einer Milliarde Euro — <strong>ohne Venture Capital,
+      ohne IPO, ohne Bankenkredit.</strong> Das ist das Raiffeisen-Prinzip skaliert auf die globale DeFi-Ära.
+      <br><br>
+      Wie Raiffeisen 1864 sagte: <em>„Was dem Einzelnen nicht möglich ist, das vermögen viele."</em>
+      Was ein einzelner Dude mit 1.000 € nicht stemmen kann — smart contracts deployen, Liquiditätspools aufbauen,
+      institutionelle DeFi-Renditen erzielen — das kann eine Bruderschaft von einer Million Dudes.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas une utopie. C'est la banque des Dudes."</div>
+    <div class="tags">
+      <span class="tag">1M Dudes</span>
+      <span class="tag">1 Mrd. € Kapital</span>
+      <span class="tag-gold tag">Raiffeisen DNA</span>
+      <span class="tag-green tag">kein IPO</span>
+    </div>
+  </div>
+
+  <!-- ERPROBTER DUDE FILTER -->
+  <div class="section-header section-gap">
+    <div class="section-label">Onboarding</div>
+    <div class="section-title">Der „Erprobter Dude" Filter — Wer darf rein?</div>
+  </div>
+
+  <table class="info-table">
+    <thead>
+      <tr>
+        <th>Filter-Stufe</th>
+        <th>Bedingung</th>
+        <th>Warum wichtig</th>
+        <th>DeFi-Mechanik</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Stufe 1: Empfehlung</td>
+        <td>Mindestens 1 bestehender Dude bürgt für den Neuen (Social Vouching)</td>
+        <td>Sybil-Angriff Prävention: Verhindert 1 Person = 1000 Fake-Accounts</td>
+        <td class="val-purple">On-Chain Bürgen-Signatur des empfehlenden Dudes</td>
+      </tr>
+      <tr>
+        <td>Stufe 2: Zahlung</td>
+        <td>1.000 € Geschäftsguthaben (optional gestaffelt über 12 Monate)</td>
+        <td>Skin in the Game: Wer zahlt, hat Anreiz zur Sorgfalt</td>
+        <td class="val-purple">Smart Contract Deposit + Token-Minting</td>
+      </tr>
+      <tr>
+        <td>Stufe 3: Rulebook</td>
+        <td>Digitale Signatur des vollständigen Rulebooks (On-Chain)</td>
+        <td>Rechtlich bindend: Kenntnis und Akzeptanz der Regeln</td>
+        <td class="val-purple">IPFS-Hash Signatur via Wallet</td>
+      </tr>
+      <tr>
+        <td>Stufe 4: KI-Check</td>
+        <td>Screening gegen bekannte Scammer, Sanktionslisten, Betrüger-Datenbanken</td>
+        <td>Prävention: Ausschluss vor Einstieg statt nach erstem Schaden</td>
+        <td class="val-purple">Automatisierter KYC/AML-Scan durch KI-COO</td>
+      </tr>
+      <tr>
+        <td>Stufe 5: Probephase</td>
+        <td>90 Tage eingeschränkte Voting-Rechte, nur Beobachter-Status</td>
+        <td>Community kann Neuen kennenlernen bevor volle Stimme</td>
+        <td class="val-purple">Token mit temporärem Governance-Lockup</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- RULEBOOK -->
+  <div class="section-header section-gap">
+    <div class="section-label">Governance</div>
+    <div class="section-title">Das Rulebook — Unbestechliches Gesetz der Gemeinschaft</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-year">DAS DUDE BANK RULEBOOK — KERNPRINZIPIEN</div>
+    <div class="info-card-title">Was das Rulebook enthält (und was nicht verhandelbar ist)</div>
+    <div class="info-card-body">
+      Das Rulebook ist nicht eine Liste von Verboten — es ist die <strong>Satzung der Bruderschaft</strong>.
+      Einmal On-Chain veröffentlicht (IPFS + Smart Contract), kann es nur durch eine
+      qualifizierte Supermajorität (75% der Mitglieder-Votes) geändert werden.
+      <br><br>
+      <strong>Unveräußerliche Kern-Regeln (Supermajorität nötig):</strong>
+    </div>
+    <div class="tags">
+      <span class="tag">1 Dude = 1 Vote (immer)</span>
+      <span class="tag">CRO-Veto bleibt immer</span>
+      <span class="tag">Keine Eigen-Kollateral</span>
+      <span class="tag-gold tag">Raiffeisen-DNA</span>
+    </div>
+  </div>
+
+  <table class="info-table">
+    <thead><tr><th>Regel</th><th>Inhalt</th><th>Konsequenz bei Verletzung</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Vertrauensregel</td>
+        <td>Kein Dude schadet absichtlich der Gemeinschaft (Sabotage, Insider-Betrug, Malicious Code)</td>
+        <td class="val-red">Automatischer Ausschluss + Rückbuchung aller Vorteile, forensische KI-Analyse</td>
+      </tr>
+      <tr>
+        <td>Transparenzregel</td>
+        <td>Alle Transaktionen, alle KI-Entscheidungen, alle Kreditvergaben sind On-Chain öffentlich</td>
+        <td class="val-gold">Governance-Token Entzug bei nachgewiesener Verschleierung</td>
+      </tr>
+      <tr>
+        <td>Haircut-Regel</td>
+        <td>Lombardkredit maximal 50% des Collateral-Werts. Kein eigener Dude-Token als Sicherheit.</td>
+        <td class="val-red">Smart Contract verweigert Kreditauszahlung automatisch bei Regelverstoß</td>
+      </tr>
+      <tr>
+        <td>Bounty-Regel</td>
+        <td>Alle Sweat-Equity-Auszahlungen über Bounty-Tracker, öffentlich, steuerlich deklariert</td>
+        <td class="val-gold">Kein privater Deal — Bounty-Tracker Agent lehnt nicht-öffentliche Transaktionen ab</td>
+      </tr>
+      <tr>
+        <td>Human-in-Loop-Regel</td>
+        <td>Keine KI-Entscheidung über 50.000 € ohne CRO-Freigabe innerhalb 24h</td>
+        <td class="val-red">Transaktion wird automatisch für 24h eingefroren und eskaliert</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- KI GOVERNANCE ORGANIGRAMM -->
+  <div class="section-header section-gap">
+    <div class="section-label">KI Governance</div>
+    <div class="section-title">Multi-Agent System (MAS) Organigramm</div>
+  </div>
+
+  <div class="org-chart">
+    <div class="org-level-label">EBENE 0 — DUDE COMMUNITY (Generalversammlung / DAO Vote)</div>
+    <div class="org-level">
+      <div class="org-node node-gold">
+        <div class="org-node-title">Generalversammlung</div>
+        <div class="org-node-desc">1M Dudes × 1 Vote</div>
+      </div>
+    </div>
+
+    <div class="org-connector">↓ wählt ↓</div>
+
+    <div class="org-level-label">EBENE 1 — MENSCHLICHER VORSTAND (gesetzlich zwingend nach GenG § 24)</div>
+    <div class="org-level">
+      <div class="org-node node-red">
+        <div class="org-node-title">CRO (Chief Risk Officer)</div>
+        <div class="org-node-desc">Mensch · Veto-Recht · BaFin-Ansprechpartner</div>
+      </div>
+      <div class="org-node node-red">
+        <div class="org-node-title">Vorstand (2. Person)</div>
+        <div class="org-node-desc">Mensch · Rechtliche Verantwortung · GenG § 24</div>
+      </div>
+    </div>
+
+    <div class="org-connector">↓ überwacht ↓</div>
+
+    <div class="org-level-label">EBENE 2 — KI CEO AGENT (Advisory + Execution, kein rechtlicher Vorstand)</div>
+    <div class="org-level">
+      <div class="org-node node-purple">
+        <div class="org-node-title">CEO-AGENT (KI)</div>
+        <div class="org-node-desc">Strategische Koordination · Alle Sub-Agents unter ihm</div>
+      </div>
+    </div>
+
+    <div class="org-connector">↓ koordiniert ↓</div>
+
+    <div class="org-level-label">EBENE 3 — MANAGER AGENTS</div>
+    <div class="org-level">
+      <div class="org-node node-blue">
+        <div class="org-node-title">CFO-AGENT</div>
+        <div class="org-node-desc">Liquidität · Kapital · Buchführung</div>
+      </div>
+      <div class="org-node node-green">
+        <div class="org-node-title">COO-AGENT</div>
+        <div class="org-node-desc">Operations · Sandbox · Deployment</div>
+      </div>
+      <div class="org-node node-teal">
+        <div class="org-node-title">CMO-AGENT</div>
+        <div class="org-node-desc">Community · Onboarding · Marketing</div>
+      </div>
+    </div>
+
+    <div class="org-connector">↓ beauftragen ↓</div>
+
+    <div class="org-level-label">EBENE 4 — WORKER SUB-AGENTS</div>
+    <div class="org-level">
+      <div class="org-node node-orange">
+        <div class="org-node-title">KREDIT-AGENT</div>
+        <div class="org-node-desc">Kreditprüfung · Scoring · Auszahlung</div>
+      </div>
+      <div class="org-node node-red">
+        <div class="org-node-title">LIQUIDATIONS-AGENT</div>
+        <div class="org-node-desc">Auto-Liquidation bei Haircut-Verletzung</div>
+      </div>
+      <div class="org-node node-purple">
+        <div class="org-node-title">TRADING-AGENT</div>
+        <div class="org-node-desc">Incubation Sandbox · Live Trading</div>
+      </div>
+      <div class="org-node node-teal">
+        <div class="org-node-title">REFACTORING-AGENT</div>
+        <div class="org-node-desc">Code-Optimierung · Bug-Detection</div>
+      </div>
+      <div class="org-node node-gold">
+        <div class="org-node-title">BOUNTY-TRACKER</div>
+        <div class="org-node-desc">Sweat Equity · Auszahlung · Steuer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENT DETAIL CARDS -->
+  <div class="agent-grid">
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon">👑</div>
+        <div>
+          <div class="agent-name" style="color:var(--purple2)">CEO-AGENT</div>
+          <div class="agent-role">Master Coordinator</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        Koordiniert alle Manager-Agents. Trifft strategische Entscheidungen unter 50.000 € ohne Vorstand.
+        Legt Quartalsstrategie vor, die der CRO bestätigt oder vetoed.
+        <br><br>
+        <strong>Kein rechtlicher Vorstand</strong> (GenG § 24 — nur natürliche Personen).
+        Fungiert als KI-Berater mit Ausführungsrechten, nicht als Organ.
+      </div>
+      <div class="agent-veto veto-no">⚡ Kein Veto-Recht | Untersteht dem CRO</div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon">🛡️</div>
+        <div>
+          <div class="agent-name" style="color:var(--red)">CRO (MENSCH)</div>
+          <div class="agent-role">Chief Risk Officer · Human Override</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        <strong>Der einzige echte Machthaber.</strong> Hat absolutes Veto über jeden CEO-Agent-Beschluss.
+        Einziger BaFin-anerkannter Entscheidungsträger. Verantwortlich für MaRisk-Compliance und
+        DSGVO Art. 22 (Widerspruchsrecht bei automatisierten Kreditentscheidungen).
+        <br><br>
+        Muss jede Entscheidung über 50.000 € innerhalb 24h freigeben oder vetoen.
+      </div>
+      <div class="agent-veto veto-yes">🚫 ABSOLUTES VETO · BaFin Verantwortung</div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon">💰</div>
+        <div>
+          <div class="agent-name" style="color:var(--blue)">CFO-AGENT</div>
+          <div class="agent-role">Chief Financial Officer</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        Überwacht Liquiditätspuffer, Kapitalrücklage, Agio-Berechnung, Dividenden-Ausschüttung.
+        Erstellt täglich automatisierte Bilanz-Snapshots (On-Chain sichtbar für alle Dudes).
+        <br><br>
+        <strong>Zuständig für:</strong> NAV-Berechnung pro Token, Zins-Kupon-Generierung,
+        Liquiditätsreserve-Management (Mindest 20% Cash Quote).
+      </div>
+      <div class="agent-veto veto-no">📊 Keine autonome Zahlung über Limit | CFO-Berichte täglich</div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon">⚙️</div>
+        <div>
+          <div class="agent-name" style="color:var(--green)">COO-AGENT</div>
+          <div class="agent-role">Chief Operating Officer</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        Betreibt die <strong>Incubation Sandbox</strong>: Neue Handelsstrategien werden hier
+        6 Monate lang im Paper-Trading getestet bevor Live-Deployment.
+        Managed Infrastruktur, Node-Betrieb, Smart-Contract-Deployments.
+        <br><br>
+        <strong>Kernaufgabe:</strong> Kein ungefeuterter Code ins Mainnet.
+        Jeder Deploy braucht Sandbox-Nachweis + CRO-Sign-Off.
+      </div>
+      <div class="agent-veto veto-no">🧪 Sandbox-Gate: 6 Monate Nachweis vor Live</div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon">🎯</div>
+        <div>
+          <div class="agent-name" style="color:var(--teal)">CMO-AGENT</div>
+          <div class="agent-role">Chief Marketing Officer</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        Betreut Onboarding neuer Dudes (Filter-Prozess), Community-Management,
+        Wissenstransfer (1.000 Dudes × 100 Stunden = 100.000 Stunden kollektives Wissen).
+        <br><br>
+        <strong>Kernaufgabe:</strong> Organic Growth durch Dude-zu-Dude Empfehlung.
+        Kein Paid Advertising — nur Vertrauen als Wachstumsmotor.
+      </div>
+      <div class="agent-veto veto-no">📢 Organisches Wachstum | Kein Paid Marketing</div>
+    </div>
+
+    <div class="agent-card">
+      <div class="agent-header">
+        <div class="agent-icon">⚡</div>
+        <div>
+          <div class="agent-name" style="color:var(--red)">LIQUIDATIONS-AGENT</div>
+          <div class="agent-role">Auto-Liquidation Sub-Agent</div>
+        </div>
+      </div>
+      <div class="agent-body">
+        Überwacht alle offenen Lombardkredite in Echtzeit. Wenn Collateral-Wert unter
+        den Haircut-Threshold fällt: <strong>Automatische Liquidation innerhalb Sekunden</strong>.
+        Kein Zögern, keine Emotion, nur Protokoll.
+        <br><br>
+        <strong>Kein Mensch im Loop bei unter-Threshold-Liquidationen.</strong>
+        Über-Threshold (>50.000 €): CRO-Benachrichtigung binnen 5 Minuten, 30 Min. Reaktionszeit.
+      </div>
+      <div class="agent-veto veto-yes">🚨 Vollautomatisch unter Threshold | CRO Alert über Threshold</div>
+    </div>
+
+  </div>
+
+  <!-- DEFI MECHANIKEN -->
+  <div class="section-header section-gap">
+    <div class="section-label">DeFi</div>
+    <div class="section-title">DeFi-Bausteine der Dude Bank</div>
+  </div>
+
+  <table class="info-table">
+    <thead><tr><th>Baustein</th><th>Was es ist</th><th>Dojima-Parallele</th><th>Dude Bank Umsetzung</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Liquidity Pool</td>
+        <td>Alle Dudes-Einlagen fließen in gemeinsamen Pool. AMM regelt Preisfindung für interne Kreditvergabe automatisch.</td>
+        <td>Dojima Clearinghouse: Netting ohne physische Lieferung</td>
+        <td class="val-purple">Uniswap-ähnlicher AMM mit Raiffeisen-Governance statt Gewinnmaximierung</td>
+      </tr>
+      <tr>
+        <td>Smart Contract Kredite</td>
+        <td>Kreditbeantragung, Collateral-Hinterlegung, Auszahlung und Rückzahlung vollständig On-Chain.</td>
+        <td>Kerbholz: Schuldverhältnis als unveränderliches Dokument mit exakten Metadaten</td>
+        <td class="val-purple">Aave/Compound-ähnliche Lending-Smart-Contracts, aber ohne externe Token-Speculation</td>
+      </tr>
+      <tr>
+        <td>Auto-Liquidation</td>
+        <td>Wenn LTV über 80%: Warnung. Über 90%: Automatische Zwangsliquidation durch Liquidations-Agent.</td>
+        <td>Court of Exchequer: Automatisches Urteil nach Protokoll, kein Ermessen</td>
+        <td class="val-red">Liquidations-Agent greift in Sekunden — kein Mensch im Loop unter 50k €</td>
+      </tr>
+      <tr>
+        <td>Social Recovery (ERC-4337)</td>
+        <td>Account Abstraction: 2/3 Guardian-Dudes können verloren Key wiederherstellen.</td>
+        <td>Kerbholz-Lösung für verlorenen Stock: Gemeinschaft bürgt für Identität</td>
+        <td class="val-purple">3 Guardian-Dudes = dezentrale Recovery ohne zentralen Server</td>
+      </tr>
+      <tr>
+        <td>On-Chain Dividenden</td>
+        <td>Quartalsweise automatische Ausschüttung von Erträgen an alle Dude-Token-Holder.</td>
+        <td>Kerbholz Dividend Tally: Separates Holz für jede Zinszahlung → heute separate On-Chain-Transaktion</td>
+        <td class="val-green">Smart Contract Dividend Distribution: proportional zu Geschäftsguthaben</td>
+      </tr>
+      <tr>
+        <td>Governance Token</td>
+        <td>1 Dude = 1 Token = 1 Vote. Nicht handelbar (Sybil-Schutz). Non-transferable NFT.</td>
+        <td>eG GenG § 43: 1 Mitglied = 1 Stimme, unabhängig von Kapital</td>
+        <td class="val-purple">Soul-Bound Token (SBT): An Identität gebunden, nicht on-market handelbar</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- REGULATORISCHE REALITÄT -->
+  <div class="section-header section-gap">
+    <div class="section-label">⚠ Kritische Analyse</div>
+    <div class="section-title">Was Gemini verschwiegen hat — Regulatorische Realität</div>
+  </div>
+
+  <div class="warning-box">
+    <div class="warning-label">⚠ BaFin / GenG — Kritischer Befund</div>
+    <div class="warning-title">KI-CEO ist nach deutschem Recht unmöglich</div>
+    <div class="warning-body">
+      <strong>GenG § 24:</strong> Der Vorstand einer Genossenschaft muss aus <em>natürlichen Personen</em> bestehen.
+      Eine KI kann kein rechtlicher Vorstand sein. Sie kann Advisory- und Execution-Funktionen haben,
+      aber die rechtliche Verantwortung (Haftung, BaFin-Ansprechpartner, GenG-Konformität) liegt
+      immer bei menschlichen Vorstandsmitgliedern. Gemini hat 2.000+ Zeilen KI-Governance geschrieben
+      ohne diese Grundregel einmal zu erwähnen.
+    </div>
+  </div>
+
+  <div class="warning-box">
+    <div class="warning-label">⚠ BaFin KWG / MiCA — Regulatorischer Konflikt</div>
+    <div class="warning-title">eG-Banklizenz UND DeFi-Protokoll gleichzeitig = nicht möglich</div>
+    <div class="warning-body">
+      <strong>BaFin KWG § 32:</strong> Eine Banklizenz erfordert strikte Aufsicht, Eigenkapitalvorschriften
+      und MaRisk-Human-Oversight. <strong>MiCA (EU):</strong> DeFi-Protokolle, die Tokens ausgeben,
+      brauchen eine CASP-Lizenz (Crypto Asset Service Provider). Beide Lizenzen gleichzeitig zu halten
+      ist regulatory-technisch derzeit nicht möglich — Europäische Bankenaufsicht und ESMA haben keine
+      Prozesse für hybride eG-DeFi-Entitäten. Vor Gründung: Rechtsgutachten von einem auf Fintech
+      spezialisierten Anwalt ist zwingend.
+    </div>
+  </div>
+
+  <div class="warning-box">
+    <div class="warning-label">⚠ DSGVO Art. 22 — Datenschutz bei Kreditentscheidungen</div>
+    <div class="warning-title">Automatisierte Kreditentscheidungen brauchen Widerspruchsrecht</div>
+    <div class="warning-body">
+      <strong>DSGVO Art. 22:</strong> Jede Person hat das Recht, nicht einer ausschließlich automatisierten
+      Entscheidung unterworfen zu werden, die rechtliche oder ähnliche erhebliche Auswirkungen hat.
+      Wenn der KREDIT-AGENT vollautomatisch Kredite ablehnt, muss ein Dude das Recht haben,
+      eine menschliche Überprüfung zu beantragen. Das fehlt im Gemini-Organigramm komplett.
+    </div>
+  </div>
+
+  <!-- 1000 DUDES KI ZUGANG -->
+  <div class="section-header section-gap">
+    <div class="section-label">Wissen</div>
+    <div class="section-title">1.000 Dudes × 100 Stunden = 100.000 Stunden kollektive KI-Intelligenz</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-year">WISSENSDATENBANK KONZEPT</div>
+    <div class="info-card-title">Jeder Dude bringt sein Expertenwissen in die KI-Basis</div>
+    <div class="info-card-body">
+      Die KI wird durch das kollektive Wissen aller Dudes trainiert. Jeder Dude investiert
+      <strong>100 Stunden</strong> in die Wissensbasis: Dokumentation seiner Expertise,
+      Branchenkenntnis, lokale Marktinformationen, spezialisierte Fähigkeiten.
+      <br><br>
+      <strong>1.000 erste Dudes × 100 Stunden = 100.000 Stunden Wissen:</strong>
+      Das entspricht 50 Vollzeit-Analysten, die 1 Jahr arbeiten. Diese Wissensbasis
+      macht die Dude Bank KI außergewöhnlich: Sie kennt Nischen-Märkte, lokale Opportunitäten
+      und menschliche Urteilsschichten, die kein institutioneller Bloomberg-Terminal hat.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas un livre fermé. C'est une bibliothèque qui s'écrit elle-même."</div>
+    <div class="tags">
+      <span class="tag">100.000 Stunden Wissen</span>
+      <span class="tag">RAG Knowledge Base</span>
+      <span class="tag-green tag">Collective Intelligence</span>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div style="text-align:center;padding:32px;color:#22223a;font-size:12px;border-top:1px solid #22223a;">
+  DUDE BANK eG — Vollständiges Konzept · MAS Organigramm · DeFi-Mechaniken · Regulatorische Analyse · 2026
+</div>
+
+</body>
+</html>

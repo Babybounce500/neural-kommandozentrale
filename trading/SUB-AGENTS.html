@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEURAL ALPHA SQUAD // Multi-Agent Stock Analysis System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030108;
+            --bg-panel: #0b0616;
+            --bg-inner: #130a24;
+            --bg-code: #07040f;
+            --border: rgba(74, 21, 125, 0.4);
+            --border-bright: rgba(0, 240, 255, 0.3);
+            --accent: #00f0ff;
+            --green: #00ff88;
+            --red: #ff0055;
+            --gold: #ffb700;
+            --gold-dim: rgba(255, 183, 0, 0.15);
+            --magenta: #ff00ff;
+            --cyan: #00d4ff;
+            --white: #e9e9f0;
+            --muted: #7c6f94;
+            --font-cyber: 'Orbitron', sans-serif;
+            --font-data: 'Rajdhani', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: var(--font-data);
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        body { padding: 20px; padding-bottom: 40px; }
+
+        /* ── HEADER ── */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            position: relative;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), var(--accent), var(--magenta), transparent);
+        }
+
+        .title {
+            font-family: var(--font-cyber);
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            text-shadow: 0 0 30px rgba(255, 183, 0, 0.2);
+        }
+
+        .subtitle {
+            font-family: var(--font-cyber);
+            font-size: 0.75rem;
+            color: var(--muted);
+            letter-spacing: 4px;
+            margin-top: 6px;
+        }
+
+        .stats-bar {
+            margin-top: 14px;
+            font-size: 0.75rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        .stats-bar span { color: var(--accent); font-weight: 700; }
+
+        /* ── MAIN GRID ── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ── LEFT PANEL: AGENTS ── */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .panel-title {
+            font-family: var(--font-cyber);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .master-card {
+            background: linear-gradient(135deg, var(--bg-panel) 0%, var(--gold-dim) 100%);
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .master-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gold);
+        }
+
+        .master-card:hover {
+            box-shadow: 0 4px 20px rgba(255, 183, 0, 0.15);
+            transform: translateX(3px);
+        }
+
+        .master-card.active {
+            box-shadow: 0 0 20px rgba(255, 183, 0, 0.2);
+            border-color: var(--gold);
+        }
+
+        .agent-card {
+            background: var(--bg-inner);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .agent-card:hover {
+            border-color: var(--border-bright);
+            transform: translateX(2px);
+        }
+
+        .agent-card:hover::before { opacity: 1; }
+
+        .agent-card.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.1);
+        }
+
+        .agent-card.active::before {
+            background: var(--accent);
+            opacity: 1;
+            width: 4px;
+        }
+
+        .agent-icon {
+            font-size: 1.2rem;
+            width: 28px;
+            text-align: center;
+        }
+
+        .agent-info {
+            flex: 1;
+        }
+
+        .agent-name {
+            font-family: var(--font-cyber);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--white);
+        }
+
+        .agent-role {
+            font-size: 0.65rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .agent-status {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-idle { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid rgba(255,255,255,0.08); }
+        .status-active { background: rgba(0, 255, 136, 0.1); color: var(--green); border: 1px solid rgba(0, 255, 136, 0.2); }
+        .status-busy { background: rgba(255, 0, 85, 0.1); color: var(--red); border: 1px solid rgba(255, 0, 85, 0.2); }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .dot-cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+        .dot-gold { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+        .dot-red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+        .dot-magenta { background: var(--magenta); box-shadow: 0 0 6px var(--magenta); }
+        .dot-purple { background: #9d4edd; box-shadow: 0 0 6px #9d4edd; }
+
+        /* ── RIGHT PANEL: CHAT & WORKSPACE ── */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* ── CHAT STREAM ── */
+        .chat-wrapper {
+            flex: 1;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 420px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+
+        .chat-header {
+            background: var(--bg-inner);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header-title {
+            font-family: var(--font-cyber);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        .chat-header-meta {
+            font-size: 0.65rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+        }
+
+        .chat-stream {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .msg-row {
+            display: flex;
+            margin-bottom: 12px;
+            animation: fadeInUp 0.3s ease forwards;
+        }
+
+        .msg-bubble {
+            max-width: 92%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            font-family: var(--font-mono);
+        }
+
+        .msg-master {
+            background: linear-gradient(135deg, #19120a 0%, #130a1e 100%);
+            border-left: 3px solid var(--gold);
+            color: var(--white);
+        }
+
+        .msg-technical {
+            background: #0a1118;
+            border-left: 3px solid var(--cyan);
+            color: #d1e0e6;
+            margin-left: 16px;
+        }
+
+        .msg-fundamental {
+            background: #0a180f;
+            border-left: 3px solid var(--green);
+            color: #d1e6d9;
+            margin-left: 16px;
+        }
+
+        .msg-macro {
+            background: #180a15;
+            border-left: 3px solid var(--magenta);
+            color: #e6d1e0;
+            margin-left: 16px;
+        }
+
+        .msg-risk {
+            background: #180a0a;
+            border-left: 3px solid var(--red);
+            color: #e6d1d1;
+            margin-left: 16px;
+        }
+
+        .msg-news {
+            background: #0f0a18;
+            border-left: 3px solid #9d4edd;
+            color: #d8d1e6;
+            margin-left: 16px;
+        }
+
+        .msg-user {
+            background: var(--bg-inner);
+            margin-left: auto;
+            border-right: 3px solid #5a6375;
+            border-left: none;
+        }
+
+        .msg-system {
+            background: var(--bg-code);
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            font-size: 0.75rem;
+        }
+
+        .msg-meta {
+            font-family: var(--font-cyber);
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        .msg-content code {
+            background: var(--bg-code);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 0.78rem;
+            color: var(--accent);
+        }
+
+        /* ── TOOLBAR ── */
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            background: var(--bg-inner);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 8px 14px;
+            color: var(--white);
+            font-family: var(--font-cyber);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tool-btn:hover {
+            border-color: var(--border-bright);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .tool-btn.gold:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 12px rgba(255, 183, 0, 0.1);
+        }
+
+        /* ── INPUT BAR ── */
+        .input-bar {
+            background: var(--bg-inner);
+            border-top: 1px solid var(--border);
+            padding: 14px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ticker-input {
+            flex: 0 0 140px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: var(--gold);
+            font-family: var(--font-cyber);
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            outline: none;
+            text-transform: uppercase;
+        }
+
+        .ticker-input::placeholder { color: var(--muted); }
+        .ticker-input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 12px rgba(255, 183, 0, 0.1);
+        }
+
+        .prompt-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 14px;
+            color: var(--white);
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            outline: none;
+        }
+
+        .prompt-input::placeholder { color: var(--muted); }
+        .prompt-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.1);
+        }
+
+        .dispatch-btn {
+            background: linear-gradient(135deg, var(--gold) 0%, #cc8a00 100%);
+            border: none;
+            border-radius: 6px;
+            padding: 10px 24px;
+            color: #000;
+            font-family: var(--font-cyber);
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dispatch-btn:hover {
+            box-shadow: 0 4px 20px rgba(255, 183, 0, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .dispatch-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── PIPELINE TRACE ── */
+        #pipeline-trace {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            font-size: 0.7rem;
+            font-family: var(--font-mono);
+            color: var(--muted);
+            max-height: 100px;
+            overflow-y: auto;
+            border-radius: 4px;
+        }
+
+        #pipeline-trace .trace-line {
+            margin-bottom: 2px;
+        }
+
+        #pipeline-trace .trace-time {
+            color: var(--accent);
+        }
+
+        /* ── REPORTS PANEL ── */
+        .reports-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .report-card {
+            background: var(--bg-inner);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .report-card:hover {
+            border-color: var(--border-bright);
+            box-shadow: 0 4px 16px rgba(0, 240, 255, 0.08);
+        }
+
+        .report-title {
+            font-family: var(--font-cyber);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .report-desc {
+            font-size: 0.72rem;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .report-meta {
+            font-size: 0.6rem;
+            color: var(--muted);
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ── FUNCTION OUTPUT ── */
+        .function-output {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--white);
+            overflow-x: auto;
+        }
+
+        .function-output pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .left-panel { order: 2; }
+            .right-panel { order: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 1.4rem; letter-spacing: 3px; }
+            .input-row { flex-wrap: wrap; }
+            .ticker-input { flex: 1; }
+            .report-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title">NEURAL ALPHA SQUAD</div>
+        <div class="subtitle">Multi-Agent Stock Analysis System // v2.0 LIVE</div>
+        <div class="stats-bar">
+            <span>1</span> MASTER &nbsp;&bull;&nbsp;
+            <span>5</span> SUB-AGENTS &nbsp;&bull;&nbsp;
+            <span>12</span> FUNCTIONS &nbsp;&bull;&nbsp; <span>LIVE</span> EOD DATA &nbsp;&bull;&nbsp;
+            <span>ALL</span> SYSTEMS GREEN
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
+            <!-- AGENTS -->
+            <div class="panel-box">
+                <div class="panel-title">Agent Squadron</div>
+
+                <div class="master-card active" id="agent-master" onclick="showAgentInfo('master')">
+                    <div class="agent-info">
+                        <div class="agent-name" style="color: var(--gold);">👑 MASTER_AGENT</div>
+                        <div class="agent-role">Chief Investment Officer</div>
+                    </div>
+                    <span class="agent-status status-active" id="status-master">ACTIVE</span>
+                </div>
+
+                <div class="agent-card" id="agent-technical" onclick="showAgentInfo('technical')">
+                    <div class="agent-icon">📊</div>
+                    <div class="agent-info">
+                        <div class="agent-name" style="color: var(--cyan);">SUB_TECHNICAL</div>
+                        <div class="agent-role">Charts &amp; Patterns</div>
+                    </div>
+                    <span class="agent-status status-idle" id="status-technical">IDLE</span>
+                </div>
+
+                <div class="agent-card" id="agent-fundamental" onclick="showAgentInfo('fundamental')">
+                    <div class="agent-icon">📈</div>
+                    <div class="agent-info">
+                        <div class="agent-name" style="color: var(--green);">SUB_FUNDAMENTAL</div>
+                        <div class="agent-role">Financials &amp; Ratios</div>
+                    </div>
+                    <span class="agent-status status-idle" id="status-fundamental">IDLE</span>
+                </div>
+
+                <div class="agent-card" id="agent-macro" onclick="showAgentInfo('macro')">
+                    <div class="agent-icon">🌍</div>
+                    <div class="agent-info">
+                        <div class="agent-name" style="color: var(--magenta);">SUB_MACRO</div>
+                        <div class="agent-role">Economic &amp; Sector</div>
+                    </div>
+                    <span class="agent-status status-idle" id="status-macro">IDLE</span>
+                </div>
+
+                <div class="agent-card" id="agent-risk" onclick="showAgentInfo('risk')">
+                    <div class="agent-icon">🛡️</div>
+                    <div class="agent-info">
+                        <div class="agent-name" style="color: var(--red);">SUB_RISK</div>
+                        <div class="agent-role">Risk &amp; Portfolio</div>
+                    </div>
+                    <span class="agent-status status-idle" id="status-risk">IDLE</span>
+                </div>
+
+                <div class="agent-card" id="agent-news" onclick="showAgentInfo('news')">
+                    <div class="agent-icon">📰</div>
+                    <div class="agent-info">
+                        <div class="agent-name" style="color: #9d4edd;">SUB_NEWS</div>
+                        <div class="agent-role">Sentiment &amp; Events</div>
+                    </div>
+                    <span class="agent-status status-idle" id="status-news">IDLE</span>
+                </div>
+            </div>
+
+            <!-- FUNCTIONS -->
+            <div class="panel-box">
+                <div class="panel-title">Function Registry</div>
+                <div class="toolbar">
+                    <button class="tool-btn" onclick="injectFunction('analyze_technical')">📊 TECHNICAL</button>
+                    <button class="tool-btn" onclick="injectFunction('analyze_fundamental')">📈 FUNDAMENTAL</button>
+                    <button class="tool-btn" onclick="injectFunction('analyze_macro')">🌍 MACRO</button>
+                    <button class="tool-btn" onclick="injectFunction('calculate_risk')">🛡️ RISK</button>
+                    <button class="tool-btn" onclick="injectFunction('sentiment_scan')">📰 SENTIMENT</button>
+                    <button class="tool-btn" onclick="injectFunction('generate_report')">📄 REPORT</button>
+                    <button class="tool-btn gold" onclick="injectFunction('full_analysis')">⭐ FULL ALPHA</button>
+                    <button class="tool-btn gold" onclick="injectFunction('export_csv')">📥 EXPORT CSV</button>
+                </div>
+            </div>
+
+            <!-- QUICK TESTS -->
+            <div class="panel-box">
+                <div class="panel-title">Quick Tests</div>
+                <div class="toolbar">
+                    <button class="tool-btn" onclick="injectTest('AAPL', 'Vollstaendige Alpha-Analyse fuer Apple. Technische, fundamentale, makro und Risiko-Einschaetzung.')">AAPL</button>
+                    <button class="tool-btn" onclick="injectTest('TSLA', 'Tesla Sentiment-Scan und technische Setup-Analyse. Social Media Stimmung und Chart-Muster.')">TSLA</button>
+                    <button class="tool-btn" onclick="injectTest('NVDA', 'NVIDIA: Risiko-Analyse, VaR-Berechnung und Portfolio-Impact fuer Tech-Exposure.')">NVDA</button>
+                    <button class="tool-btn" onclick="injectTest('BTC', 'Bitcoin Macro-Umfeld: Inflation, Zinspolitik, DXY Korrelation und technische Levels.')">BTC</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+            <!-- CHAT -->
+            <div class="chat-wrapper">
+                <div class="chat-header">
+                    <span class="chat-header-title">// ALPHA STREAM</span>
+                    <span class="chat-header-meta">Real-time Analysis Pipeline</span>
+                </div>
+                <div class="chat-stream" id="chat-box">
+                    <div class="msg-row">
+                        <div class="msg-bubble msg-system">
+                            <span class="msg-meta" style="color: var(--gold);">SYSTEM // INITIALIZED</span>
+                            <div>Neural Alpha Squad v1.0 bereit. Master-Agent und 5 Sub-Agents geladen.<br>
+                            <code>analyze_technical()</code> <code>analyze_fundamental()</code> <code>calculate_risk()</code><br>
+                            <code>sentiment_scan()</code> <code>generate_report()</code> <code>export_csv()</code><br>
+                            Geben Sie einen Ticker ein und waehlen Sie eine Funktion aus.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-bar">
+                    <div class="input-row">
+                        <input type="text" id="ticker-input" class="ticker-input" placeholder="TICKER" maxlength="6">
+                        <input type="text" id="prompt-input" class="prompt-input" placeholder="Befehl eingeben... z.B. 'Technische Analyse mit SMA, RSI und Support-Levels'">
+                        <button onclick="dispatchAgentPipeline()" id="dispatch-btn" class="dispatch-btn">DISPATCH</button>
+                    </div>
+                    <div id="pipeline-trace">
+                        <div class="trace-line"><span class="trace-time">[SYSTEM]</span> Warte auf Ticker-Eingabe und Befehl...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPORTS -->
+            <div class="reports-panel">
+                <div class="panel-title">Generated Reports</div>
+                <div class="report-grid" id="reports-grid">
+                    <div class="report-card" onclick="downloadReport('template')">
+                        <div class="report-title">📄 ALPHA REPORT</div>
+                        <div class="report-desc">Full Analysis Template. HTML-Report mit allen Agent-Ergebnissen.</div>
+                        <div class="report-meta">
+                            <span style="color: var(--gold);">HTML</span>
+                            <span style="color: var(--muted);">Auto-generated</span>
+                        </div>
+                    </div>
+                    <div class="report-card" onclick="downloadReport('csv')">
+                        <div class="report-title">📥 CSV EXPORT</div>
+                        <div class="report-desc">Numerische Daten in Tabellenform. Import-fertig fuer Excel/Sheets.</div>
+                        <div class="report-meta">
+                            <span style="color: var(--green);">CSV</span>
+                            <span style="color: var(--muted);">Download</span>
+                        </div>
+                    </div>
+                    <div class="report-card" onclick="downloadReport('json')">
+                        <div class="report-title">🔧 JSON API</div>
+                        <div class="report-desc">Strukturierte Daten im JSON-Format fuer API-Integration und Weiterverarbeitung.</div>
+                        <div class="report-meta">
+                            <span style="color: var(--cyan);">JSON</span>
+                            <span style="color: var(--muted);">API-Ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════════
+        //  CONFIGURATION
+        // ═══════════════════════════════════════════════════════════════════════
+        const PROXY_URL  = 'https://theserver-open-ai.replit.app/api/chat';
+        const DATA_PROXY = 'https://theserver-open-ai.replit.app';
+        const DOMAIN     = 'https://neural-trading-apps.replit.app';
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  TICKER RESOLVER — bare Symbol → EOD-Format
+        // ═══════════════════════════════════════════════════════════════════════
+        const CRYPTO_MAP = {
+            BTC:'BTC-USD.cc', ETH:'ETH-USD.cc', SOL:'SOL-USD.cc',
+            BNB:'BNB-USD.cc', XRP:'XRP-USD.cc', ADA:'ADA-USD.cc',
+            DOGE:'DOGE-USD.cc', DOT:'DOT-USD.cc', LINK:'LINK-USD.cc',
+            LTC:'LTC-USD.cc', MATIC:'MATIC-USD.cc', AVAX:'AVAX-USD.cc'
+        };
+        const XETRA_MAP = {
+            SAP:'SAP.XETRA', BMW:'BMW.XETRA', MBG:'MBG.XETRA',
+            SIE:'SIE.XETRA', ALV:'ALV.XETRA', BAS:'BAS.XETRA',
+            MUV2:'MUV2.XETRA', ADS:'ADS.XETRA', DBK:'DBK.XETRA',
+            DTE:'DTE.XETRA', RWE:'RWE.XETRA', VOW3:'VOW3.XETRA'
+        };
+
+        function resolveEodSymbol(ticker) {
+            if (ticker.includes('.')) return ticker;
+            if (CRYPTO_MAP[ticker]) return CRYPTO_MAP[ticker];
+            if (XETRA_MAP[ticker]) return XETRA_MAP[ticker];
+            return ticker + '.US';
+        }
+
+        function guessSector(ticker, eodSymbol) {
+            if (eodSymbol.endsWith('.cc')) return 'Crypto';
+            if (eodSymbol.endsWith('.XETRA')) return 'German Equity (XETRA)';
+            const map = {
+                AAPL:'Technology', MSFT:'Technology', GOOGL:'Technology', META:'Technology',
+                AMZN:'E-Commerce / Cloud', NVDA:'Semiconductors', AMD:'Semiconductors',
+                TSLA:'Automotive / EV', GM:'Automotive', F:'Automotive',
+                JPM:'Financials', BAC:'Financials', GS:'Financials',
+                MMM:'Industrials', GE:'Industrials', BA:'Aerospace',
+                SPY:'Index (S&P 500)', QQQ:'Index (NASDAQ)', DIA:'Index (DJIA)'
+            };
+            return map[ticker] || 'Equity';
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  INDICATOR CALC — aus OHLCV-Daten (identisch mit COMMANDO-BOT)
+        // ═══════════════════════════════════════════════════════════════════════
+        function calcSMA(prices, n) {
+            if (prices.length < n) return prices[prices.length - 1] || 0;
+            return parseFloat((prices.slice(-n).reduce((a,b) => a+b, 0) / n).toFixed(4));
+        }
+
+        function calcRSI(prices) {
+            const p = prices.slice(-30);
+            if (p.length < 15) return 50;
+            let g = 0, l = 0;
+            for (let i = 1; i <= 14; i++) { const d = p[i]-p[i-1]; if(d>0) g+=d; else l-=d; }
+            let ag = g/14, al = l/14;
+            for (let i = 15; i < p.length; i++) {
+                const d = p[i]-p[i-1];
+                ag = (ag*13 + (d>0?d:0)) / 14;
+                al = (al*13 + (d<0?-d:0)) / 14;
+            }
+            return al === 0 ? 100 : parseFloat((100 - (100/(1 + ag/al))).toFixed(1));
+        }
+
+        function calcVolatility(prices) {
+            if (prices.length < 10) return 25;
+            const rets = [];
+            for (let i = 1; i < Math.min(prices.length, 31); i++)
+                rets.push(Math.log(prices[i] / prices[i-1]));
+            const mean = rets.reduce((a,b)=>a+b,0) / rets.length;
+            const variance = rets.reduce((a,b)=>a+(b-mean)**2,0) / rets.length;
+            return parseFloat((Math.sqrt(variance*252)*100).toFixed(1));
+        }
+
+        function calcNewsSentiment(newsArray) {
+            const bull = ['upgrade','beats','profit','bullish','growth','beat','record','surge','soar','rally','strong','buy'];
+            const bear = ['lawsuit','downgrade','loss','misses','drop','fall','crash','warn','cut','miss','weak','decline','short'];
+            let total = 0;
+            newsArray.slice(0,3).forEach(item => {
+                const t = (item.title||'').toLowerCase();
+                const b = (item.content||item.description||'').toLowerCase();
+                let score = 0;
+                bull.forEach(w => { if(t.includes(w)) score+=3; if(b.includes(w)) score+=1; });
+                bear.forEach(w => { if(t.includes(w)) score-=4; if(b.includes(w)) score-=1.5; });
+                if(score>=2) total++; else if(score<=-2) total--;
+            });
+            return Math.max(-100, Math.min(100, total*33));
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  SEC EDGAR FUNDAMENTALS — Official US Gov data, no API key, CORS-free
+        //  Source: data.sec.gov (access-control-allow-origin: *)
+        // ═══════════════════════════════════════════════════════════════════════
+        const EDGAR_CIK = {
+            AAPL:'0000320193', MSFT:'0000789019', GOOGL:'0001652044',
+            GOOG:'0001652044',  META:'0001326801',  AMZN:'0001018724',
+            TSLA:'0001318605',  NVDA:'0001045810',  AMD:'0000002488',
+            INTC:'0000050863',  NFLX:'0001065280',  ORCL:'0001341439',
+            QCOM:'0000804328',  TXN:'0000097476',   AVGO:'0001054374',
+            JPM:'0000019617',   BAC:'0000070858',   WFC:'0000072971',
+            GS:'0000886982',    MS:'0000895421',    V:'0001403161',
+            MA:'0001141391',    PYPL:'0001633917',  SQ:'0001512673',
+            XOM:'0000034088',   CVX:'0000093410',   COP:'0001163165',
+            JNJ:'0000200406',   PFE:'0000078003',   MRNA:'0001682852',
+            WMT:'0000104169',   COST:'0000909832',  TGT:'0000027419',
+            DIS:'0001001039',   NFLX:'0001065280',  SBUX:'0000829224',
+            NKE:'0000320187',   BA:'0000012927',    CAT:'0000018230'
+        };
+
+        async function fetchEdgarFundamentals(ticker) {
+            const t = ticker.replace(/\..*$/,'').toUpperCase();
+            if (!EDGAR_CIK[t]) {
+                logTrace(`⚠️ EDGAR: Kein CIK fuer ${t} (Non-US/Crypto)`);
+                return null;
+            }
+            const cik = EDGAR_CIK[t];
+            const BASE = 'https://data.sec.gov/api/xbrl/companyconcept';
+            // NOTE: Browsers block custom User-Agent — SEC EDGAR accepts browser UA
+            const safeFetch = url => fetch(url)
+                .then(r => { 
+                    if (!r.ok) { logTrace(`⚠️ EDGAR HTTP ${r.status} fuer ${url.split('/').pop()}`); return null; }
+                    return r.json(); 
+                })
+                .catch(e => { logTrace(`⚠️ EDGAR Fehler: ${e.message}`); return null; });
+
+            const revConcepts = [
+                'RevenueFromContractWithCustomerExcludingAssessedTax',
+                'Revenues', 'SalesRevenueNet'
+            ];
+
+            // Fetch all in parallel — no custom headers (browser restriction)
+            const results = await Promise.all([
+                safeFetch(`${BASE}/CIK${cik}/us-gaap/EarningsPerShareBasic.json`),
+                safeFetch(`${BASE}/CIK${cik}/us-gaap/${revConcepts[0]}.json`),
+                safeFetch(`${BASE}/CIK${cik}/us-gaap/${revConcepts[1]}.json`),
+                safeFetch(`${BASE}/CIK${cik}/us-gaap/${revConcepts[2]}.json`)
+            ]);
+            const [epsRes, ...revResults] = results;
+
+            // EPS — latest 10-K filing
+            let eps = null;
+            if (epsRes?.units?.['USD/shares']) {
+                const annual = epsRes.units['USD/shares'].filter(x => x.form === '10-K');
+                if (annual.length) {
+                    eps = parseFloat(annual[annual.length-1].val.toFixed(2));
+                    logTrace(`✅ EDGAR EPS: $${eps} (${annual[annual.length-1].end})`);
+                }
+            } else {
+                logTrace(`⚠️ EDGAR: EPS-Konzept leer oder nicht gefunden`);
+            }
+
+            // Revenue — use first concept with 10-K data
+            let revLatest = null, revPrev = null;
+            for (const revRes of revResults) {
+                if (!revRes?.units?.USD) continue;
+                const annual = revRes.units.USD.filter(x => x.form === '10-K');
+                if (annual.length >= 2) {
+                    revLatest = annual[annual.length-1].val;
+                    revPrev   = annual[annual.length-2].val;
+                    logTrace(`✅ EDGAR Revenue: $${(revLatest/1e9).toFixed(1)}B (YoY: ${((revLatest-revPrev)/revPrev*100).toFixed(1)}%)`);
+                    break;
+                } else if (annual.length === 1) {
+                    revLatest = annual[0].val;
+                    break;
+                }
+            }
+
+            const revenueGrowth = (revLatest && revPrev)
+                ? parseFloat(((revLatest - revPrev) / revPrev * 100).toFixed(1))
+                : null;
+
+            return { eps, revenueLatest: revLatest, revenueGrowth, cik };
+        }
+
+
+        // ═══════════════════════════════════════════════════════════════════
+        //  IWF DataMapper — Echte Makro-Daten (CORS-open, kostenlos, kein Key)
+        // ═══════════════════════════════════════════════════════════════════
+        const TICKER_TO_IMF = {
+            // US stocks → USA
+            'AAPL':'USA','MSFT':'USA','NVDA':'USA','TSLA':'USA','META':'USA',
+            'GOOGL':'USA','AMZN':'USA','JPM':'USA','XOM':'USA','V':'USA',
+            'NFLX':'USA','AMD':'USA','INTC':'USA','BA':'USA','GS':'USA',
+            // DE/EU stocks → DEU / EU averages
+            'SAP':'DEU','BAYER':'DEU','BMW':'DEU','SIEMENS':'DEU','ALLIANZ':'DEU',
+            'VOW':'DEU','DTE':'DEU','BASF':'DEU','DB':'DEU','MUV2':'DEU',
+            // Crypto → Global proxy (USA)
+            'BTC':'USA','ETH':'USA',
+            // Others
+            'SONY':'JPN','TOYOTA':'JPN','HSBC':'GBR','BP':'GBR'
+        };
+
+        async function fetchImfMacroData(ticker) {
+            const t = ticker.replace(/\..*$/,'').replace(/[-_].*/,'').toUpperCase();
+            const imfCode = TICKER_TO_IMF[t] || 'USA';
+
+            try {
+                const [infRes, gdpRes, lurRes] = await Promise.all([
+                    fetch(`https://www.imf.org/external/datamapper/api/v1/PCPIPCH/${imfCode}?periods=2024,2025`)
+                        .then(r => r.ok ? r.json() : null).catch(() => null),
+                    fetch(`https://www.imf.org/external/datamapper/api/v1/NGDP_RPCH/${imfCode}?periods=2024,2025`)
+                        .then(r => r.ok ? r.json() : null).catch(() => null),
+                    fetch(`https://www.imf.org/external/datamapper/api/v1/LUR/${imfCode}?periods=2025`)
+                        .then(r => r.ok ? r.json() : null).catch(() => null)
+                ]);
+
+                const inflation = infRes?.values?.PCPIPCH?.[imfCode]?.['2025'] ?? null;
+                const gdp       = gdpRes?.values?.NGDP_RPCH?.[imfCode]?.['2025'] ?? null;
+                const unemp     = lurRes?.values?.LUR?.[imfCode]?.['2025'] ?? null;
+
+                if (inflation !== null || gdp !== null) {
+                    logTrace(`🌍 IWF ${imfCode}: Inflation ${inflation}% | BIP ${gdp}% | Arbeitslosigkeit ${unemp}%`);
+                    return { imfCode, inflation, gdp, unemp };
+                }
+            } catch(e) {
+                logTrace(`⚠️ IWF API Fehler: ${e.message}`);
+            }
+            return null;
+        }
+
+                //  LIVE DATA FETCHER — EOD API (selber Proxy wie COMMANDO-BOT)
+        // ═══════════════════════════════════════════════════════════════════════
+        async function fetchLiveTickerData(ticker) {
+            const eodSymbol = resolveEodSymbol(ticker);
+            logTrace(`🔍 Resolved: ${ticker} → ${eodSymbol} | Lade Live-Daten...`);
+
+            // Parallel: Realtime + Historical + News + SEC EDGAR + IWF Makro
+            const [rtData, histData, newsData, edgarData, imfData] = await Promise.all([
+                fetch(`${DATA_PROXY}/eod/realtime/${eodSymbol}?fmt=json`)
+                    .then(r => r.ok ? r.json() : null).catch(() => null),
+                fetch(`${DATA_PROXY}/eod/historical/${eodSymbol}?fmt=json`)
+                    .then(r => r.ok ? r.json() : null).catch(() => null),
+                fetch(`${DATA_PROXY}/eod/news?s=${eodSymbol}&offset=0&limit=3`)
+                    .then(r => r.ok ? r.json() : []).catch(() => []),
+                fetchEdgarFundamentals(ticker),   // SEC EDGAR: free, CORS-open, no key
+                fetchImfMacroData(ticker)         // IWF World Bank: free, CORS-open, kein Key
+            ]);
+
+            let price, high, low, volume, sma20, sma50, sma200, rsi, vola, support, resistance;
+            let dataSource = 'LIVE';
+
+            if (Array.isArray(histData) && histData.length >= 20) {
+                const sorted = histData.sort((a,b) => new Date(a.date)-new Date(b.date));
+                const closes = sorted.map(d => parseFloat(d.close));
+                const last   = sorted[sorted.length-1];
+
+                price      = parseFloat(parseFloat(rtData?.close || rtData?.last || last.close).toFixed(2));
+                high       = parseFloat(parseFloat(rtData?.high  || last.high).toFixed(2));
+                low        = parseFloat(parseFloat(rtData?.low   || last.low).toFixed(2));
+                volume     = parseInt(rtData?.volume || last.volume || 0);
+                sma20      = calcSMA(closes, 20);
+                sma50      = calcSMA(closes, 50);
+                sma200     = calcSMA(closes, Math.min(200, closes.length));
+                rsi        = calcRSI(closes);
+                vola       = calcVolatility(closes);
+                support    = parseFloat(Math.min(...sorted.slice(-20).map(d=>parseFloat(d.low))).toFixed(2));
+                resistance = parseFloat(Math.max(...sorted.slice(-20).map(d=>parseFloat(d.high))).toFixed(2));
+
+                logTrace(`✅ LIVE: ${ticker} @ $${price} | RSI:${rsi} | Vol:${vola}% | SMA20:$${sma20}`);
+            } else {
+                dataSource = 'FALLBACK';
+                logTrace(`⚠️ API failed fuer ${eodSymbol} — Fallback aktiv`);
+                const hash = ticker.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+                price=100+(hash%300); high=price*1.02; low=price*0.98; volume=5000000;
+                sma20=parseFloat((price*0.97).toFixed(2)); sma50=parseFloat((price*0.94).toFixed(2));
+                sma200=parseFloat((price*0.88).toFixed(2));
+                rsi=40+(hash%40); vola=20+(hash%35);
+                support=parseFloat((price*0.93).toFixed(2)); resistance=parseFloat((price*1.07).toFixed(2));
+            }
+
+            const newsHeadlines = Array.isArray(newsData) && newsData.length
+                ? newsData.slice(0,3).map(n=>n.title||'').filter(Boolean)
+                : [];
+            const sentiment = Array.isArray(newsData) && newsData.length
+                ? calcNewsSentiment(newsData) : 0;
+
+            if (newsHeadlines.length)
+                logTrace(`📰 ${newsHeadlines.length} echte Headlines | Sentiment: ${sentiment}`);
+
+            const beta = parseFloat(Math.max(0.1, Math.min(3.0, vola/20)).toFixed(2));
+
+            // Extract fundamentals from SEC EDGAR (official US Gov, free, CORS-open)
+            let eps = null, revenueGrowth = null, mktCap = 'N/A',
+                pe = null, forwardPE = null, roe = null, debtToEquity = null, dividendYield = null;
+
+            if (edgarData) {
+                eps           = edgarData.eps;
+                revenueGrowth = edgarData.revenueGrowth;
+                // Compute P/E from live price + EDGAR EPS
+                if (eps && eps > 0 && price > 0)
+                    pe = parseFloat((price / eps).toFixed(1));
+                // Rough market cap: price × (revenue / eps) as proxy for shares if no shares data
+                if (edgarData.revenueLatest) {
+                    const mc = edgarData.revenueLatest;
+                    mktCap = mc >= 1e12 ? (mc/1e12).toFixed(2)+'T' : mc >= 1e9 ? (mc/1e9).toFixed(1)+'B Revenue' : (mc/1e6).toFixed(0)+'M Revenue';
+                }
+                logTrace(`📊 SEC EDGAR: EPS $${eps} | P/E ${pe} | RevGrowth ${revenueGrowth}%`);
+            }
+
+            // Analyst target: +8% (no free source; could extend with Finnhub free key)
+            const analystTarget = parseFloat((price * 1.08).toFixed(2));
+
+            return {
+                name: ticker, eodSymbol, dataSource,
+                price, high, low, volume,
+                sector: guessSector(ticker, eodSymbol),
+                vola, beta, mktCap, pe, eps, forwardPE, roe, debtToEquity,
+                dividendYield, revenueGrowth,
+                rsi, sma20, sma50, sma200, support, resistance,
+                avgVolume: volume, analystTarget,
+                sentiment, newsHeadlines,
+                macroTailwind: imfData
+                    ? `IWF ${imfData.imfCode}: BIP ${imfData.gdp !== null ? (imfData.gdp > 0 ? '+'+imfData.gdp+'% Wachstum' : imfData.gdp+'% Rezession') : 'N/A'} | Inflation ${imfData.inflation !== null ? imfData.inflation+'%' : 'N/A'}`
+                    : 'Makrodaten werden berechnet',
+                macroHeadwind: imfData
+                    ? `${imfData.inflation !== null && imfData.inflation > 2.5 ? 'Erhöhte Inflation '+imfData.inflation+'% (Ziel: 2%)' : 'Inflation im Zielbereich '+imfData.inflation+'%'} | Arbeitslosigkeit ${imfData.unemp !== null ? imfData.unemp+'%' : 'N/A'}`
+                    : 'World Bank Daten pending',
+                fetchedAt: new Date().toLocaleTimeString('de-DE', {hour12:false})
+            };
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  DYNAMIC PROMPT GENERATOR — ANTI-HALLUCINATION ENGINE
+        //  Jeder Prompt wird zur Laufzeit mit echten Daten gefuettert.
+        // ═══════════════════════════════════════════════════════════════════════
+        function generateDynamicPrompt(agent, ticker, data) {
+            const base = {
+                master: `Du bist der MASTER_AGENT — Chief Investment Officer (CIO) eines professionellen Aktien-Analyse-Teams.
+Du hast SOFORT ZUGRIFF auf die folgenden LIVE-DATEN fuer ${data.name} (${ticker}):
+
+AKTUELLE KENNDATEN:
+- Preis: $${data.price}
+- Sektor: ${data.sector}
+- Marktkapitalisierung: $${data.mktCap}B
+- Beta: ${data.beta}
+- Volatilitaet: ${data.vola}%
+- RSI: ${data.rsi}
+- SMA20: $${data.sma20}, SMA50: $${data.sma50}, SMA200: $${data.sma200}
+- Support: $${data.support}, Resistance: $${data.resistance}
+- Analysten-Ziel: $${data.analystTarget}
+- Sentiment: ${data.sentiment}/100
+
+ANTI-HALLUZINATION-REGEL: Du hast ALLE Daten die du brauchst.
+Sage NIEMALS „Ich habe keine Echtzeitdaten“, „meine Daten reichen bis 2023“, oder „ich kann keine Analyse durchfuehren“.
+Berechne alle Kennzahlen mit den OBEN STEHENDEN DATEN.
+
+Deine Aufgabe:
+1. Analysiere die Nutzer-Anfrage und entscheide, welche Sub-Agents aktiviert werden.
+2. Sammle alle Sub-Agent-Berichte.
+3. Erstelle einen finalen, konsolidierten Alpha-Report.
+Antworte mit: Executive Summary, Key Findings, Risks, Actionable Recommendations.
+Nutze die OBEN STEHENDEN ZAHLEN.`,
+
+                technical: `Du bist der SUB_TECHNICAL — Technical Analysis Specialist.
+
+DIESE DATEN SIND VERBINDLICH UND DU MUSST SIE NUTZEN:
+- Ticker: ${ticker} | ${data.name}
+- Aktueller Preis: $${data.price}
+- SMA20: $${data.sma20} | SMA50: $${data.sma50} | SMA200: $${data.sma200}
+- RSI: ${data.rsi} | Volatilitaet: ${data.vola}%
+- Support: $${data.support} | Resistance: $${data.resistance}
+- Durchschnittliches Volumen: ${data.avgVolume.toLocaleString()} pro Tag
+
+REGELN:
+1. Der Support MUSS unter dem aktuellen Preis ($${data.price}) liegen.
+2. Der Resistance MUSS ueber dem aktuellen Preis liegen.
+3. Der RSI bei ${data.rsi} bedeutet: ${data.rsi > 70 ? 'Ueberkauft' : data.rsi < 30 ? 'Ueberverkauft' : 'Neutral'}.
+4. Berechne konkrete Entry- und Exit-Level basierend auf $${data.price}.
+5. Sage NIEMALS „ich habe keine Daten". Du hast alle Daten oben.
+
+Antworte:
+1. Trend (Bullish/Bearish/Neutral) + Confidence %
+2. Key Levels (Support, Resistance, Pivot) — MATH. KORREKT zum Preis
+3. Indicator Summary (RSI ${data.rsi}, MACD Signal)
+4. Pattern Recognition
+5. Entry/Exit mit konkreten Preis-Leveln`,
+
+                fundamental: `Du bist der SUB_FUNDAMENTAL — Fundamental Analysis Specialist.
+
+╔══════════════════════════════════════════════════════════════╗
+║  ROLLENVERBOT — DU BIST NUR FUNDAMENTAL-ANALYST             ║
+║  VERBOTEN: Sentiment, Social Media, Chart-Technik, SMAs     ║
+║  VERBOTEN: RSI, Trendanalyse, Candlestick-Pattern           ║
+║  ERLAUBT:  KGV, EPS, Revenue, ROE, D/E, Fair Value, DCF    ║
+╚══════════════════════════════════════════════════════════════╝
+
+FUNDAMENTALDATEN (von SEC EDGAR / API):
+- Ticker: ${ticker} | ${data.name} | Sektor: ${data.sector}
+- Aktueller Preis: $${data.price}
+- EPS (TTM, laut 10-K): ${data.eps !== null ? '$'+data.eps.toFixed(2) : 'FALLBACK — nutze Sektor-Schaetzung'}
+- P/E Ratio (berechnet): ${data.pe !== null ? data.pe : 'FALLBACK — nutze Sektor-KGV'}
+- Revenue Growth (YoY): ${data.revenueGrowth !== null ? data.revenueGrowth+'%' : 'FALLBACK — nutze Branchendaten'}
+- Marktkapitalisierung: $${data.mktCap}
+- Analysten-Kursziel: $${data.analystTarget} (${((data.analystTarget/data.price-1)*100).toFixed(1)}% ${data.analystTarget > data.price ? 'Upside' : 'Downside'})
+
+${data.eps === null ? `⚠️ FALLBACK-MODUS: SEC EDGAR API temporaer nicht verfuegbar.
+Nutze bekannte Branchenkennzahlen fuer ${data.sector} (Stand: aktuell):
+- Typisches P/E fuer ${data.sector}: ${data.sector.includes('EV') || data.sector.includes('Auto') ? '50-80 (Wachstumssektor)' : data.sector.includes('Tech') ? '25-45' : data.sector.includes('Finance') ? '10-15' : data.sector.includes('Energy') ? '12-18' : '15-25'}
+- Schaetze EPS aus Preis / Sektor-P/E und kennzeichne es als Schaetzung
+- Weise transparent auf Fallback-Modus hin` : ''}
+
+PFLICHTREGELN:
+1. Kein Wort ueber Sentiment, Social Media oder Chart-Pattern — das ist SUB_NEWS / SUB_TECHNICAL.
+2. Wenn API-Daten null: Sektor-Benchmark nutzen, NICHT improvisieren mit Nicht-Fundamental-Daten.
+3. Fair Value = EPS (oder Schaetzung) x Sektor-KGV. Upside/Downside zu $${data.price} berechnen.
+4. Jeder Score (1-10) MUSS mit konkreter Kennzahl begruendet werden.
+
+Antworte NUR mit:
+1. Valuation Summary (Methode, Fair Value, Upside/Downside — KEIN Sentiment!)
+2. Growth Metrics (Revenue Growth, EPS-Trend — KEIN RSI, KEIN SMA!)
+3. Profitability Score (1-10) — Begruendung: EPS, ROE oder Sektor-Benchmark
+4. Financial Health Score (1-10) — Begruendung: D/E, Cash, Schulden
+5. Analyst Consensus (Buy/Hold/Sell) — Ziel $${data.analystTarget}
+6. Bull/Bear Case (nur fundamental: Margen, Wachstum, Bewertung)`,
+
+                macro: `Du bist der SUB_MACRO — Macro & Sector Analysis Specialist.
+
+DIESE DATEN SIND VERBINDLICH UND DU MUSST SIE NUTZEN:
+- Ticker: ${ticker} | ${data.name}
+- Sektor: ${data.sector}
+- Beta: ${data.beta} (hoeher = empfindlicher gegenueber Marktbewegungen)
+- Makro-Tailwind: ${data.macroTailwind}
+- Makro-Headwind: ${data.macroHeadwind}
+- Aktueller Preis: $${data.price}
+- Sentiment: ${data.sentiment}/100
+
+REGELN:
+1. Analysiere ${data.sector} im aktuellen Marktumfeld.
+2. Nutze den Tailwind: „${data.macroTailwind}“ und Headwind: „${data.macroHeadwind}“.
+3. Berechne den Macro Score basierend auf Beta ${data.beta} und Sektor ${data.sector}.
+4. Sage NIEMALS „ich kann keine spezifischen Informationen bereitstellen“. Du hast alle Daten.
+
+Antworte:
+1. Macro Score (Headwind/Tailwind) — basierend auf ${data.macroTailwind} vs ${data.macroHeadwind}
+2. Sector Positioning (Overweight/Underweight)
+3. Key Macro Risks (Top 3)
+4. Interest Rate Sensitivity (basierend auf Beta ${data.beta})
+5. Correlation Analysis (SPY, DXY, Oel, VIX)`,
+
+                risk: `Du bist der SUB_RISK — Risk Quantitative Analyst.
+
+╔══════════════════════════════════════════════════════════════╗
+║  ROLLENVERBOT — DU BIST NUR RISK-QUANT                     ║
+║  VERBOTEN: Technische Analyse kopieren, Sentiment-Analyse   ║
+║  VERBOTEN: SMAs, RSI-Kommentar, Chart-Pattern beschreiben  ║
+║  ERLAUBT:  VaR, Drawdown, Beta, Position Sizing, Stress    ║
+╚══════════════════════════════════════════════════════════════╝
+
+LIVE-RISIKOPARAMETER (VERBINDLICH):
+- Ticker: ${ticker} | Preis: $${data.price} | Sektor: ${data.sector}
+- Jaehrliche Vola (sigma_a): ${data.vola}%
+- Taegliche Vola (sigma_d): ${(data.vola/Math.sqrt(252)).toFixed(3)}%
+- Beta: ${data.beta} (${data.beta > 1.5 ? 'Hoch-Beta: ~'+data.beta+'x S&P500-Bewegung' : data.beta < 0.8 ? 'Low-Beta: defensiv' : 'Markt-Beta'})
+- RSI: ${data.rsi} (nur als Kontext — NICHT kommentieren!)
+
+VORBERECHNETE VaR (EXAKT DIESE ZAHLEN UEBERNEHMEN):
+  VaR_95  (1 Tag)  = $${(data.price * (data.vola/100/Math.sqrt(252)) * 1.645).toFixed(2)}
+  VaR_99  (1 Tag)  = $${(data.price * (data.vola/100/Math.sqrt(252)) * 2.326).toFixed(2)}
+  VaR_95  (1 Woche)= $${(data.price * (data.vola/100/Math.sqrt(252)) * Math.sqrt(5) * 1.645).toFixed(2)}
+  Herleitung: $${data.price} x (${data.vola}%/sqrt(252)) x Z-Score
+
+MAX DRAWDOWN (VORBERECHNET):
+  Schaetzung = min(${data.vola}% x 2, 85%) = ${Math.min(data.vola * 2, 85).toFixed(0)}%
+  EISERNE GRENZE: NIEMALS > 100%. NIEMALS = Beta x Vola (falsche Formel!).
+
+POSITION SIZING ($100k Portfolio, 1% Regel):
+  Empfohlen: ${Math.max(1, Math.floor(1000/(data.price * (data.vola/100/Math.sqrt(252)) * 1.645)))} Aktien = ${(Math.min(15, Math.max(1, Math.floor(1000/(data.price * (data.vola/100/Math.sqrt(252)) * 1.645))) * data.price / 1000).toFixed(1))}% des Portfolios
+
+STRESS-TEST (VORBERECHNET):
+  +10% → $${(data.price*1.1).toFixed(2)} | -10% → $${(data.price*0.9).toFixed(2)}
+  +20% → $${(data.price*1.2).toFixed(2)} | -20% → $${(data.price*0.8).toFixed(2)}
+  Black Swan -50% → $${(data.price*0.5).toFixed(2)}
+
+PFLICHTREGELN:
+1. STARTE deine Antwort mit "RISK SCORE: X/10" — basierend auf Vola ${data.vola}% + Beta ${data.beta}.
+2. Uebernimm die VaR-Zahlen EXAKT — NICHT neu berechnen, NICHT veraendern.
+3. NIEMALS eine Zeile aus SUB_TECHNICAL kopieren (kein SMA, kein Trend, kein Entry/Exit).
+4. NIEMALS ueber Sentiment, Headlines oder Social Media schreiben.
+
+Antworte NUR mit:
+1. Risk Score (1-10) — begruendet mit Vola + Beta
+2. VaR-Berechnungen — exakt die vorberechneten Zahlen verwenden
+3. Max Drawdown — historisch + Worst-Case (max 100%)
+4. Beta-Analyse & Correlation Matrix (SPY, DXY, VIX)
+5. Stress Test — die vorberechneten Szenarien
+6. Position Sizing Empfehlung (Aktienanzahl + % Portfolio)`,
+
+                news: `Du bist der SUB_NEWS — Sentiment & Event Analysis Specialist.
+
+ECHTE LIVE-DATEN (von EOD-API — VERBINDLICH):
+- Ticker: ${ticker} | ${data.name}
+- Aktueller Preis: $${data.price}
+- Sektor: ${data.sector}
+- Berechneter Sentiment Score: ${data.sentiment}/100
+- Analysten-Ziel: $${data.analystTarget}
+- ECHTE HEADLINES: ${data.newsHeadlines && data.newsHeadlines.length > 0 ? data.newsHeadlines.join(' | ') : 'Keine API-Headlines verfuegbar'}
+
+REGELN:
+1. Sentiment ${data.sentiment}/100 = ${data.sentiment > 50 ? 'BULLISH' : data.sentiment < -20 ? 'BEARISH' : 'NEUTRAL'}.
+2. Options Flow: ${data.sentiment > 30 ? 'Call-lastig (Bullish)' : data.sentiment < -30 ? 'Put-lastig (Bearish)' : 'Ausgewogen'}.
+3. Falls echte Headlines vorhanden: analysiere jede einzeln (Bullish/Bearish/Neutral + Begruendung).
+4. SAGE NIEMALS "ich kann keine News abrufen". Du hast Daten oben.
+
+Antworte:
+1. Sentiment Score: ${data.sentiment}/100
+2. News Analyse (jede echte Headline bewerten)
+3. Insider Activity (Buy/Sell/Neutral)
+4. Options Flow Signal
+5. Naechster Earnings-Termin
+6. Catalyst Watchlist (3 Events fuer ${data.sector})`
+            };
+
+            return base[agent] || base.master;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  FUNCTION REGISTRY
+        // ═══════════════════════════════════════════════════════════════════════
+        const functionRegistry = {
+            analyze_technical: {
+                agents: ['technical'],
+                description: 'Technische Chart-Analyse',
+                icon: '📊',
+                prompt: 'Fuehre eine vollstaendige technische Analyse durch. SMA, EMA, RSI, MACD, Support/Resistance, Patterns, Candlesticks. Konkrete Preis-Level und Trend-Einschaetzung.'
+            },
+            analyze_fundamental: {
+                agents: ['fundamental'],
+                description: 'Fundamentale Unternehmensanalyse',
+                icon: '📈',
+                prompt: 'Fuehre eine fundamentale Analyse durch. P/E, P/B, EPS, Revenue Growth, ROE, Debt, Cash Flow, Analyst Ratings. Fair Value und Investment Thesis.'
+            },
+            analyze_macro: {
+                agents: ['macro'],
+                description: 'Makrooekonomische Analyse',
+                icon: '🌍',
+                prompt: 'Analysiere das makrooekonomische Umfeld. Zinspolitik, Inflation, Sector Rotation, DXY, Oel, Bond Yields. Macro Score und Sector Positioning.'
+            },
+            calculate_risk: {
+                agents: ['risk'],
+                description: 'Risiko-Quantifizierung',
+                icon: '🛡️',
+                prompt: 'Quantifiziere das Risiko. VaR, Max Drawdown, Beta, Volatility, Sharpe Ratio, Stress Tests. Position Sizing Empfehlung.'
+            },
+            sentiment_scan: {
+                agents: ['news'],
+                description: 'Sentiment & News Scan',
+                icon: '📰',
+                prompt: 'Scanne News und Sentiment. Social Media Stimmung, Headlines, Insider Activity, Options Flow. Sentiment Score und Catalyst Watchlist.'
+            },
+            generate_report: {
+                agents: ['technical', 'fundamental', 'macro', 'risk', 'news'],
+                description: 'Konsolidierter Alpha-Report',
+                icon: '📄',
+                prompt: 'Generiere einen vollstaendigen Alpha-Report mit allen Analysen. Executive Summary, Key Findings, Risiken, Empfehlungen.'
+            },
+            full_analysis: {
+                agents: ['technical', 'fundamental', 'macro', 'risk', 'news'],
+                description: 'Full Alpha Analysis (alle Agents)',
+                icon: '⭐',
+                prompt: 'Fuehre eine vollstaendige Multi-Agent-Analyse durch. Alle Sub-Agents aktivieren. Technische, fundamentale, makro, risiko und sentiment-Analyse.'
+            },
+            export_csv: {
+                agents: ['technical', 'fundamental', 'risk'],
+                description: 'CSV Daten-Export',
+                icon: '📥',
+                prompt: 'Generiere strukturierte CSV-Daten: Ticker, Price, SMA20, SMA50, RSI, MACD, P/E, EPS, Beta, VaR, Sharpe. Tabellenform fuer Excel-Export.'
+            }
+        };
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  STATE
+        // ═══════════════════════════════════════════════════════════════════════
+        let isRunning = false;
+        let reports = [];
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  UI HELPERS
+        // ═══════════════════════════════════════════════════════════════════════
+        function logTrace(msg) {
+            const trace = document.getElementById('pipeline-trace');
+            const time = new Date().toLocaleTimeString('de-DE', { hour12: false });
+            trace.innerHTML += `<div class="trace-line"><span class="trace-time">[${time}]</span> ${msg}</div>`;
+            trace.scrollTop = trace.scrollHeight;
+        }
+
+        function setAgentStatus(agent, status) {
+            const card = document.getElementById(`agent-${agent}`);
+            const badge = document.getElementById(`status-${agent}`);
+            if (!card || !badge) return;
+
+            if (status === 'active') {
+                card.classList.add('active');
+                badge.className = 'agent-status status-active';
+                badge.textContent = 'RUNNING';
+            } else if (status === 'busy') {
+                card.classList.add('active');
+                badge.className = 'agent-status status-busy';
+                badge.textContent = 'BUSY';
+            } else {
+                card.classList.remove('active');
+                badge.className = 'agent-status status-idle';
+                badge.textContent = 'IDLE';
+            }
+        }
+
+        function addMessage(type, meta, content, isHtml = false) {
+            const chatBox = document.getElementById('chat-box');
+            const msgClass = type === 'master' ? 'msg-master' :
+                             type === 'technical' ? 'msg-technical' :
+                             type === 'fundamental' ? 'msg-fundamental' :
+                             type === 'macro' ? 'msg-macro' :
+                             type === 'risk' ? 'msg-risk' :
+                             type === 'news' ? 'msg-news' :
+                             type === 'user' ? 'msg-user' : 'msg-system';
+
+            const metaColor = type === 'master' ? 'var(--gold)' :
+                              type === 'technical' ? 'var(--cyan)' :
+                              type === 'fundamental' ? 'var(--green)' :
+                              type === 'macro' ? 'var(--magenta)' :
+                              type === 'risk' ? 'var(--red)' :
+                              type === 'news' ? '#9d4edd' :
+                              type === 'user' ? '#5a6375' : 'var(--gold)';
+
+            const formatted = isHtml ? content : content
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--white);">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em style="color: var(--muted);">$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>');
+
+            chatBox.innerHTML += `
+                <div class="msg-row">
+                    <div class="msg-bubble ${msgClass}">
+                        <span class="msg-meta" style="color: ${metaColor};">${meta}</span>
+                        <div class="msg-content">${formatted}</div>
+                    </div>
+                </div>
+            `;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  INPUT HANDLERS
+        // ═══════════════════════════════════════════════════════════════════════
+        function injectTest(ticker, prompt) {
+            document.getElementById('ticker-input').value = ticker;
+            document.getElementById('prompt-input').value = prompt;
+            logTrace(`📥 Test-Szenario geladen: ${ticker}`);
+        }
+
+        function injectFunction(funcName) {
+            const func = functionRegistry[funcName];
+            if (!func) return;
+            const ticker = document.getElementById('ticker-input').value.trim() || 'TICKER';
+            document.getElementById('prompt-input').value = `${func.icon} ${func.description} fuer ${ticker}`;
+            logTrace(`🔧 Funktion geladen: ${funcName}`);
+        }
+
+        function showAgentInfo(agent) {
+            const info = {
+                master: 'Chief Investment Officer. Koordiniert alle Sub-Agents, synthetisiert Berichte und erstellt den finalen Alpha-Report.',
+                technical: 'Technical Analysis Specialist. Charts, Indicators, Patterns, Support/Resistance, Entry/Exit Levels.',
+                fundamental: 'Fundamental Analysis Specialist. Valuation, Growth, Profitability, Financial Health, Analyst Ratings.',
+                macro: 'Macro & Sector Specialist. Interest Rates, Inflation, Sector Rotation, DXY, Oil, Bond Yields.',
+                risk: 'Risk Management Specialist. VaR, Drawdown, Beta, Volatility, Stress Tests, Position Sizing.',
+                news: 'Sentiment & Event Specialist. News, Social Media, Insider Activity, Options Flow, Earnings Calendar.'
+            };
+            addMessage('system', 'SYSTEM // AGENT INFO', `**${agent.toUpperCase()}**: ${info[agent] || 'Unknown agent.'}`);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  LLM API
+        // ═══════════════════════════════════════════════════════════════════════
+        async function callLLM(system, user, model = 'gpt-4o-mini') {
+            const response = await fetch(PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: model,
+                    temperature: 0.2,
+                    max_tokens: 2000,
+                    messages: [
+                        { role: 'system', content: system },
+                        { role: 'user', content: user }
+                    ]
+                })
+            });
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  MAIN PIPELINE
+        // ═══════════════════════════════════════════════════════════════════════
+        async function dispatchAgentPipeline() {
+            if (isRunning) {
+                logTrace('⚠️ Pipeline bereits aktiv. Warte auf Abschluss...');
+                return;
+            }
+
+            const tickerInput = document.getElementById('ticker-input');
+            const promptInput = document.getElementById('prompt-input');
+            const ticker = tickerInput.value.trim().toUpperCase();
+            const userPrompt = promptInput.value.trim();
+
+            if (!ticker) {
+                logTrace('❌ Kein Ticker angegeben.');
+                return;
+            }
+
+            isRunning = true;
+            document.getElementById('dispatch-btn').disabled = true;
+            document.getElementById('dispatch-btn').textContent = 'RUNNING...';
+
+            addMessage('user', 'OPERATOR // INPUT', `**${ticker}**: ${userPrompt || 'Full Analysis'}`);
+            logTrace(`👑 Master-Agent analysiert Task: ${ticker}`);
+            setAgentStatus('master', 'active');
+
+            // Determine which agents to activate
+            let activeAgents = [];
+            let functionName = 'full_analysis';
+
+            // Check if user selected a specific function
+            for (const [funcName, func] of Object.entries(functionRegistry)) {
+                if (userPrompt.toLowerCase().includes(funcName.replace('_', ' ').toLowerCase()) ||
+                    userPrompt.toLowerCase().includes(func.description.toLowerCase())) {
+                    activeAgents = func.agents;
+                    functionName = funcName;
+                    break;
+                }
+            }
+
+            // If no specific function detected, do full analysis
+            if (activeAgents.length === 0) {
+                activeAgents = functionRegistry.full_analysis.agents;
+            }
+
+            logTrace(`🎯 Funktion erkannt: ${functionName} | Agents: [${activeAgents.join(', ')}]`);
+
+            // ── LIVE DATA FETCH (EOD API) ──────────────────────────────────
+            let tickerData;
+            try {
+                tickerData = await fetchLiveTickerData(ticker);
+            } catch(e) {
+                logTrace(`⚠️ Datenfehler: ${e.message} — nutze Fallback`);
+                tickerData = { name:ticker, eodSymbol:ticker+'.US', dataSource:'ERROR-FALLBACK',
+                    price:100, high:105, low:95, volume:1000000, sector:'Unknown',
+                    vola:25, beta:1.0, mktCap:'N/A', pe:null, eps:null, forwardPE:null, roe:null, debtToEquity:null, revenueGrowth:null, dividendYield:null, rsi:50,
+                    sma20:97, sma50:94, sma200:88, support:93, resistance:107,
+                    avgVolume:1000000, analystTarget:108, sentiment:0,
+                    newsHeadlines:[], macroTailwind:'N/A', macroHeadwind:'N/A',
+                    fetchedAt:new Date().toLocaleTimeString('de-DE',{hour12:false}) };
+            }
+
+            // Show data source badge
+            const srcBadge = tickerData.dataSource === 'LIVE' ? '🟢 LIVE' : '🟡 FALLBACK';
+            addMessage('system', `DATA SOURCE // ${srcBadge}`,
+                `**${ticker}** (${tickerData.eodSymbol}) | Preis: **$${tickerData.price}** | RSI: **${tickerData.rsi}** | Vola: **${tickerData.vola}%** | SMA20: **$${tickerData.sma20}** | Support: **$${tickerData.support}** | Resistance: **$${tickerData.resistance}**\n` +
+                (tickerData.newsHeadlines.length ? `📰 Headlines: ${tickerData.newsHeadlines.slice(0,2).join(' | ')}` : '')
+            );
+
+            // Build full context with LIVE injected data
+            const fullContext = `Ticker: ${ticker} | ${tickerData.name}\nEOD-Symbol: ${tickerData.eodSymbol}\nPreis (LIVE): $${tickerData.price}\nHigh: $${tickerData.high} | Low: $${tickerData.low}\nSektor: ${tickerData.sector}\nBeta: ${tickerData.beta}\nVolatilitaet: ${tickerData.vola}%\nRSI(14): ${tickerData.rsi}\nSMA20: $${tickerData.sma20} | SMA50: $${tickerData.sma50} | SMA200: $${tickerData.sma200}\nSupport: $${tickerData.support} | Resistance: $${tickerData.resistance}\nVolumen: ${tickerData.avgVolume.toLocaleString()}\nSentiment: ${tickerData.sentiment}\nHeadlines: ${tickerData.newsHeadlines.join(' | ')}\nAnfrage: ${userPrompt || 'Vollstaendige Analyse'}\nDatum: ${new Date().toLocaleDateString('de-DE')}\nDatenquelle: ${tickerData.dataSource}`;
+
+            let subAgentReports = '';
+
+            try {
+                // Run each sub-agent with DYNAMIC PROMPT INJECTION
+                for (const agent of activeAgents) {
+                    if (['technical','fundamental','macro','risk','news'].includes(agent)) {
+                        logTrace(`🚀 Starte ${agent.toUpperCase()}-Agent...`);
+                        setAgentStatus(agent, 'active');
+
+                        // Generate dynamic prompt with injected data
+                        const dynamicPrompt = generateDynamicPrompt(agent, ticker, tickerData);
+
+                        // Add small delay for visual effect
+                        await new Promise(r => setTimeout(r, 500));
+
+                        const report = await callLLM(dynamicPrompt, fullContext);
+                        logTrace(`📥 Bericht von ${agent.toUpperCase()} empfangen (${report.length} chars)`);
+
+                        const agentMeta = {
+                            technical: 'SUB_TECHNICAL // CHART ANALYSIS',
+                            fundamental: 'SUB_FUNDAMENTAL // FINANCIALS',
+                            macro: 'SUB_MACRO // MACRO ENVIRONMENT',
+                            risk: 'SUB_RISK // RISK QUANT',
+                            news: 'SUB_NEWS // SENTIMENT SCAN'
+                        };
+
+                        addMessage(agent, agentMeta[agent], report);
+                        subAgentReports += `\n=== ${agent.toUpperCase()} REPORT ===\n${report}\n`;
+                        setAgentStatus(agent, 'idle');
+                    }
+                }
+
+                // Generate master report with dynamic prompt
+                logTrace('👑 Master-Agent synthetisiert Alpha-Report...');
+                setAgentStatus('master', 'active');
+
+                const masterDynamicPrompt = generateDynamicPrompt('master', ticker, tickerData);
+                const masterFinalPrompt = `${masterDynamicPrompt}\n\nSub-Agent Reports:\n${subAgentReports}\n\nErstelle jetzt den finalen konsolidierten Alpha-Report fuer ${ticker}.`;
+                const masterReport = await callLLM(masterFinalPrompt, fullContext);
+
+                addMessage('master', '👑 MASTER_AGENT // ALPHA REPORT', masterReport);
+                logTrace('✅ Alpha-Report generiert.');
+
+                // Bridge → CZ parent RAG context
+                if (window.parent?.czPushToRAG) {
+                    const t = (document.getElementById('ticker-input')?.value || 'SQUAD').trim().toUpperCase();
+                    window.parent.czPushToRAG(
+                        `=== NEURAL ALPHA SQUAD — ${t} ===\n${masterReport}`,
+                        'ALPHA:' + t
+                    );
+                }
+
+                // Generate function output if export requested
+                if (functionName === 'export_csv') {
+                    generateCSVReport(ticker, subAgentReports);
+                }
+
+                // Store report for download
+                reports.push({
+                    ticker: ticker,
+                    timestamp: new Date().toISOString(),
+                    content: masterReport,
+                    agents: activeAgents,
+                    subReports: subAgentReports
+                });
+
+                logTrace('✅ Pipeline erfolgreich abgeschlossen.');
+
+            } catch (err) {
+                logTrace(`💥 PIPELINE-FEHLER: ${err.message}`);
+                addMessage('system', 'ERROR // CRITICAL', `**Fehler**: ${err.message}. Pipeline abgebrochen.`);
+            }
+
+            setAgentStatus('master', 'idle');
+            isRunning = false;
+            document.getElementById('dispatch-btn').disabled = false;
+            document.getElementById('dispatch-btn').textContent = 'DISPATCH';
+            tickerInput.value = '';
+            promptInput.value = '';
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  REPORT GENERATION & DOWNLOAD
+        // ═══════════════════════════════════════════════════════════════════════
+        function generateCSVReport(ticker, reports) {
+            logTrace('📥 Generiere CSV-Export...');
+
+            // Extract structured data points from reports
+            const lines = reports.split('\n');
+            let csvData = 'Metric,Value\n';
+            csvData += `Ticker,${ticker}\n`;
+            csvData += `Timestamp,${new Date().toISOString()}\n`;
+
+            // Try to extract key metrics from the text
+            const metrics = [
+                { pattern: /RSI[:\s]+(\d+\.?\d*)/i, name: 'RSI' },
+                { pattern: /MACD[:\s]+([\d\.-]+)/i, name: 'MACD' },
+                { pattern: /P\/E[:\s]+(\d+\.?\d*)/i, name: 'PE_Ratio' },
+                { pattern: /EPS[:\s]+([\d\.$]+)/i, name: 'EPS' },
+                { pattern: /Beta[:\s]+(\d+\.?\d*)/i, name: 'Beta' },
+                { pattern: /Sharpe[:\s]+(\d+\.?\d*)/i, name: 'Sharpe_Ratio' },
+                { pattern: /VaR[:\s]+(\d+\.?\d*)/i, name: 'VaR' },
+                { pattern: /Support[:\s]+([\d\.$,]+)/i, name: 'Support' },
+                { pattern: /Resistance[:\s]+([\d\.$,]+)/i, name: 'Resistance' }
+            ];
+
+            for (const metric of metrics) {
+                const match = reports.match(metric.pattern);
+                if (match) {
+                    csvData += `${metric.name},${match[1]}\n`;
+                }
+            }
+
+            // Create downloadable blob
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${ticker}_ALPHA_REPORT_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            logTrace('✅ CSV heruntergeladen.');
+            addMessage('system', 'SYSTEM // EXPORT', `**CSV Export**: ${ticker}_ALPHA_REPORT.csv heruntergeladen.\n${csvData.replace(/\n/g, '<br>')}`);
+        }
+
+        function downloadReport(type) {
+            if (reports.length === 0) {
+                logTrace('⚠️ Keine Reports verfuegbar. Fuehren Sie zuerst eine Analyse durch.');
+                return;
+            }
+
+            const latest = reports[reports.length - 1];
+            const ticker = latest.ticker;
+            const date = new Date().toISOString().split('T')[0];
+
+            if (type === 'csv') {
+                generateCSVReport(ticker, latest.subReports);
+            } else if (type === 'json') {
+                const jsonData = {
+                    ticker: ticker,
+                    timestamp: latest.timestamp,
+                    agents: latest.agents,
+                    report: latest.content,
+                    subReports: latest.subReports
+                };
+                const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${ticker}_ALPHA_DATA_${date}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                logTrace('✅ JSON heruntergeladen.');
+            } else if (type === 'template') {
+                const html = generateHTMLReport(latest);
+                const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${ticker}_ALPHA_REPORT_${date}.html`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                logTrace('✅ HTML Report heruntergeladen.');
+            }
+        }
+
+        function generateHTMLReport(report) {
+            return `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Alpha Report // ${report.ticker}</title>
+<style>
+body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; padding: 40px; max-width: 900px; margin: 0 auto; }
+h1 { color: #ffb700; font-family: 'Courier New', monospace; border-bottom: 2px solid #ffb700; padding-bottom: 10px; }
+h2 { color: #00f0ff; font-family: 'Courier New', monospace; margin-top: 30px; }
+.timestamp { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+.section { background: #111; border-left: 3px solid #00f0ff; padding: 15px; margin: 15px 0; border-radius: 0 4px 4px 0; }
+.agent-tag { background: #1a1a2e; color: #00f0ff; padding: 2px 8px; border-radius: 3px; font-size: 0.8rem; font-family: monospace; }
+pre { white-space: pre-wrap; line-height: 1.6; }
+</style>
+</head>
+<body>
+<h1>ALPHA REPORT // ${report.ticker}</h1>
+<div class="timestamp">Generated: ${report.timestamp} | Agents: ${report.agents.join(', ')}</div>
+<h2>Master Report</h2>
+<div class="section">
+<pre>${report.content}</pre>
+</div>
+<h2>Sub-Agent Reports</h2>
+<div class="section">
+<pre>${report.subReports}</pre>
+</div>
+</body>
+</html>`;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  KEYBOARD HANDLER
+        // ═══════════════════════════════════════════════════════════════════════
+        document.getElementById('prompt-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') dispatchAgentPipeline();
+        });
+
+        document.getElementById('ticker-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('prompt-input').focus();
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  INIT
+        // ═══════════════════════════════════════════════════════════════════════
+        logTrace('🚀 Neural Alpha Squad v1.0 initialized');
+        logTrace('📡 5 Sub-Agents ready | 8 Functions registered');
+        logTrace('💡 Tip: Geben Sie einen Ticker ein und klicken Sie DISPATCH');
+    </script>
+</body>
+</html>

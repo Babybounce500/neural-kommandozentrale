@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>QUANTUM ENGINE v19.7 // INTEGRATED OBV PIPELINE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #030206;
+            --panel: #090615;
+            --panel-inner: #130e2a;
+            --gold: #D4AF37;
+            --cyan: #00f0ff;
+            --orange: #ff6600;
+            --green: #00ff88;
+            --red: #ff3366;
+            --white: #ffffff;
+            --border: rgba(212, 175, 55, 0.25);
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--white);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .terminal-header {
+            background-color: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 25px;
+            font-family: monospace;
+            color: var(--white);
+        }
+
+        .view-btn {
+            background: transparent;
+            color: var(--white);
+            border: 1px solid #3d2f66;
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        .view-btn:hover {
+            color: var(--white);
+            border-color: var(--cyan);
+            background: rgba(0, 240, 255, 0.05);
+        }
+        .view-btn.active[data-mode="liquidity"] { color: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,240,255,0.2); }
+        .view-btn.active[data-mode="volatility"] { color: var(--orange); border-color: var(--orange); box-shadow: 0 0 10px rgba(255,102,0,0.2); }
+        .view-btn.active[data-mode="obv"] { color: var(--gold); border-color: var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.2); }
+
+        .tf-btn {
+            background: #110b29;
+            color: var(--white);
+            border: 1px solid #3d2f66;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 4px 12px;
+            font-weight: bold;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+        .tf-btn:hover, .tf-btn.active {
+            background: var(--gold);
+            color: #000 !important;
+            border-color: var(--gold);
+        }
+
+        .card-custom {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .card-header-custom {
+            border-bottom: 1px dashed var(--border);
+            padding: 12px 20px;
+            font-family: monospace;
+            color: var(--white);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .chart-container {
+            position: relative;
+            background: #010003;
+            border-radius: 4px;
+            padding: 15px;
+            height: 520px;
+        }
+
+        .hud-box {
+            background: var(--panel-inner);
+            border-left: 3px solid var(--cyan);
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--white);
+        }
+        .hud-box strong, .hud-box span, .hud-box small {
+            color: var(--white) !important;
+        }
+
+        .form-control-custom {
+            background: #000;
+            border: 1px solid var(--border);
+            color: var(--white);
+            font-family: monospace;
+        }
+        .form-control-custom:focus {
+            background: #000;
+            border-color: var(--cyan);
+            color: var(--white);
+            box-shadow: none;
+        }
+        .btn-scan {
+            background: transparent;
+            color: var(--white);
+            border: 1px solid var(--gold);
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .btn-scan:hover {
+            background: var(--gold);
+            color: #000;
+        }
+        
+        .text-white-forced {
+            color: var(--white) !important;
+        }
+    </style>
+</head>
+<body>
+
+<header class="terminal-header d-flex justify-content-between align-items-center">
+    <div>
+        <span style="color: var(--white); font-weight: 900; letter-spacing: 1px;">⚡ QUANTUM ENGINE v19.7 // OBV FLOW MATRIX</span>
+        <span class="mx-2" style="color: var(--white);">|</span>
+        <span id="activeTicker" style="color: var(--cyan)">AAPL.US</span>
+    </div>
+    <div class="d-flex gap-2">
+        <input class="form-control form-control-custom form-control-sm" id="tickerInput" style="width: 180px;" type="text" value="AAPL.US">
+        <button class="btn btn-sm btn-scan" onclick="fetchQuantumTelemetry()">RUN PIPELINE</button>
+    </div>
+</header>
+
+<div class="container-fluid p-4">
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-8 d-flex gap-2 mb-2 mb-md-0">
+            <button class="btn view-btn active" data-mode="liquidity" onclick="switchTelemetryMode('liquidity')">🔍 Liquidity Grid (Real Volume Profile)</button>
+            <button class="btn view-btn" data-mode="volatility" onclick="switchTelemetryMode('volatility')">⚡ Volatility Tension (ATR Squeeze)</button>
+            <button class="btn view-btn" data-mode="obv" onclick="switchTelemetryMode('obv')">🪐 Volume Flow Axis (OBV)</button>
+        </div>
+        <div class="col-md-4 d-flex justify-content-md-end gap-1">
+            <button class="btn tf-btn active" id="tf-6m" onclick="switchTimeframe(126, '6m')">6M Focus</button>
+            <button class="btn tf-btn" id="tf-1m" onclick="switchTimeframe(21, '1m')">1M Focus</button>
+            <button class="btn tf-btn" id="tf-1w" onclick="switchTimeframe(5, '1w')">1W Focus</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xl-9 col-lg-8 mb-4">
+            <div class="card card-custom">
+                <div class="card-header-custom" id="chartHeaderTitle">Engine View: Gravity Grid & Liquiditäts-Profile (HVN)</div>
+                <div class="card-body p-2">
+                    <div class="chart-container">
+                        <canvas id="quantumMainChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-lg-4 mb-4">
+            <div class="card card-custom h-100">
+                <div class="card-header-custom">🛰️ Telemetry Analytics & Execution</div>
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="hud-box mb-3" id="hudContextBox">
+                            Warte auf Pipeline-Trigger...
+                        </div>
+                        
+                        <div class="p-3 font-monospace text-white-forced" style="font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05)">
+                            <div class="mb-2 d-flex justify-content-between"><span>Last Traded Spot:</span> <span class="fw-bold" id="hudSpot">--</span></div>
+                            <div class="mb-2 d-flex justify-content-between"><span>Calculated ATR (14):</span> <span id="hudAtr">--</span></div>
+                            <div class="d-flex justify-content-between"><span>Squeeze Status:</span> <span class="fw-bold" id="hudSqueeze">--</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <h6 class="font-monospace text-uppercase" style="font-size: 10px; letter-spacing: 1px; margin-bottom: 10px; color: var(--white);">Algorithmic Protected Bracket Status</h6>
+                        <div class="p-2 font-monospace text-center rounded" style="background:#020502; border:1px dashed var(--green); font-size:12px; color:var(--green)">
+                            🛡️ LIVE PROTECTION MODULE ARMED
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const PROXY_URL = 'https://gemini-os.replit.app/api/eod';
+    let mainChartInstance = null;
+    let globalHistData = [];      
+    let activeWindowData = [];    
+    let currentMode = 'liquidity';
+    let currentLimit = 126;       
+    let calculatedMetrics = {};
+
+    async function fetchQuantumTelemetry() {
+        const input = document.getElementById('tickerInput').value.trim();
+        if (!input) return;
+        
+        document.getElementById('activeTicker').textContent = input;
+        
+        try {
+            const res = await fetch(`${PROXY_URL}?symbol=${encodeURIComponent(input)}&endpoint=historical`);
+            if (!res.ok) throw new Error("API Execution Failure");
+            
+            let data = await res.json();
+            globalHistData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            applyTimeframeFilter();
+        } catch (err) {
+            console.error("Pipeline Error:", err);
+            alert("Fehler beim Abrufen der Telemetrie-Daten.");
+        }
+    }
+
+    function switchTimeframe(days, buttonId) {
+        currentLimit = days;
+        document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`tf-${buttonId}`).classList.add('active');
+        
+        if (globalHistData.length > 0) {
+            applyTimeframeFilter();
+        }
+    }
+
+    function applyTimeframeFilter() {
+        if (!globalHistData.length) return;
+        
+        activeWindowData = globalHistData.slice(-currentLimit);
+        
+        runQuantumMathPipeline();
+        renderQuantumEngineView();
+    }
+
+    function runQuantumMathPipeline() {
+        if (!activeWindowData.length) return;
+        
+        const closes = activeWindowData.map(d => parseFloat(d.adjusted_close || d.close));
+        const highs = activeWindowData.map(d => parseFloat(d.high));
+        const lows = activeWindowData.map(d => parseFloat(d.low));
+        const volumes = activeWindowData.map(d => parseFloat(d.volume || 0));
+        
+        const lastPrice = closes[closes.length - 1];
+        const priceMin = Math.min(...closes);
+        const priceMax = Math.max(...closes);
+
+        // ==========================================
+        // DYNAMIC PRECISE VOLUME PROFILE
+        // ==========================================
+        const binCount = 15;
+        const binSize = (priceMax - priceMin) / binCount || 1;
+        let priceBins = Array(binCount).fill(0);
+
+        for (let i = 0; i < closes.length; i++) {
+            let binIndex = Math.floor((closes[i] - priceMin) / binSize);
+            if (binIndex >= binCount) binIndex = binCount - 1;
+            if (binIndex < 0) binIndex = 0;
+            priceBins[binIndex] += volumes[i];
+        }
+
+        const maxVolIndex = priceBins.indexOf(Math.max(...priceBins));
+        const realHVNPrice = priceMin + (maxVolIndex * binSize) + (binSize / 2);
+
+        // ==========================================
+        // PURE ON-BALANCE VOLUME (OBV) MATHEMATICS
+        // ==========================================
+        let obvSeries = [];
+        let currentOBV = 0;
+        obvSeries.push(currentOBV); // Erster Datenpunkt startet bei 0 im aktiven Fenster
+
+        for (let i = 1; i < closes.length; i++) {
+            if (closes[i] > closes[i - 1]) {
+                currentOBV += volumes[i];
+            } else if (closes[i] < closes[i - 1]) {
+                currentOBV -= volumes[i];
+            }
+            obvSeries.push(currentOBV);
+        }
+
+        // ==========================================
+        // DYNAMIC ATR & SQUEEZE LOGIC
+        // ==========================================
+        let trueRanges = [];
+        for (let i = 1; i < closes.length; i++) {
+            let tr = Math.max(
+                highs[i] - lows[i],
+                Math.abs(highs[i] - closes[i - 1]),
+                Math.abs(lows[i] - closes[i - 1])
+            );
+            trueRanges.push(tr);
+        }
+        
+        const atrPeriod = Math.min(14, trueRanges.length);
+        const currentATR = trueRanges.length > 0 
+            ? trueRanges.slice(-atrPeriod).reduce((a, b) => a + b, 0) / atrPeriod 
+            : lastPrice * 0.02; 
+
+        let period = Math.min(20, closes.length);
+        let upperBand = [];
+        let lowerBand = [];
+        let middleBand = [];
+        let bandwidth = 0;
+
+        for (let i = 0; i < closes.length; i++) {
+            if (i < period - 1) {
+                upperBand.push(null); lowerBand.push(null); middleBand.push(null);
+                continue;
+            }
+            let slice = closes.slice(i - period + 1, i + 1);
+            let mean = slice.reduce((a, b) => a + b, 0) / period;
+            let variance = slice.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / period;
+            let stdDev = Math.sqrt(variance) || 0.001;
+            
+            upperBand.push(mean + (2 * stdDev));
+            lowerBand.push(mean - (2 * stdDev));
+            middleBand.push(mean);
+            
+            if (i === closes.length - 1) {
+                bandwidth = (((mean + (2 * stdDev)) - (mean - (2 * stdDev))) / mean) * 100;
+            }
+        }
+
+        // ==========================================
+        // ACCOUNT RISK PROTECTION CALCULATION
+        // ==========================================
+        const riskBaseCapital = 750.00;
+        const exactStopPrice = realHVNPrice < lastPrice ? (realHVNPrice - (currentATR * 0.5)) : (lastPrice - currentATR);
+        const stopDistance = lastPrice - exactStopPrice;
+        const positionSize = stopDistance > 0 ? Math.floor(riskBaseCapital / stopDistance) : 0;
+
+        let squeezeStatus = "Stable / Trend";
+        if (bandwidth < 6 && closes.length >= 5) {
+            squeezeStatus = "⚠️ KINETIC SQUEEZE";
+        }
+
+        calculatedMetrics = {
+            lastPrice, closes, obvSeries, priceMin, priceMax,
+            realHVNPrice, currentATR, exactStopPrice, positionSize,
+            upperBand, lowerBand, middleBand, bandwidth, squeezeStatus, riskBaseCapital
+        };
+
+        // HUD Ausgaben (Währungszeichen entfernt für multilaterale Assets)
+        document.getElementById('hudSpot').textContent = `${lastPrice.toFixed(2)}`;
+        document.getElementById('hudAtr').textContent = `${currentATR.toFixed(2)}`;
+        document.getElementById('hudSqueeze').textContent = squeezeStatus;
+
+        updateHUDContext();
+    }
+
+    function updateHUDContext() {
+        const box = document.getElementById('hudContextBox');
+        const m = calculatedMetrics;
+
+        if (currentMode === 'liquidity') {
+            box.innerHTML = `
+                <strong>🔍 GRAVITY GRID (VERIFIZIERT)</strong><br><br>
+                Der Hauptvolumenknoten (HVN) für diesen Zeitrahmen liegt bei: ${m.realHVNPrice.toFixed(2)}.<br><br>
+                <strong>ALGORITHMISCHE RISIKO-MATRIX:</strong><br>
+                🎯 Target Stop: ${m.exactStopPrice.toFixed(2)}<br>
+                📊 Position Size: ${m.positionSize} Units<br>
+                <small>Konto-Risiko Limit: ${m.riskBaseCapital.toFixed(2)}</small>
+            `;
+            box.style.borderLeftColor = 'var(--cyan)';
+        } else if (currentMode === 'volatility') {
+            box.innerHTML = `
+                <strong>⚡ ATR TENSION ENGINE</strong><br><br>
+                Aktuelle Bandbreite des Kanals: ${m.bandwidth.toFixed(2)}%.<br>
+                Zustand: ${m.squeezeStatus}.<br><br>
+                Die Membran misst den kinetischen Druck. Bei engen Kanälen drosselt die Engine das Risiko vor dem Ausbruch.
+            `;
+            box.style.borderLeftColor = 'var(--orange)';
+        } else if (currentMode === 'obv') {
+            const currentOBVValue = m.obvSeries[m.obvSeries.length - 1];
+            const obvIsRising = m.obvSeries[m.obvSeries.length - 1] > m.obvSeries[m.obvSeries.length - 2];
+            box.innerHTML = `
+                <strong>🪐 VOLUME FLOW AXIS (OBV)</strong><br><br>
+                On-Balance Volume im aktuellen Zeitfenster akkumuliert.<br><br>
+                <strong>OBV METRIC STATE:</strong><br>
+                📈 Current OBV: ${currentOBVValue.toLocaleString()}<br>
+                🚦 Flow Direction: ${obvIsRising ? '<span class="text-success fw-bold">ACCUMULATION</span>' : '<span class="text-danger fw-bold">DISTRIBUTION</span>'}<br>
+                <small>Steigt das OBV während der Kurs konsolidiert, deutet dies auf institutionelle Käufe vor dem Ausbruch hin.</small>
+            `;
+            box.style.borderLeftColor = 'var(--gold)';
+        }
+    }
+
+    function switchTelemetryMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.view-btn[data-mode="${mode}"]`).classList.add('active');
+        
+        const titles = {
+            liquidity: "Engine View: Gravity Grid & Liquiditäts-Profile (HVN)",
+            volatility: "Engine View: Kinetische Kompression (Bollinger Tension Membran)",
+            obv: "Engine View: On-Balance Volume Trendachse (MFI Core Correlation)"
+        };
+        document.getElementById('chartHeaderTitle').textContent = titles[mode];
+        
+        updateHUDContext();
+        renderQuantumEngineView();
+    }
+
+    function renderQuantumEngineView() {
+        const canvas = document.getElementById('quantumMainChart');
+        const ctx = canvas.getContext('2d');
+        if (mainChartInstance) mainChartInstance.destroy();
+
+        if (!activeWindowData.length) return;
+
+        const labels = activeWindowData.map(d => d.date);
+        let datasets = [];
+        let optionsScales = {
+            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#ffffff', font: { size: 10 }, maxTicksLimit: 10 } },
+            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#ffffff', font: { family: 'monospace', size: 11 } } }
+        };
+
+        Chart.defaults.color = '#ffffff';
+
+        if (currentMode === 'liquidity') {
+            datasets = [
+                {
+                    label: 'Spot Price Curve',
+                    data: calculatedMetrics.closes,
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    pointRadius: currentLimit <= 7 ? 4 : 0,
+                    fill: false,
+                    tension: 0.02
+                },
+                {
+                    label: '🔥 Real High Volume Node (HVN)',
+                    data: Array(labels.length).fill(calculatedMetrics.realHVNPrice),
+                    borderColor: 'rgba(0, 240, 255, 0.4)',
+                    borderWidth: 22, 
+                    pointRadius: 0,
+                    fill: false
+                },
+                {
+                    label: '🛡️ Algorithmic Risk Protection Stop',
+                    data: Array(labels.length).fill(calculatedMetrics.exactStopPrice),
+                    borderColor: '#ff3366',
+                    borderWidth: 1.5,
+                    borderDash: [6, 6],
+                    pointRadius: 0,
+                    fill: false
+                }
+            ];
+        } 
+        else if (currentMode === 'volatility') {
+            const isSqueeze = calculatedMetrics.bandwidth < 6;
+            const membraneColor = isSqueeze ? '255, 102, 0' : '120, 110, 160';
+
+            datasets = [
+                {
+                    label: 'Upper Tension Frontier',
+                    data: calculatedMetrics.upperBand,
+                    borderColor: `rgba(${membraneColor}, 0.7)`,
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    fill: false
+                },
+                {
+                    label: 'Kinetische Membran-Cloud',
+                    data: calculatedMetrics.lowerBand,
+                    borderColor: `rgba(${membraneColor}, 0.7)`,
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    backgroundColor: `rgba(${membraneColor}, 0.08)`,
+                    fill: '-1'
+                },
+                {
+                    label: 'Spot Price Curve',
+                    data: calculatedMetrics.closes,
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    pointRadius: currentLimit <= 7 ? 4 : 0,
+                    fill: false
+                }
+            ];
+        } 
+        else if (currentMode === 'obv') {
+            // Für den OBV bauen wir eine Y-Achsen-Splittung (Zwei getrennte Achsen),
+            // da die Volumenschritte numerisch viel größer sind als der Aktienkurs!
+            datasets = [
+                {
+                    label: 'Spot Price (Left Scale)',
+                    data: calculatedMetrics.closes,
+                    borderColor: 'rgba(255, 255, 255, 0.35)',
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    fill: false,
+                    yAxisID: 'y'
+                },
+                {
+                    label: '🪐 On-Balance Volume (Right Scale)',
+                    data: calculatedMetrics.obvSeries,
+                    borderColor: 'var(--gold)',
+                    borderWidth: 2.5,
+                    pointRadius: currentLimit <= 7 ? 4 : 0,
+                    backgroundColor: 'rgba(212, 175, 55, 0.05)',
+                    fill: true,
+                    yAxisID: 'yOBV',
+                    tension: 0.1
+                }
+            ];
+
+            optionsScales = {
+                x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#ffffff', font: { size: 10 }, maxTicksLimit: 10 } },
+                y: { 
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    grid: { color: 'rgba(255,255,255,0.02)' }, 
+                    ticks: { color: '#ffffff', font: { family: 'monospace', size: 11 } } 
+                },
+                yOBV: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: { drawOnChartArea: false }, // Verhindert überlagernde Grid-Linien
+                    ticks: { color: 'var(--gold)', font: { family: 'monospace', size: 10 } }
+                }
+            };
+        }
+
+        mainChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#ffffff', font: { family: 'monospace', size: 10 } } }
+                },
+                scales: optionsScales
+            }
+        });
+    }
+
+    window.onload = fetchQuantumTelemetry;
+</script>
+
+</body>
+</html>

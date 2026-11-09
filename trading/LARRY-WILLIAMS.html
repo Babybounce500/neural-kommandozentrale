@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Larry Williams — Trading Legend · Complete Framework</title>
+<style>
+  :root {
+    --bg: #080a0c;
+    --surface: #0d1117;
+    --card: #111820;
+    --border: #1c2836;
+    --amber: #f59e0b;
+    --amber2: #fbbf24;
+    --amber3: #fde68a;
+    --orange: #f97316;
+    --orange2: #fb923c;
+    --green: #22c55e;
+    --green2: #86efac;
+    --red: #ef4444;
+    --red2: #fca5a5;
+    --blue: #3b82f6;
+    --blue2: #93c5fd;
+    --purple: #a855f7;
+    --purple2: #d8b4fe;
+    --teal: #14b8a6;
+    --teal2: #5eead4;
+    --text: #e2e8f0;
+    --muted: #1e3a4a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #080600 0%, #150f00 40%, #080600 100%);
+    border-bottom: 1px solid #2a1f00;
+    padding: 56px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 15% 50%, rgba(245,158,11,0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 30%, rgba(249,115,22,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 90%, rgba(34,197,94,0.03) 0%, transparent 40%);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: var(--amber); margin-bottom: 14px; opacity: 0.8; }
+  .header-name { font-size: clamp(40px, 8vw, 80px); font-weight: 900; letter-spacing: -3px; line-height: 0.95; margin-bottom: 8px; }
+  .header-name .first { color: #64748b; }
+  .header-name .last { color: var(--amber2); }
+  .header-subtitle { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--orange); margin-bottom: 16px; }
+  .header-tagline { font-size: 15px; color: #475569; max-width: 680px; margin: 0 auto 20px; line-height: 1.7; }
+  .header-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge { padding: 5px 14px; border-radius: 20px; font-size: 11px; letter-spacing: 1px; font-weight: 600; }
+  .badge-amber { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--amber2); }
+  .badge-orange { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); color: var(--orange2); }
+  .badge-green { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green2); }
+  .badge-teal { background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.3); color: var(--teal2); }
+
+  /* STATS */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-item { background: var(--surface); padding: 20px; text-align: center; }
+  .stat-num { font-size: 26px; font-weight: 900; font-family: monospace; }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+  .s-amber .stat-num { color: var(--amber2); }
+  .s-orange .stat-num { color: var(--orange2); }
+  .s-green .stat-num { color: var(--green2); }
+  .s-teal .stat-num { color: var(--teal2); }
+  .s-red .stat-num { color: var(--red2); }
+  .s-blue .stat-num { color: var(--blue2); }
+
+  /* LAYOUT */
+  .content { max-width: 1060px; margin: 0 auto; padding: 56px 24px; }
+  .section-header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; }
+  .section-title { font-size: 22px; font-weight: 800; color: var(--text); }
+  .section-desc { font-size: 13px; color: #475569; margin-top: 6px; line-height: 1.6; }
+  .section-gap { margin-top: 60px; }
+
+  /* INFO CARD */
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+  }
+  .info-card-body { font-size: 13px; color: #8b949e; line-height: 1.75; }
+  .info-card-body strong { color: var(--text); }
+  .info-card-body em { color: var(--amber); font-style: normal; }
+
+  /* FORMULA */
+  .formula-block {
+    background: #050809;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    font-family: monospace;
+  }
+  .formula-main { font-size: clamp(13px, 2.5vw, 18px); font-weight: 700; color: var(--amber2); line-height: 1.8; }
+  .formula-sub { font-size: 12px; color: #475569; margin-top: 8px; line-height: 1.6; }
+  .formula-note { font-size: 12px; color: #64748b; margin-top: 6px; font-family: 'Segoe UI', sans-serif; font-style: italic; }
+
+  /* TABLES */
+  .lw-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .lw-table th { background: rgba(245,158,11,0.08); color: var(--amber); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 11px 14px; border: 1px solid var(--border); text-align: left; }
+  .lw-table td { padding: 11px 14px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .lw-table tr:nth-child(even) td { background: rgba(245,158,11,0.02); }
+  .lw-table td:first-child { color: var(--text); font-weight: 600; }
+  .val-green { color: var(--green); font-weight: 700; }
+  .val-red { color: var(--red); font-weight: 700; }
+  .val-amber { color: var(--amber2); font-weight: 700; }
+  .val-teal { color: var(--teal2); font-weight: 700; }
+  .val-orange { color: var(--orange2); font-weight: 700; }
+  .val-blue { color: var(--blue2); font-weight: 700; }
+  .val-purple { color: var(--purple2); font-weight: 700; }
+  .val-muted { color: #475569; }
+
+  /* WORLD CUP HERO */
+  .wc-hero {
+    background: linear-gradient(135deg, rgba(245,158,11,0.06) 0%, rgba(249,115,22,0.04) 100%);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-left: 4px solid var(--amber);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .wc-hero::after {
+    content: '🏆';
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    font-size: 48px;
+    opacity: 0.15;
+  }
+  .wc-year { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--amber); margin-bottom: 8px; }
+  .wc-headline { font-size: clamp(20px, 3.5vw, 32px); font-weight: 900; color: var(--amber2); margin-bottom: 6px; line-height: 1.2; }
+  .wc-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; line-height: 1.6; }
+  .wc-numbers { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; }
+  .wc-num-block { text-align: center; }
+  .wc-num { font-size: 32px; font-weight: 900; font-family: monospace; }
+  .wc-num-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .wc-num.start { color: #475569; }
+  .wc-num.end { color: var(--amber2); }
+  .wc-num.ret { color: var(--green); }
+  .wc-arrow { font-size: 28px; color: var(--amber); align-self: center; }
+
+  /* COT LAYOUT */
+  .cot-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .cot-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    border-top: 3px solid;
+  }
+  .cot-commercial { border-top-color: var(--green); }
+  .cot-largspec { border-top-color: var(--red); }
+  .cot-smallspec { border-top-color: var(--amber); }
+  .cot-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .cot-commercial .cot-label { color: var(--green2); }
+  .cot-largspec .cot-label { color: var(--red2); }
+  .cot-smallspec .cot-label { color: var(--amber2); }
+  .cot-title { font-size: 16px; font-weight: 800; margin-bottom: 10px; }
+  .cot-commercial .cot-title { color: var(--green2); }
+  .cot-largspec .cot-title { color: var(--red2); }
+  .cot-smallspec .cot-title { color: var(--amber2); }
+  .cot-body { font-size: 12px; color: #64748b; line-height: 1.65; }
+  .cot-body strong { color: var(--text); }
+  .cot-verdict { margin-top: 12px; padding: 8px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-align: center; }
+  .cot-commercial .cot-verdict { background: rgba(34,197,94,0.1); color: var(--green2); }
+  .cot-largspec .cot-verdict { background: rgba(239,68,68,0.1); color: var(--red2); }
+  .cot-smallspec .cot-verdict { background: rgba(245,158,11,0.1); color: var(--amber2); }
+
+  /* OI MATRIX */
+  .oi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
+  .oi-cell { background: var(--card); padding: 20px; }
+  .oi-cell-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .oi-cell-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .oi-cell-body { font-size: 12px; color: #64748b; line-height: 1.6; }
+  .oi-cell-body strong { color: var(--text); }
+  .oi-pp { border-left: 3px solid var(--green); }
+  .oi-pn { border-left: 3px solid var(--orange); }
+  .oi-np { border-left: 3px solid var(--red); }
+  .oi-nn { border-left: 3px solid var(--amber); }
+  .oi-pp .oi-cell-label { color: var(--green2); }
+  .oi-pn .oi-cell-label { color: var(--orange2); }
+  .oi-np .oi-cell-label { color: var(--red2); }
+  .oi-nn .oi-cell-label { color: var(--amber2); }
+  .oi-pp .oi-cell-title { color: var(--green); }
+  .oi-pn .oi-cell-title { color: var(--orange); }
+  .oi-np .oi-cell-title { color: var(--red); }
+  .oi-nn .oi-cell-title { color: var(--amber); }
+
+  /* %R VISUAL */
+  .wr-visual {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .wr-scale {
+    position: relative;
+    height: 40px;
+    background: linear-gradient(to right, var(--green), #334155 40%, #334155 60%, var(--red));
+    border-radius: 6px;
+    margin: 16px 0 8px;
+  }
+  .wr-zones { display: flex; justify-content: space-between; font-size: 11px; color: #475569; margin-top: 4px; padding: 0 2px; }
+  .wr-zone-labels { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-top: 8px; }
+  .wr-ob { color: var(--green); }
+  .wr-neutral { color: #475569; text-align: center; }
+  .wr-os { color: var(--red); text-align: right; }
+  .wr-rows { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .wr-row { display: flex; gap: 12px; align-items: center; font-size: 12px; }
+  .wr-val { font-family: monospace; font-size: 13px; font-weight: 700; min-width: 80px; }
+
+  /* SEASONAL GRID */
+  .seasonal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .seas-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    border-top: 2px solid;
+  }
+  .seas-bull { border-top-color: var(--green); }
+  .seas-bear { border-top-color: var(--red); }
+  .seas-mixed { border-top-color: var(--amber); }
+  .seas-month { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .seas-bull .seas-month { color: var(--green2); }
+  .seas-bear .seas-month { color: var(--red2); }
+  .seas-mixed .seas-month { color: var(--amber2); }
+  .seas-body { font-size: 12px; color: #64748b; line-height: 1.6; }
+  .seas-body strong { color: var(--text); }
+
+  /* RULES CARDS */
+  .rules-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+  .rule-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .rule-num {
+    font-size: 22px;
+    font-weight: 900;
+    font-family: monospace;
+    color: rgba(245,158,11,0.2);
+    min-width: 40px;
+    line-height: 1;
+  }
+  .rule-content { flex: 1; }
+  .rule-title { font-size: 14px; font-weight: 700; color: var(--amber2); margin-bottom: 6px; }
+  .rule-body { font-size: 12px; color: #64748b; line-height: 1.6; }
+  .rule-body strong { color: var(--text); }
+
+  /* BOOKS */
+  .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .book-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    border-left: 3px solid var(--amber);
+    transition: border-color 0.2s;
+  }
+  .book-card:hover { border-color: var(--orange); }
+  .book-year { font-size: 11px; letter-spacing: 2px; font-family: monospace; color: var(--muted); margin-bottom: 6px; }
+  .book-title { font-size: 14px; font-weight: 700; color: var(--amber2); margin-bottom: 6px; line-height: 1.3; }
+  .book-body { font-size: 12px; color: #64748b; line-height: 1.6; }
+  .book-key { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--teal2); }
+
+  /* MAGRITTE */
+  .magritte-quote {
+    font-style: italic;
+    font-size: 12px;
+    color: rgba(245,158,11,0.3);
+    padding-left: 14px;
+    border-left: 2px solid rgba(245,158,11,0.2);
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 10px; background: rgba(245,158,11,0.08); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+  .tag-green { background: rgba(34,197,94,0.08); color: var(--green2); border-color: rgba(34,197,94,0.2); }
+  .tag-red { background: rgba(239,68,68,0.08); color: var(--red2); border-color: rgba(239,68,68,0.2); }
+  .tag-teal { background: rgba(20,184,166,0.08); color: var(--teal2); border-color: rgba(20,184,166,0.2); }
+
+  .highlight-box {
+    background: rgba(245,158,11,0.05);
+    border: 1px solid rgba(245,158,11,0.15);
+    border-left: 4px solid var(--amber);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+  }
+  .hl-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--amber); margin-bottom: 8px; }
+  .hl-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .hl-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .hl-body strong { color: var(--text); }
+  .hl-body em { color: var(--amber2); font-style: normal; }
+
+  /* INDICATOR COMPARISON */
+  .ind-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+  @media (max-width: 700px) {
+    .content { padding: 28px 14px; }
+    .cot-three { grid-template-columns: 1fr; }
+    .oi-grid { grid-template-columns: 1fr; }
+    .ind-two-col { grid-template-columns: 1fr; }
+    .wc-numbers { flex-direction: column; gap: 12px; align-items: center; }
+    .header { padding: 40px 16px; }
+    .seasonal-grid, .books-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK — Trading Legends Series</div>
+  <div class="header-name">
+    <span class="first">LARRY </span><span class="last">WILLIAMS</span>
+  </div>
+  <div class="header-subtitle">World Champion · Commodity Legend · System Architect</div>
+  <p class="header-tagline">
+    Der Mann der 1987 in 12 Monaten $10.000 in $1.147.607 verwandelte —
+    11.376% Rendite, offiziell auditiert. Erfinder des %R-Oscillators, des Ultimate Oscillators
+    und der modernen COT-Analyse. 50 Jahre aktiver Markt-Erfahrung.
+  </p>
+  <div class="header-badges">
+    <span class="badge badge-amber">11.376% in 12 Monaten</span>
+    <span class="badge badge-orange">1987 World Cup Champion</span>
+    <span class="badge badge-green">COT Report Pioneer</span>
+    <span class="badge badge-teal">%R · Ultimate Oscillator · 3-10</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item s-amber"><div class="stat-num">11.376%</div><div class="stat-label">World Cup Return 1987</div></div>
+  <div class="stat-item s-green"><div class="stat-num">$1,14M</div><div class="stat-label">aus $10.000 in 12 Mon.</div></div>
+  <div class="stat-item s-orange"><div class="stat-num">3</div><div class="stat-label">Eigene Indikatoren</div></div>
+  <div class="stat-item s-teal"><div class="stat-num">50+</div><div class="stat-label">Jahre aktives Trading</div></div>
+  <div class="stat-item s-blue"><div class="stat-num">10+</div><div class="stat-label">Bücher publiziert</div></div>
+  <div class="stat-item s-red"><div class="stat-num">1942</div><div class="stat-label">geboren · Montana USA</div></div>
+</div>
+
+<div class="content">
+
+  <!-- BIOGRAPHIE -->
+  <div class="section-header">
+    <div class="section-label">Die Legende</div>
+    <div class="section-title">Larry Williams — Wer er ist und warum er zählt</div>
+  </div>
+
+  <div class="wc-hero">
+    <div class="wc-year">WORLD CUP CHAMPIONSHIP OF FUTURES TRADING · 1987</div>
+    <div class="wc-headline">$10.000 → $1.147.607 in 12 Monaten</div>
+    <div class="wc-sub">
+      Offiziell auditiert. Keine Simulation. Kein Demo-Konto. Echtes Geld, echte Märkte,
+      echte Positionen. Larry Williams setzte ein reguliertes $10.000-Konto ein und erreichte
+      nach 12 Monaten einen Kontostand von $1.147.607 — die bis dahin höchste dokumentierte
+      Jahresrendite in einem verifizierten Handels-Wettbewerb.
+    </div>
+    <div class="wc-numbers">
+      <div class="wc-num-block">
+        <div class="wc-num start">$10.000</div>
+        <div class="wc-num-label">Startkapital</div>
+      </div>
+      <div class="wc-arrow">→</div>
+      <div class="wc-num-block">
+        <div class="wc-num end">$1.147.607</div>
+        <div class="wc-num-label">Endkapital nach 12 Monaten</div>
+      </div>
+      <div class="wc-arrow">=</div>
+      <div class="wc-num-block">
+        <div class="wc-num ret">+11.376%</div>
+        <div class="wc-num-label">verifizierte Rendite</div>
+      </div>
+    </div>
+    <div class="info-card-body" style="font-size:13px;color:#64748b;line-height:1.7;">
+      <strong style="color:var(--text)">1997 Sequel:</strong> Larrys Tochter Michelle Williams trat denselben Wettbewerb an
+      und gewann mit über <strong style="color:var(--amber2)">1.000% Rendite</strong> — ohne dass ihr Vater ihr Trades vorgab.
+      Die Methodik war übertragbar. Das ist kein Zufall, das ist System.
+      <br><br>
+      <strong style="color:var(--text)">Warum das wichtig ist:</strong> Williams hatte in den Jahren davor massive Verluste erlitten —
+      er weiß was ein Drawdown fühlt. Er ist kein Theoretiker der nie verloren hat. Er hat verloren,
+      neu gedacht und gewonnen. Genau diese Erfahrung macht seine Regeln glaubwürdig.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas un retour — c'est la preuve que la méthode surpasse l'homme."</div>
+  </div>
+
+  <!-- %R INDICATOR -->
+  <div class="section-header section-gap">
+    <div class="section-label">Indikator #1</div>
+    <div class="section-title">Williams %R — Momentum & Overbought/Oversold Präzision</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Was %R misst:</strong> Wo schließt der aktuelle Kurs relativ zur Handelsspanne
+      der letzten N Perioden? Schließt er nahe dem Hoch → Stärke. Nahe dem Tief → Schwäche.
+      Klingt simpel — ist simpel. Aber die Konsequenz ist radikal:
+      Märkte die konsequent nahe am Tageshoch schließen sind in starken Aufwärtstrends.
+      Märkte die konsequent nahe am Tief schließen befinden sich in strukturellen Abwärtstrends.
+      <em>Die Schlusskurs-Position ist Williams' wichtigstes Einzelmerkmal.</em>
+    </div>
+  </div>
+
+  <div class="formula-block">
+    <div class="formula-main">
+      %R = [(Highest High<sub style="font-size:10px">N</sub> − Close) / (Highest High<sub style="font-size:10px">N</sub> − Lowest Low<sub style="font-size:10px">N</sub>)] × (−100)
+    </div>
+    <div class="formula-sub">
+      N = Lookback-Periode (Standard: 10 oder 14 Perioden)<br>
+      Ergebnis: Skala von 0 (Hoch) bis −100 (Tief) — invertiert gegenüber anderen Oscillatoren
+    </div>
+    <div class="formula-note">Beachte: −20 bedeutet OVERBOUGHT (nahe dem Hoch), −80 bedeutet OVERSOLD (nahe dem Tief)</div>
+  </div>
+
+  <div class="wr-visual">
+    <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Williams %R — Skala-Visualisierung</div>
+    <div class="wr-scale"></div>
+    <div class="wr-zones">
+      <span>0</span><span>−20</span><span>−40</span><span>−60</span><span>−80</span><span>−100</span>
+    </div>
+    <div class="wr-zone-labels">
+      <span class="wr-ob">OVERBOUGHT ≥ −20</span>
+      <span class="wr-neutral">Neutral −20 bis −80</span>
+      <span class="wr-os">OVERSOLD ≤ −80</span>
+    </div>
+    <div class="wr-rows">
+      <div class="wr-row">
+        <span class="wr-val" style="color:var(--green)">0 bis −20</span>
+        <span style="font-size:12px;color:#64748b;">Overbought — Kurs nahe am N-Perioden-Hoch. Potenzielle Korrektur oder starker Trend.</span>
+      </div>
+      <div class="wr-row">
+        <span class="wr-val" style="color:#64748b">−20 bis −80</span>
+        <span style="font-size:12px;color:#64748b;">Neutral — keine extremen Signale. Warten.</span>
+      </div>
+      <div class="wr-row">
+        <span class="wr-val" style="color:var(--red)">−80 bis −100</span>
+        <span style="font-size:12px;color:#64748b;">Oversold — Kurs nahe dem N-Perioden-Tief. Potenzielle Erholung oder starker Downtrend.</span>
+      </div>
+    </div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>%R Signal</th><th>Bedingung</th><th>Aktion</th><th>Williams' Anmerkung</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Bullische Divergenz</td>
+        <td>%R macht tieferes Tief, Preis macht höheres Tief</td>
+        <td class="val-green">Long-Kandidat</td>
+        <td>Stärkstes Signal. Momentum dreht vor dem Preis.</td>
+      </tr>
+      <tr>
+        <td>Bärische Divergenz</td>
+        <td>%R macht höheres Hoch, Preis macht tieferes Hoch</td>
+        <td class="val-red">Short-Kandidat</td>
+        <td>Stärkstes Shorting-Signal. Verkaufsdruck vor Preisbruch.</td>
+      </tr>
+      <tr>
+        <td>Failure Swing Bull</td>
+        <td>%R unter −80, steigt, fällt nicht mehr unter −80, bricht über −50</td>
+        <td class="val-green">Long-Einstieg</td>
+        <td>Oversold-Bereich verlassen ohne neue Tiefs = Käufer übernehmen.</td>
+      </tr>
+      <tr>
+        <td>Failure Swing Bear</td>
+        <td>%R über −20, fällt, steigt nicht mehr über −20, bricht unter −50</td>
+        <td class="val-red">Short-Einstieg</td>
+        <td>Overbought-Bereich verlassen ohne neue Hochs = Verkäufer übernehmen.</td>
+      </tr>
+      <tr>
+        <td>Trend Confirmation</td>
+        <td>%R bleibt dauerhaft über −20 (Uptrend) oder unter −80 (Downtrend)</td>
+        <td class="val-amber">Trend halten</td>
+        <td>Starke Trends verbringen viel Zeit im Extrembereich. Nicht gegen Trend kontra-traden!</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box">
+    <div class="hl-label">Kritische Warnung</div>
+    <div class="hl-title">Overbought ≠ automatisch Short-Signal</div>
+    <div class="hl-body">
+      Der häufigste %R-Fehler: Ein Wert über −20 (overbought) wird als Short-Signal interpretiert.
+      <strong>Williams warnt explizit dagegen.</strong> In starken Aufwärtstrends bleibt %R
+      wochenlang im Overbought-Bereich. Overbought ist kein Verkaufssignal — es ist ein Stärkezeichen.
+      <em>Erst die Divergenz oder der Failure Swing macht es zu einem Handelssignal.</em>
+      Kontext vor Mechanismus.
+    </div>
+  </div>
+
+  <!-- ULTIMATE OSCILLATOR -->
+  <div class="section-header section-gap">
+    <div class="section-label">Indikator #2</div>
+    <div class="section-title">Der Ultimate Oscillator — Drei Zeitrahmen, ein Signal</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Das Problem mit Ein-Perioden-Oscillatoren:</strong> RSI (14 Perioden) ist sensitiv für
+      genau eine Zeitrahmen-Wahl. Ändert man auf 7 Perioden — anderes Signal. Ändert man auf 28 — wieder anders.
+      Williams löste das 1985 mit dem <em>Ultimate Oscillator</em>: er kombiniert drei Zeitrahmen
+      (7, 14, 28 Perioden) gewichtet in einem einzigen Wert.
+      Der Kurzfrist-Frame reagiert schnell, der Langfrist-Frame filtert Fehlsignale heraus.
+    </div>
+  </div>
+
+  <div class="formula-block">
+    <div class="formula-main">
+      BP = Close − min(Low, Prior Close)<br>
+      TR = max(High, Prior Close) − min(Low, Prior Close)<br><br>
+      Avg<sub style="font-size:10px">7</sub> = Σ(BP, 7) / Σ(TR, 7)  ·  Avg<sub style="font-size:10px">14</sub> = Σ(BP, 14) / Σ(TR, 14)  ·  Avg<sub style="font-size:10px">28</sub> = Σ(BP, 28) / Σ(TR, 28)<br><br>
+      UO = 100 × [(4 × Avg<sub style="font-size:10px">7</sub>) + (2 × Avg<sub style="font-size:10px">14</sub>) + Avg<sub style="font-size:10px">28</sub>] / 7
+    </div>
+    <div class="formula-sub">
+      BP = Buying Pressure (Kaufdruck) — wieviel des heutigen Moves war "bullish"<br>
+      TR = True Range — die komplette tägliche Handelsspanne inkl. Gap<br>
+      Gewichtung: kurzfristig (7P) × 4, mittelfristig (14P) × 2, langfristig (28P) × 1
+    </div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>UO Wert</th><th>Zone</th><th>Signal</th><th>Kondition</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>&gt; 70</td><td class="val-red">Overbought</td><td class="val-red">Bearish Divergenz → Short</td><td>UO &gt; 70 + Preis macht neues Hoch + UO macht kein neues Hoch = Sell</td></tr>
+      <tr><td>50–70</td><td class="val-amber">Bullisch</td><td class="val-green">Mit Trend halten</td><td>Über der Mitte = Käufer dominieren. Kein Kontra-Signal.</td></tr>
+      <tr><td>45–55</td><td style="color:#475569">Neutral</td><td style="color:#475569">Warten</td><td>Keine klare Aussage. Seitwärtsmarkt.</td></tr>
+      <tr><td>30–50</td><td class="val-amber">Bearisch</td><td class="val-red">Mit Abwärtstrend halten</td><td>Unter der Mitte = Verkäufer dominieren.</td></tr>
+      <tr><td>&lt; 30</td><td class="val-green">Oversold</td><td class="val-green">Bullisch Divergenz → Long</td><td>UO &lt; 30 + Preis macht neues Tief + UO macht kein neues Tief = Buy</td></tr>
+    </tbody>
+  </table>
+
+  <!-- 3-10 OSCILLATOR -->
+  <div class="section-header section-gap">
+    <div class="section-label">Indikator #3</div>
+    <div class="section-title">Der 3-10 Oscillator — Momentum-Shift vor dem Preisbruch</div>
+  </div>
+
+  <div class="ind-two-col">
+    <div class="info-card" style="margin-bottom:0;">
+      <div class="info-card-body">
+        <strong>Konstruktion:</strong> Simpelst-Oscillator.
+        3-Perioden-Gleitender-Durchschnitt minus 10-Perioden-GD.
+        Zeigt ob der Kurzfrist-Momentum über oder unter dem Mittelfrist-Momentum liegt.
+        <br><br>
+        <div class="formula-block" style="margin:12px 0;padding:14px;">
+          <div class="formula-main" style="font-size:14px;">
+            3-10 Osc = MA(Close, 3) − MA(Close, 10)<br>
+            Signal = MA(3-10 Osc, 16) [geglättet]
+          </div>
+        </div>
+        Wenn 3-10 Osc die Signal-Linie von unten nach oben kreuzt → bullisches Momentum.
+        Von oben nach unten → bearisches Momentum.
+      </div>
+    </div>
+    <div class="info-card" style="margin-bottom:0;">
+      <div class="info-card-body">
+        <strong>Williams' Nutzung:</strong>
+        <br><br>
+        Der 3-10 Oscillator funktioniert als <em>Frühwarn-System für Trendbeginn</em>.
+        Er dreht oft vor dem eigentlichen Preisausbruch.
+        <br><br>
+        <strong>Schlüssel:</strong> Nicht allein verwenden. Williams kombiniert 3-10
+        immer mit dem COT-Signal (Richtung) und der Saisonalität (Timing).
+        Der Oscillator sagt WAS passiert. COT sagt WARUM es nachhaltig ist.
+        <br><br>
+        <em>„Das beste Setup: COT bullisch + Saisonalität bullisch + 3-10 dreht nach oben."</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- COT REPORT -->
+  <div class="section-header section-gap">
+    <div class="section-label">Der Kern-Edge</div>
+    <div class="section-title">COT Report — Commitment of Traders · Williams' wichtigste Waffe</div>
+  </div>
+
+  <div class="highlight-box">
+    <div class="hl-label">Was der COT Report ist</div>
+    <div class="hl-title">Der wöchentliche Röntgen-Blick in die Händerhände der Märkte</div>
+    <div class="hl-body">
+      Jede Woche (Dienstag als Stichtag, veröffentlicht Freitag) publiziert die US-Commodity
+      Futures Trading Commission (CFTC) einen detaillierten Report der zeigt <em>wer</em> in
+      jedem Terminmarkt wie viel Long- und Short-Positionen hält — aufgeteilt in drei Gruppen.
+      <strong>Larry Williams erkannte als einer der Ersten, dass diese Daten profitabel handelbar sind:</strong>
+      Wenn „Smart Money" (Commercials) extreme Positionen einnimmt und die Masse der Spekulanten
+      das Gegenteil tut, ist eine Trendwende sehr wahrscheinlich.
+    </div>
+  </div>
+
+  <div class="cot-three">
+
+    <div class="cot-card cot-commercial">
+      <div class="cot-label">Gruppe 1 · Smart Money</div>
+      <div class="cot-title">Commercials<br>— Die Hedger</div>
+      <div class="cot-body">
+        Unternehmen die das echte Gut produzieren oder verarbeiten: Farmer, Ölkonzerne, Goldminen, Getreidehändler, Importeure.
+        <br><br>
+        <strong>Sie hedgen echte Risiken.</strong> Ein Weizenfarmer shortet Weizen-Futures um den Erntepreis abzusichern.
+        Eine Airline kauft Kerosin-Futures um Kostensicherheit zu haben.
+        <br><br>
+        Sie sind in ihrem Markt <em>täglich</em>. Sie wissen mehr als jeder Spekulant über Angebot, Nachfrage,
+        Lagerhaltung und saisonale Muster.
+      </div>
+      <div class="cot-verdict">✅ FOLGE IHNEN — "Smart Money"</div>
+    </div>
+
+    <div class="cot-card cot-largspec">
+      <div class="cot-label">Gruppe 2 · Dumb Money Peak</div>
+      <div class="cot-title">Large Speculators<br>— Die Trendfolger</div>
+      <div class="cot-body">
+        Hedge Funds, CTAs (Commodity Trading Advisors), große Spekulanten.
+        Sie folgen Trends mit technischen Systemen — Momentum, Moving Averages, Breakouts.
+        <br><br>
+        <strong>Sie haben Recht während des Trends.</strong> Aber sie sind konsequent falsch an den <em>Wendepunkten</em>.
+        An Hochs sind sie maximum long (haben den ganzen Weg mitgemacht).
+        An Tiefs sind sie maximum short.
+        <br><br>
+        <strong>Williams' Regel:</strong> Large Specs am Extrempunkt = Gegenposition prüfen.
+      </div>
+      <div class="cot-verdict">⚠️ FADE SIE AN EXTREMEN — Maximum Long = Top</div>
+    </div>
+
+    <div class="cot-card cot-smallspec">
+      <div class="cot-label">Gruppe 3 · Kontra-Indikator</div>
+      <div class="cot-title">Small Speculators<br>— Das Retail-Sentiment</div>
+      <div class="cot-body">
+        Kleine, nicht-reportable Händler. Retail-Trader, kleine Spekulanten.
+        Sie sind nicht groß genug um bei der CFTC einzeln zu reporten.
+        <br><br>
+        <strong>Historisch gesehen:</strong> Die zuverlässigst falsche Gruppe an Extrempunkten.
+        Wenn sie maximum bullish sind → Vorsicht. Wenn sie maximum bearish sind → Chance.
+        <br><br>
+        <em>„When everybody's bullish, who's left to buy?"</em> — Williams' Kernfrage.
+      </div>
+      <div class="cot-verdict">⚠️ KONTRA-INDIKATOR an Extremen</div>
+    </div>
+
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>COT Signal</th><th>Commercials</th><th>Large Specs</th><th>Small Specs</th><th>Williams' Schluss</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:var(--green)">★ Starkes BUY</td>
+        <td class="val-green">Extremes Netto-Long</td>
+        <td class="val-red">Extremes Netto-Short</td>
+        <td class="val-red">Bearisch</td>
+        <td>Alle Gruppen-Extreme kongruent — stärkste Kaufgelegenheit</td>
+      </tr>
+      <tr>
+        <td style="color:var(--red)">★ Starkes SELL</td>
+        <td class="val-red">Extremes Netto-Short</td>
+        <td class="val-green">Extremes Netto-Long</td>
+        <td class="val-green">Bullisch</td>
+        <td>Commercials sichern ab, Specs sind all-in long = Top-Formation</td>
+      </tr>
+      <tr>
+        <td class="val-amber">Bullisch</td>
+        <td class="val-green">Netto-Long (nicht Extrem)</td>
+        <td style="color:#475569">Neutral</td>
+        <td style="color:#475569">Neutral</td>
+        <td>Tendenziell bullish, aber warte auf technische Bestätigung</td>
+      </tr>
+      <tr>
+        <td class="val-amber">Bearisch</td>
+        <td class="val-red">Netto-Short aufbauend</td>
+        <td class="val-green">Netto-Long aufbauend</td>
+        <td style="color:#475569">Neutral</td>
+        <td>Frühwarnung für Trendwende nach unten. Noch kein Signal.</td>
+      </tr>
+      <tr>
+        <td style="color:#475569">Kein Signal</td>
+        <td style="color:#475569">Mittelzone</td>
+        <td style="color:#475569">Mittelzone</td>
+        <td style="color:#475569">Mittelzone</td>
+        <td>Alle Gruppen nahe historischem Durchschnitt. Kein COT-Edge. Neutral.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Wie man den COT quantifiziert — Der 52-Wochen-Index:</strong>
+      <br><br>
+      Netto-Position allein sagt wenig. 50.000 Kontrakte Long ist viel bei Gold, wenig bei Öl.
+      Williams normiert deshalb die Netto-Position auf die 52-Wochen-Bandbreite:
+    </div>
+    <div class="formula-block" style="margin:14px 0;">
+      <div class="formula-main" style="font-size:14px;">
+        COT-Index = (Aktuelle Netto − 52w-Minimum) / (52w-Maximum − 52w-Minimum) × 100
+      </div>
+      <div class="formula-sub">
+        Ergebnis 0–100. Über 80 = Commercials extrem long (bullisch). Unter 20 = Commercials extrem short (bearisch).<br>
+        Dieser Index macht Märkte verschiedenster Größen direkt vergleichbar.
+      </div>
+    </div>
+    <div class="info-card-body">
+      <strong>Zeitverzögerung beachten:</strong> COT-Daten sind immer 3 Tage alt (Stichtag Dienstag, Veröffentlichung Freitag).
+      COT ist ein <em>mittelfristiger Indikator</em> — Signalbereich 2–8 Wochen, kein Tages-Trade-Tool.
+    </div>
+  </div>
+  <div class="magritte-quote">„Ceci n'est pas un marché libre — c'est le champ de bataille entre les gens qui savent et les gens qui croient savoir."</div>
+
+  <!-- OPEN INTEREST -->
+  <div class="section-header section-gap">
+    <div class="section-label">Volumen & Struktur</div>
+    <div class="section-title">Open Interest — Was die Preisbewegung wirklich bedeutet</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Open Interest (OI)</strong> ist die Gesamtzahl offener (nicht geschlossener) Kontrakte in einem Futures-Markt.
+      Es ist <em>nicht</em> das Handelsvolumen — es ist das kumulierte Engagement.
+      Williams kombiniert OI-Veränderung mit Preisentwicklung für vier kritische Markt-Zustandsdiagnosen:
+    </div>
+  </div>
+
+  <div class="oi-grid">
+    <div class="oi-cell oi-pp">
+      <div class="oi-cell-label">Preis ↑ · OI ↑</div>
+      <div class="oi-cell-title">🟢 Starker Aufwärtstrend</div>
+      <div class="oi-cell-body">
+        Neue Käufer strömen in den Markt (OI steigt) UND der Preis steigt.
+        <strong>Optimale Situation für Longs.</strong>
+        Frisches Geld treibt den Kurs. Trend ist gut gefüttert.
+      </div>
+    </div>
+    <div class="oi-cell oi-pn">
+      <div class="oi-cell-label">Preis ↑ · OI ↓</div>
+      <div class="oi-cell-title">🟠 Schwaches Rally · Vorsicht</div>
+      <div class="oi-cell-body">
+        Preis steigt aber OI fällt. Das bedeutet: Shorts covern (kaufen zurück), keine neuen Longs.
+        <strong>Schwaches Signal — Blow-Off Verdacht.</strong>
+        Kursanstieg ohne neue Käufer = erschöpfte Bewegung.
+      </div>
+    </div>
+    <div class="oi-cell oi-np">
+      <div class="oi-cell-label">Preis ↓ · OI ↑</div>
+      <div class="oi-cell-title">🔴 Starker Abwärtstrend</div>
+      <div class="oi-cell-body">
+        Neue Short-Positionen werden aufgebaut (OI steigt) UND Preis fällt.
+        <strong>Optimale Situation für Shorts.</strong>
+        Frisches Geld auf der Short-Seite — Trend ist strukturell.
+      </div>
+    </div>
+    <div class="oi-cell oi-nn">
+      <div class="oi-cell-label">Preis ↓ · OI ↓</div>
+      <div class="oi-cell-title">🟡 Schwache Korrektur · Chance</div>
+      <div class="oi-cell-body">
+        Preis fällt aber OI fällt auch. Das bedeutet: Longs verkaufen (Gewinnmitnahme), keine neuen Shorts.
+        <strong>Mögliche Kaufgelegenheit.</strong>
+        Korrektur ohne neues Short-Engagement = technischer Rücksetzer, kein Trendwechsel.
+      </div>
+    </div>
+  </div>
+
+  <!-- SAISONALITÄT -->
+  <div class="section-header section-gap">
+    <div class="section-label">Zeitliche Muster</div>
+    <div class="section-title">Saisonalität — Märkte haben ein Gedächtnis</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Williams' Kernintuition zur Saisonalität:</strong>
+      Dieselben wirtschaftlichen Drücke wiederholen sich jedes Jahr zur gleichen Zeit.
+      Ernten, Steuern, Quartals-Hedging, Urlaubsreisen, Heizöl-Nachfrage — all das folgt dem Kalender.
+      Und weil Menschen in Märkten diese Drücke antizipieren, entstehen <em>statistisch robuste
+      saisonale Muster</em> die über Jahrzehnte reproduzierbar sind.
+      <br><br>
+      <em>„Ich handele nicht was ich denke — ich handele was der Kalender seit 50 Jahren sagt."</em>
+    </div>
+  </div>
+
+  <div class="seasonal-grid">
+    <div class="seas-card seas-bull">
+      <div class="seas-month">Januar · Februar</div>
+      <div class="seas-body"><strong style="color:var(--green2)">January Effect (Aktien)</strong><br>
+      Steuerliche Verkäufe im Dezember → Rückkäufe im Januar. Small Caps besonders stark.
+      Williams handelt dieses Muster systematisch seit den 1980ern.</div>
+    </div>
+    <div class="seas-card seas-bear">
+      <div class="seas-month">September · Oktober</div>
+      <div class="seas-body"><strong style="color:var(--red2)">Schwächste Aktien-Monate</strong><br>
+      Historisch schlechteste Performance des S&P 500.
+      Institutionelle Portfoliobereinigungen, Hedgefonds-Rücknahmen.
+      Williams reduziert Aktien-Engagement in dieser Phase.</div>
+    </div>
+    <div class="seas-card seas-bull">
+      <div class="seas-month">November · Dezember</div>
+      <div class="seas-body"><strong style="color:var(--green2)">Year-End Rally</strong><br>
+      „Window Dressing" — Fondsmanager kaufen Gewinner. Bonus-Kapital fließt in Märkte.
+      Statistische Stärke in Aktien und häufig in Gold.</div>
+    </div>
+    <div class="seas-card seas-bull">
+      <div class="seas-month">April · Mai (Rohöl)</div>
+      <div class="seas-body"><strong style="color:var(--green2)">Drive Season Aufbau</strong><br>
+      Raffinerien wechseln auf Sommer-Benzin-Blend. Erdöl-Nachfrage steigt saisonal.
+      Williams' COT + Saisonalität in Energie-Futures als zuverlässigem Combo.</div>
+    </div>
+    <div class="seas-card seas-bull">
+      <div class="seas-month">Juli · August (Gold)</div>
+      <div class="seas-body"><strong style="color:var(--green2)">Indische Hochzeits-Saison</strong><br>
+      Goldnachfrage aus Indien (größter Goldkonsument) steigt vor der Heiratszeit.
+      Saisonale Stärke in Gold/Silber — Williams kombiniert mit COT der Commercials.</div>
+    </div>
+    <div class="seas-card seas-mixed">
+      <div class="seas-month">März · April (Getreide)</div>
+      <div class="seas-body"><strong style="color:var(--amber2)">Pflanz-Unsicherheit</strong><br>
+      Wetter-Spekulationen treiben Weizen, Mais, Soja.
+      Commercials hedgen bereits die kommende Ernte → starkes COT-Signal.
+      Wettermarkt: hohe Volatilität, nur mit engen Stops handeln.</div>
+    </div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Markt</th><th>Beste saisonale Phase</th><th>Schlechteste Phase</th><th>Williams' Kern-Setup</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>S&P 500 / Aktien</td><td class="val-green">Nov–Apr (Winter-Bull)</td><td class="val-red">Sep–Okt</td><td>January Effect + COT Commercials (Index Futures) + 3-10 Osc dreht bullisch</td></tr>
+      <tr><td>Gold</td><td class="val-green">Jul–Aug · Dez–Feb</td><td class="val-red">Mrz–Mai</td><td>COT Commercials Net-Long Extrem + Sommer-Saisonalität + %R Divergenz</td></tr>
+      <tr><td>Rohöl (WTI)</td><td class="val-green">Feb–Mai (Drive Season)</td><td class="val-red">Sep–Nov</td><td>Saisonaler Demand + Commercials hedge + OI steigt mit Kurs</td></tr>
+      <tr><td>Weizen / Mais</td><td class="val-green">Okt–Jan (pre-planting)</td><td class="val-red">Aug–Sep (Harvest)</td><td>COT: Farmer (Commercials) hedgen vor Ernte → max short = contrarian buy nach Ernte</td></tr>
+      <tr><td>Anleihen (T-Bonds)</td><td class="val-green">Dez–Feb (Jahresend-Hedging)</td><td class="val-red">Mai–Sep</td><td>Institutionelles Jahresend-Positioning + COT + 3-10 Osc Momentum</td></tr>
+    </tbody>
+  </table>
+
+  <!-- DAS KOMBINIERTE SETUP -->
+  <div class="section-header section-gap">
+    <div class="section-label">Der vollständige Edge</div>
+    <div class="section-title">Williams' Triple-Confirmation Setup — Wann alle Signale grün zeigen</div>
+  </div>
+
+  <div class="highlight-box" style="border-left-color:var(--green);">
+    <div class="hl-label" style="color:var(--green2)">Das ideale Williams-Setup</div>
+    <div class="hl-title">Drei unabhängige Quellen bestätigen dieselbe Richtung</div>
+    <div class="hl-body">
+      Williams handelt nur dann mit voller Positionsgröße wenn <strong>alle drei Ebenen</strong>
+      kongruent sind. Zwei von drei: halbe Größe. Einer von drei: kein Trade.
+      Diese Disziplin ist der Hauptgrund warum das System über Jahrzehnte profitabel bleibt.
+    </div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Ebene</th><th>Indikator/Quelle</th><th>Bullisches Signal</th><th>Bearisches Signal</th><th>Gewichtung</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1. Fundamentals</td>
+        <td>COT-Index (52-Wochen)</td>
+        <td class="val-green">Commercials COT-Index &gt; 80 (extrem long)</td>
+        <td class="val-red">Commercials COT-Index &lt; 20 (extrem short)</td>
+        <td class="val-amber">★★★ Höchste Priorität</td>
+      </tr>
+      <tr>
+        <td>2. Zeitliche Ebene</td>
+        <td>Saisonalität (50-Jahres-Daten)</td>
+        <td class="val-green">Historisch bullische Phase (z.B. Gold Aug)</td>
+        <td class="val-red">Historisch bearische Phase</td>
+        <td class="val-amber">★★ Hohe Priorität</td>
+      </tr>
+      <tr>
+        <td>3. Technisch</td>
+        <td>3-10 Osc · %R · Ultimate Osc</td>
+        <td class="val-green">3-10 dreht bullisch + %R Divergenz Long</td>
+        <td class="val-red">3-10 dreht bearisch + %R Divergenz Short</td>
+        <td class="val-teal">★ Entry-Timing</td>
+      </tr>
+      <tr>
+        <td>4. Volumen-Struktur</td>
+        <td>Open Interest</td>
+        <td class="val-green">Preis↑ + OI↑ (neue Käufer)</td>
+        <td class="val-red">Preis↓ + OI↑ (neue Shorts)</td>
+        <td class="val-teal">★ Trend-Bestätigung</td>
+      </tr>
+      <tr>
+        <td>5. Risk Management</td>
+        <td>Percent Risk / R-Multiple</td>
+        <td colspan="2" style="color:#8b949e">Max 2% Portfoliorisiko per Trade · Stop immer VOR Einstieg definiert</td>
+        <td style="color:var(--purple2)">★★★ Non-negotiable</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TRADING REGELN -->
+  <div class="section-header section-gap">
+    <div class="section-label">Philosophie & Regeln</div>
+    <div class="section-title">Larry Williams' 10 Kernregeln — 50 Jahre destilliert</div>
+  </div>
+
+  <div class="rules-list">
+    <div class="rule-card">
+      <div class="rule-num">01</div>
+      <div class="rule-content">
+        <div class="rule-title">„The Market Is Always Right — Your Opinion Is Irrelevant"</div>
+        <div class="rule-body">Du kannst die fundamentale Lage noch so gut kennen — wenn der Markt anders votiert, ist er im Recht und du falsch.
+        <strong>Williams' Lösung:</strong> Systembasiert handeln, nicht meinungsbasiert. Ein Signal ist ein Signal. Kein Signal ist kein Trade.
+        Ego kostet Kapital.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">02</div>
+      <div class="rule-content">
+        <div class="rule-title">„Follow the Commercials — They Live in the Market"</div>
+        <div class="rule-body">Commercials hedgen echte Geschäfts-Risiken. Sie wissen mehr über Angebot und Nachfrage als jeder Spekulant.
+        Wenn Farmer aggressiv hedgen → sie erwarten fallende Preise. Wenn sie nicht hedgen → sie erwarten steigende.
+        <strong>Das ist privilegiertes Insider-Wissen legal zugänglich durch den COT-Report.</strong></div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">03</div>
+      <div class="rule-content">
+        <div class="rule-title">„Losses Are Learning Fees — Never More Than You Budgeted"</div>
+        <div class="rule-body">Verluste sind unvermeidbar. Die Frage ist nur: wie groß? <strong>Williams definiert den maximalen Verlust VOR dem Einstieg.</strong>
+        Danach ist der Stop gesetzt und wird nicht angefasst. Keinen Stop zu haben bedeutet nicht kein Risiko —
+        es bedeutet unbegrenztes Risiko.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">04</div>
+      <div class="rule-content">
+        <div class="rule-title">„The Close Is the Most Important Price of the Day"</div>
+        <div class="rule-body">Intraday-Bewegungen sind Rauschen. Wer am Ende des Tages kauft oder verkauft — das sind die informierten Händler.
+        Der Schlusskurs reflektiert das finale Urteil aller Marktteilnehmer.
+        Williams' %R ist deshalb explizit auf den Schlusskurs ausgerichtet, nicht auf Intraday-Highs.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">05</div>
+      <div class="rule-content">
+        <div class="rule-title">„Seasonality Repeats Because Human Nature Repeats"</div>
+        <div class="rule-body">Märkte folgen saisonalen Mustern nicht weil die Natur es erzwingt — sondern weil <strong>menschliches Verhalten
+        (Ängste, Hoffnungen, Steuer-Überlegungen, Geschäftszyklen) sich jedes Jahr wiederholt.</strong>
+        Solange Menschen handeln, wiederholen sich die Muster. Williams nutzt 50 Jahre historische Daten als Basis.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">06</div>
+      <div class="rule-content">
+        <div class="rule-title">„Open Interest Tells Truth When Price Lies"</div>
+        <div class="rule-body">Ein Kursanstieg mit fallendem Open Interest ist ein leeres Rally. Kein neues Geld treibt es.
+        Ein Kursanstieg mit steigendem OI ist strukturell — frische Käufer engagieren sich.
+        <strong>Preis zeigt Richtung. OI zeigt ob echte Überzeugung dahinter steckt.</strong></div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">07</div>
+      <div class="rule-content">
+        <div class="rule-title">„When Everybody's Bullish, Who's Left to Buy?"</div>
+        <div class="rule-body">Das Kontra-Denken in einem Satz. Wenn alle bereits long sind — Bullenstimmung 90%+ — gibt es keine neuen Käufer mehr.
+        Das Maximum der Euphorie ist meistens das Maximum des Kurses.
+        <strong>Williams sucht Trades wo noch nicht alle an Bord sind.</strong></div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">08</div>
+      <div class="rule-content">
+        <div class="rule-title">„Don't Trade Overbought — Wait for the Turning Point Signal"</div>
+        <div class="rule-body">Overbought ist keine Verkaufsposition. %R über −20 kann Wochen bleiben in einem Aufwärtstrend.
+        Williams handelt erst wenn das Signal eine konkrete Trendwende anzeigt: Divergenz, Failure Swing, oder COT-Extrem.
+        <strong>Extremzustände können extremer werden. Timing ist alles.</strong></div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">09</div>
+      <div class="rule-content">
+        <div class="rule-title">„Luck Is the Residue of Design"</div>
+        <div class="rule-body">Williams zitiert Branch Rickey. Der Weltrekord 1987 war kein Glück — er war das Ergebnis von 20 Jahren Systementwicklung,
+        COT-Analyse, Saisonalitätsstudien und konsequentem Risk Management.
+        <strong>Reproduzierbare Gewinne kommen aus reproduzierbaren Methoden.</strong>
+        Seine Tochter's 1997-Win beweist das.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">10</div>
+      <div class="rule-content">
+        <div class="rule-title">„The Best Trade Is One You Didn't Have to Watch"</div>
+        <div class="rule-body">Wenn man ständig den Screen checken muss um sicher zu sein — ist die Positionsgröße zu groß oder die Überzeugung zu klein.
+        <strong>Williams' Ideal:</strong> Stop ist gesetzt. COT, Saison und Technik sind aligned.
+        Jetzt muss der Trade funktionieren — oder der Stop greift. Kein Überwachen, kein Intervenieren.
+        Vertrauen in das System.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BÜCHER -->
+  <div class="section-header section-gap">
+    <div class="section-label">Wissensquellen</div>
+    <div class="section-title">Larry Williams' Bibliothek — Die wichtigsten Werke</div>
+  </div>
+
+  <div class="books-grid">
+    <div class="book-card">
+      <div class="book-year">1973</div>
+      <div class="book-title">How I Made One Million Dollars Last Year Trading Commodities</div>
+      <div class="book-body">Das Buch das alles startete. Williams erklärt seine frühen Methoden, COT-Grundlagen und Saisonalität.
+      Manche Teile veraltet — die Grundprinzipien nicht.</div>
+      <div class="book-key">→ Schlüssel: Erste systematische COT-Darlegung für Retail-Trader</div>
+    </div>
+    <div class="book-card">
+      <div class="book-year">1999 / 2011</div>
+      <div class="book-title">Long-Term Secrets to Short-Term Trading</div>
+      <div class="book-body">Sein wichtigstes Werk für aktive Trader. Vollständige Darlegung von %R, 3-10 Oscillator, Pattern-Trading,
+      Saisonalität und dem kombinierten Setup. Zweite Auflage 2011 aktualisiert.</div>
+      <div class="book-key">→ Schlüssel: Das komplette Williams System in einem Band</div>
+    </div>
+    <div class="book-card">
+      <div class="book-year">2005</div>
+      <div class="book-title">Trade Stocks and Commodities with the Insiders</div>
+      <div class="book-body">Tiefste Analyse des COT-Reports. Erklärt alle drei Gruppen, den 52-Wochen-Index, und spezifische
+      Anwendungsbeispiele in 12 Märkten über 20 Jahre.</div>
+      <div class="book-key">→ Schlüssel: Die COT-Bibel · Beste Einzelquelle für COT-Trading</div>
+    </div>
+    <div class="book-card">
+      <div class="book-year">2003</div>
+      <div class="book-title">The Right Stock at the Right Time</div>
+      <div class="book-body">Williams überträgt seine Futures-Methodik auf Aktien. Saisonalität, COT (Index-Futures),
+      und fundamentale Filter für Stock-Picker. Brücke zwischen seinen zwei Welten.</div>
+      <div class="book-key">→ Schlüssel: Saisonale Aktien-Strategie · Januar-Effekt systematisiert</div>
+    </div>
+    <div class="book-card">
+      <div class="book-year">1988</div>
+      <div class="book-title">The Definitive Guide to Futures Trading (Vol. I &amp; II)</div>
+      <div class="book-body">Technische Vollanalyse aller Futures-Märkte. Inzwischen historisch, aber für das Verständnis
+      der COT-Marktstruktur und Open Interest immernoch wertvoll.</div>
+      <div class="book-key">→ Schlüssel: OI-Analyse · Futures-Marktstruktur vollständig</div>
+    </div>
+    <div class="book-card">
+      <div class="book-year">Dauerhaft</div>
+      <div class="book-title">CFTC COT Report (Primärquelle)</div>
+      <div class="book-body">cftc.gov — Kostenlos, wöchentlich. Williams' älteste und wichtigste Datenquelle.
+      Das echte COT-Lernen passiert durch wöchentliche Lektüre über Monate.
+      Alle Bücher sind Kommentare zu dieser Primärquelle.</div>
+      <div class="book-key">→ Kostenlos · Freitags · cftc.gov/MarketReports/CommitmentsofTraders</div>
+    </div>
+  </div>
+
+  <!-- DUDE BANK ANWENDUNG -->
+  <div class="section-header section-gap">
+    <div class="section-label">DUDE BANK × Larry Williams</div>
+    <div class="section-title">Was die Dude Bank aus Williams lernt</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Williams-Konzept</th><th>DUDE BANK Analogie</th><th>Praktische Anwendung</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>COT — Commercials als Smart Money</td>
+        <td class="val-teal">Raiffeisen-Genossenschaft: Insider-Wissen der Mitglieder</td>
+        <td>DUDE BANK Mitglieder (1000 Dudes) = Netzwerk von Markt-Experten. Ihr kollektives COT-Wissen ersetzt teure Analysten.</td>
+      </tr>
+      <tr>
+        <td>%R Overbought/Oversold</td>
+        <td class="val-teal">KI-Kredit-Agent: Liquiditätszustand des DeFi Pools</td>
+        <td>%R-Algorithmus im KI-Trading-Agent erkennt Extreme-Zustände in Portfolio-Positionen und triggert automatisch Risk-Alerts.</td>
+      </tr>
+      <tr>
+        <td>COT Triple-Confirmation Setup</td>
+        <td class="val-teal">3-of-3 Guardian Rule (Social Recovery)</td>
+        <td>Bevor der KI-Agent eine große Position eingeht: COT-Signal ✓ + Saisonalität ✓ + technisches Entry ✓ — alle drei müssen grün sein. Human-in-Loop bei &gt;50K€.</td>
+      </tr>
+      <tr>
+        <td>Open Interest — echte Überzeugung</td>
+        <td class="val-teal">DeFi Liquidity Pool — TVL als Vertrauen-Indikator</td>
+        <td>Steigendes TVL im DUDE BANK Pool = steigende Überzeugung der Mitglieder. Fallender TVL bei steigendem „Kurs" = leeres Signal.</td>
+      </tr>
+      <tr>
+        <td>Saisonalität — Muster wiederholen sich</td>
+        <td class="val-teal">Bounty-Kalender: wann Dev Dudes am produktivsten sind</td>
+        <td>Saisonale KI-Analyse identifiziert beste Zeitfenster für neue Produkt-Launches, Marketing-Pushes und Community-Entscheide.</td>
+      </tr>
+      <tr>
+        <td>„10.000 zu 1.1 Million" — Position Sizing</td>
+        <td class="val-teal">1000 Dudes × 1000€ = 1 Mrd. Kapital</td>
+        <td>Williams zeigt: Kleine Basis + richtiges Position Sizing + Edge = exponentielles Ergebnis. Dude Bank skaliert dasselbe Prinzip auf Genossenschaft.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="info-card" style="border-top:3px solid var(--amber);">
+    <div class="info-card-body">
+      <strong>Das Larry Williams Verdikt für Dude Bank Trader:</strong>
+      <br><br>
+      Williams bewies was Van Tharp theoretisiert: <em>Systemdisziplin + korrekter Edge + Position Sizing = außerordentliche Ergebnisse</em>.
+      Der Unterschied zwischen Williams und dem Durchschnitts-Trader ist nicht Intelligenz —
+      es ist <strong>Methodik</strong>. Er wartet auf das Setup wo drei unabhängige Quellen (COT, Saison, Technik) übereinstimmen.
+      Dann geht er rein. Dann hält er.
+      <br><br>
+      Für Dude Bank bedeutet das: <em>Nie gegen den COT traden. Saisonalität als Filter nutzen.
+      Technische Indikatoren nur zur Entry-Präzision — niemals als Hauptsignal.</em>
+      Und immer: Stop vor Entry.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas un signal. C'est la confluence de trois vérités indépendantes."<br>
+    (Das ist kein Signal. Es ist die Kongruenz von drei unabhängigen Wahrheiten.)</div>
+    <div class="tags">
+      <span class="tag">COT Analysis</span>
+      <span class="tag">Williams %R</span>
+      <span class="tag">Ultimate Oscillator</span>
+      <span class="tag tag-green">Open Interest</span>
+      <span class="tag tag-teal">Saisonalität</span>
+      <span class="tag tag-red">11.376% · 1987</span>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div style="text-align:center;padding:32px;color:#1e3a4a;font-size:12px;border-top:1px solid #1c2836;">
+  DUDE BANK — Larry Williams Framework · COT · Williams %R · Ultimate Oscillator · Saisonalität · Open Interest · 2026
+</div>
+
+</body>
+</html>

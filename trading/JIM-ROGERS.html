@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jim Rogers — The Commodity King</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #0f1629;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #f97316;
+    --accent2: #fb923c;
+    --brown: #92400e;
+    --gold: #f59e0b;
+    --green: #22c55e;
+    --red: #ef4444;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a0a00 50%, #0a0e1a 100%);
+    border-bottom: 1px solid #2d1810;
+    padding: 60px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(249,115,22,0.12) 0%, transparent 70%);
+  }
+  .hero-badge { display:inline-block; background:rgba(249,115,22,0.15); border:1px solid rgba(249,115,22,0.3); color:var(--accent); padding:4px 16px; border-radius:20px; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px; }
+  .hero-title { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; letter-spacing:-1px; color:#fff; margin-bottom:8px; }
+  .hero-title span { color:var(--accent); }
+  .hero-sub { font-size:1.1rem; color:var(--muted); margin-bottom:24px; }
+  .hero-stats { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+  .hero-stat { text-align:center; }
+  .hero-stat-val { font-size:1.8rem; font-weight:800; color:var(--accent); }
+  .hero-stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  .container { max-width:1200px; margin:0 auto; padding:40px 20px; }
+
+  .section-header {
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:24px; padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  .section-header h2 { font-size:1.3rem; font-weight:700; color:#fff; }
+  .section-icon { font-size:1.4rem; }
+  .section-tag { margin-left:auto; background:rgba(249,115,22,0.1); border:1px solid rgba(249,115,22,0.2); color:var(--accent); padding:2px 10px; border-radius:12px; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+
+  .section { margin-bottom:48px; }
+
+  .timeline { position:relative; padding-left:30px; }
+  .timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:linear-gradient(180deg, var(--accent), transparent); }
+  .tl-item { position:relative; margin-bottom:24px; }
+  .tl-item::before { content:''; position:absolute; left:-26px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+  .tl-year { font-size:11px; color:var(--accent); font-weight:700; letter-spacing:2px; margin-bottom:4px; }
+  .tl-title { font-weight:700; color:#fff; margin-bottom:4px; }
+  .tl-desc { font-size:0.9rem; color:var(--muted); }
+
+  .info-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:24px; margin-bottom:16px;
+  }
+  .info-card h3 { color:var(--accent); margin-bottom:12px; font-size:1rem; }
+
+  .formula-block {
+    background:rgba(249,115,22,0.05); border:1px solid rgba(249,115,22,0.2);
+    border-left:4px solid var(--accent); border-radius:8px;
+    padding:20px 24px; margin:16px 0; font-family:monospace;
+  }
+  .formula-block .formula { font-size:1.2rem; color:var(--accent2); font-weight:700; margin-bottom:8px; }
+  .formula-block .formula-desc { font-size:0.85rem; color:var(--muted); }
+
+  .grid-two { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .grid-three { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+
+  .commodity-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:20px;
+    border-top:3px solid var(--accent);
+  }
+  .commodity-card .comm-icon { font-size:2rem; margin-bottom:8px; }
+  .commodity-card .comm-name { font-weight:700; color:#fff; margin-bottom:4px; }
+  .commodity-card .comm-desc { font-size:0.85rem; color:var(--muted); margin-bottom:12px; }
+  .comm-tag { display:inline-block; background:rgba(249,115,22,0.1); color:var(--accent); border:1px solid rgba(249,115,22,0.2); padding:2px 8px; border-radius:4px; font-size:11px; margin-right:4px; margin-bottom:4px; }
+  .comm-tag.bull { background:rgba(34,197,94,0.1); color:var(--green); border-color:rgba(34,197,94,0.2); }
+  .comm-tag.bear { background:rgba(239,68,68,0.1); color:var(--red); border-color:rgba(239,68,68,0.2); }
+
+  .lw-table { width:100%; border-collapse:collapse; }
+  .lw-table th { background:rgba(249,115,22,0.1); color:var(--accent); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); }
+  .lw-table td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; color:var(--text); }
+  .lw-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .lw-table td:first-child { color:#fff; font-weight:600; }
+
+  .cycle-phase {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:20px;
+    position:relative; overflow:hidden;
+  }
+  .cycle-phase::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent); }
+  .phase-num { font-size:2rem; font-weight:800; color:rgba(249,115,22,0.2); position:absolute; top:10px; right:16px; }
+  .phase-title { font-weight:700; color:#fff; margin-bottom:8px; }
+  .phase-desc { font-size:0.85rem; color:var(--muted); margin-bottom:12px; }
+  .phase-signals { display:flex; flex-wrap:wrap; gap:6px; }
+  .phase-signal { background:rgba(249,115,22,0.08); border:1px solid rgba(249,115,22,0.15); color:var(--accent2); padding:2px 8px; border-radius:4px; font-size:11px; }
+
+  .quote-block {
+    background:rgba(249,115,22,0.05); border-left:4px solid var(--accent);
+    border-radius:0 8px 8px 0; padding:16px 20px; margin:12px 0;
+    font-style:italic; color:var(--text);
+  }
+  .quote-block cite { display:block; margin-top:8px; font-style:normal; font-size:0.8rem; color:var(--accent); }
+
+  .rule-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  .rule-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:8px; padding:16px; display:flex; gap:14px; align-items:flex-start;
+  }
+  .rule-num { font-size:1.5rem; font-weight:800; color:rgba(249,115,22,0.3); flex-shrink:0; line-height:1; }
+  .rule-text { font-size:0.9rem; color:var(--text); }
+  .rule-text strong { color:#fff; display:block; margin-bottom:4px; }
+
+  .rici-bar { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .rici-bar-label { width:120px; font-size:0.85rem; color:var(--muted); }
+  .rici-bar-track { flex:1; background:rgba(255,255,255,0.06); border-radius:4px; height:20px; overflow:hidden; }
+  .rici-bar-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:8px; font-size:11px; font-weight:700; color:#fff; }
+  .rici-bar-pct { width:45px; text-align:right; font-size:0.85rem; color:var(--accent); font-weight:700; }
+
+  .debate-two { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .debate-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; }
+  .debate-card h3 { font-size:1rem; font-weight:700; margin-bottom:12px; }
+  .debate-card ul { list-style:none; }
+  .debate-card ul li { padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.85rem; color:var(--muted); display:flex; gap:8px; }
+  .debate-card ul li::before { content:'→'; color:var(--accent); flex-shrink:0; }
+
+  .world-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  .world-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px;
+    border-left:3px solid var(--accent);
+  }
+  .world-flag { font-size:1.8rem; margin-bottom:6px; }
+  .world-region { font-weight:700; color:#fff; margin-bottom:4px; font-size:0.9rem; }
+  .world-insight { font-size:0.8rem; color:var(--muted); }
+
+  @media (max-width:640px) {
+    .hero { padding:40px 20px; }
+    .hero-stats { gap:20px; }
+    .debate-two { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Trading Legend · Commodity King</div>
+  <h1 class="hero-title">Jim <span>Rogers</span></h1>
+  <p class="hero-sub">Quantum Fund Co-Founder · Commodity Supercycle Prophet · Global Macro Visionary</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val">4.200%</div><div class="hero-stat-label">Quantum Fund Return 1973–1980</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">37</div><div class="hero-stat-label">Retired With $14M</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">2×</div><div class="hero-stat-label">Weltreise (Motorrad & Auto) Guinness</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">RICI</div><div class="hero-stat-label">Rogers Commodities Index Erfinder</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- BIOGRAFIE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📜</span>
+      <h2>Biografie · Der Weg des Commodity King</h2>
+      <span class="section-tag">1942 – Heute</span>
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-year">1942</div>
+        <div class="tl-title">Baltimore, Maryland · Demopolis, Alabama</div>
+        <div class="tl-desc">James Beeland Rogers Jr. wird in Baltimore geboren, wächst in Demopolis, Alabama auf. Erstes Business: 5-Cent-Erdnüsse verkaufen. Oxford-Stipendium für Geschichte.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1964</div>
+        <div class="tl-title">Oxford · Balliol College</div>
+        <div class="tl-desc">Studiert PPE (Politics, Philosophy, Economics) in Oxford. Entwickelt seine globale Makro-Perspektive. Versteht früh: Die Welt ist das Marktuniversum.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1968</div>
+        <div class="tl-title">Wall Street · Arnhold & S. Bleichroeder</div>
+        <div class="tl-desc">Erste Jobs auf Wall Street. Lernt das Handwerk von Grund auf. Lernt George Soros kennen — die Partnerschaft, die alles verändern wird.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1973</div>
+        <div class="tl-title">Quantum Fund Gründung mit George Soros</div>
+        <div class="tl-desc">Rogers und Soros gründen den Quantum Fund mit $12 Mio. AUM. Rogers: Research & Analyse. Soros: Execution & Risk. Eine der erfolgreichsten Partnerschaften der Finanzgeschichte.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1980</div>
+        <div class="tl-title">Rückzug mit 37 Jahren · $14 Millionen</div>
+        <div class="tl-desc">Nach 4.200% Gesamtrendite (S&P: +47%) tritt Rogers mit 37 aus dem Quantum Fund aus. Lehrt Finance an Columbia University. Reist die Welt ab. Schreibt Bücher.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1990–91</div>
+        <div class="tl-title">Motorrad-Weltreise · Guinness-Rekord</div>
+        <div class="tl-desc">Rogers fährt mit dem Motorrad durch 52 Länder und 6 Kontinente — Guinness-Weltrekord. Buch: "Investment Biker". Gewinnt tiefe Einblicke in Frontier Markets.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1999</div>
+        <div class="tl-title">Rogers International Commodities Index (RICI)</div>
+        <div class="tl-desc">Lanciert den RICI — breiter, gewichteter Rohstoff-Index über 38 Rohstoffe. Setzt auf den bevorstehenden Commodity-Superzyklus, den die Welt noch nicht sieht.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2007</div>
+        <div class="tl-title">Umzug nach Singapur · Bullish on Asia</div>
+        <div class="tl-desc">Zieht mit seiner Familie nach Singapur — Töchter sollen Mandarin als Muttersprache lernen. Öffentliche These: Das 21. Jahrhundert gehört China. Prognose: US-Dollar verliert Reservewährungsstatus.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2007–08</div>
+        <div class="tl-title">Short US-Dollar & US-Banken vor der Krise</div>
+        <div class="tl-desc">Rogers shortet US-Investmentbanken und den Dollar lange vor dem Crash. Citigroup-Short wird berühmt. "Die Federal Reserve ist bankrott — buchhalterisch."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUANTUM FUND -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">⚡</span>
+      <h2>Quantum Fund · Rogers & Soros Partnership</h2>
+      <span class="section-tag">1973–1980</span>
+    </div>
+    <div class="debate-two">
+      <div class="debate-card" style="border-top:3px solid var(--accent)">
+        <h3 style="color:var(--accent)">Jim Rogers — Der Analyst</h3>
+        <ul>
+          <li>Research: Fundamentalanalyse globaler Märkte</li>
+          <li>Makroökonomische Szenarien & Länderstudien</li>
+          <li>Commodity-Zyklen & Sektorrotation</li>
+          <li>Identifiziert Fehlbewertungen weit vor dem Markt</li>
+          <li>Reist physisch in die Länder für Feldforschung</li>
+          <li>Contrarian: kauft was alle hassen</li>
+        </ul>
+      </div>
+      <div class="debate-card" style="border-top:3px solid #a855f7">
+        <h3 style="color:#a855f7">George Soros — Der Trader</h3>
+        <ul>
+          <li>Execution: Timing und Positionierung</li>
+          <li>Reflexivitäts-Theorie: Markt formt Realität</li>
+          <li>Aggressives Leverage-Management</li>
+          <li>Entscheidet wann und wie groß</li>
+          <li>Enge Stop-Loss-Disziplin</li>
+          <li>Risk / Reward Kalkulation bei jedem Trade</li>
+        </ul>
+      </div>
+    </div>
+    <div class="info-card" style="margin-top:16px; background:rgba(249,115,22,0.05); border-color:rgba(249,115,22,0.2)">
+      <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; text-align:center;">
+        <div><div style="font-size:2rem;font-weight:800;color:var(--accent)">4.200%</div><div style="font-size:0.8rem;color:var(--muted)">Quantum Fund Return (1973–1980)</div></div>
+        <div><div style="font-size:2rem;font-weight:800;color:var(--accent)">+47%</div><div style="font-size:0.8rem;color:var(--muted)">S&P 500 im selben Zeitraum</div></div>
+        <div><div style="font-size:2rem;font-weight:800;color:var(--accent)">$12M→$250M</div><div style="font-size:0.8rem;color:var(--muted)">AUM Wachstum in 7 Jahren</div></div>
+        <div><div style="font-size:2rem;font-weight:800;color:var(--accent)">89×</div><div style="font-size:0.8rem;color:var(--muted)">Outperformance vs. Markt</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RICI INDEX -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📊</span>
+      <h2>Rogers International Commodities Index (RICI)</h2>
+      <span class="section-tag">1999 · 38 Rohstoffe</span>
+    </div>
+    <div class="info-card">
+      <p style="color:var(--muted);margin-bottom:20px;">Der RICI repräsentiert den globalen Rohstoffverbrauch — breiter als CRB oder GSCI. 38 Rohstoffe, gewichtet nach tatsächlichem Weltverbrauch. Rogers: "Commodities sind das einzige Asset, das man physisch anfassen kann."</p>
+
+      <div class="rici-bar"><div class="rici-bar-label">Energie</div><div class="rici-bar-track"><div class="rici-bar-fill" style="width:44%;background:linear-gradient(90deg,#f97316,#fb923c)">Crude, Gas, Heating Oil</div></div><div class="rici-bar-pct">44%</div></div>
+      <div class="rici-bar"><div class="rici-bar-label">Agrar-Soft</div><div class="rici-bar-track"><div class="rici-bar-fill" style="width:21%;background:linear-gradient(90deg,#22c55e,#4ade80)">Weizen, Mais, Soja</div></div><div class="rici-bar-pct">21%</div></div>
+      <div class="rici-bar"><div class="rici-bar-label">Metalle Industrie</div><div class="rici-bar-track"><div class="rici-bar-fill" style="width:14%;background:linear-gradient(90deg,#64748b,#94a3b8)">Copper, Aluminium, Zinc</div></div><div class="rici-bar-pct">14%</div></div>
+      <div class="rici-bar"><div class="rici-bar-label">Agrar-Hard</div><div class="rici-bar-track"><div class="rici-bar-fill" style="width:9%;background:linear-gradient(90deg,#84cc16,#a3e635)">Baumwolle, Zucker</div></div><div class="rici-bar-pct">9%</div></div>
+      <div class="rici-bar"><div class="rici-bar-label">Edelmetalle</div><div class="rici-bar-track"><div class="rici-bar-fill" style="width:7%;background:linear-gradient(90deg,#f59e0b,#fcd34d)">Gold, Silver, Platinum</div></div><div class="rici-bar-pct">7%</div></div>
+      <div class="rici-bar"><div class="rici-bar-label">Sonstige</div><div class="rici-bar-track"><div class="rici-bar-fill" style="width:5%;background:linear-gradient(90deg,#8b5cf6,#a78bfa)">Holz, Vieh, Kaffee</div></div><div class="rici-bar-pct">5%</div></div>
+    </div>
+    <div class="formula-block">
+      <div class="formula">RICI = Σ (Preis_i × Gewicht_i × Kontrakt_i) / Basiswert</div>
+      <div class="formula-desc">Gewichtung nach globalem Verbrauch · Jährliche Rebalancierung · 38 Komponenten über alle Sektoren</div>
+    </div>
+  </div>
+
+  <!-- COMMODITY SUPERCYCLE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🔄</span>
+      <h2>Commodity Supercycles · Die Rogers-These</h2>
+      <span class="section-tag">15–20 Jahres-Zyklen</span>
+    </div>
+    <div class="grid-two" style="margin-bottom:16px;">
+      <div class="cycle-phase">
+        <span class="phase-num">01</span>
+        <div class="phase-title">Underinvestment Phase</div>
+        <div class="phase-desc">Jahre der Vernachlässigung. Minen werden geschlossen, Farmen aufgegeben. Keine Kapazitätsinvestitionen. Angebot schrumpft langsam aber sicher.</div>
+        <div class="phase-signals">
+          <span class="phase-signal">Niedrige Preise</span>
+          <span class="phase-signal">Minen-Schließungen</span>
+          <span class="phase-signal">Kein CapEx</span>
+          <span class="phase-signal">Medien ignoriert</span>
+        </div>
+      </div>
+      <div class="cycle-phase">
+        <span class="phase-num">02</span>
+        <div class="phase-title">Nachfrage-Schock</div>
+        <div class="phase-desc">Neue Industrialisierung (z.B. China 2000er) erzeugt explosive Nachfrage. Angebot kann nicht kurzfristig reagieren — Lagerbestände fallen dramatisch.</div>
+        <div class="phase-signals">
+          <span class="phase-signal">Steigende Preise</span>
+          <span class="phase-signal">Lager leer</span>
+          <span class="phase-signal">Preis-Spike</span>
+          <span class="phase-signal">Investoren aufwachen</span>
+        </div>
+      </div>
+      <div class="cycle-phase">
+        <span class="phase-num">03</span>
+        <div class="phase-title">Investitions-Boom</div>
+        <div class="phase-desc">Neue Minen, Felder, Farmen werden eröffnet. Aber Lead-Time ist 5–15 Jahre. Preise bleiben hoch, da neues Angebot Jahre braucht bis zur Produktion.</div>
+        <div class="phase-signals">
+          <span class="phase-signal">Mining-IPOs</span>
+          <span class="phase-signal">Überinvestition</span>
+          <span class="phase-signal">Peak Sentiment</span>
+          <span class="phase-signal">Agri-Land teuer</span>
+        </div>
+      </div>
+      <div class="cycle-phase">
+        <span class="phase-num">04</span>
+        <div class="phase-title">Oversupply · Reset</div>
+        <div class="phase-desc">Neue Kapazitäten kommen online, Nachfragewachstum verlangsamt sich. Preise kollabieren. Zyklus beginnt von vorne. Rogers: "Commodities werden nie auf Null gehen."</div>
+        <div class="phase-signals">
+          <span class="phase-signal">Preiseinbruch</span>
+          <span class="phase-signal">Bankruptcies</span>
+          <span class="phase-signal">Konsolidierung</span>
+          <span class="phase-signal">Nächster Tief</span>
+        </div>
+      </div>
+    </div>
+    <div class="quote-block">"Historisch gesehen dauern Commodity Bull Markets 15–20 Jahre. Der letzte begann Ende der 1990er. Wenn ich recht habe, haben wir noch viele Jahre vor uns."<cite>— Jim Rogers, 2004</cite></div>
+  </div>
+
+  <!-- COMMODITY KLASSEN -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🌾</span>
+      <h2>Die Commodity-Klassen · Rogers' Analysekarte</h2>
+      <span class="section-tag">6 Sektoren</span>
+    </div>
+    <div class="grid-three">
+      <div class="commodity-card">
+        <div class="comm-icon">🛢️</div>
+        <div class="comm-name">Energie</div>
+        <div class="comm-desc">Crude Oil, Natural Gas, Heating Oil. Geopolitik × Peak Oil × Transition Lag.</div>
+        <span class="comm-tag bull">Strukturell bullish</span>
+        <span class="comm-tag">44% RICI</span>
+      </div>
+      <div class="commodity-card">
+        <div class="comm-icon">🌾</div>
+        <div class="comm-name">Agrar · Soft</div>
+        <div class="comm-desc">Weizen, Mais, Soja, Reis. Weltbevölkerung × Klimawandel × Dünger-Kosten.</div>
+        <span class="comm-tag bull">Langfristig attraktiv</span>
+        <span class="comm-tag">Rogers' Liebling</span>
+      </div>
+      <div class="commodity-card">
+        <div class="comm-icon">🥇</div>
+        <div class="comm-name">Edelmetalle</div>
+        <div class="comm-desc">Gold, Silber, Platin, Palladium. Währungsschutz × Industrienachfrage.</div>
+        <span class="comm-tag">Store of Value</span>
+        <span class="comm-tag bull">Anti-USD Hedge</span>
+      </div>
+      <div class="commodity-card">
+        <div class="comm-icon">🔩</div>
+        <div class="comm-name">Industriemetalle</div>
+        <div class="comm-desc">Copper, Aluminium, Zinc, Nickel. Infrastruktur × EV-Revolution × China.</div>
+        <span class="comm-tag">Zyklisch</span>
+        <span class="comm-tag bull">EV Treiber</span>
+      </div>
+      <div class="commodity-card">
+        <div class="comm-icon">🐄</div>
+        <div class="comm-name">Vieh · Fleisch</div>
+        <div class="comm-desc">Cattle, Hogs, Feeder Cattle. Proteinkonsum steigt mit Mittelklassen-Wachstum.</div>
+        <span class="comm-tag">Emerging Markets</span>
+        <span class="comm-tag bull">Asia Demand</span>
+      </div>
+      <div class="commodity-card">
+        <div class="comm-icon">☕</div>
+        <div class="comm-name">Agrar · Hard</div>
+        <div class="comm-desc">Kaffee, Kakao, Baumwolle, Zucker, Orangensaft. Soft commodities mit starker Saisonalität.</div>
+        <span class="comm-tag">Weather-driven</span>
+        <span class="comm-tag bear">Volatil</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROGERS INVESTMENT PHILOSOPHIE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🧠</span>
+      <h2>Die Rogers-Philosophie · Contrarian Global Macro</h2>
+      <span class="section-tag">Kerngrundsätze</span>
+    </div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>1. Find What's Being Ignored</h3>
+        <p style="color:var(--muted);font-size:0.9rem;">Rogers sucht Märkte, Länder und Assets, die alle anderen ignorieren oder hassen. Wenn die Wall Street einen Sektor nicht covern will, ist das das stärkste Kaufsignal.</p>
+        <div class="formula-block" style="margin-top:12px;">
+          <div class="formula">Signal = (Analyst Coverage ↓) + (Media Mentions ↓) + (Fund Flows ↓)</div>
+          <div class="formula-desc">Je weniger Aufmerksamkeit, desto höher das Potenzial</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>2. Supply/Demand ist alles</h3>
+        <p style="color:var(--muted);font-size:0.9rem;">Bei Commodities gewinnt immer derjenige, der die physische Angebots/Nachfrage-Gleichung besser versteht als der Markt. Kein Charting. Kein Momentum. Fundamentals.</p>
+        <div style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:6px;padding:10px;text-align:center;">
+            <div style="color:var(--green);font-weight:700;font-size:1.1rem;">Angebot ↓</div>
+            <div style="color:var(--muted);font-size:0.8rem;">Minen geschlossen · Felder verlassen</div>
+          </div>
+          <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:6px;padding:10px;text-align:center;">
+            <div style="color:var(--accent);font-weight:700;font-size:1.1rem;">Nachfrage ↑</div>
+            <div style="color:var(--muted);font-size:0.8rem;">Industrialisierung · Bevölkerung</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>3. Kaufe Rohstoffe, nicht Rohstoff-Aktien</h3>
+        <p style="color:var(--muted);font-size:0.9rem;">Ein Mining-CEO kann inkompetent sein, streiken, Dividenden kürzen. Kupfer ist Kupfer. Rogers bevorzugt direkte Commodity-Exposure über Futures und ETFs gegenüber Einzelaktien.</p>
+        <div class="formula-block" style="margin-top:12px;">
+          <div class="formula">Commodity > Mining Stock > ETF (bei Conviction)</div>
+          <div class="formula-desc">Management-Risiko eliminieren · Basiswert besitzen</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>4. Nichts tun ist oft das Beste</h3>
+        <p style="color:var(--muted);font-size:0.9rem;">"Ich kann keine guten Investments finden — also sitze ich auf dem Sofa und tue nichts." Rogers handelt nur dann, wenn er eine klare, analytisch fundierte These hat. Kein Trading für Trading's sake.</p>
+        <div class="quote-block" style="margin-top:12px;">"Einer der wichtigsten Ratschläge, den ich geben kann: Tu nichts, bis du etwas zu tun hast."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WELTREISE MACRO INSIGHTS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🌍</span>
+      <h2>Global Macro · Weltreise als Investment Research</h2>
+      <span class="section-tag">Feldforschung · Physische Realität</span>
+    </div>
+    <div class="world-grid">
+      <div class="world-card">
+        <div class="world-flag">🇨🇳</div>
+        <div class="world-region">China</div>
+        <div class="world-insight">21. Jahrhundert gehört China. Commodity-Hunger der Industrialisierung. Mandarin als Pflicht für Töchter.</div>
+      </div>
+      <div class="world-card">
+        <div class="world-flag">🇷🇺</div>
+        <div class="world-region">Russland</div>
+        <div class="world-insight">Größter Rohstoff-Exporter. 1990s Investments als alle flüchteten. Petrostate-Analyse.</div>
+      </div>
+      <div class="world-card">
+        <div class="world-flag">🇮🇳</div>
+        <div class="world-region">Indien</div>
+        <div class="world-insight">Demographischer Vorteil. Aber: Bürokratie tötet Potenzial. Erst reformieren, dann investieren.</div>
+      </div>
+      <div class="world-card">
+        <div class="world-flag">🌍</div>
+        <div class="world-region">Afrika</div>
+        <div class="world-insight">Die letzte große Frontier. Natürliche Ressourcen + junge Bevölkerung = nächster Superzyklus?</div>
+      </div>
+      <div class="world-card">
+        <div class="world-flag">🇯🇵</div>
+        <div class="world-region">Japan</div>
+        <div class="world-region" style="color:var(--red);font-size:0.8rem;">Demographische Zeitbombe</div>
+        <div class="world-insight">Schrumpfende Bevölkerung. Schuldenextrem. Rogers hält wenig von Japan auf 30-Jahres-Sicht.</div>
+      </div>
+      <div class="world-card">
+        <div class="world-flag">🇺🇸</div>
+        <div class="world-region">USA</div>
+        <div class="world-region" style="color:var(--red);font-size:0.8rem;">Declining Hegemony</div>
+        <div class="world-insight">Dollar verliert Reservewährungsstatus. Schulden explodieren. Langfristig bearish auf US-Assets.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEKANNTE TRADES -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🎯</span>
+      <h2>Berühmte Rogers Trades · Großtrends erkannt</h2>
+      <span class="section-tag">Track Record</span>
+    </div>
+    <div class="info-card">
+      <table class="lw-table">
+        <thead>
+          <tr><th>Trade / These</th><th>Zeitraum</th><th>Entry-Signal</th><th>Ergebnis</th><th>Quintessenz</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Long Rohstoffe (RICI)</td><td>1999–2008</td><td>20 Jahre Underinvestment + China-Boom</td><td>+300%+ auf Rohstoffe</td><td>Superzyklus-These bewiesen</td></tr>
+          <tr><td>Long China (1984, 1999)</td><td>1984/1999</td><td>Deng-Reformpolitik + WTO-Beitritt</td><td>Massive Outperformance</td><td>Früher Contrarian auf Emerging</td></tr>
+          <tr><td>Short Citigroup, Bear Stearns</td><td>2006–2008</td><td>Toxic derivatives + Leverage-Exzess</td><td>~$1 → Rettung</td><td>Subprime erkannt vor dem Crash</td></tr>
+          <tr><td>Short US-Dollar</td><td>2002–heute</td><td>Twin Deficits + Fed Money Printing</td><td>Dollar -40% bis 2008</td><td>Strukturelle Währungsschwäche</td></tr>
+          <tr><td>Long Gold & Silber</td><td>1999–2011</td><td>Undervalued + USD-Hedging-Bedarf</td><td>Gold +600%</td><td>Edelmetalle als Geldersatz</td></tr>
+          <tr><td>Long Agrar (Weizen, Zucker)</td><td>2006–2008</td><td>Farmland-Preisverfall + Biofuel-Demand</td><td>Agrar-Spike 2007–08</td><td>Soft Commodities vergessen</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 10 REGELN -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <h2>Die 10 Rogers-Regeln · Investment-Philosophie</h2>
+      <span class="section-tag">Kondensierte Weisheit</span>
+    </div>
+    <div class="rule-grid">
+      <div class="rule-card"><div class="rule-num">01</div><div class="rule-text"><strong>Kaufe, was alle hassen</strong>Contrarian sein bedeutet unbequem sein. Die besten Trades sind die, für die man ausgelacht wird.</div></div>
+      <div class="rule-card"><div class="rule-num">02</div><div class="rule-text"><strong>Supply/Demand über alles</strong>Fundamentale Angebots/Nachfrage-Analyse schlägt jede technische Methode bei Commodities.</div></div>
+      <div class="rule-card"><div class="rule-num">03</div><div class="rule-text"><strong>Reise in die Länder physisch</strong>Satellitenbilder lügen nicht. Leere Fabriken, volle Häfen, lachende Bauern — das sind Signale.</div></div>
+      <div class="rule-card"><div class="rule-num">04</div><div class="rule-text"><strong>Kaufe Rohstoffe, nicht Mining-Aktien</strong>CEO-Risiko eliminieren. Der Rohstoff selbst hat kein Management, das Mist baut.</div></div>
+      <div class="rule-card"><div class="rule-num">05</div><div class="rule-text"><strong>Tue nichts, bis du eine klare These hast</strong>Die meisten Verluste entstehen durch Ungeduld. Warten ist eine Investmentstrategie.</div></div>
+      <div class="rule-card"><div class="rule-num">06</div><div class="rule-text"><strong>Supercycles dauern 15–20 Jahre</strong>Commodity-Investments brauchen Geduld. Nicht im Quartalsdenken investieren.</div></div>
+      <div class="rule-card"><div class="rule-num">07</div><div class="rule-text"><strong>Lerne Mandarin</strong>Das 21. Jahrhundert ist chinesisch. Wer die Sprache spricht, versteht das Land.</div></div>
+      <div class="rule-card"><div class="rule-num">08</div><div class="rule-text"><strong>Diversifiziere geografisch (wirklich)</strong>US-Aktien + US-Bonds ist keine Diversifikation. Frontier Markets, Emerging Asia, Latam.</div></div>
+      <div class="rule-card"><div class="rule-num">09</div><div class="rule-text"><strong>Short den Dollar langfristig</strong>Fiat-Währungen mit extremer Verschuldung verlieren zwangsläufig an Kaufkraft.</div></div>
+      <div class="rule-card"><div class="rule-num">10</div><div class="rule-text"><strong>Lasse Gewinner laufen, ohne Ausnahme</strong>Der einzige Fehler mit Gewinnpositionen ist: zu früh verkaufen. Be right and sit tight.</div></div>
+    </div>
+  </div>
+
+  <!-- BÜCHER -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📚</span>
+      <h2>Jim Rogers · Bücher & Zitate</h2>
+      <span class="section-tag">Pflichtlektüre</span>
+    </div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>Bücher</h3>
+        <table class="lw-table">
+          <thead><tr><th>Titel</th><th>Jahr</th><th>Kernthese</th></tr></thead>
+          <tbody>
+            <tr><td>Investment Biker</td><td>1994</td><td>Weltreise als Research — Frontier Markets</td></tr>
+            <tr><td>Adventure Capitalist</td><td>2003</td><td>Zweite Weltreise · Emerging Markets praxisnah</td></tr>
+            <tr><td>Hot Commodities</td><td>2004</td><td>Der bevorstehende Commodity-Superzyklus</td></tr>
+            <tr><td>A Bull in China</td><td>2007</td><td>Warum China die Supermacht des 21. Jh. wird</td></tr>
+            <tr><td>Street Smarts</td><td>2013</td><td>Autobiographische Investment-Lektionen</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card">
+        <h3>Unsterbliche Zitate</h3>
+        <div class="quote-block">"Wenn alle in derselben Richtung am Rennen sind, ist es Zeit, in die entgegengesetzte Richtung zu schauen."</div>
+        <div class="quote-block">"Ich kaufe nur, wenn alles billig ist und ich weiß, warum es wieder teurer wird."</div>
+        <div class="quote-block">"Die beste Investition meines Lebens: meinen Töchtern Mandarin beibringen lassen."</div>
+        <div class="quote-block">"Commodities sind das einzige selbst-korrigierende Asset der Welt. Zu niedrige Preise lösen das Angebotsproblem automatisch."</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 0;border-top:1px solid var(--border);margin-top:20px;">
+    <div style="font-size:0.85rem;color:var(--muted)">DUDE BANK · Trading Legends Series · Modul 12</div>
+    <div style="font-size:0.75rem;color:#334155;margin-top:4px;">Jim Rogers · Commodity King · The World Is Your Research Department</div>
+  </div>
+
+</div>
+</body>
+</html>

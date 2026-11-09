@@ -1,0 +1,858 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CULTURA TERMINAL // Bücher · Musik · Klassiker · Analyse</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:      #f7f6f3;
+      --bg2:     #ffffff;
+      --bg3:     #ede9e3;
+      --border:  #d4cfc8;
+      --accent:  #3b5bdb;
+      --green:   #2f9e44;
+      --red:     #c92a2a;
+      --yellow:  #e67700;
+      --purple:  #6741d9;
+      --teal:    #0c8599;
+      --text:    #1c1917;
+      --muted:   #6b7280;
+      --shadow:  0 1px 4px rgba(0,0,0,0.08);
+      --drawer-w: 290px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Georgia', 'Times New Roman', serif;
+      display: flex; flex-direction: column;
+      overflow: hidden; height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .ct-header {
+      flex-shrink: 0; background: var(--bg2);
+      border-bottom: 2px solid var(--border);
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: var(--shadow);
+    }
+    .burger-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); width: 32px; height: 32px;
+      border-radius: 4px; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; transition: all 0.15s; font-family: sans-serif;
+    }
+    .burger-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .ct-title {
+      color: var(--text); font-size: 16px; font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .ct-title span { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 6px; font-family: sans-serif; }
+    .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .proxy-badge {
+      background: #d3f9d8; border: 1px solid #69db7c;
+      color: #2f9e44; font-size: 9px; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; font-family: sans-serif;
+    }
+    select.ct-sel {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      font-size: 11px; padding: 4px 8px; border-radius: 4px; outline: none;
+      cursor: pointer; font-family: sans-serif;
+    }
+    .hdr-btn {
+      background: var(--bg); border: 1px solid var(--border);
+      color: var(--muted); font-size: 10px; font-weight: 700;
+      padding: 4px 10px; border-radius: 4px; cursor: pointer;
+      transition: all 0.15s; font-family: sans-serif;
+    }
+    .hdr-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── MODULE TABS ── */
+    .mod-tabs {
+      flex-shrink: 0; background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px; display: flex; gap: 0;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .mod-tabs::-webkit-scrollbar { display: none; }
+    .mbt {
+      background: transparent; border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted); padding: 10px 14px; cursor: pointer;
+      font-size: 12px; font-weight: 600; transition: all 0.15s;
+      white-space: nowrap; flex-shrink: 0; font-family: sans-serif;
+    }
+    .mbt:hover { color: var(--accent); }
+    .mbt.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── MAIN AREA ── */
+    .main-area { flex: 1; min-height: 0; display: flex; position: relative; overflow: hidden; }
+
+    /* ── DRAWER OVERLAY ── */
+    .drawer-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.3); z-index: 99;
+    }
+    .drawer-overlay.show { display: block; }
+
+    /* ── SEARCH DRAWER ── */
+    .search-drawer {
+      width: var(--drawer-w); flex-shrink: 0;
+      background: var(--bg2); border-right: 1px solid var(--border);
+      overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+      padding: 16px 14px; transition: transform 0.25s ease;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+    }
+
+    /* ── RESULTS PANEL ── */
+    .results-panel {
+      flex: 1; overflow-y: auto;
+      padding: 16px; display: flex; flex-direction: column; gap: 12px;
+    }
+
+    /* ── DRAWER INTERNALS ── */
+    .sidebar-section {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--muted); font-weight: 700; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border); font-family: sans-serif;
+    }
+    .field-label { font-size: 10px; color: var(--muted); font-weight: 600; margin-bottom: 3px; font-family: sans-serif; }
+    .ct-input {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); font-family: Georgia, serif; font-size: 13px;
+      padding: 7px 10px; border-radius: 4px; outline: none;
+      transition: border-color 0.15s;
+    }
+    .ct-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,91,219,0.1); }
+    .ct-select {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); font-size: 12px; padding: 6px 8px;
+      border-radius: 4px; outline: none; cursor: pointer; font-family: sans-serif;
+    }
+    .ct-textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); font-family: Georgia, serif; font-size: 12px;
+      padding: 8px 10px; border-radius: 4px; outline: none; resize: vertical;
+      min-height: 120px; line-height: 1.6;
+    }
+    .ct-textarea:focus { border-color: var(--accent); }
+    .btn-search {
+      width: 100%; background: var(--accent); color: #fff;
+      border: none; font-size: 12px; font-weight: 700;
+      padding: 9px; border-radius: 4px; cursor: pointer;
+      transition: all 0.15s; font-family: sans-serif;
+    }
+    .btn-search:hover { background: #2f4ac5; }
+    .btn-gpt {
+      width: 100%; background: rgba(103,65,217,0.08); border: 1px solid var(--purple);
+      color: var(--purple); font-size: 11px; font-weight: 700;
+      padding: 7px; border-radius: 4px; cursor: pointer;
+      transition: all 0.15s; font-family: sans-serif;
+    }
+    .btn-gpt:hover { background: rgba(103,65,217,0.15); }
+    .sep { height: 1px; background: var(--border); }
+    .qpills { display: flex; flex-wrap: wrap; gap: 4px; }
+    .qpill {
+      background: var(--bg); border: 1px solid var(--border);
+      color: var(--muted); font-size: 10px; padding: 2px 8px;
+      border-radius: 20px; cursor: pointer; transition: all 0.12s;
+      font-family: sans-serif;
+    }
+    .qpill:hover { border-color: var(--accent); color: var(--accent); background: rgba(59,91,219,0.05); }
+
+    /* ── RESULT CARDS ── */
+    .res-card {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; transition: box-shadow 0.15s, border-color 0.15s;
+      box-shadow: var(--shadow);
+    }
+    .res-card:hover { border-color: #a5b4fc; box-shadow: 0 2px 10px rgba(59,91,219,0.1); }
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .card-title { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.4; flex: 1; }
+    .card-title a { color: var(--accent); text-decoration: none; }
+    .card-title a:hover { text-decoration: underline; }
+    .card-badge {
+      font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0; font-family: sans-serif;
+    }
+    .badge-book  { background: #fff3bf; color: #e67700; border: 1px solid #fcc419; }
+    .badge-music { background: #f3d9fa; color: #6741d9; border: 1px solid #cc5de8; }
+    .badge-free  { background: #d3f9d8; color: #2f9e44; border: 1px solid #51cf66; }
+    .badge-wiki  { background: #e7f5ff; color: #1864ab; border: 1px solid #74c0fc; }
+    .card-meta { font-size: 11px; color: var(--muted); margin-bottom: 6px; display: flex; gap: 12px; flex-wrap: wrap; font-family: sans-serif; }
+    .card-abstract { font-size: 12px; color: #4b5563; line-height: 1.7; overflow: hidden; max-height: 5.1em; }
+    .card-abstract.expanded { max-height: 9999px; overflow: visible; }
+    .card-actions { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+    .act-btn {
+      font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 4px;
+      cursor: pointer; border: 1px solid; transition: all 0.12s; background: transparent;
+      font-family: sans-serif; text-decoration: none; display: inline-flex; align-items: center;
+    }
+    .act-btn.expand { border-color: var(--border); color: var(--muted); }
+    .act-btn.expand:hover { border-color: var(--accent); color: var(--accent); }
+    .act-btn.gpt-card { border-color: var(--purple); color: var(--purple); }
+    .act-btn.gpt-card:hover { background: rgba(103,65,217,0.08); }
+    .act-btn.link { border-color: var(--border); color: var(--muted); }
+    .act-btn.link:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── GPT OUTPUT ── */
+    .gpt-panel {
+      background: #f9f5ff; border: 1px solid #d0bfff; border-radius: 8px;
+      padding: 12px 14px; margin-top: 8px; font-size: 12px; color: #3d2c8d;
+      line-height: 1.8;
+    }
+    .gpt-panel h3 { color: var(--purple); font-size: 12px; margin-bottom: 4px; font-family: sans-serif; }
+    .gpt-export-row { display:flex; gap:5px; margin:4px 0 8px; }
+    .gpt-export-row button {
+      font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 4px;
+      cursor: pointer; border: 1px solid var(--border); color: var(--muted);
+      background: transparent; transition: all 0.12s; font-family: sans-serif;
+    }
+    .gpt-export-row button:hover { border-color: var(--accent); color: var(--accent); }
+    .gpt-body { font-size: 12px; color: #3d2c8d; line-height: 1.8; }
+    .gpt-body h1,.gpt-body h2 { color: var(--accent); font-size: 14px; margin: 10px 0 4px; }
+    .gpt-body h3 { color: var(--purple); font-size: 13px; margin: 8px 0 3px; }
+    .gpt-body ul,.gpt-body ol { padding-left: 20px; margin: 5px 0; }
+    .gpt-body li { margin: 3px 0; }
+    .gpt-body strong { color: var(--text); }
+    .gpt-body em { color: #6741d9; }
+    .gpt-body blockquote { border-left: 3px solid var(--purple); padding-left: 10px; color: var(--muted); font-style: italic; margin: 8px 0; }
+    .gpt-body table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+    .gpt-body th,.gpt-body td { border: 1px solid var(--border); padding: 5px 10px; font-size: 11px; }
+    .gpt-body th { background: #f3efff; color: var(--purple); }
+    .gpt-body hr { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+    .gpt-body code { background: #f3efff; padding: 1px 4px; border-radius: 3px; font-size: 11px; color: var(--purple); }
+
+    /* ── BOOK COVER ── */
+    .book-cover {
+      float: right; max-width: 80px; max-height: 110px; object-fit: cover;
+      border-radius: 3px; margin: 0 0 8px 12px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    }
+    .music-art {
+      float: right; width: 70px; height: 70px; object-fit: cover;
+      border-radius: 6px; margin: 0 0 8px 12px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    }
+    audio.preview { width: 100%; height: 28px; margin-top: 6px; border-radius: 4px; }
+
+    /* ── MISC ── */
+    .loading-spinner { text-align: center; padding: 50px; color: var(--muted); font-size: 14px; font-family: sans-serif; }
+    .empty-state { text-align: center; padding: 70px 20px; color: #9ca3af; }
+    .empty-state h2 { font-size: 36px; margin-bottom: 10px; }
+    .empty-state p { font-size: 13px; font-family: sans-serif; }
+    .err-box { background: #fff5f5; border: 1px solid #fca5a5; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: var(--red); font-family: sans-serif; }
+    .info-box { background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #1d4ed8; font-family: sans-serif; }
+    .tag { display: inline-block; background: var(--bg3); border: 1px solid var(--border); color: var(--muted); font-size: 9px; padding: 1px 6px; border-radius: 20px; margin: 1px; font-family: sans-serif; }
+    .kv-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-size:12px; font-family:sans-serif; }
+    .kv-key { color: var(--muted); }
+    .kv-val { color: var(--text); font-weight: 600; text-align: right; max-width: 60%; }
+    .rating-stars { color: #fcc419; font-size: 13px; }
+    .gutenberg-text {
+      background: #faf9f5; border: 1px solid #e5e0d8;
+      border-radius: 6px; padding: 14px 16px; font-size: 13px;
+      line-height: 1.9; color: #292524; font-family: Georgia, serif;
+      max-height: 400px; overflow-y: auto; margin-top: 8px;
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      flex-shrink: 0; background: var(--bg2); border-top: 1px solid var(--border);
+      padding: 4px 16px; font-size: 10px; color: var(--muted);
+      display: flex; align-items: center; gap: 12px; font-family: sans-serif;
+    }
+    .status-bar .stat { color: var(--accent); font-weight: 700; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      .search-drawer {
+        position: fixed; left: 0; top: 0; bottom: 0; z-index: 100;
+        transform: translateX(-110%);
+        box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+      }
+      .search-drawer.open { transform: translateX(0); }
+      .ct-title span { display: none; }
+      .hdr-btn.hide-mobile { display: none; }
+    }
+    @media (min-width: 769px) { .burger-btn { display: none; } }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="ct-header">
+  <button class="burger-btn" onclick="toggleDrawer()">☰</button>
+  <div class="ct-title">✦ CULTURA TERMINAL <span>// Bücher · Musik · Klassiker · Analyse</span></div>
+  <div class="hdr-right">
+    <span class="proxy-badge">● PROXY AKTIV</span>
+    <select class="ct-sel" id="gpt-model">
+      <option value="gpt">GPT-4o</option>
+      <option value="claude">Claude Sonnet</option>
+    </select>
+    <button class="hdr-btn hide-mobile" onclick="exportResults()">⬇ Export</button>
+  </div>
+</div>
+
+<!-- ── MODULE TABS ── -->
+<div class="mod-tabs">
+  <button class="mbt active" data-mod="books">📚 BÜCHER</button>
+  <button class="mbt" data-mod="music">🎵 MUSIK</button>
+  <button class="mbt" data-mod="kultwiki">🎨 KULTURGUT</button>
+</div>
+
+<!-- ── MAIN AREA ── -->
+<div class="main-area">
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+  <div class="search-drawer" id="search-drawer"></div>
+  <div class="results-panel" id="results">
+    <div class="empty-state">
+      <h2>✦</h2>
+      <p>Wähle ein Modul und starte deine kulturelle Recherche</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATUS BAR ── -->
+<div class="status-bar">
+  <span id="status-msg">BEREIT</span>
+  <span>Treffer: <span class="stat" id="hit-count">0</span></span>
+  <span>Modul: <span class="stat" id="active-mod">—</span></span>
+  <span style="margin-left:auto;color:#d1d5db">Open Library · Google Books · Gutendex · iTunes · MusicBrainz · Wikipedia</span>
+</div>
+
+<script>
+/* ================================================================
+   CULTURA TERMINAL
+   Proxy: https://theserver-open-ai.replit.app (kein API-Key im Frontend)
+   Datenbanken: Open Library, Google Books, Gutendex, iTunes, MusicBrainz, Wikipedia
+================================================================ */
+
+const AI_BOT_URL = 'https://theserver-open-ai.replit.app';
+let currentMod  = 'books';
+let lastResults = '';
+
+window.addEventListener('load', () => {
+  if (window.marked) marked.use({ gfm: true, breaks: true });
+  document.querySelectorAll('.mbt').forEach(b =>
+    b.addEventListener('click', () => switchMod(b.dataset.mod))
+  );
+  switchMod('books');
+});
+
+/* ── DRAWER ── */
+function toggleDrawer() {
+  const d = document.getElementById('search-drawer');
+  const o = document.getElementById('drawer-overlay');
+  const open = d.classList.toggle('open');
+  o.classList.toggle('show', open);
+}
+function closeDrawer() {
+  document.getElementById('search-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('show');
+}
+
+/* ── PROXY GPT ── */
+async function callGPT(userPrompt, sys) {
+  const model  = document.getElementById('gpt-model').value;
+  const sysMsg = sys || 'Du bist ein präziser Literatur- und Kulturanalyst. Antworte strukturiert auf Deutsch mit Markdown.';
+
+  if (model === 'claude') {
+    const res = await fetch(`${AI_BOT_URL}/claude/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929', max_tokens: 2000,
+        system: sysMsg, messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    if (!res.ok) throw new Error(`Claude Proxy HTTP ${res.status}`);
+    const d = await res.json();
+    return d.content?.[0]?.text || '';
+  } else {
+    const res = await fetch(`${AI_BOT_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [{ role: 'system', content: sysMsg }, { role: 'user', content: userPrompt }],
+        stream: false
+      })
+    });
+    if (!res.ok) throw new Error(`GPT Proxy HTTP ${res.status}`);
+    const d = await res.json();
+    return d.choices?.[0]?.message?.content || '';
+  }
+}
+
+/* ── MODULE SYSTEM ── */
+const MODS = {
+  books:   { label: '📚 BÜCHER',     buildFn: buildBooks },
+  music:   { label: '🎵 MUSIK',      buildFn: buildMusic },
+  kultwiki:{ label: '🎨 KULTURGUT',  buildFn: buildKultWiki },
+};
+
+function switchMod(mod) {
+  currentMod = mod;
+  document.querySelectorAll('.mbt').forEach(b => b.classList.toggle('active', b.dataset.mod === mod));
+  document.getElementById('active-mod').textContent = MODS[mod]?.label || mod;
+  document.getElementById('results').innerHTML = '<div class="empty-state"><h2>🔍</h2><p>Suche starten</p></div>';
+  document.getElementById('hit-count').textContent = '0';
+  lastResults = '';
+  MODS[mod]?.buildFn?.();
+  if (window.innerWidth <= 768) closeDrawer();
+}
+
+/* ── HELPERS ── */
+function setStatus(msg) { document.getElementById('status-msg').textContent = msg; }
+function setHits(n)     { document.getElementById('hit-count').textContent = n; }
+function showLoading()  { document.getElementById('results').innerHTML = '<div class="loading-spinner">⏳ Wird geladen...</div>'; }
+function showError(e)   { document.getElementById('results').innerHTML = `<div class="err-box">⚠ ${e}</div>`; }
+function drawer(html)   { document.getElementById('search-drawer').innerHTML = html; }
+function esc(s)         { return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ').slice(0,200); }
+
+function qPills(terms, inputId) {
+  return `<div class="field-label">Quick Suche</div><div class="qpills">${
+    terms.map(t => `<span class="qpill" onclick="document.getElementById('${inputId}').value='${t.replace(/'/g,"\\'")}'">${t}</span>`).join('')
+  }</div>`;
+}
+
+function gptBtn(label) {
+  return `<button class="btn-gpt" onclick="analyzeAll('${label}')">🤖 GPT — ALLE ERGEBNISSE ANALYSIEREN</button>`;
+}
+
+function toggleExpand(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const expanded = el.classList.toggle('expanded');
+  btn.textContent = expanded ? '▲ Weniger' : '▼ Mehr';
+}
+
+function exportResults() {
+  if (!lastResults) { alert('Keine Ergebnisse zum Exportieren'); return; }
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([lastResults], { type:'text/plain' })),
+    download: `Cultura_${currentMod}_${Date.now()}.txt`
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function copyGPT(btn) {
+  const p = btn.closest('.gpt-panel');
+  const b = p.querySelector('.gpt-body');
+  navigator.clipboard.writeText((b||p).innerText).then(() => {
+    btn.textContent = '✅ Kopiert!'; setTimeout(() => btn.textContent = '📋 Kopieren', 2000);
+  });
+}
+function exportGPT(btn, name) {
+  const p = btn.closest('.gpt-panel');
+  const b = p.querySelector('.gpt-body');
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([(b||p).innerText], {type:'text/plain'})),
+    download: `${name}_${Date.now()}.txt`
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function gptBox(heading) {
+  return Object.assign(document.createElement('div'), {
+    className: 'gpt-panel',
+    innerHTML: `<h3>🤖 ${heading}...</h3>`
+  });
+}
+
+function gptDone(box, heading, text, exportName) {
+  box.innerHTML = `
+    <h3>🤖 ${heading}</h3>
+    <div class="gpt-export-row">
+      <button onclick="copyGPT(this)">📋 Kopieren</button>
+      <button onclick="exportGPT(this,'${exportName}')">⬇ TXT</button>
+    </div>
+    <div class="gpt-body">${marked.parse(text)}</div>`;
+}
+
+async function analyzeAll(label) {
+  if (!lastResults) { alert('Bitte erst suchen'); return; }
+  const box = gptBox(`Analysiere ${label}`);
+  document.getElementById('results').prepend(box);
+  try {
+    const text = await callGPT(
+      `Erstelle eine tiefgehende kulturelle Analyse auf Deutsch der folgenden Suchergebnisse aus "${label}":\n\n${lastResults.slice(0,8000)}\n\nStrukturiere mit: Einordnung, Bedeutung, Themen, Empfehlungen.`
+    );
+    gptDone(box, `GPT Synthese — ${label}`, text, `Cultura_${label}`);
+  } catch(e) { box.innerHTML = `<h3 style="color:var(--red)">⚠ Proxy Error</h3>${e.message}`; }
+}
+
+async function analyzeItem(title, context, type) {
+  const btn  = event.target;
+  const card = btn.closest('.res-card');
+  const box  = gptBox(`Analysiere "${title.slice(0,40)}"`);
+  if (card) card.after(box); else document.getElementById('results').prepend(box);
+  try {
+    const text = await callGPT(
+      `Erstelle eine detaillierte ${type}-Analyse auf Deutsch:\n\n**Titel:** ${title}\n**Kontext:** ${context}\n\nBitte analysiere: 1) Inhalt/Themen, 2) Historischer/kultureller Kontext, 3) Stil & Bedeutung, 4) Interpretation, 5) Empfehlung.`
+    );
+    gptDone(box, title.slice(0,50), text, `Cultura_${title.slice(0,20).replace(/\W/g,'_')}`);
+  } catch(e) { box.innerHTML = `<h3 style="color:var(--red)">⚠ Proxy Error</h3>${e.message}`; }
+}
+
+/* ================================================================
+   MODULE 1 — BÜCHER (Open Library + Google Books)
+================================================================ */
+function buildBooks() {
+  drawer(`
+    <div class="sidebar-section">📚 Bücher-Suche</div>
+    <div>
+      <div class="field-label">Schnellauswahl</div>
+      <select class="ct-select" id="b-quick" onchange="document.getElementById('b-query').value=this.value">
+        <option value="">-- Klassiker --</option>
+        <option>Faust Goethe</option><option>Der Prozess Kafka</option>
+        <option>1984 Orwell</option><option>Der Steppenwolf Hesse</option>
+        <option>Buddenbrooks Mann</option><option>Die Verwandlung Kafka</option>
+        <option>Der kleine Prinz</option><option>Schuld und Sühne Dostojewski</option>
+        <option>Crime and Punishment Dostoevsky</option><option>In Search of Lost Time Proust</option>
+        <option>The Great Gatsby Fitzgerald</option><option>To Kill a Mockingbird Lee</option>
+        <option>One Hundred Years of Solitude Marquez</option><option>Ulysses Joyce</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Titel / Autor</div>
+      <input class="ct-input" id="b-query" placeholder="Faust, Kafka, Goethe..." onkeydown="if(event.key==='Enter')searchBooks()"/>
+    </div>
+    ${qPills(['Goethe','Kafka','Nietzsche','Schiller','Mann','Hesse','Brecht','Rilke','Shakespeare','Dostoevsky','Tolstoy','Hemingway'],'b-query')}
+    <div>
+      <div class="field-label">Quelle</div>
+      <select class="ct-select" id="b-src">
+        <option value="both">Open Library + Google Books</option>
+        <option value="openlibrary">Open Library</option>
+        <option value="google">Google Books</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">GPT Analyse-Tiefe</div>
+      <select class="ct-select" id="b-depth">
+        <option value="kurz">Kurz (Überblick)</option>
+        <option value="mittel" selected>Mittel (Themen + Kontext)</option>
+        <option value="tief">Tief (Vollanalyse)</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchBooks()">📚 BÜCHER SUCHEN</button>
+    <div class="sep"></div>
+    ${gptBtn('Bücher')}
+  `);
+}
+
+async function searchBooks() {
+  const q   = document.getElementById('b-query').value.trim();
+  const src = document.getElementById('b-src').value;
+  if (!q) return;
+  showLoading(); setStatus('Bücherdatenbanken werden durchsucht...');
+  let html = '', textDump = `Bücher: ${q}\n\n`;
+  let count = 0;
+
+  try {
+    // Open Library
+    if (src !== 'google') {
+      const res  = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=8&fields=key,title,author_name,first_publish_year,number_of_pages_median,subject,cover_i,language,ratings_average`);
+      const data = await res.json();
+      const docs = data.docs || [];
+      for (const d of docs.slice(0,6)) {
+        const cover = d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg` : '';
+        const author= (d.author_name||[]).slice(0,2).join(', ') || '—';
+        const year  = d.first_publish_year || '—';
+        const pages = d.number_of_pages_median || '';
+        const subj  = (d.subject||[]).slice(0,5).join(' · ');
+        const rating= d.ratings_average ? `⭐ ${d.ratings_average.toFixed(1)}` : '';
+        const url   = `https://openlibrary.org${d.key}`;
+        const aid   = 'ol' + d.key.replace(/\W/g,'');
+        textDump += `${d.title} — ${author} (${year})\nSeiten: ${pages} | Themen: ${subj}\n\n`;
+        count++;
+        html += `
+          <div class="res-card">
+            <div class="card-header">
+              <div class="card-title"><a href="${url}" target="_blank">${d.title}</a></div>
+              <span class="card-badge badge-book">OPEN LIBRARY</span>
+            </div>
+            ${cover ? `<img src="${cover}" alt="${d.title}" class="book-cover"/>` : ''}
+            <div class="card-meta">
+              <span>✍ ${author}</span>
+              <span>📅 ${year}</span>
+              ${pages ? `<span>📄 ${pages} S.</span>` : ''}
+              ${rating ? `<span class="rating-stars">${rating}</span>` : ''}
+            </div>
+            ${subj ? `<div class="card-abstract" id="${aid}">${subj}</div>` : ''}
+            <div class="card-actions">
+              ${subj ? `<button class="act-btn expand" onclick="toggleExpand('${aid}',this)">▼ Themen</button>` : ''}
+              <a class="act-btn link" href="${url}" target="_blank">📖 Open Library</a>
+              <button class="act-btn gpt-card" onclick="analyzeItem('${d.title.replace(/['"]/g,' ')}','Autor: ${author}, Jahr: ${year}, Themen: ${subj.slice(0,100).replace(/['"]/g,' ')}','Literatur')">🤖 GPT Analyse</button>
+            </div>
+            <div style="clear:both"></div>
+          </div>`;
+      }
+    }
+
+    // Google Books
+    if (src !== 'openlibrary') {
+      const res  = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=6&langRestrict=&printType=books`);
+      const data = await res.json();
+      const items= (data.items || []);
+      for (const item of items.slice(0,5)) {
+        const vi   = item.volumeInfo || {};
+        const title= vi.title || '—';
+        const auth = (vi.authors||[]).slice(0,2).join(', ') || '—';
+        const year = vi.publishedDate?.slice(0,4) || '—';
+        const desc = (vi.description||'').slice(0,400);
+        const thumb= vi.imageLinks?.thumbnail || '';
+        const pages= vi.pageCount || '';
+        const cats = (vi.categories||[]).join(', ');
+        const lang = vi.language || '';
+        const url  = vi.infoLink || '#';
+        const bid  = 'gb' + item.id;
+        textDump += `${title} — ${auth} (${year})\n${desc.slice(0,150)}\n\n`;
+        count++;
+        html += `
+          <div class="res-card">
+            <div class="card-header">
+              <div class="card-title"><a href="${url}" target="_blank">${title}</a></div>
+              <span class="card-badge badge-book">GOOGLE BOOKS</span>
+            </div>
+            ${thumb ? `<img src="${thumb}" alt="${title}" class="book-cover" onerror="this.style.display='none'"/>` : ''}
+            <div class="card-meta">
+              <span>✍ ${auth}</span>
+              <span>📅 ${year}</span>
+              ${pages ? `<span>📄 ${pages} S.</span>` : ''}
+              ${lang ? `<span>🌐 ${lang.toUpperCase()}</span>` : ''}
+              ${cats ? `<span>🏷 ${cats.slice(0,40)}</span>` : ''}
+            </div>
+            ${desc ? `<div class="card-abstract" id="${bid}">${desc}</div>` : ''}
+            <div class="card-actions">
+              ${desc ? `<button class="act-btn expand" onclick="toggleExpand('${bid}',this)">▼ Beschreibung</button>` : ''}
+              <a class="act-btn link" href="${url}" target="_blank">📖 Google Books</a>
+              <button class="act-btn gpt-card" onclick="analyzeItem('${title.replace(/['"]/g,' ')}','${desc.slice(0,200).replace(/['"]/g,' ')}','Literatur')">🤖 GPT Analyse</button>
+            </div>
+            <div style="clear:both"></div>
+          </div>`;
+      }
+    }
+
+    if (!count) { showError('Keine Bücher gefunden'); return; }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(count); setStatus('Bücher-Suche abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 2 — MUSIK (iTunes + MusicBrainz)
+================================================================ */
+function buildMusic() {
+  drawer(`
+    <div class="sidebar-section">🎵 Musik-Suche</div>
+    <div>
+      <div class="field-label">Schnellauswahl</div>
+      <select class="ct-select" id="m-quick" onchange="document.getElementById('m-query').value=this.value">
+        <option value="">-- Künstler / Album --</option>
+        <option>Beethoven Symphony</option><option>Bach Goldberg Variations</option>
+        <option>Mozart Requiem</option><option>Chopin Nocturne</option>
+        <option>Wagner Ring Cycle</option><option>Pink Floyd Dark Side</option>
+        <option>Miles Davis Kind of Blue</option><option>Bob Dylan Blonde on Blonde</option>
+        <option>Beatles Abbey Road</option><option>Radiohead OK Computer</option>
+        <option>David Bowie Heroes</option><option>Coltrane A Love Supreme</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Künstler / Song / Album</div>
+      <input class="ct-input" id="m-query" placeholder="Beethoven, Pink Floyd, Miles Davis..." onkeydown="if(event.key==='Enter')searchMusic()"/>
+    </div>
+    ${qPills(['Beethoven','Bach','Mozart','Chopin','Wagner','Pink Floyd','Beatles','Miles Davis','Bob Dylan','Radiohead','Coltrane'],'m-query')}
+    <div>
+      <div class="field-label">Suche nach</div>
+      <select class="ct-select" id="m-entity">
+        <option value="musicTrack">Songs</option>
+        <option value="album">Alben</option>
+        <option value="musicArtist">Künstler</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Genre</div>
+      <select class="ct-select" id="m-genre">
+        <option value="">Alle Genres</option>
+        <option value="Classical">Klassik</option>
+        <option value="Jazz">Jazz</option>
+        <option value="Rock">Rock</option>
+        <option value="Pop">Pop</option>
+        <option value="Electronic">Electronic</option>
+        <option value="Blues">Blues</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchMusic()">🎵 MUSIK SUCHEN</button>
+    <div class="sep"></div>
+    ${gptBtn('Musik')}
+  `);
+}
+
+async function searchMusic() {
+  const q      = document.getElementById('m-query').value.trim();
+  const entity = document.getElementById('m-entity').value;
+  const genre  = document.getElementById('m-genre').value;
+  if (!q) return;
+  showLoading(); setStatus('iTunes wird durchsucht...');
+  try {
+    let url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=${entity}&limit=15`;
+    if (genre) url += `&genreId=`; // iTunes uses genre IDs — skip this for simplicity
+    const res  = await fetch(url);
+    const data = await res.json();
+    let items  = (data.results || []);
+    if (genre) items = items.filter(i => (i.primaryGenreName||'').toLowerCase().includes(genre.toLowerCase()));
+
+    if (!items.length) { showError('Keine Musik gefunden'); return; }
+
+    let html = `<div class="info-box" style="margin-bottom:4px">🎵 ${items.length} Treffer via iTunes Search API · ${entity === 'musicTrack' ? 'Songs können als 30s Preview abgespielt werden' : ''}</div>`;
+    let textDump = `Musik: ${q} (${entity})\n\n`;
+
+    for (const r of items.slice(0, 12)) {
+      const title   = r.trackName || r.collectionName || r.artistName || '—';
+      const artist  = r.artistName || '—';
+      const album   = r.collectionName || '';
+      const year    = r.releaseDate?.slice(0,4) || '';
+      const genre2  = r.primaryGenreName || '';
+      const art     = r.artworkUrl100 || '';
+      const preview = r.previewUrl || '';
+      const itunesUrl = r.trackViewUrl || r.collectionViewUrl || r.artistViewUrl || '#';
+      const mid = 'mu' + Math.random().toString(36).slice(2,7);
+
+      textDump += `${title} — ${artist}\nAlbum: ${album} | Jahr: ${year} | Genre: ${genre2}\n\n`;
+      html += `
+        <div class="res-card">
+          <div class="card-header">
+            <div class="card-title">${entity === 'musicArtist' ? artist : title}</div>
+            <span class="card-badge badge-music">${genre2||'MUSIK'}</span>
+          </div>
+          ${art ? `<img src="${art}" alt="${title}" class="music-art"/>` : ''}
+          <div class="card-meta">
+            <span>🎤 ${artist}</span>
+            ${album && entity !== 'album' ? `<span>💿 ${album}</span>` : ''}
+            ${year ? `<span>📅 ${year}</span>` : ''}
+          </div>
+          ${preview ? `<audio class="preview" controls src="${preview}"></audio>` : ''}
+          <div class="card-actions" style="margin-top:${preview?'6px':'10px'}">
+            <a class="act-btn link" href="${itunesUrl}" target="_blank">🎵 iTunes</a>
+            <button class="act-btn gpt-card" onclick="analyzeItem('${title.replace(/['"]/g,' ')}','Künstler: ${artist.replace(/['"]/g,' ')}, Album: ${album.replace(/['"]/g,' ')}, Jahr: ${year}, Genre: ${genre2}','Musik')">🤖 GPT Analyse</button>
+          </div>
+          <div style="clear:both"></div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(items.length); setStatus('Musik-Suche abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+/* ================================================================
+   MODULE 5 — KULTURGUT (Wikipedia Kultur-Suche)
+================================================================ */
+function buildKultWiki() {
+  drawer(`
+    <div class="sidebar-section">🎨 Kulturgut — Wikipedia</div>
+    <div>
+      <div class="field-label">Werk / Künstler / Begriff</div>
+      <input class="ct-input" id="kw-query" placeholder="Beethoven, Mona Lisa, Faust..." onkeydown="if(event.key==='Enter')searchKultWiki()"/>
+    </div>
+    ${qPills(['Romantik Literatur','Impressionismus','Expressionismus','Barock Musik','Renaissance','Dadaismus','Existentialismus','Sturm und Drang','Weimarer Klassik','Wiener Schule'],'kw-query')}
+    <div>
+      <div class="field-label">Wikipedia Sprache</div>
+      <select class="ct-select" id="kw-lang">
+        <option value="de">Deutsch</option>
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">GPT Interpretation — Sprache</div>
+      <select class="ct-select" id="kw-out">
+        <option value="Deutsch">Deutsch</option>
+        <option value="English">English</option>
+      </select>
+    </div>
+    <div>
+      <div class="field-label">Anzahl Artikel</div>
+      <select class="ct-select" id="kw-num">
+        <option value="3">3</option><option value="5" selected>5</option><option value="8">8</option>
+      </select>
+    </div>
+    <button class="btn-search" onclick="searchKultWiki()">🎨 KULTURGUT SUCHEN</button>
+    <div class="sep"></div>
+    ${gptBtn('Kulturgut')}
+  `);
+}
+
+async function searchKultWiki() {
+  const q    = document.getElementById('kw-query').value.trim();
+  const lang = document.getElementById('kw-lang').value;
+  const num  = parseInt(document.getElementById('kw-num').value);
+  if (!q) return;
+  showLoading(); setStatus('Wikipedia Kulturgut-Suche...');
+  try {
+    const base  = `https://${lang}.wikipedia.org/w/api.php`;
+    const sRes  = await fetch(`${base}?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*&srlimit=${num}`);
+    const arts  = (await sRes.json())?.query?.search || [];
+    if (!arts.length) { showError('Keine Artikel gefunden'); return; }
+    let html = '', textDump = `Wikipedia Kulturgut (${lang}): ${q}\n\n`;
+    for (const a of arts) {
+      const title   = a.title;
+      const url     = `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+      let extract = a.snippet.replace(/<\/?[^>]+>/g,''), imgUrl = '';
+      try {
+        const pr = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+        if (pr.ok) { const pd = await pr.json(); extract = pd.extract||extract; imgUrl = pd.thumbnail?.source||''; }
+      } catch {}
+      const uid = 'kw' + Math.random().toString(36).slice(2,7);
+      textDump += `=== ${title} ===\n${extract.slice(0,400)}\n${url}\n\n`;
+      html += `
+        <div class="res-card">
+          <div class="card-header">
+            <div class="card-title"><a href="${url}" target="_blank">${title}</a></div>
+            <span class="card-badge badge-wiki">WIKI</span>
+          </div>
+          ${imgUrl ? `<img src="${imgUrl}" alt="${title}" class="book-cover" style="border-radius:4px"/>` : ''}
+          <div class="card-abstract" id="${uid}">${extract.slice(0,600)}</div>
+          <div class="card-actions">
+            <button class="act-btn expand" onclick="toggleExpand('${uid}',this)">▼ Mehr</button>
+            <a class="act-btn link" href="${url}" target="_blank">🌐 Wikipedia</a>
+            <button class="act-btn gpt-card" onclick="interpretKulturgut('${title.replace(/['"]/g,' ')}','${uid}')">🎨 GPT Interpretieren</button>
+          </div>
+          <div id="kw-imp-${uid}"></div>
+          <div style="clear:both"></div>
+        </div>`;
+    }
+    document.getElementById('results').innerHTML = html;
+    lastResults = textDump;
+    setHits(arts.length); setStatus('Kulturgut-Suche abgeschlossen');
+  } catch(e) { showError(e.message); }
+}
+
+async function interpretKulturgut(title, uid) {
+  const impDiv  = document.getElementById(`kw-imp-${uid}`);
+  if (!impDiv) return;
+  impDiv.innerHTML = '<div class="gpt-panel"><h3>🎨 GPT interpretiert...</h3></div>';
+  const outLang = document.getElementById('kw-out')?.value || 'Deutsch';
+  const wLang   = document.getElementById('kw-lang')?.value || 'de';
+  try {
+    const pr  = await fetch(`https://${wLang}.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`);
+    const txt = Object.values((await pr.json()).query.pages)[0]?.extract || '';
+    const analysis = await callGPT(
+      `Interpretiere und analysiere dieses Kulturgut "${title}" tiefgehend auf ${outLang}:\n\n${txt.slice(0,5000)}\n\nErstelle: 1) Biographischer/historischer Kontext, 2) Bedeutung & Einfluss, 3) Stilistische Einordnung, 4) Heutige Relevanz, 5) Kulturgeschichtliche Einbettung`,
+      `Du bist ein tiefgründiger Kulturwissenschaftler. Analysiere präzise und fesselnd auf ${outLang} mit Markdown.`
+    );
+    const box = Object.assign(document.createElement('div'), { className: 'gpt-panel' });
+    impDiv.innerHTML = '';
+    impDiv.appendChild(box);
+    gptDone(box, `🎨 Kulturinterpretation: ${title.slice(0,40)}`, analysis, `Kultur_${title.slice(0,20).replace(/\W/g,'_')}`);
+  } catch(e) { impDiv.innerHTML = `<div class="err-box">⚠ ${e.message}</div>`; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turtle Trading — Das Experiment das die Welt veränderte</title>
+<style>
+  :root {
+    --bg: #030d0a;
+    --surface: #061410;
+    --card: #0a1e18;
+    --border: #122b22;
+    --teal: #0d9488;
+    --teal2: #14b8a6;
+    --teal3: #5eead4;
+    --green: #22c55e;
+    --green2: #86efac;
+    --amber: #f59e0b;
+    --amber2: #fbbf24;
+    --red: #ef4444;
+    --red2: #fca5a5;
+    --blue: #60a5fa;
+    --blue2: #93c5fd;
+    --purple: #a78bfa;
+    --text: #e2e8f0;
+    --muted: #0f3028;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .header {
+    background: linear-gradient(135deg, #020a07 0%, #071a12 40%, #020a07 100%);
+    border-bottom: 1px solid #122b22;
+    padding: 56px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(13,148,136,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 30%, rgba(34,197,94,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 90%, rgba(245,158,11,0.03) 0%, transparent 40%);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: var(--teal2); margin-bottom: 14px; opacity: 0.8; }
+  .header-name { font-size: clamp(32px, 6vw, 64px); font-weight: 900; letter-spacing: -2px; line-height: 0.95; margin-bottom: 10px; }
+  .header-name .main { color: var(--teal3); text-shadow: 0 0 60px rgba(13,148,136,0.3); }
+  .header-subtitle { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--teal2); margin-bottom: 16px; }
+  .header-tagline { font-size: 15px; color: #475569; max-width: 720px; margin: 0 auto 20px; line-height: 1.7; }
+  .header-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge { padding: 5px 14px; border-radius: 20px; font-size: 11px; letter-spacing: 1px; font-weight: 600; }
+  .badge-teal { background: rgba(13,148,136,0.12); border: 1px solid rgba(13,148,136,0.3); color: var(--teal3); }
+  .badge-amber { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--amber2); }
+  .badge-green { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green2); }
+
+  .stats-bar { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+  .stat-item { background: var(--surface); padding: 20px; text-align: center; }
+  .stat-num { font-size: 26px; font-weight: 900; font-family: monospace; }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+  .s-teal .stat-num { color: var(--teal3); }
+  .s-amber .stat-num { color: var(--amber2); }
+  .s-green .stat-num { color: var(--green2); }
+  .s-red .stat-num { color: var(--red2); }
+
+  .content { max-width: 1060px; margin: 0 auto; padding: 56px 24px; }
+  .section-header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--teal2); margin-bottom: 4px; }
+  .section-title { font-size: 22px; font-weight: 800; color: var(--text); }
+  .section-gap { margin-top: 60px; }
+
+  .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px 26px; margin-bottom: 20px; }
+  .info-card-body { font-size: 13px; color: #8b949e; line-height: 1.75; }
+  .info-card-body strong { color: var(--text); }
+  .info-card-body em { color: var(--teal3); font-style: normal; }
+
+  .formula-block { background: #020806; border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin: 16px 0; font-family: monospace; }
+  .formula-main { font-size: clamp(12px, 2vw, 16px); font-weight: 700; color: var(--teal3); line-height: 2; }
+  .formula-sub { font-size: 12px; color: #475569; margin-top: 8px; line-height: 1.6; }
+  .formula-example { font-size: 12px; color: var(--amber2); margin-top: 6px; line-height: 1.6; font-family: 'Segoe UI', sans-serif; }
+
+  .lw-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .lw-table th { background: rgba(13,148,136,0.08); color: var(--teal2); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 11px 14px; border: 1px solid var(--border); text-align: left; }
+  .lw-table td { padding: 11px 14px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .lw-table tr:nth-child(even) td { background: rgba(13,148,136,0.02); }
+  .lw-table td:first-child { color: var(--text); font-weight: 600; }
+  .val-green { color: var(--green2); font-weight: 700; }
+  .val-red { color: var(--red2); font-weight: 700; }
+  .val-amber { color: var(--amber2); font-weight: 700; }
+  .val-teal { color: var(--teal3); font-weight: 700; }
+
+  /* DEBATE CARDS */
+  .debate-two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+  .debate-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-top: 3px solid; }
+  .dc-dennis { border-top-color: var(--teal); }
+  .dc-eckhardt { border-top-color: var(--red); }
+  .debate-name { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .dc-dennis .debate-name { color: var(--teal3); }
+  .dc-eckhardt .debate-name { color: var(--red2); }
+  .debate-title { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
+  .dc-dennis .debate-title { color: var(--teal2); }
+  .dc-eckhardt .debate-title { color: var(--red); }
+  .debate-body { font-size: 12px; color: #64748b; line-height: 1.65; }
+  .debate-body strong { color: var(--text); }
+  .debate-verdict { margin-top: 14px; padding: 10px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+  .dc-dennis .debate-verdict { background: rgba(13,148,136,0.1); color: var(--teal3); }
+  .dc-eckhardt .debate-verdict { background: rgba(239,68,68,0.1); color: var(--red2); }
+
+  /* SYSTEM CARDS */
+  .system-two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .sys-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px; border-left: 4px solid; }
+  .sys-1 { border-color: var(--teal); }
+  .sys-2 { border-color: var(--green); }
+  .sys-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .sys-1 .sys-label { color: var(--teal3); }
+  .sys-2 .sys-label { color: var(--green2); }
+  .sys-title { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
+  .sys-1 .sys-title { color: var(--teal2); }
+  .sys-2 .sys-title { color: var(--green); }
+  .sys-body { font-size: 12px; color: #64748b; line-height: 1.65; }
+  .sys-body strong { color: var(--text); }
+  .sys-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .sys-row:last-child { border-bottom: none; }
+  .sys-row-label { color: #64748b; }
+  .sys-row-val { font-family: monospace; font-weight: 700; }
+  .sys-1 .sys-row-val { color: var(--teal3); }
+  .sys-2 .sys-row-val { color: var(--green2); }
+
+  /* PYRAMID */
+  .turtle-pyramid { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; }
+  .tp-step { display: flex; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .tp-step:last-child { border-bottom: none; }
+  .tp-unit { font-size: 12px; font-weight: 700; font-family: monospace; min-width: 80px; }
+  .tp-bar { height: 28px; border-radius: 4px; display: flex; align-items: center; padding: 0 12px; font-size: 11px; font-weight: 700; color: rgba(0,0,0,0.7); }
+  .tp-detail { font-size: 11px; color: #64748b; flex: 1; }
+  .tp-stop { font-size: 11px; color: var(--red2); font-family: monospace; text-align: right; }
+
+  /* POSITION CALC */
+  .pos-calc { background: #020806; border: 1px solid var(--border); border-radius: 8px; padding: 22px; margin-bottom: 20px; }
+  .pc-title { font-size: 12px; font-weight: 700; color: var(--teal2); margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase; }
+  .pc-step { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); font-family: monospace; font-size: 13px; }
+  .pc-step:last-child { border-bottom: none; }
+  .pc-num { color: var(--teal); min-width: 30px; font-weight: 700; }
+  .pc-formula { color: var(--teal3); flex: 1; }
+  .pc-result { color: var(--amber2); font-weight: 700; }
+  .pc-explain { font-size: 11px; color: #475569; font-family: 'Segoe UI', sans-serif; }
+
+  /* TURTLES WHO MADE IT */
+  .turtles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .turtle-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; border-top: 2px solid var(--teal); }
+  .turtle-name { font-size: 15px; font-weight: 700; color: var(--teal3); margin-bottom: 4px; }
+  .turtle-company { font-size: 11px; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; }
+  .turtle-body { font-size: 12px; color: #64748b; line-height: 1.6; }
+  .turtle-body strong { color: var(--text); }
+
+  .highlight-box { background: rgba(13,148,136,0.05); border: 1px solid rgba(13,148,136,0.15); border-left: 4px solid var(--teal); border-radius: 8px; padding: 18px 22px; margin-bottom: 20px; }
+  .hl-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--teal2); margin-bottom: 8px; }
+  .hl-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .hl-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .hl-body strong { color: var(--text); }
+  .hl-body em { color: var(--teal3); font-style: normal; }
+
+  .magritte-quote { font-style: italic; font-size: 12px; color: rgba(13,148,136,0.3); padding-left: 14px; border-left: 2px solid rgba(13,148,136,0.2); margin-top: 14px; line-height: 1.6; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 10px; background: rgba(13,148,136,0.08); color: var(--teal2); border: 1px solid rgba(13,148,136,0.2); }
+  .tag-amber { background: rgba(245,158,11,0.08); color: var(--amber2); border-color: rgba(245,158,11,0.2); }
+  .tag-green { background: rgba(34,197,94,0.08); color: var(--green2); border-color: rgba(34,197,94,0.2); }
+  .tag-red { background: rgba(239,68,68,0.08); color: var(--red2); border-color: rgba(239,68,68,0.2); }
+
+  @media (max-width: 700px) {
+    .content { padding: 28px 14px; }
+    .debate-two, .system-two { grid-template-columns: 1fr; }
+    .header { padding: 40px 16px; }
+    .turtles-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK — Trading Systeme Series</div>
+  <div class="header-name">
+    <span class="main">TURTLE TRADING</span>
+  </div>
+  <div class="header-subtitle">Das Experiment · Richard Dennis vs. William Eckhardt · 1983</div>
+  <p class="header-tagline">
+    Kann man Trading wie Schildkröten-Farming lehren? Richard Dennis wettte: Ja.
+    Er rekrutierte 23 Laien, lehrte sie in 2 Wochen sein System, und übergab ihnen $1 Million.
+    In 4 Jahren machten sie $175 Millionen. Die vollständigen Regeln sind dokumentiert
+    und bilden das Fundament des modernen systematischen Trend-Followings.
+  </p>
+  <div class="header-badges">
+    <span class="badge badge-teal">$175M in 4 Jahren · 1984–1988</span>
+    <span class="badge badge-amber">ATR Position Sizing · 20/55-Day Breakout</span>
+    <span class="badge badge-green">Dennis vs. Eckhardt · Das Wette die alles änderte</span>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item s-amber"><div class="stat-num">$175M</div><div class="stat-label">Profit in 4 Jahren</div></div>
+  <div class="stat-item s-teal"><div class="stat-num">23</div><div class="stat-label">Turtle Recruits 1984</div></div>
+  <div class="stat-item s-green"><div class="stat-num">2</div><div class="stat-label">Wochen Training</div></div>
+  <div class="stat-item s-amber"><div class="stat-num">1983</div><div class="stat-label">Jahr der Wette</div></div>
+  <div class="stat-item s-teal"><div class="stat-num">20/55</div><div class="stat-label">Breakout Perioden</div></div>
+  <div class="stat-item s-red"><div class="stat-num">2N</div><div class="stat-label">Stop Loss Regel</div></div>
+</div>
+
+<div class="content">
+
+  <!-- DIE WETTE -->
+  <div class="section-header">
+    <div class="section-label">Der Ursprung</div>
+    <div class="section-title">Dennis vs. Eckhardt — Die Wette die Trading-Geschichte schrieb</div>
+  </div>
+
+  <div class="debate-two">
+    <div class="debate-card dc-dennis">
+      <div class="debate-name">Richard Dennis · "The Prince of the Pit"</div>
+      <div class="debate-title">Trading kann gelehrt werden</div>
+      <div class="debate-body">
+        Dennis hatte $400 in $200 Millionen verwandelt. Als Kind des Mittleren Westens ohne Eltern-Connections
+        oder Harvard-Abschluss hatte er sich alles selbst erarbeitet.
+        <br><br>
+        <strong>Seine These:</strong> Trading ist ein Handwerk — wie Schildkröten-Farming in Singapur,
+        das er auf einer Reise beobachtet hatte. Man kann Menschen beibringen wie man Schildkröten züchtet.
+        Man kann ihnen auch beibringen wie man tradet.
+        <br><br>
+        <em>„Ich glaube fest daran, dass ich genug Trader ausbilden kann, um den Futures-Markt zu füllen."</em>
+        Er wollte beweisen: Es geht um das System, nicht um angeborenes Talent.
+      </div>
+      <div class="debate-verdict">✅ DENNIS GEWANN — $175M bewiesen es</div>
+    </div>
+    <div class="debate-card dc-eckhardt">
+      <div class="debate-name">William Eckhardt · Mathematiker & Trader</div>
+      <div class="debate-title">Trading ist angeborenes Talent</div>
+      <div class="debate-body">
+        Eckhardt war Dennis' langjähriger Trading-Partner und Mathematiker.
+        Er glaubte, dass außergewöhnliche Trading-Performance auf persönlichen Qualitäten beruht —
+        Instinkt, Risikobereitschaft, mentale Stärke — die man nicht lehren kann.
+        <br><br>
+        <strong>Seine These:</strong> Systeme können kopiert werden — aber die Disziplin, sie wirklich
+        durchzuhalten, kann nicht gelehrt werden.
+        <br><br>
+        <em>„Man kann jemandem beibringen was zu tun ist. Aber man kann ihm nicht beibringen es
+        wirklich zu tun wenn es schwer ist."</em>
+      </div>
+      <div class="debate-verdict">⚠️ ECKHARDT hatte bei den Turtles die scheiterten recht</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Das Experiment:</strong> 1984 schalteten Dennis und Eckhardt Anzeigen in der Wall Street Journal
+      und Barron's. Tausende bewarben sich. 23 wurden ausgewählt — darunter ein Schullehrer, ein Schauspieler,
+      ein Profi-Backgammon-Spieler, Börsenhändler, Studenten.
+      <br><br>
+      <strong>Training:</strong> Zwei Wochen. Das komplette System, alle Regeln. Dann $1 Million Kapital pro Person.
+      <br><br>
+      <em>Ergebnis nach 4 Jahren: Die besten Turtles machten Renditen von mehreren tausend Prozent.
+      Gesamt: $175 Millionen Profit. Eckhardt hatte in einer Hinsicht recht: Einige Turtles scheiterten —
+      weil sie das System nicht diszipliniert genug umsetzten.</em>
+    </div>
+  </div>
+
+  <!-- DIE ZWEI SYSTEME -->
+  <div class="section-header section-gap">
+    <div class="section-label">Entry Systems</div>
+    <div class="section-title">System 1 und System 2 — Die zwei Breakout-Strategien</div>
+  </div>
+
+  <div class="system-two">
+    <div class="sys-card sys-1">
+      <div class="sys-label">Kurzfristig · Aggressiver</div>
+      <div class="sys-title">System 1<br>20-Tage Breakout</div>
+      <div class="sys-row"><span class="sys-row-label">Entry Long</span><span class="sys-row-val">Neues 20-Tage-Hoch</span></div>
+      <div class="sys-row"><span class="sys-row-label">Entry Short</span><span class="sys-row-val">Neues 20-Tage-Tief</span></div>
+      <div class="sys-row"><span class="sys-row-label">Exit Long</span><span class="sys-row-val">Neues 10-Tage-Tief</span></div>
+      <div class="sys-row"><span class="sys-row-label">Exit Short</span><span class="sys-row-val">Neues 10-Tage-Hoch</span></div>
+      <div class="sys-row"><span class="sys-row-label">Stop Loss</span><span class="sys-row-val">2N vom Einstieg</span></div>
+      <div class="sys-row"><span class="sys-row-label">Besonderheit</span><span class="sys-row-val">Kein Entry wenn letzter S1-Trade Gewinner war</span></div>
+      <div class="sys-body" style="margin-top:12px;">Kürzeres Gedächtnis. Mehr Signale, mehr Fehlsignale.
+      Typische Win-Rate: <strong>35–40%</strong>. Kompensiert durch große Gewinner.</div>
+    </div>
+    <div class="sys-card sys-2">
+      <div class="sys-label">Langfristig · Kernstrategie</div>
+      <div class="sys-title">System 2<br>55-Tage Breakout</div>
+      <div class="sys-row"><span class="sys-row-label">Entry Long</span><span class="sys-row-val">Neues 55-Tage-Hoch</span></div>
+      <div class="sys-row"><span class="sys-row-label">Entry Short</span><span class="sys-row-val">Neues 55-Tage-Tief</span></div>
+      <div class="sys-row"><span class="sys-row-label">Exit Long</span><span class="sys-row-val">Neues 20-Tage-Tief</span></div>
+      <div class="sys-row"><span class="sys-row-label">Exit Short</span><span class="sys-row-val">Neues 20-Tage-Hoch</span></div>
+      <div class="sys-row"><span class="sys-row-label">Stop Loss</span><span class="sys-row-val">2N vom Einstieg</span></div>
+      <div class="sys-row"><span class="sys-row-label">Besonderheit</span><span class="sys-row-val">Immer handeln · Keine Filterbedingung</span></div>
+      <div class="sys-body" style="margin-top:12px;">Hauptsystem. Weniger Signale, höhere Qualität.
+      Fängt die großen Trends. <strong>Meiste Profits kamen aus S2.</strong></div>
+    </div>
+  </div>
+
+  <!-- N BERECHNUNG -->
+  <div class="section-header section-gap">
+    <div class="section-label">Das Fundament</div>
+    <div class="section-title">N (ATR) — Die Volatilitäts-Einheit die alles steuert</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Was N ist:</strong> N ist der 20-Tage-Durchschnitt der <em>True Range</em> (wahre Handelsspanne).
+      Die True Range berücksichtigt Gaps: sie ist das Maximum aus (Hoch−Tief), (Hoch−Vortagesschluss), (Vortagesschluss−Tief).
+      N ist die Volatilitäts-Einheit. <em>Alles im Turtle-System wird in N gemessen.</em>
+      Stops, Pyramidierungsschritte, Positionsgrößen — alles ist N-basiert.
+    </div>
+  </div>
+
+  <div class="formula-block">
+    <div class="formula-main">
+      TR  = max(High − Low, |High − Prev.Close|, |Prev.Close − Low|)<br>
+      N   = EMA(TR, 20)  [20-Tage exponentieller Durchschnitt der True Range]<br><br>
+      Dollar Volatility = N × Dollar per Point<br>
+      Unit Size         = (1% des Kontos) ÷ Dollar Volatility
+    </div>
+    <div class="formula-sub">
+      Unit = die Grundeinheit des Turtle-Systems. Eine "Position" = mehrere Units.
+      Die Positionsgröße ist nie fix — sie passt sich der Markt-Volatilität an.
+    </div>
+    <div class="formula-example">
+      Beispiel: $1.000.000 Konto · N = $500 pro Kontrakt (Gold) · 1% = $10.000<br>
+      → Unit Size = $10.000 ÷ $500 = 20 Kontrakte pro Unit
+    </div>
+  </div>
+
+  <div class="pos-calc">
+    <div class="pc-title">Schritt-für-Schritt Position Berechnung</div>
+    <div class="pc-step">
+      <div class="pc-num">1.</div>
+      <div class="pc-formula">Konto = $1.000.000 · Risikolimit pro Trade = 1%</div>
+      <div class="pc-result">= $10.000 max. Risiko</div>
+      <div class="pc-explain">Turtle-Regel: nie mehr als 1% des Kontos pro Unit riskieren</div>
+    </div>
+    <div class="pc-step">
+      <div class="pc-num">2.</div>
+      <div class="pc-formula">N (Gold) = 15 Dollar/oz · Contract = 100oz</div>
+      <div class="pc-result">= $1.500 N-Wert</div>
+      <div class="pc-explain">Tagesvolatilität in Dollar: N × Contract Size</div>
+    </div>
+    <div class="pc-step">
+      <div class="pc-num">3.</div>
+      <div class="pc-formula">Unit = $10.000 ÷ $1.500</div>
+      <div class="pc-result">= 6,6 → 6 Kontrakte</div>
+      <div class="pc-explain">Immer abrunden. Nie aufrunden — lieber zu klein als zu groß.</div>
+    </div>
+    <div class="pc-step">
+      <div class="pc-num">4.</div>
+      <div class="pc-formula">Stop Loss = Entry − (2 × N) = Entry − (2 × 15) = Entry − 30</div>
+      <div class="pc-result">= $30/oz unter Einstieg</div>
+      <div class="pc-explain">2N-Stop gilt für alle Units. Wird nach oben verschoben beim Pyramidieren.</div>
+    </div>
+    <div class="pc-step">
+      <div class="pc-num">5.</div>
+      <div class="pc-formula">Risiko Check: 6 Kontrakte × 100oz × $30 = $18.000 ≠ $10.000</div>
+      <div class="pc-result">→ Reduziere auf 3 Kontrakte</div>
+      <div class="pc-explain">Das echte Risiko durch den 2N-Stop nicht das N-Risiko. Muss auf ≤$10.000 passen.</div>
+    </div>
+  </div>
+
+  <!-- PYRAMIDIERUNG -->
+  <div class="section-header section-gap">
+    <div class="section-label">Positionsaufbau</div>
+    <div class="section-title">Turtle Pyramidierung — 4 Units auf +2N aufgebaut</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Das Turtle-Pyramidierungsprinzip:</strong> Turtles begannen immer mit 1 Unit beim Breakout.
+      Für jede +0,5N Bewegung in ihre Richtung fügten sie 1 weitere Unit hinzu.
+      Maximal 4 Units pro Markt. Gleichzeitig wurde der Stop für alle Units auf 2N
+      unter der <em>zuletzt hinzugefügten</em> Unit gesetzt.
+    </div>
+  </div>
+
+  <div class="turtle-pyramid">
+    <div style="font-size:12px;color:#64748b;margin-bottom:16px;">Beispiel: Einstieg Gold bei 1800, N = 10 $/oz</div>
+    <div class="tp-step">
+      <div class="tp-unit" style="color:var(--teal3)">Unit 1</div>
+      <div class="tp-bar" style="width:25%;background:#0d9488;">Kauf bei 1800</div>
+      <div class="tp-detail">Breakout über 55-Tage-Hoch. Erste Position.</div>
+      <div class="tp-stop">Stop: 1780</div>
+    </div>
+    <div class="tp-step">
+      <div class="tp-unit" style="color:var(--green2)">Unit 2</div>
+      <div class="tp-bar" style="width:50%;background:#14b8a6;">Kauf bei 1805 (+0,5N)</div>
+      <div class="tp-detail">Kurs +0,5N = +5$. Markt bestätigt. Zweite Unit.</div>
+      <div class="tp-stop">Stop alle: 1785</div>
+    </div>
+    <div class="tp-step">
+      <div class="tp-unit" style="color:var(--amber2)">Unit 3</div>
+      <div class="tp-bar" style="width:75%;background:#16c79a;">Kauf bei 1810 (+1,0N)</div>
+      <div class="tp-detail">Trend bestätigt sich. Dritte Unit. Durchschnittspreis steigt.</div>
+      <div class="tp-stop">Stop alle: 1790</div>
+    </div>
+    <div class="tp-step">
+      <div class="tp-unit" style="color:var(--green)">Unit 4</div>
+      <div class="tp-bar" style="width:100%;background:#22c55e;color:#030d0a;">Kauf bei 1815 (+1,5N)</div>
+      <div class="tp-detail">Maximale Position erreicht. 4 Units · Durchschnitt: ~1807,5</div>
+      <div class="tp-stop" style="color:var(--green2)">Stop alle: 1795 · 2N unter Unit 4</div>
+    </div>
+    <div style="font-size:12px;color:#475569;margin-top:14px;padding:12px;background:#020806;border-radius:6px;">
+      <strong style="color:var(--text)">Logik:</strong> Bei Auslösung des Stops: Unit 4 bei 1815 − Stop 1795 = 20 = 2N Verlust auf letzte Unit.
+      Gesamtrisiko durch Pyramide ist höher als 1% — deshalb muss die initiale Unit-Größe kleiner kalkuliert werden
+      wenn voller Pyramid-Aufbau geplant ist. Turtles planten für max. 4 Units.
+    </div>
+  </div>
+
+  <!-- PORTFOLIO LIMITS -->
+  <div class="section-header section-gap">
+    <div class="section-label">Risiko-Architektur</div>
+    <div class="section-title">Portfolio-Limits — Wie Turtles das Gesamtrisiko steuerten</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Limit-Typ</th><th>Maximale Units</th><th>Begründung</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Pro Einzelmarkt (z.B. Gold)</td><td class="val-teal">4 Units</td><td>Konzentrations-Limit. Ein Markt kann maximal 4% des Kontos riskieren.</td></tr>
+      <tr><td>Korrelierte Märkte (z.B. Gold + Silber)</td><td class="val-amber">6 Units total</td><td>Gold und Silber bewegen sich oft zusammen → erhöhtes Korrelationsrisiko.</td></tr>
+      <tr><td>Selbe Richtung (Long oder Short) pro Marktklasse</td><td class="val-amber">10 Units</td><td>Edelmetalle, Energien, Getreide etc. als Klassen. Max. 10 Units in eine Richtung pro Klasse.</td></tr>
+      <tr><td>Gesamt Long oder Gesamt Short</td><td class="val-red">12 Units</td><td>Absolutes Portfolio-Richtungs-Limit. Verhindert übermäßige Einzel-Wette auf Marktrichtung.</td></tr>
+      <tr><td>Gesamt offene Positionen</td><td style="color:#64748b">24 Units (12L + 12S)</td><td>Theoretisches Maximum. In der Praxis deutlich weniger durch Korrelations-Limits.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- MÄRKTE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Diversifikation</div>
+    <div class="section-title">Welche Märkte — Trend-Following braucht Vielfalt</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Markt-Klasse</th><th>Beispiele</th><th>Warum Turtle-geeignet</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Edelmetalle</td><td class="val-amber">Gold, Silber, Platin</td><td>Klare Makro-getriebene Trends. Inflation, Krisen, Dollar-Stärke erzeugen monatelange Bewegungen.</td></tr>
+      <tr><td>Energie</td><td class="val-amber">Rohöl (WTI/Brent), Erdgas, Heizöl</td><td>Saisonale + geopolitische Trends. Energie-Supercycles. Ideal für 55-Tage Breakouts.</td></tr>
+      <tr><td>Getreide/Agrar</td><td class="val-green">Weizen, Mais, Soja, Baumwolle</td><td>Wetter-getriebene Ausbrüche, Ernteversagen. Oft +30–50% in Wochen möglich.</td></tr>
+      <tr><td>Währungen</td><td class="val-teal">EUR/USD, GBP/USD, JPY</td><td>Zinsdifferenzen erzeugen jahrelange FX-Trends. Carry Trades. Klare Trends über Monate.</td></tr>
+      <tr><td>Anleihen (Bonds)</td><td class="val-blue">T-Bonds, Bund-Future, Eurodollar</td><td>Zinstrends dauern Jahre. 2022er Anleihen-Crash wäre ein perfekter Turtle-Short gewesen.</td></tr>
+      <tr><td>Aktienindizes</td><td class="val-teal">S&P 500, DAX, Nikkei Futures</td><td>Aufwärtstrend-Bias langfristig. Crash-Shorts (2008, 2020) massive Gewinner.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box">
+    <div class="hl-label">Die Turtle-Goldene Regel der Märkte</div>
+    <div class="hl-title">Handele alle Märkte — Correlation is your enemy</div>
+    <div class="hl-body">
+      Turtles durften keine Märkte aussuchen nach persönlicher Präferenz.
+      <strong>Sie handelten alle Märkte, für die ausreichend Liquidität vorhanden war.</strong>
+      Grund: Ein Trend-Following-System lebt von dem einen großen Trend pro Jahr in irgendwo einem Markt.
+      Wenn man Märkte auslässt, verpasst man möglicherweise genau den Mega-Trend.
+      <em>Man weiß nie vorher wo er entsteht.</em>
+    </div>
+  </div>
+
+  <!-- PSYCHOLOGISCHE HERAUSFORDERUNG -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die echte Herausforderung</div>
+    <div class="section-title">Warum manche Turtles scheiterten — Eckhardt hatte teilweise recht</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Herausforderung</th><th>Das System sagt</th><th>Der Mensch will</th><th>Konsequenz</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>40–50% Verlust-Trades</td>
+        <td class="val-teal">Normal · System weiter handeln</td>
+        <td>„Das System funktioniert nicht mehr" → Abweichung</td>
+        <td class="val-red">Verpasst die 2–3 großen Gewinner die alles kompensieren</td>
+      </tr>
+      <tr>
+        <td>3–6 Monate Drawdown</td>
+        <td class="val-teal">Warten · System ist im Drawdown-Bereich</td>
+        <td>„Vielleicht sollte ich die Regeln anpassen"</td>
+        <td class="val-red">Angepasste Regeln funktionieren weniger gut · Slippery Slope</td>
+      </tr>
+      <tr>
+        <td>10 Verluste in Folge</td>
+        <td class="val-teal">Positionsgröße beibehalten · Weiter handeln</td>
+        <td>Positionsgröße reduzieren (Schmerz-Reaktion)</td>
+        <td class="val-red">Wenn der Gewinner kommt: Position zu klein für Recovery</td>
+      </tr>
+      <tr>
+        <td>Großer Gewinner dreht kurz um</td>
+        <td class="val-teal">Stop bei 10-Tage-Tief halten · Nicht früher raus</td>
+        <td>Gewinne sichern · Zu früh verkaufen</td>
+        <td class="val-red">Aus einem +8R Trade wird +3R · Das ändert den EV komplett</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- DIE ERFOLGREICHEN TURTLES -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die Gewinner</div>
+    <div class="section-title">Turtles die es langfristig schafften</div>
+  </div>
+
+  <div class="turtles-grid">
+    <div class="turtle-card">
+      <div class="turtle-name">Jerry Parker</div>
+      <div class="turtle-company">Chesapeake Capital · Richmond VA</div>
+      <div class="turtle-body">Erfolgreichster Turtle langfristig. <strong>Chesapeake Capital verwaltet heute $1+ Mrd.</strong> Parker blieb dem Trend-Following treu ohne Kompromisse. Beweis dass das System bei vollständiger Disziplin über Jahrzehnte funktioniert.</div>
+    </div>
+    <div class="turtle-card">
+      <div class="turtle-name">Liz Cheval</div>
+      <div class="turtle-company">EMC Capital Management</div>
+      <div class="turtle-body">Gründete EMC Capital in den 1980ern. <strong>Jahrzehntelange Track Record</strong> im systematischen Trend-Following. Beweis dass das System auch für Frauen in einer männerdominierten Branche funktioniert.</div>
+    </div>
+    <div class="turtle-card">
+      <div class="turtle-name">Paul Rabar</div>
+      <div class="turtle-company">Rabar Market Research</div>
+      <div class="turtle-body">Erfolgreicher CTA der Turtle-Methodik adaptierte und weiterentwickelte. <strong>Rabar Market Research ist seit Jahrzehnten aktiv</strong> — mit verfeinerten Trend-Following Ansätzen.</div>
+    </div>
+    <div class="turtle-card">
+      <div class="turtle-name">Salem Abraham</div>
+      <div class="turtle-company">Abraham Trading Company · Canadian TX</div>
+      <div class="turtle-body">Texanischer Rancher der zum Turtle wurde. <strong>Eines der ältesten, konsistentesten Trend-Following Funds der USA.</strong> Beweist dass Ort, Herkunft und Hintergrund irrelevant sind — nur das System zählt.</div>
+    </div>
+    <div class="turtle-card">
+      <div class="turtle-name">Tom Shanks</div>
+      <div class="turtle-company">Hawksbill Capital</div>
+      <div class="turtle-body">Einer der ersten Turtles überhaupt. <strong>Erzielte nach Dennis' Experiment weiterhin starke Renditen</strong> mit systematischem Trend-Following. Stil: konservativere Position Sizes, längere Haltedauer.</div>
+    </div>
+    <div class="turtle-card">
+      <div class="turtle-name">Michael Carr</div>
+      <div class="turtle-company">Carr Futures</div>
+      <div class="turtle-body">Gründete Carr Futures, eines der bekanntesten Clearing-Häuser in Chicago. <strong>Verband Turtle-Grundsätze mit institutioneller Infrastruktur</strong> — breitere Sicht auf Markt-Ökosystem.</div>
+    </div>
+  </div>
+
+  <!-- DAS ERBE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Das Vermächtnis</div>
+    <div class="section-title">Was Turtle Trading für immer veränderte</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Turtle-Innovation</th><th>Heutige Verwendung</th><th>Bedeutung</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>ATR-basiertes Position Sizing</td>
+        <td class="val-teal">Standard in jedem professionellen Trading-System weltweit</td>
+        <td>Vor Turtles: willkürliche Positionsgrößen. Danach: volatilitätsadjustierte Einheiten. Revolutionär.</td>
+      </tr>
+      <tr>
+        <td>Systematisches Trend-Following</td>
+        <td class="val-teal">Basis für $300 Mrd.+ CTAs und Hedge Funds</td>
+        <td>Managed Futures als eigene Asset-Klasse entstand aus dem Turtle-Beweis.</td>
+      </tr>
+      <tr>
+        <td>Breakout-basierter Entry</td>
+        <td class="val-amber">20-Tage und 55-Tage Breakouts in jedem Charting-Tool</td>
+        <td>Donchian Channel (Richard Donchian erfand es, Turtles popularisierten es) ist heute Standard.</td>
+      </tr>
+      <tr>
+        <td>Diversifikation über unkorrelierte Märkte</td>
+        <td class="val-amber">Multi-Asset Portfolios in allen professionellen Fonds</td>
+        <td>Turtles bewiesen: Diversifikation über echte Asset-Klassen (nicht nur Aktien) senkt Risiko bei gleichem Ertrag.</td>
+      </tr>
+      <tr>
+        <td>Beweis: Trading kann gelehrt werden</td>
+        <td class="val-green">Gesamte Trading-Ausbildungs-Industrie</td>
+        <td>Dennis gewann die Wette. Talent ist optional. Disziplin und System sind entscheidend.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- DUDE BANK -->
+  <div class="section-header section-gap">
+    <div class="section-label">DUDE BANK × Turtle Trading</div>
+    <div class="section-title">Das Turtle-System in der DUDE BANK KI-Architektur</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Turtle Prinzip</th><th>DUDE BANK Anwendung</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>N-basiertes Position Sizing</td><td>KI-Trading-Agent berechnet für jede neue Position automatisch die ATR-basierte Unit-Größe. Keine manuelle Positionsgröße mehr — nur N zählt.</td></tr>
+      <tr><td>20/55-Day Breakout Entry</td><td>Primärer Entry-Algorithmus für Trend-Following Strategie im DUDE BANK Portfolio. Kombiniert mit Larry Williams COT als Filter.</td></tr>
+      <tr><td>2N Stop Loss</td><td>Absolute Hardregel: Kein Stop kann enger als 1N gesetzt werden. 2N ist Standard. CRO-Veto nötig für jede Abweichung.</td></tr>
+      <tr><td>Max 4 Units pro Markt</td><td>KI-Agent: automatisches Blockieren weiterer Signale wenn 4 Units in einem Markt aktiv sind. Keine Ausnahme.</td></tr>
+      <tr><td>Diversifikation: alle Märkte handeln</td><td>DUDE BANK Portfolio: mindestens 4 unkorrelierte Asset-Klassen aktiv. Nie mehr als 30% in einer Klasse.</td></tr>
+      <tr><td>System-Disziplin trotz Drawdown</td><td>Das ist die Funktion des CRO (Human Veto) und der Genossenschaft: Mehrheitsentscheid verhindert Einzelperson-Panik-Abweichung vom System.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-card" style="border-top:3px solid var(--teal);">
+    <div class="info-card-body">
+      <strong>Das Turtle-Vermächtnis für DUDE BANK:</strong>
+      <br><br>
+      Richard Dennis bewies, dass ein einfaches, regelbasiertes System unter Disziplin
+      alle komplexen subjektiven Ansätze schlägt. Die Turtles, die scheiterten, scheiterten nicht wegen des Systems —
+      sie scheiterten wegen mangelnder Disziplin.
+      <br><br>
+      <em>Das ist genau warum DUDE BANK eine Genossenschafts-Struktur und KI-Governance braucht:</em>
+      Kein Einzelner sollte die Macht haben, impulsiv vom System abzuweichen.
+      <strong>1 Dude = 1 Vote verhindert, dass der ängstlichste oder gierigste Dude das System für alle ruiniert.</strong>
+      Die Genossenschaft ist die institutionelle Antwort auf das menschliche Turtle-Versagen.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas une règle — c'est la frontière entre la discipline et la ruine."<br>
+    (Das ist keine Regel — es ist die Grenze zwischen Disziplin und Ruin.)</div>
+    <div class="tags">
+      <span class="tag">20-Day Breakout</span>
+      <span class="tag">55-Day Breakout</span>
+      <span class="tag tag-amber">ATR Position Sizing</span>
+      <span class="tag tag-green">Richard Dennis</span>
+      <span class="tag">$175M · 1984–1988</span>
+      <span class="tag tag-red">2N Stop Loss</span>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;padding:32px;color:#0f3028;font-size:12px;border-top:1px solid #122b22;">
+  DUDE BANK — Turtle Trading · Richard Dennis vs. William Eckhardt · ATR Position Sizing · 20/55-Day Breakout · 1983–2026
+</div>
+</body>
+</html>

@@ -1,0 +1,346 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌐 Domvs Avrea – Wikipedia Research (RAG Style)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background-color: #0a0a0a;
+      color: #f0f0f0;
+    }
+    .result-card {
+      transition: all 0.3s ease;
+    }
+    .result-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 255, 255, 0.2);
+    }
+    /* Wikipedia-like prose styling */
+    .prose h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #00e0ff;
+      border-bottom: 2px solid rgba(0,255,255,0.3);
+      padding-bottom: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    .prose h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #4fd1c5;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .prose h3 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: #9ae6b4;
+      margin-top: 1rem;
+    }
+    .prose p {
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+    .prose a {
+      color: #4dabf7;
+      text-decoration: underline;
+    }
+    .prose blockquote {
+      border-left: 4px solid #00e0ff;
+      padding-left: 1rem;
+      color: #a0aec0;
+      font-style: italic;
+      margin: 1rem 0;
+    }
+    .prose table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1rem 0;
+    }
+    .prose th, .prose td {
+      border: 1px solid #2d3748;
+      padding: 0.5rem 0.75rem;
+    }
+    .prose th {
+      background: #1a202c;
+      color: #00e0ff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100">
+  <div class="max-w-6xl mx-auto p-6">
+    <h1 class="text-4xl font-bold mb-6 text-cyan-400">🌐 Domvs Avrea – Wikipedia Research</h1>
+
+    <!-- API Key -->
+    <div class="mb-6">
+      <label for="apiKey" class="block mb-2 text-cyan-200 font-medium">🔑 OpenAI API Key:</label>
+      <div class="flex gap-2 flex-col md:flex-row">
+        <input id="apiKey" type="password" placeholder="sk-..." class="flex-1 p-2 border border-cyan-500 bg-gray-900 rounded focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+        <button id="saveApiKey" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">💾 Speichern</button>
+      </div>
+    </div>
+
+    <!-- Search Controls -->
+    <div class="mb-6">
+      <label for="query" class="block mb-2 text-cyan-200 font-medium">🔍 Suchbegriff:</label>
+      <div class="flex flex-wrap gap-2">
+        <select id="quickSearch" class="p-2 border border-cyan-500 bg-gray-900 text-white rounded">
+          <option value="">-- Quick Search --</option>
+          <option value="Artificial Intelligence">Artificial Intelligence</option>
+          <option value="Quantum Computing">Quantum Computing</option>
+          <option value="Climate Change">Climate Change</option>
+          <option value="Blockchain">Blockchain</option>
+          <option value="Renewable Energy">Renewable Energy</option>
+          <option value="Space Exploration">Space Exploration</option>
+          <option value="Machine Learning">Machine Learning</option>
+          <option value="Virtual Reality">Virtual Reality</option>
+          <option value="Cybersecurity">Cybersecurity</option>
+          <option value="Neuroscience">Neuroscience</option>
+          <option value="Robotics">Robotics</option>
+          <option value="Nanotechnology">Nanotechnology</option>
+          <option value="Internet of Things">Internet of Things</option>
+        </select>
+        <input id="query" type="text" placeholder="z. B. Neuroscience" class="flex-1 p-2 border border-cyan-500 bg-gray-900 rounded text-white min-w-[250px]">
+        <select id="language" class="p-2 border border-cyan-500 bg-gray-900 text-white rounded">
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="it">Italiano</option>
+          <option value="pt">Português</option>
+          <option value="ru">Русский</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+          <option value="hr">Hrvatski</option>
+        </select>
+        <select id="numArticles" class="p-2 border border-cyan-500 bg-gray-900 text-white rounded">
+          <option value="3">3</option>
+          <option value="5" selected>5</option>
+          <option value="10">10</option>
+        </select>
+        <button onclick="searchWikipedia()" class="bg-cyan-600 text-white px-4 py-2 rounded hover:bg-cyan-700">🔎 Suchen</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="space-y-6"></div>
+  </div>
+
+  <script>
+    // Save API Key
+    document.getElementById('saveApiKey').addEventListener('click', () => {
+      const apiKey = document.getElementById("apiKey").value.trim();
+      if (apiKey) {
+        localStorage.setItem("openAiApiKey", apiKey);
+        alert("✅ API Key gespeichert!");
+      } else {
+        alert("⚠️ Bitte gültigen API Key eingeben.");
+      }
+    });
+
+    // Load API Key
+    window.onload = () => {
+      const savedKey = localStorage.getItem("openAiApiKey");
+      if (savedKey) document.getElementById("apiKey").value = savedKey;
+
+      document.getElementById('quickSearch').addEventListener('change', (e) => {
+        document.getElementById('query').value = e.target.value;
+      });
+
+      document.getElementById('query').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') searchWikipedia();
+      });
+    };
+
+    async function searchWikipedia() {
+      const query = document.getElementById("query").value.trim();
+      const num = document.getElementById("numArticles").value;
+      const language = document.getElementById("language").value;
+      const resultsDiv = document.getElementById("results");
+
+      if (!query) {
+        alert("Bitte Suchbegriff eingeben.");
+        return;
+      }
+
+      resultsDiv.innerHTML = "⏳ Suche Wikipedia...";
+
+      try {
+        const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
+        const data = await res.json();
+        const articles = data?.query?.search || [];
+
+        if (!articles.length) {
+          resultsDiv.innerHTML = "❌ Keine Artikel gefunden.";
+          return;
+        }
+
+        resultsDiv.innerHTML = "";
+
+        for (const a of articles.slice(0, num)) {
+          const title = a.title;
+          const snippet = a.snippet.replace(/<\/?[^>]+(>|$)/g, "");
+          const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+
+          // Fetch page image + text
+          const pageRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages|extracts&explaintext=1&format=json&pithumbsize=400&origin=*`);
+          const pageData = await pageRes.json();
+          const page = Object.values(pageData.query.pages)[0];
+          const imageUrl = page.thumbnail?.source || null;
+
+          const card = document.createElement("div");
+          card.className = "result-card bg-gray-800 p-6 rounded-xl shadow-lg border border-cyan-600 space-y-3";
+          card.dataset.title = title;
+
+          card.innerHTML = `
+            <div class="flex flex-col md:flex-row gap-4 items-center md:items-start">
+              ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="max-w-[200px] max-h-[220px] object-contain rounded-lg shadow-md mx-auto md:mx-0">` : ""}
+              <div class="flex-1">
+                <h2 class="text-2xl font-bold text-cyan-300 mb-2">${title}</h2>
+                <p class="text-sm text-gray-400 mb-2">${snippet}...</p>
+                <a href="${wikiUrl}" target="_blank" class="text-cyan-400 underline">🌍 Original auf Wikipedia öffnen</a>
+                <div class="flex gap-2 mt-4 flex-wrap">
+                  <button class="improve bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">🧠 Improved Wikipedia Article</button>
+                </div>
+                <div class="improved mt-6 prose prose-lg prose-invert max-w-none leading-relaxed text-gray-100 px-6 py-4 bg-gray-900 rounded-xl shadow-md hidden"></div>
+              </div>
+            </div>
+          `;
+
+          const improveBtn = card.querySelector(".improve");
+          const improvedDiv = card.querySelector(".improved");
+
+          improveBtn.onclick = async () => {
+            const apiKey = (document.getElementById("apiKey").value || "").trim();
+            if (!apiKey) {
+              alert("⚠️ Bitte API Key eingeben.");
+              return;
+            }
+
+            improvedDiv.innerText = "🧠 GPT analysiert Original und erstellt Verbesserungen...";
+            improvedDiv.classList.remove("hidden");
+
+            try {
+              const pageRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`);
+              const pageData = await pageRes.json();
+              const page = Object.values(pageData.query.pages)[0];
+              const originalText = page.extract || "❌ Kein Originaltext gefunden.";
+
+              const languageName = getLanguageName(language);
+              const languageCode = language;
+
+              const systemMessage = `
+You are a precise Wikipedia improvement assistant.
+
+Instructions:
+- Read the provided original Wikipedia article text.
+- Rewrite it in a clearer, more structured, neutral, and encyclopedic style.
+- Add inline citations like [1], [2].
+- Use Markdown formatting (## headings, lists, tables).
+- Stay objective and accurate.
+
+⚠️ VERY IMPORTANT: The entire output must be in the target language: ${languageName} (${languageCode}). Do not mix with any other language.
+`;
+
+              const userPrompt = `
+Here is the original Wikipedia article for "${title}":
+
+${originalText}
+
+👉 Task:
+- Rewrite this article entirely in ${languageName} (${languageCode}).
+- Structure: Introduction, History, Methods, Applications, Ethics, Conclusion.
+- Add background if useful, remove redundancies.
+- Keep neutral, encyclopedic tone.
+- Add inline references [1], [2].
+- Ensure 100% of the text is in ${languageName}.
+`;
+
+              const result = await callOpenAI(apiKey, systemMessage, userPrompt);
+
+              improvedDiv.innerHTML = `
+                <div class="prose prose-lg prose-invert max-w-none">
+                  ${marked.parse(result)}
+                </div>
+              `;
+
+              const exportBtn = document.createElement("button");
+              exportBtn.className = "export bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 mt-4";
+              exportBtn.innerText = "📥 Export als TXT";
+              exportBtn.onclick = () => exportToTxt(title, result);
+              card.appendChild(exportBtn);
+
+            } catch (error) {
+              improvedDiv.innerHTML = `<div class="bg-red-900 border border-red-600 text-red-200 px-4 py-3 rounded">
+                ❌ Fehler beim Verbessern des Artikels: ${error.message}
+              </div>`;
+            }
+          };
+
+          resultsDiv.appendChild(card);
+        }
+      } catch (err) {
+        resultsDiv.innerHTML = "❌ Fehler: " + err.message;
+      }
+    }
+
+    async function callOpenAI(apiKey, systemMessage, userPrompt) {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-5-mini",
+          messages: [
+            { role: "system", content: systemMessage },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error?.message || `HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || "⚠️ Keine Antwort erhalten.";
+    }
+
+    function exportToTxt(title, content) {
+      const sanitizedTitle = title.replace(/[^a-z0-9äöüß]/gi, '_').toLowerCase();
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${sanitizedTitle}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function getLanguageName(code) {
+      const names = {
+        de: "Deutsch", en: "English", es: "Español", fr: "Français", it: "Italiano",
+        pt: "Português", ru: "Русский", zh: "中文", ja: "日本語", hr: "Hrvatski"
+      };
+      return names[code] || "Deutsch";
+    }
+
+    // Load marked.js for Markdown rendering
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+    script.onload = () => marked.use({ gfm: true, breaks: true, tables: true });
+    document.head.appendChild(script);
+  </script>
+</body>
+</html>

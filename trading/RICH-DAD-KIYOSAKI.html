@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robert Kiyosaki — Rich Dad Poor Dad</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #0f1629;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #ef4444;
+    --accent2: #f87171;
+    --gold: #f59e0b;
+    --green: #22c55e;
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a0505 50%, #0a0e1a 100%);
+    border-bottom: 1px solid #2d1010;
+    padding: 60px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.12) 0%, transparent 70%);
+  }
+  .hero-badge { display:inline-block; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:var(--accent); padding:4px 16px; border-radius:20px; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px; }
+  .hero-title { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; letter-spacing:-1px; color:#fff; margin-bottom:8px; }
+  .hero-title span { color:var(--accent); }
+  .hero-sub { font-size:1.1rem; color:var(--muted); margin-bottom:24px; }
+  .hero-book { display:inline-block; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:8px 20px; font-size:1.2rem; font-weight:700; color:var(--gold); margin-bottom:24px; }
+  .hero-stats { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+  .hero-stat { text-align:center; }
+  .hero-stat-val { font-size:1.8rem; font-weight:800; color:var(--accent); }
+  .hero-stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  .container { max-width:1200px; margin:0 auto; padding:40px 20px; }
+
+  .section-header {
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:24px; padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  .section-header h2 { font-size:1.3rem; font-weight:700; color:#fff; }
+  .section-icon { font-size:1.4rem; }
+  .section-tag { margin-left:auto; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:var(--accent); padding:2px 10px; border-radius:12px; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+
+  .section { margin-bottom:48px; }
+
+  .info-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:24px; margin-bottom:16px;
+  }
+  .info-card h3 { color:var(--accent); margin-bottom:12px; font-size:1rem; }
+
+  .formula-block {
+    background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.2);
+    border-left:4px solid var(--accent); border-radius:8px;
+    padding:20px 24px; margin:16px 0; font-family:monospace;
+  }
+  .formula-block .formula { font-size:1.2rem; color:var(--accent2); font-weight:700; margin-bottom:8px; }
+  .formula-block .formula-desc { font-size:0.85rem; color:var(--muted); }
+
+  .grid-two { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .grid-three { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+
+  .lw-table { width:100%; border-collapse:collapse; }
+  .lw-table th { background:rgba(239,68,68,0.1); color:var(--accent); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); }
+  .lw-table td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; color:var(--text); }
+  .lw-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .lw-table td:first-child { color:#fff; font-weight:600; }
+
+  .quote-block {
+    background:rgba(239,68,68,0.05); border-left:4px solid var(--accent);
+    border-radius:0 8px 8px 0; padding:16px 20px; margin:12px 0;
+    font-style:italic; color:var(--text);
+  }
+  .quote-block cite { display:block; margin-top:8px; font-style:normal; font-size:0.8rem; color:var(--accent); }
+
+  .rule-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  .rule-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:8px; padding:16px; display:flex; gap:14px; align-items:flex-start;
+  }
+  .rule-num { font-size:1.5rem; font-weight:800; color:rgba(239,68,68,0.3); flex-shrink:0; line-height:1; }
+  .rule-text { font-size:0.9rem; color:var(--text); }
+  .rule-text strong { color:#fff; display:block; margin-bottom:4px; }
+
+  /* TWO DAD COMPARE */
+  .dad-compare { display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .dad-col { padding:24px; }
+  .dad-col:first-child { border-right:1px solid var(--border); background:rgba(239,68,68,0.03); }
+  .dad-col:last-child { background:rgba(245,158,11,0.03); }
+  .dad-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .dad-icon { font-size:1.8rem; }
+  .dad-title { font-size:1.1rem; font-weight:800; }
+  .dad-list { list-style:none; }
+  .dad-list li { padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.85rem; color:var(--muted); display:flex; gap:8px; }
+  .dad-list li::before { flex-shrink:0; }
+
+  /* CASH FLOW QUADRANT */
+  .quad-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; border:2px solid rgba(255,255,255,0.1); border-radius:8px; overflow:hidden; }
+  .quad-cell { padding:24px; position:relative; }
+  .quad-letter { font-size:3rem; font-weight:800; position:absolute; top:8px; right:12px; opacity:0.15; }
+  .quad-title { font-size:1.1rem; font-weight:800; margin-bottom:8px; }
+  .quad-desc { font-size:0.8rem; color:var(--muted); margin-bottom:8px; }
+  .quad-traits { list-style:none; }
+  .quad-traits li { font-size:0.78rem; padding:3px 0; display:flex; gap:6px; }
+  .quad-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; margin-top:8px; }
+
+  /* ASSET vs LIABILITY */
+  .asset-diagram { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .cashflow-box { border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .cashflow-header { padding:12px 16px; font-weight:700; font-size:0.9rem; }
+  .cashflow-section { padding:12px 16px; border-top:1px solid rgba(255,255,255,0.06); }
+  .cashflow-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:8px; }
+  .cashflow-item { display:flex; justify-content:space-between; font-size:0.8rem; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,0.05); }
+  .flow-arrow { text-align:center; font-size:1.2rem; padding:8px; }
+
+  /* INCOME STATEMENT */
+  .is-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .is-header { background:rgba(239,68,68,0.1); padding:10px 16px; font-weight:700; font-size:0.9rem; color:var(--accent); }
+  .is-row { display:flex; justify-content:space-between; padding:8px 16px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.85rem; }
+  .is-row.positive { color:var(--green); }
+  .is-row.negative { color:var(--accent); }
+  .is-row.neutral { color:var(--muted); }
+
+  .debt-comparison { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .debt-card { border-radius:10px; padding:20px; border:1px solid var(--border); }
+  .debt-card h3 { margin-bottom:12px; font-size:1rem; }
+  .debt-example { background:rgba(255,255,255,0.03); border-radius:6px; padding:12px; margin-top:12px; font-size:0.8rem; color:var(--muted); }
+  .debt-example strong { color:#fff; display:block; margin-bottom:4px; }
+
+  @media (max-width:640px) {
+    .hero { padding:40px 20px; }
+    .hero-stats { gap:20px; }
+    .dad-compare, .quad-grid, .asset-diagram, .debt-comparison { grid-template-columns:1fr; }
+    .dad-col:first-child { border-right:none; border-bottom:1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Financial Education · Real Estate Investor</div>
+  <h1 class="hero-title">Robert <span>Kiyosaki</span></h1>
+  <p class="hero-sub">Rich Dad Poor Dad · Cash Flow Quadrant · Financial Freedom Philosophy</p>
+  <div class="hero-book">📕 "Rich Dad Poor Dad" (1997) — 32M+ Exemplare · 51 Sprachen</div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val">32M+</div><div class="hero-stat-label">Bücher verkauft worldwide</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">51</div><div class="hero-stat-label">Sprachen · #1 Personal Finance</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">1947</div><div class="hero-stat-label">Geboren Hilo, Hawaii</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">CASHFLOW</div><div class="hero-stat-label">Das Boardgame · Financial IQ</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- DIE ZWEI VÄTER -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">👨‍👦</span>
+      <h2>Zwei Väter · Zwei Weltbilder · Eine Entscheidung</h2>
+      <span class="section-tag">Das Kernkonzept</span>
+    </div>
+    <div class="dad-compare">
+      <div class="dad-col">
+        <div class="dad-header">
+          <span class="dad-icon">😰</span>
+          <div>
+            <div class="dad-title" style="color:var(--accent)">Poor Dad</div>
+            <div style="font-size:0.8rem;color:var(--muted)">Leiblicher Vater · PhD · Schulleiter</div>
+          </div>
+        </div>
+        <ul class="dad-list">
+          <li><span style="color:var(--accent)">✗</span>"Geh zur Schule und bekomm einen guten Job"</li>
+          <li><span style="color:var(--accent)">✗</span>"Ich kann mir das nicht leisten"</li>
+          <li><span style="color:var(--accent)">✗</span>"Mein Haus ist mein größtes Asset"</li>
+          <li><span style="color:var(--accent)">✗</span>Arbeitet für Geld — Geld arbeitet nicht für ihn</li>
+          <li><span style="color:var(--accent)">✗</span>Steuern bezahlen als Ehrenpflicht</li>
+          <li><span style="color:var(--accent)">✗</span>Vermeidet Risiken bei jeder Entscheidung</li>
+          <li><span style="color:var(--accent)">✗</span>Finanzielle Sicherheit über Freiheit</li>
+          <li><span style="color:var(--accent)">✗</span>Gewerkschaftlich geschützt · Staatsangestellter</li>
+          <li><span style="color:var(--accent)">✗</span>Stirbt mit fast keinem Vermögen</li>
+        </ul>
+      </div>
+      <div class="dad-col">
+        <div class="dad-header">
+          <span class="dad-icon">🤑</span>
+          <div>
+            <div class="dad-title" style="color:var(--gold)">Rich Dad</div>
+            <div style="font-size:0.8rem;color:var(--muted)">Vater des Freundes Mike · Selfmade · Unternehmer</div>
+          </div>
+        </div>
+        <ul class="dad-list">
+          <li><span style="color:var(--gold)">✓</span>"Wie kann ich mir das leisten?" (Kreatives Denken)</li>
+          <li><span style="color:var(--gold)">✓</span>"Die Reichen arbeiten nicht für Geld — Geld arbeitet für sie"</li>
+          <li><span style="color:var(--gold)">✓</span>Assets definieren: was Geld IN deine Tasche bringt</li>
+          <li><span style="color:var(--gold)">✓</span>Unternehmen, Immobilien, Aktien, Rohstoffe</li>
+          <li><span style="color:var(--gold)">✓</span>Steuern legal minimieren (Körperschaften nutzen)</li>
+          <li><span style="color:var(--gold)">✓</span>Risiken durch Financial IQ managen</li>
+          <li><span style="color:var(--gold)">✓</span>Finanzielle Freiheit als ultimatives Ziel</li>
+          <li><span style="color:var(--gold)">✓</span>Liest Bilanzen · Spricht Geldsprache</li>
+          <li><span style="color:var(--gold)">✓</span>Stirbt als einer der reichsten Männer Hawaiis</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote-block" style="margin-top:16px;">"Der Unterschied zwischen den Armen, der Mittelklasse und den Reichen ist, was sie mit dem Geld machen, das sie bekommen."<cite>— Robert Kiyosaki</cite></div>
+  </div>
+
+  <!-- ASSET vs LIABILITY -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">⚖️</span>
+      <h2>Asset vs. Liability · Die Kiyosaki-Definition</h2>
+      <span class="section-tag">Das Wichtigste was du lernst</span>
+    </div>
+    <div class="formula-block">
+      <div class="formula">Asset = Etwas, das Geld in deine Tasche bringt (ohne zu arbeiten)</div>
+      <div class="formula-desc">Liability = Etwas, das Geld aus deiner Tasche nimmt | Schule lehrt nicht den Unterschied — das ist das Problem</div>
+    </div>
+    <div class="asset-diagram">
+      <!-- POOR -->
+      <div>
+        <div style="text-align:center;margin-bottom:8px;font-weight:700;color:var(--accent);font-size:0.9rem;">😰 POOR / MIDDLE CLASS Cash Flow</div>
+        <div class="cashflow-box" style="border-color:rgba(239,68,68,0.3);">
+          <div class="cashflow-header" style="background:rgba(239,68,68,0.1);color:var(--accent);">Income Statement</div>
+          <div class="cashflow-section">
+            <div class="cashflow-label">Einkommen</div>
+            <div class="cashflow-item"><span>Gehalt (Job)</span><span style="color:var(--green)">+€5.000</span></div>
+          </div>
+          <div class="cashflow-section">
+            <div class="cashflow-label">Ausgaben</div>
+            <div class="cashflow-item"><span>Miete / Hypothek</span><span style="color:var(--accent)">−€1.500</span></div>
+            <div class="cashflow-item"><span>Auto-Leasing</span><span style="color:var(--accent)">−€600</span></div>
+            <div class="cashflow-item"><span>Kreditkarten</span><span style="color:var(--accent)">−€300</span></div>
+            <div class="cashflow-item"><span>Steuern</span><span style="color:var(--accent)">−€1.500</span></div>
+            <div class="cashflow-item"><span>Lifestyle</span><span style="color:var(--accent)">−€800</span></div>
+          </div>
+          <div class="cashflow-section" style="background:rgba(239,68,68,0.05);">
+            <div class="cashflow-item" style="font-weight:700;"><span>Freier Cash Flow</span><span style="color:var(--accent)">+€300 (6%)</span></div>
+          </div>
+        </div>
+        <div class="cashflow-box" style="margin-top:8px;border-color:rgba(239,68,68,0.3);">
+          <div class="cashflow-header" style="background:rgba(239,68,68,0.1);color:var(--accent);">Balance Sheet</div>
+          <div class="cashflow-section">
+            <div class="cashflow-label">Assets</div>
+            <div class="cashflow-item"><span>Nichts oder wenig</span><span style="color:var(--muted)">—</span></div>
+          </div>
+          <div class="cashflow-section">
+            <div class="cashflow-label">Liabilities (Schulden)</div>
+            <div class="cashflow-item"><span>Hypothek</span><span style="color:var(--accent)">−€280.000</span></div>
+            <div class="cashflow-item"><span>Autokredit</span><span style="color:var(--accent)">−€25.000</span></div>
+            <div class="cashflow-item"><span>Studienkredit</span><span style="color:var(--accent)">−€30.000</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- RICH -->
+      <div>
+        <div style="text-align:center;margin-bottom:8px;font-weight:700;color:var(--gold);font-size:0.9rem;">🤑 RICH Cash Flow</div>
+        <div class="cashflow-box" style="border-color:rgba(245,158,11,0.3);">
+          <div class="cashflow-header" style="background:rgba(245,158,11,0.1);color:var(--gold);">Income Statement</div>
+          <div class="cashflow-section">
+            <div class="cashflow-label">Einkommen (Assets generieren)</div>
+            <div class="cashflow-item"><span>Mieteinnahmen</span><span style="color:var(--green)">+€3.000</span></div>
+            <div class="cashflow-item"><span>Dividenden</span><span style="color:var(--green)">+€1.200</span></div>
+            <div class="cashflow-item"><span>Business Cash Flow</span><span style="color:var(--green)">+€4.000</span></div>
+          </div>
+          <div class="cashflow-section">
+            <div class="cashflow-label">Ausgaben</div>
+            <div class="cashflow-item"><span>Verwaltung, Zinsen</span><span style="color:var(--accent)">−€1.500</span></div>
+            <div class="cashflow-item"><span>Reinvestitionen</span><span style="color:var(--accent)">−€2.000</span></div>
+          </div>
+          <div class="cashflow-section" style="background:rgba(245,158,11,0.05);">
+            <div class="cashflow-item" style="font-weight:700;"><span>Freier Cash Flow</span><span style="color:var(--green)">+€4.700 (57%)</span></div>
+          </div>
+        </div>
+        <div class="cashflow-box" style="margin-top:8px;border-color:rgba(245,158,11,0.3);">
+          <div class="cashflow-header" style="background:rgba(245,158,11,0.1);color:var(--gold);">Balance Sheet</div>
+          <div class="cashflow-section">
+            <div class="cashflow-label">Assets (bringen Cashflow)</div>
+            <div class="cashflow-item"><span>Immobilien-Portfolio</span><span style="color:var(--green)">+€500.000</span></div>
+            <div class="cashflow-item"><span>Aktienportfolio</span><span style="color:var(--green)">+€200.000</span></div>
+            <div class="cashflow-item"><span>Business-Beteiligungen</span><span style="color:var(--green)">+€300.000</span></div>
+          </div>
+          <div class="cashflow-section">
+            <div class="cashflow-label">Liabilities (Gutes Debt)</div>
+            <div class="cashflow-item"><span>Investment-Hypotheken</span><span style="color:var(--muted)">−€350.000</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="info-card" style="margin-top:16px;background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.2);">
+      <div style="font-weight:700;color:var(--accent);margin-bottom:8px;">⚠️ Kiyosakis Schockthese: "Dein Haus ist KEIN Asset"</div>
+      <p style="color:var(--muted);font-size:0.9rem;">Ein Eigenheim bringt kein Geld in deine Tasche — es nimmt welches heraus (Hypothek, Steuern, Reparaturen, Versicherung). Ein Mietshaus hingegen ist ein Asset: es generiert monatlichen Cash Flow, während der Mieter die Hypothek bezahlt. Das Haus ist ein Asset — für die Bank.</p>
+    </div>
+  </div>
+
+  <!-- CASH FLOW QUADRANT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">⊞</span>
+      <h2>Cash Flow Quadrant · ESBI Framework</h2>
+      <span class="section-tag">Wo du Geld verdienst bestimmt dein Leben</span>
+    </div>
+    <div class="quad-grid">
+      <div class="quad-cell" style="background:rgba(239,68,68,0.05);border-right:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);">
+        <span class="quad-letter" style="color:var(--accent)">E</span>
+        <div class="quad-title" style="color:var(--accent)">Employee · Angestellter</div>
+        <div class="quad-desc">Verkauft Zeit gegen Gehalt. Sicherheit als Priorität. Staat nimmt zuerst (Lohnsteuer).</div>
+        <ul class="quad-traits">
+          <li><span style="color:var(--accent)">→</span>Höchste Steuerbelastung (bis 45% + Sozial)</li>
+          <li><span style="color:var(--accent)">→</span>Tauscht Zeit gegen Geld (lineare Einkommensskala)</li>
+          <li><span style="color:var(--accent)">→</span>Job-Sicherheit als wichtigstes Kriterium</li>
+          <li><span style="color:var(--accent)">→</span>Keine Kontrolle über Einkommen-Decke</li>
+        </ul>
+        <span class="quad-tag" style="background:rgba(239,68,68,0.1);color:var(--accent);">Rat Races hier</span>
+      </div>
+      <div class="quad-cell" style="background:rgba(245,158,11,0.05);border-bottom:1px solid rgba(255,255,255,0.08);">
+        <span class="quad-letter" style="color:var(--gold)">S</span>
+        <div class="quad-title" style="color:var(--gold)">Self-Employed · Selbstständig</div>
+        <div class="quad-desc">Besitzt einen Job statt ein Unternehmen. Höheres Einkommen — aber kein System.</div>
+        <ul class="quad-traits">
+          <li><span style="color:var(--gold)">→</span>Hört auf = Kein Einkommen (still Zeitverkauf)</li>
+          <li><span style="color:var(--gold)">→</span>Höhere Steuerbelastung als Unternehmer</li>
+          <li><span style="color:var(--gold)">→</span>Autonomie · aber auch volle Verantwortung</li>
+          <li><span style="color:var(--gold)">→</span>Arzt, Anwalt, Freiberufler · "Ich BIN das System"</li>
+        </ul>
+        <span class="quad-tag" style="background:rgba(245,158,11,0.1);color:var(--gold);">Übergang nötig</span>
+      </div>
+      <div class="quad-cell" style="background:rgba(59,130,246,0.05);border-right:1px solid rgba(255,255,255,0.08);">
+        <span class="quad-letter" style="color:var(--blue)">B</span>
+        <div class="quad-title" style="color:var(--blue)">Business Owner · Unternehmer</div>
+        <div class="quad-desc">BESITZT ein System das für ihn arbeitet. Andere Menschen und Systeme generieren Einkommen.</div>
+        <ul class="quad-traits">
+          <li><span style="color:var(--blue)">→</span>Zahlt Unternehmenssteuern (niedrigster Satz)</li>
+          <li><span style="color:var(--blue)">→</span>Ausgaben vor Steuer (Fahrzeug, Reisen, Bildung)</li>
+          <li><span style="color:var(--blue)">→</span>"Ich brauche das beste Team, nicht alles selbst können"</li>
+          <li><span style="color:var(--blue)">→</span>Kann 6 Monate weg — Business läuft weiter</li>
+        </ul>
+        <span class="quad-tag" style="background:rgba(59,130,246,0.1);color:var(--blue);">Steuerlich ideal</span>
+      </div>
+      <div class="quad-cell" style="background:rgba(34,197,94,0.05);">
+        <span class="quad-letter" style="color:var(--green)">I</span>
+        <div class="quad-title" style="color:var(--green)">Investor · Kapital arbeitet</div>
+        <div class="quad-desc">Geld arbeitet für ihn. Kapitalgewinne und passives Einkommen. Finanzielle Freiheit erreicht.</div>
+        <ul class="quad-traits">
+          <li><span style="color:var(--green)">→</span>Niedrigste Steuerbelastung (Kapitalertragsteuer)</li>
+          <li><span style="color:var(--green)">→</span>Passives Einkommen &gt; Ausgaben = Finanzielle Freiheit</li>
+          <li><span style="color:var(--green)">→</span>Immobilien, Aktien, Unternehmen, Rohstoffe</li>
+          <li><span style="color:var(--green)">→</span>Ziel: Nie wieder für Geld arbeiten müssen</li>
+        </ul>
+        <span class="quad-tag" style="background:rgba(34,197,94,0.1);color:var(--green);">Financial Freedom</span>
+      </div>
+    </div>
+    <div class="formula-block">
+      <div class="formula">Finanzielle Freiheit: Passives Einkommen (I-Quadrant) ≥ Monatliche Ausgaben</div>
+      <div class="formula-desc">Ziel: Von E/S → B → I | Steuerstrategie: Verdiene in B (vor Steuern ausgeben), investiere in I (nach Steuern Kapitalgewinn)</div>
+    </div>
+  </div>
+
+  <!-- GUTES DEBT vs SCHLECHTES DEBT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">💳</span>
+      <h2>Gutes Debt vs. Schlechtes Debt · Der Paradigmenwechsel</h2>
+      <span class="section-tag">Schulden als Werkzeug</span>
+    </div>
+    <div class="debt-comparison">
+      <div class="debt-card" style="border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.03);">
+        <h3 style="color:var(--accent)">❌ Schlechtes Debt · Liability Debt</h3>
+        <table class="lw-table">
+          <thead><tr><th>Art</th><th>Warum schlecht</th></tr></thead>
+          <tbody>
+            <tr><td>Kreditkarte</td><td style="color:var(--muted);font-size:0.8rem;">20%+ Zinsen · kauft Konsumgüter</td></tr>
+            <tr><td>Auto-Kredit</td><td style="color:var(--muted);font-size:0.8rem;">Auto verliert 30% im ersten Jahr</td></tr>
+            <tr><td>Eigenheim-Hypothek</td><td style="color:var(--muted);font-size:0.8rem;">Haus generiert keinen Cash Flow</td></tr>
+            <tr><td>Studienkredit</td><td style="color:var(--muted);font-size:0.8rem;">Keine garantierte Rendite auf Bildung</td></tr>
+            <tr><td>Urlaubs-Dispo</td><td style="color:var(--muted);font-size:0.8rem;">Konsumschulden für Erlebnisse</td></tr>
+          </tbody>
+        </table>
+        <div class="debt-example"><strong>Formel Schlechtes Debt:</strong>Kredit → kauft Liability → Liability kostet Geld → Schulden wachsen → Rat Race</div>
+      </div>
+      <div class="debt-card" style="border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.03);">
+        <h3 style="color:var(--green)">✓ Gutes Debt · Asset Debt (OPM)</h3>
+        <table class="lw-table">
+          <thead><tr><th>Art</th><th>Warum gut</th></tr></thead>
+          <tbody>
+            <tr><td>Mietobjekt-Hypothek</td><td style="color:var(--muted);font-size:0.8rem;">Mieter zahlt die Hypothek ab für dich</td></tr>
+            <tr><td>Business-Kredit</td><td style="color:var(--muted);font-size:0.8rem;">Kredit erzeugt mehr Umsatz als Zinsen</td></tr>
+            <tr><td>Investment-Leverage</td><td style="color:var(--muted);font-size:0.8rem;">Rendite &gt; Zinssatz = positiver Spread</td></tr>
+            <tr><td>Fix & Flip Finanzierung</td><td style="color:var(--muted);font-size:0.8rem;">Kredit + Renovierung = Wertsteigerung</td></tr>
+            <tr><td>OPM (Other People's Money)</td><td style="color:var(--muted);font-size:0.8rem;">Bank's Geld arbeitet für dich</td></tr>
+          </tbody>
+        </table>
+        <div class="debt-example" style="background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.15);color:var(--green);"><strong style="color:var(--green);">Formel Gutes Debt (OPM):</strong>Kredit → kauft Asset → Asset zahlt Kredit zurück → Restcashflow ist dein Profit</div>
+      </div>
+    </div>
+    <div class="info-card" style="margin-top:16px;">
+      <h3>Reales OPM Beispiel — Immobilien-Leverage</h3>
+      <table class="lw-table">
+        <thead><tr><th>Parameter</th><th>Wert</th><th>Erläuterung</th></tr></thead>
+        <tbody>
+          <tr><td>Kaufpreis Wohnung</td><td>€200.000</td><td style="color:var(--muted);font-size:0.8rem;">Eigenkapital: €40.000 (20%)</td></tr>
+          <tr><td>Hypothek (OPM)</td><td>€160.000</td><td style="color:var(--muted);font-size:0.8rem;">Bank's Geld: 80% Finanzierung</td></tr>
+          <tr><td>Monatsmiete</td><td>€900</td><td style="color:var(--muted);font-size:0.8rem;">Mieter zahlt deinen Kredit</td></tr>
+          <tr><td>Hypothekenrate + Nebenkosten</td><td>€700</td><td style="color:var(--muted);font-size:0.8rem;">Zinsen + Tilgung + Verwaltung</td></tr>
+          <tr><td>Monatlicher Cash Flow</td><td style="color:var(--green)">€200</td><td style="color:var(--muted);font-size:0.8rem;">€2.400/Jahr passiv</td></tr>
+          <tr><td>ROE auf Eigenkapital</td><td style="color:var(--green)">6% Cash-on-Cash</td><td style="color:var(--muted);font-size:0.8rem;">Plus Tilgung + Wertsteigerung</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4 ASSET KLASSEN -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🏆</span>
+      <h2>Kiyosakis 4 Asset-Klassen · Das Portfolio des Reichen</h2>
+      <span class="section-tag">Echtes Diversifikations-Framework</span>
+    </div>
+    <div class="grid-two">
+      <div class="info-card" style="border-top:3px solid var(--green);">
+        <h3 style="color:var(--green)">🏠 Real Estate · Immobilien</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">Kiyosakis primäres Vehikel. Cash Flow + Leverage + Steuervorteile + Wertsteigerung = 4 Einkommensströme gleichzeitig.</p>
+        <table class="lw-table">
+          <thead><tr><th>Typ</th><th>Strategie</th></tr></thead>
+          <tbody>
+            <tr><td>Wohnimmobilien</td><td style="color:var(--muted);font-size:0.8rem;">Buy & Hold · Mieteinnahmen</td></tr>
+            <tr><td>Gewerbeimmobilien</td><td style="color:var(--muted);font-size:0.8rem;">NNN-Leases · weniger Verwaltung</td></tr>
+            <tr><td>Fix & Flip</td><td style="color:var(--muted);font-size:0.8rem;">Kurzfristiger Kapitalgewinn</td></tr>
+            <tr><td>REITs (papierform)</td><td style="color:var(--muted);font-size:0.8rem;">Immobilien-Aktien für Einsteiger</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card" style="border-top:3px solid var(--blue);">
+        <h3 style="color:var(--blue)">📈 Paper Assets · Wertpapiere</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">Aktien, Anleihen, Fonds. Hochliquid, aber kein Leverage-Vorteil wie Immobilien. Kiyosaki bevorzugt Value Stocks und Dividenden.</p>
+        <table class="lw-table">
+          <thead><tr><th>Instrument</th><th>Rolle</th></tr></thead>
+          <tbody>
+            <tr><td>Dividendenaktien</td><td style="color:var(--muted);font-size:0.8rem;">Monatlicher passiver Cashflow</td></tr>
+            <tr><td>Index Funds</td><td style="color:var(--muted);font-size:0.8rem;">Basisallokation für Anfänger</td></tr>
+            <tr><td>Options</td><td style="color:var(--muted);font-size:0.8rem;">Fortgeschrittene Income-Strategien</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card" style="border-top:3px solid var(--gold);">
+        <h3 style="color:var(--gold)">🥇 Rohstoffe · Echtes Geld</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">Gold und Silber als "echtes Geld" — im Gegensatz zu Fiat-Währungen. Kiyosaki ist einer der lautesten Gold/Silber-Befürworter. Neuerdings auch Bitcoin.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <span style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);color:var(--gold);padding:4px 10px;border-radius:4px;font-size:0.8rem;">Gold · Anti-Inflation</span>
+          <span style="background:rgba(200,200,200,0.08);border:1px solid rgba(200,200,200,0.15);color:#cbd5e1;padding:4px 10px;border-radius:4px;font-size:0.8rem;">Silber · Industrial + Store of Value</span>
+          <span style="background:rgba(247,147,26,0.1);border:1px solid rgba(247,147,26,0.2);color:#f7931a;padding:4px 10px;border-radius:4px;font-size:0.8rem;">Bitcoin · Digitales Gold</span>
+        </div>
+        <div class="quote-block" style="margin-top:12px;">"Savers are losers. Gold and silver are God's money."<cite>— Kiyosaki</cite></div>
+      </div>
+      <div class="info-card" style="border-top:3px solid var(--accent);">
+        <h3 style="color:var(--accent)">🏢 Business · Systeme bauen</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">Das Unternehmen als Cash-Flow-Maschine. Nicht selbstständig sein — ein System bauen, das ohne dich läuft. McDonalds als Modell: kein Restaurant-Business, ein Immobilien + Franchise-System.</p>
+        <div class="formula-block" style="margin-top:8px;">
+          <div class="formula">Gutes Business = läuft ohne dich (6 Monate Test)</div>
+          <div class="formula-desc">McDonalds Burger Modell: Franchise-System + Standort-Assets = True Business</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEUER-STRATEGIE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🧾</span>
+      <h2>Steuer-Strategie · Wie die Reichen legal weniger zahlen</h2>
+      <span class="section-tag">Tax Code verstehen</span>
+    </div>
+    <div class="info-card">
+      <table class="lw-table">
+        <thead>
+          <tr><th>Wer</th><th>Reihenfolge</th><th>Was bleibt</th><th>Steuersatz (DE-ähnlich)</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Employee (E)</td>
+            <td style="color:var(--muted);font-size:0.8rem;">1. Verdiene Geld 2. Zahle Steuern 3. Lebe von Rest</td>
+            <td style="color:var(--accent)">55–65% nach Steuer</td>
+            <td style="color:var(--accent)">35–45% Grenzsteuer</td>
+          </tr>
+          <tr>
+            <td>Self-Employed (S)</td>
+            <td style="color:var(--muted);font-size:0.8rem;">1. Verdiene 2. Zahle Steuer + Sozial 3. Ausgaben 4. Rest</td>
+            <td style="color:var(--gold)">50–60% nach Steuer</td>
+            <td style="color:var(--gold)">40%+ mit Sozialabgaben</td>
+          </tr>
+          <tr>
+            <td>Business Owner (B)</td>
+            <td style="color:var(--muted);font-size:0.8rem;">1. Verdiene 2. Ausgaben VOR Steuer 3. Zahle Steuer auf Rest</td>
+            <td style="color:var(--green)">75–85% effektiv</td>
+            <td style="color:var(--green)">15–25% Körperschaftsteuer</td>
+          </tr>
+          <tr>
+            <td>Investor (I)</td>
+            <td style="color:var(--muted);font-size:0.8rem;">1. Kapital arbeitet 2. Nur auf Realisierung Steuer 3. Abschreibungen</td>
+            <td style="color:var(--green)">80–90% effektiv</td>
+            <td style="color:var(--green)">25% KapESt (oft reduziert)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="quote-block" style="margin-top:16px;">"Die Steuerbehörde will, dass du reich wirst — du musst nur die Regeln kennen, die die Reichen nutzen."<cite>— Kiyosaki über legale Steueroptimierung</cite></div>
+    </div>
+  </div>
+
+  <!-- FINANCIAL IQ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🧠</span>
+      <h2>Financial IQ · Die 5 Komponenten</h2>
+      <span class="section-tag">Was Schule nicht lehrt</span>
+    </div>
+    <div class="grid-three">
+      <div class="info-card" style="border-top:3px solid var(--accent);">
+        <div style="font-size:1.5rem;margin-bottom:8px;">💰</div>
+        <h3>1. Mehr Geld verdienen</h3>
+        <p style="color:var(--muted);font-size:0.85rem;">Nicht mehr arbeiten — cleverer arbeiten. Einkommensquellen multiplizieren. B- und I-Quadrant entwickeln.</p>
+      </div>
+      <div class="info-card" style="border-top:3px solid var(--gold);">
+        <div style="font-size:1.5rem;margin-bottom:8px;">🛡️</div>
+        <h3>2. Geld schützen</h3>
+        <p style="color:var(--muted);font-size:0.85rem;">Steuer-Optimierung, Asset Protection (LLC, Trusts), Versicherungen. Geld behalten ist genauso wichtig wie es verdienen.</p>
+      </div>
+      <div class="info-card" style="border-top:3px solid var(--green);">
+        <div style="font-size:1.5rem;margin-bottom:8px;">📊</div>
+        <h3>3. Geld budgetieren</h3>
+        <p style="color:var(--muted);font-size:0.85rem;">Cash Flow Statement lesen. Budget = Ausgaben kontrollieren. Zuerst sich selbst bezahlen — dann Rechnungen.</p>
+      </div>
+      <div class="info-card" style="border-top:3px solid var(--blue);">
+        <div style="font-size:1.5rem;margin-bottom:8px;">⚖️</div>
+        <h3>4. Debt Leverage</h3>
+        <p style="color:var(--muted);font-size:0.85rem;">OPM (Other People's Money) als Werkzeug. Banken finanzieren 80% deiner Immobilien — nutze das zu deinen Gunsten.</p>
+      </div>
+      <div class="info-card" style="border-top:3px solid var(--purple);">
+        <div style="font-size:1.5rem;margin-bottom:8px;">📋</div>
+        <h3>5. Investment-Informationen</h3>
+        <p style="color:var(--muted);font-size:0.85rem;">Bilanzen lesen, Märkte verstehen, Deal-Flow aufbauen. Finanzielle Bildung ist eine Investition mit dem höchsten ROI.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 REGELN -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <h2>Kiyosakis 10 Kerngrundsätze · Finanziell frei werden</h2>
+      <span class="section-tag">Rich Dad Philosophie</span>
+    </div>
+    <div class="rule-grid">
+      <div class="rule-card"><div class="rule-num">01</div><div class="rule-text"><strong>Mind your own business</strong>Dein Job ist dein Einkommen — dein Business ist dein Asset-Portfolio. Beides muss getrennt sein.</div></div>
+      <div class="rule-card"><div class="rule-num">02</div><div class="rule-text"><strong>Zahl dir zuerst</strong>Bevor du Rechnungen zahlst, fließt Geld in Assets. Druck auf dich selbst erzwingt kreative Lösungen.</div></div>
+      <div class="rule-card"><div class="rule-num">03</div><div class="rule-text"><strong>Lerne Bilanzen lesen</strong>Ohne Finanzbildung bist du blind. Wer Cash Flow Statements nicht liest, verliert im Spiel des Geldes.</div></div>
+      <div class="rule-card"><div class="rule-num">04</div><div class="rule-text"><strong>Kaufe Assets, keine Liabilities</strong>Jeder Euro, der nicht in ein Asset investiert wird, ist verschwendetes Compound-Potential.</div></div>
+      <div class="rule-card"><div class="rule-num">05</div><div class="rule-text"><strong>Nutze Good Debt als Hebel</strong>OPM und gutes Fremdkapital sind die stärksten Hebel für schnellen Asset-Aufbau. Schulden = Werkzeug.</div></div>
+      <div class="rule-card"><div class="rule-num">06</div><div class="rule-text"><strong>Von E/S zu B/I migrieren</strong>Der Quadrant bestimmt deine Steuerlast und deine Freiheit. B und I sind das Ziel.</div></div>
+      <div class="rule-card"><div class="rule-num">07</div><div class="rule-text"><strong>Lerne von Fehlern — schnell</strong>Fehler bei kleinen Beträgen sind Schulgeld. Wer keine Fehler macht, lernt nicht. Fang klein an.</div></div>
+      <div class="rule-card"><div class="rule-num">08</div><div class="rule-text"><strong>Baue Systeme, kein Jobs</strong>Ein Business das von dir abhängt ist kein Business — es ist ein Job mit Risiko. Systeme skalieren, du nicht.</div></div>
+      <div class="rule-card"><div class="rule-num">09</div><div class="rule-text"><strong>Gold & Silber als Fundament</strong>"Reales Geld" gegen Inflationsentwertung. Fiat stirbt — Assets mit intrinsischem Wert überleben.</div></div>
+      <div class="rule-card"><div class="rule-num">10</div><div class="rule-text"><strong>Frag "Wie kann ich mir das leisten?" nicht "Ich kann das nicht"</strong>Die Frage öffnet das Gehirn. "Ich kann das nicht" schließt es. Kreativität beginnt mit der richtigen Frage.</div></div>
+    </div>
+  </div>
+
+  <!-- BÜCHER -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📚</span>
+      <h2>Rich Dad Bibliothek · Das Gesamtwerk</h2>
+      <span class="section-tag">Financial Education Series</span>
+    </div>
+    <div class="info-card">
+      <table class="lw-table">
+        <thead><tr><th>Titel</th><th>Jahr</th><th>Kernbotschaft</th></tr></thead>
+        <tbody>
+          <tr><td>Rich Dad Poor Dad</td><td>1997</td><td>Asset vs. Liability · Finanzielle Grundbildung · Rat Race</td></tr>
+          <tr><td>Cashflow Quadrant</td><td>1998</td><td>ESBI Framework · Von E zu I migrieren</td></tr>
+          <tr><td>Rich Dad's Guide to Investing</td><td>2000</td><td>Was Reiche investieren · Insider-Strategien</td></tr>
+          <tr><td>Rich Kid, Smart Kid</td><td>2001</td><td>Kinder finanziell bilden · früh anfangen</td></tr>
+          <tr><td>Retire Young Retire Rich</td><td>2002</td><td>Leverage und Geschwindigkeit des Reichtums</td></tr>
+          <tr><td>Unfair Advantage</td><td>2011</td><td>Die 5 Financial IQ Ebenen</td></tr>
+          <tr><td>Why the Rich Are Getting Richer</td><td>2017</td><td>Steuersystem und Schulden-Vorteil der Reichen</td></tr>
+          <tr><td>Fake</td><td>2019</td><td>Fake Money, Fake Teachers, Fake Assets</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ZITATE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">💬</span>
+      <h2>Unsterbliche Kiyosaki-Zitate</h2>
+      <span class="section-tag">Rich Dad's Weisheiten</span>
+    </div>
+    <div class="grid-two">
+      <div>
+        <div class="quote-block">"The poor and the middle class work for money. The rich have money work for them."</div>
+        <div class="quote-block">"How many millionaires do you know who have become wealthy by investing in savings accounts? I rest my case."</div>
+        <div class="quote-block">"Workers work hard enough to not be fired, and owners pay just enough so that workers won't quit."</div>
+      </div>
+      <div>
+        <div class="quote-block">"Financial freedom is available to those who learn about it and work for it."</div>
+        <div class="quote-block">"In school we learn that mistakes are bad, and we are punished for making them. Yet, if you look at the way humans are designed to learn, we learn by making mistakes."</div>
+        <div class="quote-block">"The moment you make passive income and portfolio income a part of your life, your life will change."</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 0;border-top:1px solid var(--border);margin-top:20px;">
+    <div style="font-size:0.85rem;color:var(--muted)">DUDE BANK · Trading Legends Series · Modul 14</div>
+    <div style="font-size:0.75rem;color:#334155;margin-top:4px;">Robert Kiyosaki · Rich Dad Poor Dad · Financial Education since 1997</div>
+  </div>
+
+</div>
+</body>
+</html>

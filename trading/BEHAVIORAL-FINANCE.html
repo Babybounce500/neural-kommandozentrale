@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Behavioral Finance — Die Wissenschaft des Trader-Versagens</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #0f1629;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent2: #38bdf8;
+    --purple: #a855f7;
+    --green: #22c55e;
+    --red: #ef4444;
+    --gold: #f59e0b;
+    --orange: #f97316;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #050f1a 50%, #0a0e1a 100%);
+    border-bottom: 1px solid #0c1f2e;
+    padding: 60px 40px; text-align:center; position:relative; overflow:hidden;
+  }
+  .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(14,165,233,0.12) 0%, transparent 70%); }
+  .hero-badge { display:inline-block; background:rgba(14,165,233,0.15); border:1px solid rgba(14,165,233,0.3); color:var(--accent); padding:4px 16px; border-radius:20px; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px; }
+  .hero-title { font-size:clamp(1.8rem,5vw,3.2rem); font-weight:800; letter-spacing:-1px; color:#fff; margin-bottom:8px; }
+  .hero-title span { color:var(--accent); }
+  .hero-sub { font-size:1.1rem; color:var(--muted); margin-bottom:24px; }
+  .hero-stats { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+  .hero-stat { text-align:center; }
+  .hero-stat-val { font-size:1.8rem; font-weight:800; color:var(--accent); }
+  .hero-stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  .container { max-width:1200px; margin:0 auto; padding:40px 20px; }
+  .section { margin-bottom:48px; }
+  .section-header { display:flex; align-items:center; gap:12px; margin-bottom:24px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .section-header h2 { font-size:1.3rem; font-weight:700; color:#fff; }
+  .section-icon { font-size:1.4rem; }
+  .section-tag { margin-left:auto; background:rgba(14,165,233,0.1); border:1px solid rgba(14,165,233,0.2); color:var(--accent); padding:2px 10px; border-radius:12px; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+
+  .info-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:16px; }
+  .info-card h3 { color:var(--accent); margin-bottom:12px; font-size:1rem; }
+
+  .formula-block { background:rgba(14,165,233,0.05); border:1px solid rgba(14,165,233,0.2); border-left:4px solid var(--accent); border-radius:8px; padding:20px 24px; margin:16px 0; font-family:monospace; }
+  .formula-block .formula { font-size:1.1rem; color:var(--accent2); font-weight:700; margin-bottom:8px; }
+  .formula-block .formula-desc { font-size:0.85rem; color:var(--muted); }
+
+  .grid-two { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .grid-three { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+
+  .lw-table { width:100%; border-collapse:collapse; }
+  .lw-table th { background:rgba(14,165,233,0.1); color:var(--accent); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); }
+  .lw-table td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; color:var(--text); }
+  .lw-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .lw-table td:first-child { color:#fff; font-weight:600; }
+
+  .quote-block { background:rgba(14,165,233,0.05); border-left:4px solid var(--accent); border-radius:0 8px 8px 0; padding:16px 20px; margin:12px 0; font-style:italic; color:var(--text); }
+  .quote-block cite { display:block; margin-top:8px; font-style:normal; font-size:0.8rem; color:var(--accent); }
+
+  /* BIAS CARDS */
+  .bias-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+  .bias-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px;
+    border-left:4px solid var(--accent); position:relative; overflow:hidden;
+  }
+  .bias-number { position:absolute; top:8px; right:12px; font-size:2.5rem; font-weight:800; color:rgba(14,165,233,0.1); }
+  .bias-name { font-weight:800; color:#fff; font-size:1rem; margin-bottom:4px; }
+  .bias-german { font-size:0.75rem; color:var(--accent); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .bias-what { font-size:0.85rem; color:var(--text); margin-bottom:8px; }
+  .bias-trader { font-size:0.8rem; color:var(--muted); padding:8px 10px; background:rgba(255,255,255,0.03); border-radius:6px; margin-bottom:8px; }
+  .bias-trader strong { color:var(--orange); display:block; margin-bottom:2px; }
+  .bias-fix { font-size:0.78rem; padding:6px 10px; background:rgba(34,197,94,0.06); border:1px solid rgba(34,197,94,0.15); border-radius:6px; color:var(--green); }
+  .bias-fix strong { display:block; margin-bottom:2px; }
+  .severity-bar { height:4px; border-radius:2px; margin-bottom:12px; }
+
+  /* PROSPECT THEORY */
+  .prospect-visual {
+    position:relative; height:200px; background:rgba(255,255,255,0.02); border-radius:8px; overflow:hidden; margin:16px 0;
+  }
+  .pt-axis-x { position:absolute; bottom:50%; left:0; right:0; height:1px; background:rgba(255,255,255,0.15); }
+  .pt-axis-y { position:absolute; left:50%; top:0; bottom:0; width:1px; background:rgba(255,255,255,0.15); }
+  .pt-label { position:absolute; font-size:10px; color:var(--muted); }
+  .pt-gain-curve { position:absolute; bottom:50%; left:50%; width:48%; height:80px; border-top:3px solid var(--green); border-right:none; border-radius:80px 0 0 0; }
+  .pt-loss-curve { position:absolute; top:50%; right:50%; width:48%; height:120px; border-bottom:3px solid var(--red); border-left:none; border-radius:0 0 0 80px; }
+  .pt-annotation { position:absolute; font-size:11px; font-weight:700; }
+
+  /* SYSTEM 1 vs 2 */
+  .sys-compare { display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .sys-col { padding:20px; }
+  .sys-col:first-child { border-right:1px solid var(--border); background:rgba(239,68,68,0.03); }
+  .sys-col:last-child { background:rgba(14,165,233,0.03); }
+  .sys-header { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .sys-title { font-size:1.1rem; font-weight:800; }
+  .sys-list { list-style:none; }
+  .sys-list li { padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.82rem; color:var(--muted); display:flex; gap:8px; }
+
+  /* KAHNEMAN PORTRAIT */
+  .pioneers-row { display:flex; gap:16px; flex-wrap:wrap; }
+  .pioneer-card { flex:1; min-width:200px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px; border-top:3px solid var(--accent); }
+  .pioneer-name { font-weight:700; color:#fff; font-size:0.95rem; margin-bottom:2px; }
+  .pioneer-years { font-size:11px; color:var(--muted); margin-bottom:8px; }
+  .pioneer-contrib { font-size:0.82rem; color:var(--text); }
+
+  /* DISPOSITION EFFECT VISUAL */
+  .disp-row { display:flex; gap:12px; align-items:center; margin-bottom:8px; }
+  .disp-action { width:200px; font-size:0.82rem; }
+  .disp-bar-track { flex:1; height:20px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; }
+  .disp-bar { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:8px; font-size:11px; color:#fff; font-weight:700; }
+
+  @media (max-width:640px) {
+    .hero { padding:40px 20px; }
+    .sys-compare { grid-template-columns:1fr; }
+    .sys-col:first-child { border-right:none; border-bottom:1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Kognitionswissenschaft · Finanzpsychologie</div>
+  <h1 class="hero-title">Behavioral <span>Finance</span></h1>
+  <p class="hero-sub">Die Wissenschaft warum Trader scheitern · Kahneman · Thaler · Shiller · Kognitive Biases</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val">95%</div><div class="hero-stat-label">Retail-Trader verlieren langfristig</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">2.25×</div><div class="hero-stat-label">Verluste schmerzen 2.25× so stark (λ, Kahneman &amp; Tversky 1979)</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">2002</div><div class="hero-stat-label">Nobelpreis Kahneman (Psychologie × Ökonomie)</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">12+</div><div class="hero-stat-label">Kognitive Biases die Trader systematisch ruinieren</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- WARUM BEHAVIORAL FINANCE? -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🔬</span><h2>Warum Behavioral Finance · Das Fundament</h2><span class="section-tag">Der Bruch mit der Effizienz-Hypothese</span></div>
+    <div class="info-card" style="border-color:rgba(14,165,233,0.2);background:rgba(14,165,233,0.02);">
+      <p style="color:var(--muted);margin-bottom:20px;">Die klassische Finanztheorie (Efficient Market Hypothesis, CAPM, Homo Oeconomicus) geht davon aus, dass Menschen rational entscheiden. Die Behavioral Finance zeigt: Das ist die größte Lüge der Finanzwissenschaft.</p>
+      <div class="grid-three">
+        <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:16px;">
+          <div style="font-weight:700;color:var(--red);margin-bottom:8px;">❌ Klassische Theorie</div>
+          <div style="font-size:0.82rem;color:var(--muted);">Menschen entscheiden rational. Märkte verarbeiten alle Infos sofort effizient. Preise reflektieren immer den fairen Wert. Kein systematisches Ausnutzen möglich.</div>
+        </div>
+        <div style="background:rgba(14,165,233,0.06);border:1px solid rgba(14,165,233,0.2);border-radius:8px;padding:16px;">
+          <div style="font-weight:700;color:var(--accent);margin-bottom:8px;">🔬 Behavioral Reality</div>
+          <div style="font-size:0.82rem;color:var(--muted);">Menschen sind systematisch irrational auf vorhersagbare Weisen. Biases sind keine Ausnahme — sie sind die Regel. Märkte sind nicht effizient wegen menschlicher Psychologie.</div>
+        </div>
+        <div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:16px;">
+          <div style="font-weight:700;color:var(--green);margin-bottom:8px;">✓ Implikation für Trader</div>
+          <div style="font-size:0.82rem;color:var(--muted);">Wer seine eigenen Biases kennt, kann sie kompensieren. Wer die Biases anderer kennt, kann sie ausnutzen. Behavioral Alpha ist real und reproduzierbar.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIONIERE -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🏆</span><h2>Die Pioniere · Nobelpreisträger & Vordenker</h2><span class="section-tag">Die Wissenschaftler hinter dem Feld</span></div>
+    <div class="pioneers-row">
+      <div class="pioneer-card">
+        <div class="pioneer-name">Daniel Kahneman</div>
+        <div class="pioneer-years">1934–2024 · Nobel 2002</div>
+        <div class="pioneer-contrib">Prospect Theory, System 1 vs System 2, Anchoring, Availability Heuristic. Mit Amos Tversky: bewies erstmals systematische Irrationalität mit Experimenten.</div>
+      </div>
+      <div class="pioneer-card">
+        <div class="pioneer-name">Amos Tversky</div>
+        <div class="pioneer-years">1937–1996 · Kahneman's Partner</div>
+        <div class="pioneer-contrib">Co-Autor Prospect Theory. Gambler's Fallacy, Representativeness Heuristic, Conjunction Fallacy. Hätte Nobel-Preis geteilt — starb 1996.</div>
+      </div>
+      <div class="pioneer-card">
+        <div class="pioneer-name">Richard Thaler</div>
+        <div class="pioneer-years">1945– · Nobel 2017</div>
+        <div class="pioneer-contrib">Mental Accounting, Nudge Theory, Endowment Effect, Sunk Cost Fallacy. "Nudge": Wie Default-Einstellungen Entscheidungen steuern.</div>
+      </div>
+      <div class="pioneer-card">
+        <div class="pioneer-name">Robert Shiller</div>
+        <div class="pioneer-years">1946– · Nobel 2013</div>
+        <div class="pioneer-contrib">CAPE-Ratio (Shiller P/E), "Irrational Exuberance" (Dot-com 1999, Housing 2005). Narrativ-Ökonomie: Geschichten bewegen Märkte.</div>
+      </div>
+      <div class="pioneer-card">
+        <div class="pioneer-name">George Akerlof</div>
+        <div class="pioneer-years">1940– · Nobel 2001</div>
+        <div class="pioneer-contrib">Information Asymmetry ("Market for Lemons"). Animal Spirits. Warum irrationale Überzeugungen Volkswirtschaften antreiben.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROSPECT THEORY -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">📊</span><h2>Prospect Theory · Kahneman & Tversky 1979</h2><span class="section-tag">Die revolutionärste Entdeckung</span></div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>Die S-Kurve · Wie Menschen Gewinne & Verluste empfinden</h3>
+        <div class="prospect-visual">
+          <div class="pt-axis-x"></div>
+          <div class="pt-axis-y"></div>
+          <div class="pt-gain-curve"></div>
+          <div class="pt-loss-curve"></div>
+          <div class="pt-label" style="top:5px;left:55%;">Wert (subjektiv)</div>
+          <div class="pt-label" style="bottom:52%;right:5%;">Gewinne</div>
+          <div class="pt-label" style="top:52%;left:5%;">Verluste</div>
+          <div class="pt-annotation" style="top:15%;right:10%;color:var(--green);">+€100<br>Freude: 6</div>
+          <div class="pt-annotation" style="bottom:5%;left:10%;color:var(--red);">−€100<br>Schmerz: 12</div>
+          <div class="pt-label" style="bottom:45%;left:48%;">0</div>
+        </div>
+        <div class="formula-block" style="margin:0 0 0 0;">
+          <div class="formula">Verlust-Aversion: v(−X) = λ · v(+X) · · · λ ≈ 2.25</div>
+          <div class="formula-desc">Kahneman &amp; Tversky, Econometrica 1979, Experiment mit 250 Probanden: λ = 2.25 gemessen. Ein Verlust von €100 fühlt sich wie ein Verlust von €225 "anfühlen sollte". Das ist der Kern des Trader-Versagens — der Schmerz des Stoppens ist real, der mathematische Schaden des Nicht-Stoppens ist größer.</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>Prospect Theory · 4 Kernaussagen</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:rgba(239,68,68,0.06);border-left:3px solid var(--red);border-radius:0 6px 6px 0;padding:12px;">
+            <div style="font-weight:700;color:var(--red);margin-bottom:4px;">1. Loss Aversion</div>
+            <div style="font-size:0.82rem;color:var(--muted);">Verluste fühlen sich ~2.25× schmerzhafter an als gleich große Gewinne sich angenehm anfühlen (λ empirisch gemessen). → Traders halten Verlust-Positionen zu lang.</div>
+          </div>
+          <div style="background:rgba(14,165,233,0.06);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:12px;">
+            <div style="font-weight:700;color:var(--accent);margin-bottom:4px;">2. Diminishing Sensitivity</div>
+            <div style="font-size:0.82rem;color:var(--muted);">€100 → €200 fühlt sich besser an als €900 → €1000. Gleiche Differenz — unterschiedlicher Effekt. Überempfindlichkeit nahe Null.</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.06);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:12px;">
+            <div style="font-weight:700;color:var(--gold);margin-bottom:4px;">3. Reference Point Dependence</div>
+            <div style="font-size:0.82rem;color:var(--muted);">Entscheidungen basieren auf Veränderungen relativ zu einem Referenzpunkt (Kaufkurs), nicht auf absolutem Wert.</div>
+          </div>
+          <div style="background:rgba(168,85,247,0.06);border-left:3px solid var(--purple);border-radius:0 6px 6px 0;padding:12px;">
+            <div style="font-weight:700;color:var(--purple);margin-bottom:4px;">4. Probability Weighting</div>
+            <div style="font-size:0.82rem;color:var(--muted);">Kleine Wahrscheinlichkeiten werden überschätzt (Lotto, seltene Verluste). Mittlere Wahrscheinlichkeiten unterschätzt.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYSTEM 1 vs SYSTEM 2 -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🧠</span><h2>System 1 vs System 2 · Das Dual-Process Modell</h2><span class="section-tag">Kahneman's Thinking Fast & Slow</span></div>
+    <div class="sys-compare">
+      <div class="sys-col">
+        <div class="sys-header">
+          <span style="font-size:2rem;">⚡</span>
+          <div>
+            <div class="sys-title" style="color:var(--red)">System 1 · Das schnelle Denken</div>
+            <div style="font-size:0.8rem;color:var(--muted);">Automatisch · Unbewusst · Emotional</div>
+          </div>
+        </div>
+        <ul class="sys-list">
+          <li><span style="color:var(--red)">→</span>Blitzschnell, automatisch, kein Aufwand</li>
+          <li><span style="color:var(--red)">→</span>Emotional gesteuert — Amygdala dominiert</li>
+          <li><span style="color:var(--red)">→</span>Heuristiken & Shortcuts statt Analyse</li>
+          <li><span style="color:var(--red)">→</span>Prähistorisch optimiert (Überleben, nicht Märkte)</li>
+          <li><span style="color:var(--red)">→</span>Panik-Verkäufe kommen von hier</li>
+          <li><span style="color:var(--red)">→</span>FOMO-Käufe kommen von hier</li>
+          <li><span style="color:var(--red)">→</span>Anchoring-Effekte kommen von hier</li>
+          <li><span style="color:var(--red)">→</span>Erkennt Muster die keine sind</li>
+        </ul>
+        <div style="margin-top:12px;padding:10px;background:rgba(239,68,68,0.05);border-radius:6px;font-size:0.8rem;color:var(--muted);">
+          <strong style="color:var(--red)">Im Trading:</strong> System 1 ist der Feind. Es reagiert auf kurzfristige Kursänderungen mit primitiven Überlebensinstinkten — kämpfen oder fliehen. Märkte bestrafen das.
+        </div>
+      </div>
+      <div class="sys-col">
+        <div class="sys-header">
+          <span style="font-size:2rem;">🔬</span>
+          <div>
+            <div class="sys-title" style="color:var(--accent)">System 2 · Das langsame Denken</div>
+            <div style="font-size:0.8rem;color:var(--muted);">Deliberativ · Bewusst · Analytisch</div>
+          </div>
+        </div>
+        <ul class="sys-list">
+          <li><span style="color:var(--accent)">→</span>Langsam, anstrengend, bewusst gesteuert</li>
+          <li><span style="color:var(--accent)">→</span>Rational-analytisch — Präfrontal-Kortex</li>
+          <li><span style="color:var(--accent)">→</span>Logik, Statistik, Wahrscheinlichkeiten</li>
+          <li><span style="color:var(--accent)">→</span>Energieverbrauchend — ermüdet</li>
+          <li><span style="color:var(--accent)">→</span>Trading-Pläne entstehen hier</li>
+          <li><span style="color:var(--accent)">→</span>Position-Sizing-Rechnung kommt von hier</li>
+          <li><span style="color:var(--accent)">→</span>Stop-Loss-Disziplin braucht das</li>
+          <li><span style="color:var(--accent)">→</span>Wird von System 1 sabotiert im Stress</li>
+        </ul>
+        <div style="margin-top:12px;padding:10px;background:rgba(14,165,233,0.05);border-radius:6px;font-size:0.8rem;color:var(--muted);">
+          <strong style="color:var(--accent)">Im Trading:</strong> Regeln schreiben wenn System 2 aktiv ist. Im Trade-Stress übernimmt System 1 → Regeln verhindern, dass es Schaden anrichtet. Checklisten, Trading-Pläne, Algorithmen.
+        </div>
+      </div>
+    </div>
+    <div class="formula-block" style="margin-top:16px;">
+      <div class="formula">Trading-Lösung: System 2 schreibt die Regeln · System 1 darf nur innerhalb der Regeln spielen</div>
+      <div class="formula-desc">Checkliste vor jedem Trade (S2) → Stops sind vorher gesetzt (S2) → Im Trade: nur Ausführung, keine neuen Entscheidungen (S1 isoliert)</div>
+    </div>
+  </div>
+
+  <!-- 12 BIASES -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">⚠️</span><h2>12 Kognitive Biases · Die systematischen Killer</h2><span class="section-tag">Erkenne dich selbst</span></div>
+    <div class="bias-grid">
+
+      <div class="bias-card" style="border-left-color:var(--red);">
+        <span class="bias-number">01</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,var(--red) 95%,transparent 95%)"></div>
+        <div class="bias-name">Loss Aversion</div>
+        <div class="bias-german">VERLUST-AVERSION</div>
+        <div class="bias-what">Verluste fühlen sich 2.25× schmerzhafter an als gleich große Gewinne sich positiv anfühlen (λ=2.25, Kahneman &amp; Tversky 1979). Direkte Folge der Prospect Theory.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> Position im Minus? Man wartet "bis sie wieder oben ist." Statt: Stop akzeptieren und weiterziehen. Ergebnis: kleine Verluste werden zu großen Katastrophen.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Stop-Loss VOR dem Trade setzen. Wenn Stop erreicht → automatisch exekutieren. Kein Nachdenken erlaubt.</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:var(--orange);">
+        <span class="bias-number">02</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,var(--orange) 90%,transparent 90%)"></div>
+        <div class="bias-name">Confirmation Bias</div>
+        <div class="bias-german">BESTÄTIGUNGSFEHLER</div>
+        <div class="bias-what">Man sucht und bewertet Informationen die die eigene bestehende These bestätigen höher als gegenteilige Evidenz.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> Long in Tesla? Man liest Tesla-Bulls und ignoriert Short-Argumente. Verlust wird als "temporär" rationalisiert. Objektive Analyse wird unmöglich.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Aktiv das beste Gegenargument suchen ("Devil's Advocate"). Pre-Mortem: Was muss passieren damit diese Position verliert?</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:var(--gold);">
+        <span class="bias-number">03</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,var(--gold) 88%,transparent 88%)"></div>
+        <div class="bias-name">Overconfidence Bias</div>
+        <div class="bias-german">SELBSTÜBERSCHÄTZUNG</div>
+        <div class="bias-what">93% aller Autofahrer glauben überdurchschnittlich gut zu fahren. Bei Tradern: systematische Überschätzung der eigenen Fähigkeiten und Vorhersage-Genauigkeit.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> Zu großes Sizing. "Ich bin mir sicher." Nach Gewinn-Serie: Gefühl der Unbesiegbarkeit. Dann der Kontoverlust der alles auslöscht.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Trading-Tagebuch mit Trefferquote. Zahlen lügen nicht. Van Tharp Position Sizing: Risiko pro Trade fix limitieren.</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:var(--purple);">
+        <span class="bias-number">04</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,var(--purple) 85%,transparent 85%)"></div>
+        <div class="bias-name">Anchoring Bias</div>
+        <div class="bias-german">ANKER-EFFEKT</div>
+        <div class="bias-what">Der erste präsentierte Wert (Anchor) beeinflusst alle nachfolgenden Urteile unverhältnismäßig stark, auch wenn er völlig irrelevant ist.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> "Die Aktie war mal €200, jetzt ist sie €80 — muss billig sein!" Kaufkurs als Anker macht objektive Neubewertung unmöglich.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Immer fragen: "Würde ich diese Position heute zum aktuellen Preis kaufen wenn ich sie nicht hätte?" Wenn nein → verkaufen.</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:var(--accent);">
+        <span class="bias-number">05</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,var(--accent) 85%,transparent 85%)"></div>
+        <div class="bias-name">Disposition Effect</div>
+        <div class="bias-german">DISPOSITIONSEFFEKT</div>
+        <div class="bias-what">Systematische Tendenz: Gewinner zu früh verkaufen (Gewinne realisieren), Verlierer zu lange zu halten (Verluste vermeiden). Das genaue Gegenteil von "let winners run, cut losers fast."</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> +10%? Sofort verkauft. −20%? Gewartet "bis es sich erholt." Shefrin & Statman 1985: bewiesen mit echten Depot-Daten.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Trailing Stops für Gewinner (z.B. Buchgewinn-Trailing). Harte Stops für Verlierer. Entscheidung VOR dem Trade treffen.</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:#10b981;">
+        <span class="bias-number">06</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,#10b981 80%,transparent 80%)"></div>
+        <div class="bias-name">Herding / FOMO</div>
+        <div class="bias-german">HERDENMENTALITÄT</div>
+        <div class="bias-what">Entscheidungen orientieren sich an der Masse statt an unabhängiger Analyse. FOMO (Fear of Missing Out) ist die akute Form: Kaufen weil alle kaufen.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> Bitcoin auf ATH wegen Twitter-Hype kaufen. Meme Stocks. Dotcom-Bubble-Käufer 1999. Die Masse ist fast immer am Peak investiert.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Konträr-Indikator: Wenn alle bullish sind → erhöhte Vorsicht. CNN Fear & Greed Index. Buffett: Greedy when fearful.</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:#f43f5e;">
+        <span class="bias-number">07</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,#f43f5e 80%,transparent 80%)"></div>
+        <div class="bias-name">Recency Bias</div>
+        <div class="bias-german">AKTUALITÄTS-VERZERRUNG</div>
+        <div class="bias-what">Jüngste Ereignisse werden als repräsentativer für die Zukunft bewertet als sie es statistisch sind. Der Markt ist gerade gestiegen → wird weiter steigen. Der Markt ist gefallen → wird weiter fallen.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> Nach Bull-Run extrapoliert man ewiges Wachstum. Nach Crash: Angst vor weiterem Fall. Kauft Tops, verkauft Böden.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Langfristige Base Rates konsultieren. Mean Reversion kennen. Historische Drawdown-Daten als Gegengewicht.</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:#8b5cf6;">
+        <span class="bias-number">08</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,#8b5cf6 75%,transparent 75%)"></div>
+        <div class="bias-name">Gambler's Fallacy</div>
+        <div class="bias-german">SPIELERFEHLSCHLUSS</div>
+        <div class="bias-what">Glaube, dass vergangene Ereignisse die Wahrscheinlichkeit zukünftiger Ereignisse beeinflussen, obwohl die Ereignisse unabhängig sind. "Nach 5 Verlusten muss der Gewinn kommen."</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> Nach 3 Verlusttrades: Oversize beim nächsten "weil er kommen muss." Kein Trade weiß was der vorherige war.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Jeder Trade ist unabhängig. Sizing bleibt konstant unabhängig von Streak. Statistik der Trades — kein "Momentum" in Trefferquoten.</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:#0284c7;">
+        <span class="bias-number">09</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,#0284c7 75%,transparent 75%)"></div>
+        <div class="bias-name">Hindsight Bias</div>
+        <div class="bias-german">RÜCKSCHAUFEHLER</div>
+        <div class="bias-what">"Ich wusste es!" — Nach einem Ereignis überschätzen Menschen, wie vorhersehbar das Ergebnis war. Verhindert echtes Lernen aus Fehlern.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> 2008 Crash: "Ich hätte das sehen müssen." Führt zu Overconfidence bei der nächsten "klaren" Situation. Oder: Verhindert objektive Post-Mortem-Analyse.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Trading-Tagebuch VOR dem Trade (Hypothesen dokumentieren). Dann Review: Was wusste ich wirklich, was ist Hindsight?</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:#64748b;">
+        <span class="bias-number">10</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,#64748b 70%,transparent 70%)"></div>
+        <div class="bias-name">Status Quo Bias</div>
+        <div class="bias-german">STATUS-QUO-VERZERRUNG</div>
+        <div class="bias-what">Präferenz für den aktuellen Zustand. Inaktivität wird bevorzugt weil Veränderung als Verlust wahrgenommen wird (Verbindung zu Loss Aversion).</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> Portfolio nicht rebalancieren weil es "OK läuft". Losing Position nicht schließen weil dann der Verlust "real" wird. Passivität als Schutz.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Regelbasiertes Rebalancing (z.B. quartalsweise oder bei 5% Abweichung). Automatische Stops die nicht manuell gehalten werden müssen.</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:#0891b2;">
+        <span class="bias-number">11</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,#0891b2 70%,transparent 70%)"></div>
+        <div class="bias-name">Availability Heuristic</div>
+        <div class="bias-german">VERFÜGBARKEITS-HEURISTIK</div>
+        <div class="bias-what">Ereignisse die leicht erinnert werden (weil dramatisch, persönlich, recent) werden als wahrscheinlicher eingeschätzt als sie statistisch sind.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> Nach dem Lesen über Wirecard/Enron: überschätzt man Betrugs-Risiko in jedem Unternehmen. Nach COVID-Crash: überschätzt man Pandemie-Risiko jedes Jahr.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> Basisraten aus historischen Daten, nicht aus lebhaften Erinnerungen. "Was ist die historische Häufigkeit dieser Situation?"</div>
+      </div>
+
+      <div class="bias-card" style="border-left-color:#7c3aed;">
+        <span class="bias-number">12</span>
+        <div class="severity-bar" style="background:linear-gradient(90deg,#7c3aed 65%,transparent 65%)"></div>
+        <div class="bias-name">Sunk Cost Fallacy</div>
+        <div class="bias-german">VERSUNKENE-KOSTEN-IRRTUM</div>
+        <div class="bias-what">Bereits getätigte (unwiederbringliche) Kosten beeinflussen zukünftige Entscheidungen — obwohl sie rational irrelevant sein sollten.</div>
+        <div class="bias-trader"><strong>🔴 Im Trading:</strong> "Ich habe schon €5.000 in diese Analyse investiert, ich muss traden." Oder: "Ich habe €10.000 Verlust, ich warte bis ich Break-Even bin." Vergangenheit entscheidet Zukunft.</div>
+        <div class="bias-fix"><strong>✓ Fix:</strong> "Wenn ich heute frisch anfangen würde — würde ich diese Position eingehen?" Wenn nein: exit, unabhängig vom bisherigen Investment.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MENTAL ACCOUNTING -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🗂️</span><h2>Mental Accounting · Richard Thaler</h2><span class="section-tag">Geld ist nicht fungibel im Gehirn</span></div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>Was ist Mental Accounting?</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:16px;">Menschen behandeln Geld unterschiedlich je nach Herkunft, Kontext oder "mentaler Kasse" — obwohl €1 objektiv immer €1 ist. Thaler: Nobelpreis 2017.</p>
+        <table class="lw-table">
+          <thead><tr><th>Mentale Kasse</th><th>Irrationale Behandlung</th><th>Richtig wäre</th></tr></thead>
+          <tbody>
+            <tr><td>Spielgeld</td><td style="font-size:0.8rem;color:var(--muted);">"Bonus/Steuerrückzahlung kann ich riskieren"</td><td style="font-size:0.8rem;">Gleiche Risikoregeln wie immer</td></tr>
+            <tr><td>Haus-Gewinn</td><td style="font-size:0.8rem;color:var(--muted);">"Papiergewinn ist kein echtes Geld"</td><td style="font-size:0.8rem;">Trailing Stop auf alle unrealisierten Gewinne</td></tr>
+            <tr><td>Verlust-Kasse</td><td style="font-size:0.8rem;color:var(--muted);">"Ich trade solange bis ich den Verlust zurückhabe"</td><td style="font-size:0.8rem;">Vergangener Verlust = irrelevant für nächsten Trade</td></tr>
+            <tr><td>Depot vs. Konto</td><td style="font-size:0.8rem;color:var(--muted);">Depot-Verluste "nicht wirklich real" weil nicht abgehoben</td><td style="font-size:0.8rem;">Realisiert oder nicht: Purchasing Power verloren</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card">
+        <h3>Praktische Konsequenzen für Trader</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="background:rgba(239,68,68,0.06);border-radius:6px;padding:12px;">
+            <div style="font-weight:700;color:var(--red);font-size:0.85rem;margin-bottom:4px;">🎰 Casino-Effekt</div>
+            <div style="font-size:0.8rem;color:var(--muted);">Mit "Gewinnen des Hauses" höhere Risiken eingehen. Trader nach Profit-Tag: Oversize weil "es ja Gewinn-Geld ist."</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.06);border-radius:6px;padding:12px;">
+            <div style="font-weight:700;color:var(--gold);font-size:0.85rem;margin-bottom:4px;">📦 Bucket Segregation</div>
+            <div style="font-size:0.8rem;color:var(--muted);">Portfolio in "sicher" und "spekulativ" teilen — verleitet dazu, riskante Eimer zu ignorieren bis sie explodieren.</div>
+          </div>
+          <div style="background:rgba(34,197,94,0.06);border-radius:6px;padding:12px;">
+            <div style="font-weight:700;color:var(--green);font-size:0.85rem;margin-bottom:4px;">✓ Lösung: Ein Portfolio, eine Regel</div>
+            <div style="font-size:0.8rem;color:var(--muted);">Gesamtes Kapital als eine Einheit. Gleiche Risikoprozente für jeden Trade. Keine mentalen Sonderkonten.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEHAVIORAL ALPHA AUSNUTZEN -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🎯</span><h2>Behavioral Alpha · Die Biases anderer ausnutzen</h2><span class="section-tag">Von der Theorie zum Vorteil</span></div>
+    <div class="info-card">
+      <p style="color:var(--muted);margin-bottom:16px;">Wenn andere systematisch irrational handeln, entstehen vorhersagbare Muster — und damit Edge für informierte Trader.</p>
+      <table class="lw-table">
+        <thead><tr><th>Bias im Markt</th><th>Erkennbares Muster</th><th>Behavioral Alpha</th><th>Beispiel</th></tr></thead>
+        <tbody>
+          <tr><td>Herding / FOMO</td><td style="font-size:0.8rem;color:var(--muted);">Übertriebene Extrembewegungen in Popularitätsphasen</td><td style="color:var(--green);font-size:0.8rem;">Contrarian Short/Long am Sentiment-Extreme</td><td style="font-size:0.8rem;color:var(--muted);">Bitcoin $69K Nov 2021 → Buffett "greedy when fearful"</td></tr>
+          <tr><td>Recency Bias</td><td style="font-size:0.8rem;color:var(--muted);">Trend-Extrapolation über fundamentale Werte hinaus</td><td style="color:var(--green);font-size:0.8rem;">Mean Reversion: kaufe extreme Abweichungen</td><td style="font-size:0.8rem;color:var(--muted);">Shiller CAPE &gt;35 = statistisch überteuert</td></tr>
+          <tr><td>Disposition Effect</td><td style="font-size:0.8rem;color:var(--muted);">Aktien fallen am Jahresende (Tax-Loss Selling)</td><td style="color:var(--green);font-size:0.8rem;">Januar-Effekt: Überrendite in Januar durch Rückkäufe</td><td style="font-size:0.8rem;color:var(--muted);">Saisonale Anomalie — nachweislich über Jahrzehnte</td></tr>
+          <tr><td>Anchoring</td><td style="font-size:0.8rem;color:var(--muted);">Runde Preise als Support/Resistance (Psycho-Niveaus)</td><td style="color:var(--green);font-size:0.8rem;">Kaufen/Shorten nahe psychologischer Ebenen</td><td style="font-size:0.8rem;color:var(--muted);">$100, $50, ATH als Magnet-Preise</td></tr>
+          <tr><td>Overconfidence nach Boom</td><td style="font-size:0.8rem;color:var(--muted);">Maximale Leverage am Ende von Bull Markets</td><td style="color:var(--green);font-size:0.8rem;">Volatilitäts-Spike kaufen (VIX) wenn alle ruhig sind</td><td style="font-size:0.8rem;color:var(--muted);">VIX &lt;12 → kaufe Tail Hedges billig</td></tr>
+          <tr><td>Loss Aversion in Crash</td><td style="font-size:0.8rem;color:var(--muted);">Panik-Verkäufe unter fundamentalem Wert</td><td style="color:var(--green);font-size:0.8rem;">Qualitäts-Käufe bei übertriebener Angst</td><td style="font-size:0.8rem;color:var(--muted);">Buffett kauft in Krisen: 2008, 2020, 2022</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SELF-CHECKLIST -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">✅</span><h2>Trader Self-Check · Bias-Diagnose vor dem Trade</h2><span class="section-tag">System 2 Aktivierungs-Protokoll</span></div>
+    <div class="info-card" style="border-color:rgba(14,165,233,0.2);">
+      <p style="color:var(--muted);margin-bottom:16px;">Diese Fragen VOR jedem signifikanten Trade durchgehen (5 Minuten). Zweck: System 2 aktivieren, bevor System 1 die Kontrolle übernimmt.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;">
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="color:var(--accent);font-weight:700;font-size:0.85rem;margin-bottom:8px;">🔍 Anti-Confirmation Check</div>
+          <div style="font-size:0.8rem;color:var(--muted);">"Was ist das beste Argument GEGEN meinen Trade? Habe ich es aktiv gesucht?"</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="color:var(--accent);font-weight:700;font-size:0.85rem;margin-bottom:8px;">⚓ Anti-Anchoring Check</div>
+          <div style="font-size:0.8rem;color:var(--muted);">"Würde ich diese Position HEUTE zum AKTUELLEN PREIS neu eingehen, wenn ich sie nicht hätte?"</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="color:var(--accent);font-weight:700;font-size:0.85rem;margin-bottom:8px;">📊 Base Rate Check</div>
+          <div style="font-size:0.8rem;color:var(--muted);">"Was sagt die historische Statistik zu dieser Setup-Situation? Wie hoch ist die Trefferquote?"</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="color:var(--accent);font-weight:700;font-size:0.85rem;margin-bottom:8px;">🛑 Sizing Sanity Check</div>
+          <div style="font-size:0.8rem;color:var(--muted);">"Ist mein Sizing konsistent mit meiner normalen Regel, oder trade ich größer/kleiner wegen Emotion?"</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="color:var(--accent);font-weight:700;font-size:0.85rem;margin-bottom:8px;">😤 Emotional State Check</div>
+          <div style="font-size:0.8rem;color:var(--muted);">"Trade ich aus Gier, Angst, Rache oder Langeweile? Wenn ja: NICHT traden. Emotion = System 1."</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:14px;">
+          <div style="color:var(--accent);font-weight:700;font-size:0.85rem;margin-bottom:8px;">🏁 Pre-defined Exit Check</div>
+          <div style="font-size:0.8rem;color:var(--muted);">"Habe ich Stop-Loss AND Take-Profit VOR dem Trade definiert? Wenn nein: zuerst definieren, dann traden."</div>
+        </div>
+      </div>
+      <div class="quote-block" style="margin-top:16px;">"Der einzige Unterschied zwischen einem erfolgreichen und einem erfolglosen Trader ist oft nicht Intelligenz oder Analyse — sondern Disziplin beim Umgang mit sich selbst."<cite>— Mark Douglas, Trading in the Zone</cite></div>
+    </div>
+  </div>
+
+  <!-- BÜCHER -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">📚</span><h2>Pflichtlektüre · Behavioral Finance Bibliothek</h2><span class="section-tag">Die 10 wichtigsten Bücher</span></div>
+    <div class="info-card">
+      <table class="lw-table">
+        <thead><tr><th>Titel</th><th>Autor</th><th>Jahr</th><th>Kernbeitrag für Trader</th></tr></thead>
+        <tbody>
+          <tr><td>Thinking, Fast and Slow</td><td>Daniel Kahneman</td><td>2011</td><td>System 1 vs 2 · Alle wichtigen Biases · Das Standardwerk</td></tr>
+          <tr><td>Misbehaving</td><td>Richard Thaler</td><td>2015</td><td>Mental Accounting · Nudge · Sunk Cost in Praxis</td></tr>
+          <tr><td>Irrational Exuberance</td><td>Robert Shiller</td><td>2000</td><td>Narrative in Märkten · CAPE-Bewertung · Bubble-Psychologie</td></tr>
+          <tr><td>Trading in the Zone</td><td>Mark Douglas</td><td>2000</td><td>Psychologie des Trading-Erfolgs · Probabilistisches Denken</td></tr>
+          <tr><td>The Psychology of Money</td><td>Morgan Housel</td><td>2020</td><td>Verhaltensökonomie für Privatinvestoren · Praktisch</td></tr>
+          <tr><td>Predictably Irrational</td><td>Dan Ariely</td><td>2008</td><td>Systematische Irrationalität im Alltag</td></tr>
+          <tr><td>Fooled by Randomness</td><td>Nassim Taleb</td><td>2001</td><td>Survivorship Bias · Zufall vs. Können</td></tr>
+          <tr><td>The Black Swan</td><td>Nassim Taleb</td><td>2007</td><td>Availability Bias · Unterschätzung von Tail Risks</td></tr>
+          <tr><td>Animal Spirits</td><td>Akerlof & Shiller</td><td>2009</td><td>Narrative Ökonomie · Emotionen in Makro</td></tr>
+          <tr><td>Nudge</td><td>Thaler & Sunstein</td><td>2008</td><td>Default-Effekte · Choice Architecture</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 0;border-top:1px solid var(--border);margin-top:20px;">
+    <div style="font-size:0.85rem;color:var(--muted)">DUDE BANK · Trading Psychology Series · Modul 17</div>
+    <div style="font-size:0.75rem;color:#334155;margin-top:4px;">Behavioral Finance · Kahneman · Thaler · Shiller · 12 Biases · System 1 vs 2 · Behavioral Alpha</div>
+  </div>
+
+</div>
+</body>
+</html>

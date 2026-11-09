@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUDE BANK — Theologie, Kirche & Wucherdebatte</title>
+<style>
+  :root {
+    --bg: #0a0800;
+    --surface: #130f00;
+    --card: #1a1500;
+    --border: #2e2600;
+    --gold: #c9a84c;
+    --gold2: #f5d47a;
+    --orange: #d29922;
+    --red: #f85149;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --text: #c9d1d9;
+    --muted: #4a3e00;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .header {
+    background: linear-gradient(135deg, #100d00 0%, #1e1800 50%, #100d00 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px;
+    text-align: center;
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(201,168,76,0.07) 0%, transparent 70%);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--orange); margin-bottom: 12px; }
+  .header h1 { font-size: clamp(26px, 4vw, 44px); font-weight: 900; color: var(--text); }
+  .header h1 span { color: var(--gold2); }
+  .header-sub { margin-top: 12px; font-size: 14px; color: #555; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+  .content { max-width: 1000px; margin: 0 auto; padding: 48px 24px; }
+
+  .section-header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--orange); margin-bottom: 4px; }
+  .section-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .section-gap { margin-top: 56px; }
+
+  /* TIMELINE */
+  .theo-timeline { position: relative; padding-left: 32px; }
+  .theo-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--gold), var(--border));
+  }
+  .theo-event {
+    position: relative;
+    margin-bottom: 32px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    transition: border-color 0.2s;
+  }
+  .theo-event:hover { border-color: var(--gold); }
+  .theo-event::before {
+    content: '';
+    position: absolute;
+    left: -40px;
+    top: 22px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--bg);
+  }
+  .theo-year { font-size: 11px; font-family: monospace; color: var(--gold); letter-spacing: 2px; margin-bottom: 6px; }
+  .theo-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .theo-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .theo-body strong { color: var(--text); }
+
+  /* SALAMANCA GRID */
+  .salamanca-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .sal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    border-top: 3px solid var(--gold);
+  }
+  .sal-person { font-size: 16px; font-weight: 700; color: var(--gold2); margin-bottom: 4px; }
+  .sal-dates { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-bottom: 12px; }
+  .sal-concept { font-size: 13px; font-weight: 700; color: var(--orange); margin-bottom: 8px; }
+  .sal-body { font-size: 12px; color: #8b949e; line-height: 1.6; }
+  .sal-body strong { color: var(--text); }
+  .sal-dude { margin-top: 12px; padding: 8px 12px; background: rgba(201,168,76,0.06); border-left: 2px solid var(--gold); border-radius: 0 4px 4px 0; font-size: 11px; color: #888; }
+
+  /* ETYMOLOGY */
+  .etym-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .etym-chain {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+    justify-content: center;
+  }
+  .etym-word {
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    text-align: center;
+  }
+  .etym-word .lang { font-size: 9px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .etym-word .word { font-size: 16px; font-weight: 900; color: var(--gold2); font-family: 'Times New Roman', serif; margin: 4px 0; }
+  .etym-word .meaning { font-size: 10px; color: #666; }
+  .etym-arrow { font-size: 20px; color: var(--muted); }
+  .etym-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .etym-body strong { color: var(--text); }
+
+  /* CREDIT CARD PARALLEL */
+  .parallel-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .parallel-table th { background: rgba(201,168,76,0.08); color: var(--gold); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+  .parallel-table td { padding: 10px 14px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .parallel-table tr:nth-child(even) td { background: rgba(201,168,76,0.02); }
+  .parallel-table td:first-child { color: var(--text); font-weight: 600; font-size: 12px; }
+
+  /* DOGMATIZATION */
+  .dog-timeline { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .dog-entry {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .dog-year-badge {
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    white-space: nowrap;
+    min-width: 70px;
+    text-align: center;
+  }
+  .dog-content {}
+  .dog-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .dog-body { font-size: 12px; color: #8b949e; line-height: 1.5; }
+
+  .magritte-quote {
+    font-style: italic;
+    font-size: 12px;
+    color: #c9a84c55;
+    padding-left: 12px;
+    border-left: 2px solid rgba(201,168,76,0.2);
+    margin-top: 12px;
+  }
+
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 10px; background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+  .tag-red { background: rgba(248,81,73,0.1); color: var(--red); border-color: rgba(248,81,73,0.2); }
+  .tag-green { background: rgba(63,185,80,0.1); color: var(--green); border-color: rgba(63,185,80,0.2); }
+  .tag-blue { background: rgba(88,166,255,0.1); color: var(--blue); border-color: rgba(88,166,255,0.2); }
+
+  @media (max-width: 600px) {
+    .content { padding: 24px 12px; }
+    .salamanca-grid { grid-template-columns: 1fr; }
+    .etym-chain { flex-direction: column; align-items: center; }
+    .dog-entry { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK eG — Kirchliche Finanzgeschichte</div>
+  <h1>Theologie, <span>Wucher</span> & Gerechtigkeit</h1>
+  <p class="header-sub">
+    Von Lateran II (1139) über die Schule von Salamanca bis zum Contractus Trinus (1515) —
+    die vollständige Geschichte wie die Kirche Zinsen zunächst verdammte, dann erlaubte,
+    und dabei die DNA moderner Finanzinstrumente schuf. Aus DUDE-BANK-CONVO.txt extrahiert.
+  </p>
+</div>
+
+<div class="content">
+
+  <!-- CHRONOLOGIE -->
+  <div class="section-header">
+    <div class="section-label">Chronologie</div>
+    <div class="section-title">1139–2026 — Die Zinsverbots-Geschichte der Kirche</div>
+  </div>
+
+  <div class="theo-timeline">
+
+    <div class="theo-event">
+      <div class="theo-year">1139 — ZWEITES LATERANKONZIL</div>
+      <div class="theo-title">Absolutes Zinsverbot — Usura wird zur Todsünde</div>
+      <div class="theo-body">
+        Papst Innozenz II. erklärte beim Lateranum II jede Form von Zinsen (<strong>Usura</strong>) zur Todsünde.
+        Begründung: Geld ist tot, es kann nicht wachsen — wer Zinsen verlangt, verkauft Zeit,
+        die allein Gott gehört. Exkommunikation und Verweigerung des kirchlichen Begräbnisses drohten.
+        <br><br>
+        <strong>Praktische Konsequenz:</strong> Der gesamte Kreditmarkt wurde in die Hände von Juden und Lombarden
+        (Norditalienern) gedrängt, die nicht unter christlichem Kirchenrecht standen.
+        Das schuf jahrhundertelange soziale Spannungen und Pogroms.
+      </div>
+      <div class="tags">
+        <span class="tag">Lateran II</span>
+        <span class="tag tag-red">Todsünde</span>
+        <span class="tag">Usura</span>
+        <span class="tag">Exkommunikation</span>
+      </div>
+    </div>
+
+    <div class="theo-event">
+      <div class="theo-year">1311 — KONZIL VON VIENNE</div>
+      <div class="theo-title">Häresie für Zinsverteidigung / Templer-Auflösung</div>
+      <div class="theo-body">
+        Das Konzil von Vienne (Papst Clemens V.) verschärfte: Wer öffentlich behauptete,
+        dass Zinsnehmen nicht sündhaft sei, war selbst als <strong>Häretiker</strong> zu verfolgen.
+        Parallel dazu: Auflösung des Templerorden (Philipp IV. von Frankreich schuldete ihnen massiv).
+        <br><br>
+        <strong>Die Kreditkarten-Parallele:</strong> Der mittelalterliche Trick Zinsen als „id quod interest"
+        (Schadensersatz) umzulabeln ist identisch mit dem 0%-Zinsfrist-Trick moderner Kreditkarten.
+        Sobald die Frist abläuft, wird der „Schaden" (entgangene Zahlung) fällig —
+        früher als Schadensersatz, heute als Strafzins. Selbe Logik, anderer Deckmantel.
+      </div>
+      <div class="magritte-quote">„Ceci n'est pas une carte de crédit. C'est une machine à remonter le temps."</div>
+      <div class="tags">
+        <span class="tag">Vienne 1311</span>
+        <span class="tag tag-red">Häresie</span>
+        <span class="tag">id quod interest</span>
+        <span class="tag tag-blue">Kreditkarte Parallele</span>
+      </div>
+    </div>
+
+    <div class="theo-event">
+      <div class="theo-year">1515 — KONZIL VON LATERAN V / FUGGER / CONTRACTUS TRINUS</div>
+      <div class="theo-title">Legalisierung durch Konstrukt — 5% Zinsen werden erlaubt</div>
+      <div class="theo-body">
+        Johannes Eck (Theologe) und Jakob Fugger (Bankier) konstruierten den <strong>Contractus Trinus</strong>
+        (Drei-Vertrags-Modell). Das Lateranum V billigte es nach langem Streit.
+        Zum ersten Mal seit 376 Jahren waren Zinsen in einem christlichen Land legal —
+        durch intellektuellen Umweg über drei separat erlaubte Verträge.
+        <br><br>
+        <strong>Fugger-Kontext:</strong> Jakob Fugger (<em>„Fugger der Reiche"</em>, 1459–1525) war der
+        mächtigste Banker Europas. Er finanzierte die Wahl Karls V. zum Kaiser (850.000 Goldgulden).
+        Er besaß faktisch Europa. Sein persönliches Reinvermögen übertraf das der meisten Königshäuser.
+        Das Konzil hatte wenig Wahl als seinen Vertragsrahmen zu billigen.
+        <br><br>
+        <strong>Fuggerei:</strong> Als Gegenleistung für das Zins-Privileg baute Fugger 1516 in Augsburg
+        die <strong>Fuggerei</strong> — die erste Sozialsiedlung der Welt. Für einen Jahresmietzins
+        von 1 Rheinischen Gulden (heute ≈ 88 Cent/Jahr) konnten bedürftige Augsburger Bürger einziehen.
+        Die Fuggerei existiert bis heute und verlangt noch immer symbolisch diesen Mietzins.
+      </div>
+      <div class="magritte-quote">„Ceci n'est pas un acte de piété. C'est le bilan d'un empire."</div>
+      <div class="tags">
+        <span class="tag">Contractus Trinus</span>
+        <span class="tag">Fugger</span>
+        <span class="tag tag-green">5% legalisiert</span>
+        <span class="tag">Fuggerei 1516</span>
+        <span class="tag">Lateran V</span>
+      </div>
+    </div>
+
+    <div class="theo-event">
+      <div class="theo-year">1891 — RERUM NOVARUM (PAPST LEO XIII)</div>
+      <div class="theo-title">Kapitalismuskritik ohne Sozialismus — Drittes Weg Ansatz</div>
+      <div class="theo-body">
+        Die erste große päpstliche Sozialenzyklika antwortete auf die Industrialisierung.
+        Leo XIII. verurteilte sowohl den ungezügelten Kapitalismus (<em>Kapital darf Arbeit nicht ausbeuten</em>)
+        als auch den Sozialismus (<em>Privateigentum ist Naturrecht</em>).
+        <br><br>
+        <strong>Genossenschaftliche Lösung:</strong> Das Raiffeisen-Modell der Solidargemeinschaft wurde
+        als kirchlich-konformer Dritten Weg propagiert. Kein staatlicher Zwang (Sozialismus),
+        kein reiner Markt (Kapitalismus), sondern freiwillige Solidargemeinschaft mit gegenseitiger Haftung.
+        Das ist exakt das Dude Bank Modell.
+      </div>
+      <div class="tags">
+        <span class="tag">Rerum Novarum</span>
+        <span class="tag">Leo XIII</span>
+        <span class="tag tag-green">Dritter Weg</span>
+        <span class="tag">Genossenschaft</span>
+      </div>
+    </div>
+
+    <div class="theo-event">
+      <div class="theo-year">1931 — QUADRAGESIMO ANNO (PAPST PIUS XI)</div>
+      <div class="theo-title">Subsidiaritätsprinzip — Die DNA der Genossenschaft</div>
+      <div class="theo-body">
+        Papst Pius XI. formulierte das <strong>Subsidiaritätsprinzip</strong>: Was eine kleinere Gemeinschaft
+        selbst leisten kann, soll nicht von einer größeren übernommen werden.
+        Zentralisierung ist subsidiaritätswidrig. Dezentralisierung ist moralisch.
+        <br><br>
+        <strong>Dude Bank Verbindung:</strong> Das Subsidiaritätsprinzip von 1931 ist die theoretische
+        Grundlage für Dezentralisierung — und damit für DeFi. Wenn 1.000 Dudes ihre eigene Bank
+        betreiben können, brauchen sie keine Zentralbank. Das ist Subsidiarität in Software.
+      </div>
+      <div class="tags">
+        <span class="tag">Quadragesimo Anno</span>
+        <span class="tag">Subsidiaritätsprinzip</span>
+        <span class="tag tag-blue">DeFi DNA</span>
+        <span class="tag">Dezentralisierung</span>
+      </div>
+    </div>
+
+    <div class="theo-event">
+      <div class="theo-year">HEUTE — VATIKAN IOR / PAPST FRANZISKUS</div>
+      <div class="theo-title">Vom Schwarzgeld-Hafen zur ethischen Bank</div>
+      <div class="theo-body">
+        Das <strong>Istituto per le Opere di Religione (IOR)</strong> — bekannt als „Vatikanbank" — war
+        Jahrzehntelang ein undurchsichtiger Hort für anonyme Vermögen, Mafia-Gelder und Steuerflucht.
+        Papst Franziskus ließ ab 2013 eine Totalreform durchführen:
+        <br><br>
+        • FATF-konforme Anti-Geldwäsche-Regeln eingeführt<br>
+        • 5.000 zweifelhafte Konten geschlossen<br>
+        • Alle Investitionen müssen ethischen Kriterien entsprechen (keine Rüstung, keine Spekulation)<br>
+        • Vollständige Transparenz gegenüber vatikanischer Finanzaufsicht<br><br>
+        Das IOR ist heute eines der strenger regulierten kleinen Finanzinstitute Europas.
+      </div>
+      <div class="magritte-quote">„Ceci n'est pas un paradis fiscal."</div>
+      <div class="tags">
+        <span class="tag">Vatikan IOR</span>
+        <span class="tag tag-green">Franziskus Reform</span>
+        <span class="tag">Ethisches Investment</span>
+        <span class="tag">FATF-Konform</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCHULE VON SALAMANCA -->
+  <div class="section-header section-gap">
+    <div class="section-label">Schule von Salamanca</div>
+    <div class="section-title">Die drei Denker die Zinsen moralisch neu definierten</div>
+  </div>
+
+  <div class="salamanca-grid">
+
+    <div class="sal-card">
+      <div class="sal-person">Francisco de Vitoria</div>
+      <div class="sal-dates">1483–1546 · Dominikaner · Salamanca</div>
+      <div class="sal-concept">Inflationstheorie (Erste der Welt)</div>
+      <div class="sal-body">
+        Beobachtete Preisexplosion in Spanien nach dem Goldzufluss aus Amerika.
+        Formulierte: <strong>Mehr Geld im Umlauf → Preisanstieg</strong>, auch ohne Gütermangel.
+        300 Jahre vor der Quantitätstheorie des Geldes (Friedman).
+        <br><br>
+        Kritisierte auch die Sklaverei der Indios und das Recht der Konquistadoren —
+        womit er gleichzeitig als Gründervater des Völkerrechts gilt.
+        (Ein Paradox: Die Theoretiker des freien Markts erkannten freie Märkte,
+        verteidigten aber nicht immer freie Menschen.)
+      </div>
+      <div class="sal-dude">Dude Bank: Basis für inflationsgeschützte DeFi-Yield-Berechnung</div>
+    </div>
+
+    <div class="sal-card">
+      <div class="sal-person">Tomás de Mercado</div>
+      <div class="sal-dates">1523–1575 · Dominikaner · Salamanca & Mexiko</div>
+      <div class="sal-concept">Lucrum Cessans — Entgangener Gewinn</div>
+      <div class="sal-body">
+        Durchbrach das absolute Zinsverbot durch Konzept des <strong>entgangenen Gewinns</strong>:
+        Ein Kaufmann, der Kapital verleiht statt es im eigenen Handel einzusetzen,
+        hat einen legitimen Anspruch auf Kompensation seines Verzichts.
+        <br><br>
+        Das ist der erste formale Begriff von <strong>Opportunitätskosten</strong> in der Finanzgeschichte.
+        Heute die Grundlage jedes Risk-Free-Rate-Konzepts (Bundesanleihe als Opportunitätskosten-Benchmark).
+      </div>
+      <div class="sal-dude">Dude Bank: Lucrum Cessans = DeFi Yield. Dude verleiht Kapital → Verlust der Handlungsfreiheit → Yield ist gerecht.</div>
+    </div>
+
+    <div class="sal-card">
+      <div class="sal-person">Luis de Molina</div>
+      <div class="sal-dates">1535–1600 · Jesuit · Évora, Portugal</div>
+      <div class="sal-concept">Periculum — Risikoprämie</div>
+      <div class="sal-body">
+        Ergänzte: Nicht nur entgangener Gewinn, sondern das <strong>Periculum</strong>
+        (Risiko des Kapitalverlusts) rechtfertigt einen Zinszuschlag.
+        Je höher das Ausfallrisiko, desto höher der moralisch gerechtfertigte Zinssatz.
+        <br><br>
+        Das ist die erste Risikoprämienlehre der Geschichte. Heute: Credit Default Swaps,
+        Risikoprämien in Anleihen, Zinsaufschläge für schlechtere Bonität.
+        Alle modernen Kredit-Spreads basieren auf Molinas Periculum-Konzept.
+      </div>
+      <div class="sal-dude">Dude Bank: KI-Kredit-Scoring = Periculum-Bewertung. Höheres Ausfallrisiko → höherer DeFi-Zinssatz.</div>
+    </div>
+
+    <div class="sal-card" style="border-top-color:var(--red)">
+      <div class="sal-person" style="color:var(--red)">Das Salamanca-Paradox</div>
+      <div class="sal-dates">Licht und Schatten der Spanischen Scholastik</div>
+      <div class="sal-concept" style="color:var(--red)">Marktgerechtigkeit und Sklaverei</div>
+      <div class="sal-body">
+        Gemini erkannte das korrekt: Die Schule von Salamanca erkannte Marktmechanismen
+        als neutral und natürlich an — aber nicht alle Denker übertrugen das auf das Menschenrecht.
+        <br><br>
+        Vitoria kritisierte die Versklavung der Indios als illegitim.
+        Andere Salamanca-Denker rechtfertigten den afrikanischen Sklavenhandel mit scholastischen Argumenten.
+        <br><br>
+        <strong>Die Lektion:</strong> Gerechte Markttheorie ist kein automatischer Garant für
+        gerechte Behandlung von Menschen. Beide müssen explizit formuliert und verteidigt werden.
+      </div>
+      <div class="sal-dude">Dude Bank: Marktgerechtigkeit + Menschenwürde müssen beide im Rulebook stehen, nicht nur erstere.</div>
+    </div>
+
+  </div>
+
+  <!-- ETYMOLOGIE "INTEREST" -->
+  <div class="section-header section-gap">
+    <div class="section-label">Etymologie</div>
+    <div class="section-title">„Interest" — Die Geschichte eines maskierten Wortes</div>
+  </div>
+
+  <div class="etym-card">
+    <div class="theo-body">
+      Gemini lieferte eine historisch akkurate Etymologie des Wortes „Interest":
+    </div>
+    <div class="etym-chain">
+      <div class="etym-word">
+        <div class="lang">Latein · 1100</div>
+        <div class="word">Usura</div>
+        <div class="meaning">Gebrauchsgebühr / Wucher</div>
+      </div>
+      <div class="etym-arrow">→</div>
+      <div class="etym-word">
+        <div class="lang">Röm. Recht · 500 v.Chr.</div>
+        <div class="word">id quod interest</div>
+        <div class="meaning">„das, was dazwischen liegt" (Schadensersatz)</div>
+      </div>
+      <div class="etym-arrow">→</div>
+      <div class="etym-word">
+        <div class="lang">Mittellatein · 1200</div>
+        <div class="word">interesse</div>
+        <div class="meaning">Zwischenraum / Differenzbetrag</div>
+      </div>
+      <div class="etym-arrow">→</div>
+      <div class="etym-word">
+        <div class="lang">Englisch · 1400</div>
+        <div class="word">interest</div>
+        <div class="meaning">Zinsen / Anteil / Interessse</div>
+      </div>
+    </div>
+    <div class="etym-body">
+      <strong>Der entscheidende Trick:</strong> Im 12. Jahrhundert war es verboten, Zinsen zu verlangen (Usura).
+      Aber es war erlaubt, <em>Schadensersatz</em> zu fordern, wenn jemand eine Schuld nicht pünktlich zurückzahlte.
+      Dieser Schadensersatz hieß <strong>„id quod interest"</strong> — „das, was dazwischen liegt"
+      (die Differenz zwischen was man hätte verdienen können und was man verlor).
+      <br><br>
+      Kaufleute und Juristen begannen systematisch, Zinsen als Schadensersatz für hypothetische
+      entgangene Gewinne zu verkleiden. Das Wort „id quod interest" wurde zum Begriff für diese
+      versteckten Zinsen. Über Jahrhunderte verkürzte es sich zu „interesse" und schließlich „interest".
+      <br><br>
+      <strong>Heute:</strong> Das englische Wort „interest" (für Zinsen) ist buchstäblich der latinisierte
+      Name eines mittelalterlichen Schadensersatz-Tricks zur Umgehung des Zinsverbots.
+      Jedes Mal wenn jemand „interest rate" sagt, benutzt er eine 800 Jahre alte Tarnung.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas de l'intérêt. C'est le nom d'un masque."</div>
+    <div class="tags">
+      <span class="tag">id quod interest</span>
+      <span class="tag">Etymologie</span>
+      <span class="tag">Usura → Interest</span>
+      <span class="tag tag-blue">800-jährige Verkleidung</span>
+    </div>
+  </div>
+
+  <!-- KREDITKARTE PARALLELE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Moderne Parallele</div>
+    <div class="section-title">Kreditkarte = Mittelalterlicher Zinsfrist-Trick 2.0</div>
+  </div>
+
+  <table class="parallel-table">
+    <thead>
+      <tr>
+        <th>Element</th>
+        <th>Mittelalter (1300)</th>
+        <th>Kreditkarte (2026)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Vertrag 1 (Erlaubt)</td>
+        <td>Warenkauf auf Kredit. Keine Zinsen vereinbart, nur Lieferung im Voraus.</td>
+        <td>0%-Zins-Frist (30–60 Tage). Kauf heute, zahle später. Keine Zinsen wenn pünktlich.</td>
+      </tr>
+      <tr>
+        <td>Frist</td>
+        <td>Rückzahlungstermin beim nächsten Jahrmarkt / Michaelmas etc.</td>
+        <td>Monatlicher Billing-Cycle. Zahlung bis zum Monatsletzten.</td>
+      </tr>
+      <tr>
+        <td>Schadensersatz</td>
+        <td>Verspätete Zahlung = „id quod interest" (Schadensersatz für entgangene Handelsgewinne). Nicht Usura!</td>
+        <td>Verspätete Zahlung = Strafzins (16–29% p.a.). Nicht Usura! — sondern „Verzugszins".</td>
+      </tr>
+      <tr>
+        <td>Künstliche Deadline</td>
+        <td>Deadline wurde so gesetzt, dass der Schuldner fast immer zu spät zahlte → Schadensersatz fast immer fällig.</td>
+        <td>Minimale Mindest-Rückzahlung (2%) wurde so gesetzt, dass das Saldo nie ausgeräumt wird → Zins läuft ewig.</td>
+      </tr>
+      <tr>
+        <td>Kirchliche/Rechtliche Tarnung</td>
+        <td>Kein Zins (verboten) — nur Schadensersatz (erlaubt).</td>
+        <td>Kein Zins — nur „Jahresgebühr", „Verzugszins", „Cash Advance Fee".</td>
+      </tr>
+      <tr>
+        <td>Netto-Ergebnis</td>
+        <td>Schuldner zahlt regelmäßig 15–20% effektiven Zinssatz auf das geliehene Kapital.</td>
+        <td>Schuldner zahlt regelmäßig 20–29% p.a. Effektivzins auf ausstehende Saldo.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- DOGMATISIERUNG DES MARKTES -->
+  <div class="section-header section-gap">
+    <div class="section-label">Dogmatisierung</div>
+    <div class="section-title">Von der Moraltheologie zum Washington Consensus — Ein roter Faden</div>
+  </div>
+
+  <div class="dog-timeline">
+    <div class="dog-entry">
+      <div class="dog-year-badge">1139</div>
+      <div class="dog-content">
+        <div class="dog-title">Lateran II: Zins ist Sünde</div>
+        <div class="dog-body">Markt-Ergebnis (Zins) wird theologisch verboten. Kirche setzt moralischen Rahmen für wirtschaftliches Handeln.</div>
+      </div>
+    </div>
+    <div class="dog-entry">
+      <div class="dog-year-badge">1250</div>
+      <div class="dog-content">
+        <div class="dog-title">Salamanca: Markt als natürlicher Mechanismus</div>
+        <div class="dog-body">De Vitoria: Preise entstehen durch Angebot und Nachfrage, nicht durch Dekret. Markt ist neutral, nicht moralisch.</div>
+      </div>
+    </div>
+    <div class="dog-entry">
+      <div class="dog-year-badge">1776</div>
+      <div class="dog-content">
+        <div class="dog-title">Adam Smith: Invisible Hand</div>
+        <div class="dog-body">Der Markt als quasi-göttliche Kraft, die durch individuelle Eigeninteressen das Gemeinwohl maximiert. Erste Sakralisierung des Marktes.</div>
+      </div>
+    </div>
+    <div class="dog-entry">
+      <div class="dog-year-badge">1891</div>
+      <div class="dog-content">
+        <div class="dog-title">Rerum Novarum: Kirche verteidigt den Markt (mit Grenzen)</div>
+        <div class="dog-body">Leo XIII: Privateigentum ist Naturrecht. Kapitalismus besser als Sozialismus. Aber Arbeitnehmer haben Rechte. Markt mit Grenzen.</div>
+      </div>
+    </div>
+    <div class="dog-entry">
+      <div class="dog-year-badge">1944</div>
+      <div class="dog-content">
+        <div class="dog-title">Bretton Woods: Der Markt bekommt eine Weltordnung</div>
+        <div class="dog-body">IWF, Weltbank, GATT: Freier Markt als globales Ordnungsprinzip institutionalisiert. Erste globale Dogmatisierung.</div>
+      </div>
+    </div>
+    <div class="dog-entry">
+      <div class="dog-year-badge">1989</div>
+      <div class="dog-content">
+        <div class="dog-title">Washington Consensus: Freier Markt als Dogma</div>
+        <div class="dog-body">Privatisierung, Deregulierung, freier Kapitalverkehr als universelle Lösung für alle Länder. Der Markt wird zum Quasi-Glaubenssatz ohne Alternative.</div>
+      </div>
+    </div>
+    <div class="dog-entry">
+      <div class="dog-year-badge">2008</div>
+      <div class="dog-content">
+        <div class="dog-title">Finanzkrise: Das Dogma bricht</div>
+        <div class="dog-body">Marktversagen auf globaler Ebene. Massive staatliche Rettungen. Alan Greenspan: „Ich habe einen Fehler in meiner Weltsicht gefunden."</div>
+      </div>
+    </div>
+    <div class="dog-entry">
+      <div class="dog-year-badge">2009</div>
+      <div class="dog-content">
+        <div class="dog-title">Bitcoin: Markt ohne Staat, Zins ohne Kirche</div>
+        <div class="dog-body">Satoshi Nakamoto: Code ersetzt Vertrauen. Dezentraler Markt ohne Dogma. Kein Papst, kein Washington Consensus, nur Algorithmus.</div>
+      </div>
+    </div>
+    <div class="dog-entry" style="border-color:var(--gold);background:rgba(201,168,76,0.04)">
+      <div class="dog-year-badge" style="border-color:var(--gold);color:var(--gold2)">2026</div>
+      <div class="dog-content">
+        <div class="dog-title">Dude Bank: Markt + Gemeinschaft + Code</div>
+        <div class="dog-body">Synthese: Salamanca (fairer Preis) + Raiffeisen (Gemeinschaft) + Bitcoin (Code) = Bank ohne Kirche, ohne Washington, ohne Dogma. Nur Dudes.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONTI DI PIETÀ / PFANDLEIHER -->
+  <div class="section-header section-gap">
+    <div class="section-label">Historisch</div>
+    <div class="section-title">Monti di Pietà — Die erste moralische Mikrokreditbank</div>
+  </div>
+
+  <div class="theo-event" style="margin-left:32px;">
+    <div class="theo-year">1462 — PERUGIA, ITALIEN</div>
+    <div class="theo-title">Franziskaner-Mönche erfinden das Pfandleihhaus als Sozialprojekt</div>
+    <div class="theo-body">
+      Die <strong>Monti di Pietà</strong> (Berge der Barmherzigkeit) wurden von Franziskanermönchen gegründet
+      als Gegenprojekt zum jüdischen Pfandleiher — nicht aus Antisemitismus, sondern um den armen
+      Christen günstigere Kreditbedingungen zu bieten.
+      <br><br>
+      Das Prinzip: Arme brachten einen wertvollen Gegenstand (Ring, Werkzeug) als Pfand.
+      Sie erhielten gegen dieses Pfand einen Kredit zu minimalen Zinsen (oft 1–5% p.a. statt
+      der 20–40% der privaten Geldleiher). Wenn sie das Geld zurückzahlten, bekamen sie das Pfand zurück.
+      <br><br>
+      <strong>Dude Bank DeFi-Parallele:</strong> Monti di Pietà = On-Chain Collateral Lending.
+      Ein Dude hinterlegt BTC als Pfand (Collateral), bekommt Stablecoins (Kredit) zu fairen Dude-Zinsen.
+      Zahlt er zurück: Collateral frei. Zahlt er nicht: Auto-Liquidation durch den Liquidations-Agent.
+      Keine menschliche Willkür, nur Protokoll. Die Mönche hätten sich das gefreut.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas un prêteur sur gages. C'est l'équilibre de la matière."</div>
+    <div class="tags">
+      <span class="tag">Monti di Pietà</span>
+      <span class="tag">1462 Perugia</span>
+      <span class="tag">Franziskaner</span>
+      <span class="tag tag-blue">DeFi Collateral Lending</span>
+      <span class="tag tag-green">Mikrokreditbank</span>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div style="text-align:center;padding:32px;color:#4a3e00;font-size:12px;border-top:1px solid #2e2600;">
+  DUDE BANK eG — Theologie & Kirche · Lateran bis Franziskus · Salamanca · Contractus Trinus · Kreditkarte · 2026
+</div>
+
+</body>
+</html>

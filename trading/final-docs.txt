@@ -1,0 +1,1853 @@
+â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+â•‘                    UNIVERSAL AI & FINANCIAL DATA PROXY SERVER                 â•‘
+â•‘                         API INTEGRATION MASTER GUIDE                          â•‘
+â•‘                              FINAL VERSION 1.0                                â•‘
+â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+BASE URL: https://theserver-open-ai.replit.app
+
+TOTAL ENDPOINTS: 98 across 7 major AI/Data providers
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ“‹ TABLE OF CONTENTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+1. OpenAI API (15 endpoints) - Chat, Embeddings, Images, Audio, Moderations, Models, Files, Assistants, Threads
+2. Mistral AI (36 endpoints) - Chat, Embeddings, FIM, Files, Fine-tuning, Batch, Moderation, Audio, Agents, Conversations
+3. Claude/Anthropic (10 endpoints) - Messages, Batches, Token Count, Files, Organization, Usage
+4. Perplexity AI (3 endpoints) - Sonar Chat, Search API, Cache Stats
+5. Google Gemini (14 endpoints) - Generate, Stream, Batch, Embeddings, Files, Models, Imagen 4, Veo 3
+6. RapidAPI Services (12 endpoints) - Jobs, Yahoo Finance, Google Search, Web Scraper, Amazon
+7. EOD Historical Data (8 endpoints) - Stock Market Data, News, Dividends, Search
+
+TOTAL: 98 ENDPOINTS
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+âš ï¸  WICHTIGE HINWEISE
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+1. KEINE RATE LIMITS: Dieser Proxy-Server hat KEINE eingebauten Rate Limits.
+   Die Limits kommen direkt von den upstream API-Providern (OpenAI, Mistral, etc.)
+
+2. ERROR HANDLING: Alle Endpoints geben standardisierte Fehler zurÃ¼ck:
+   ```json
+   {
+     "error": "Bad Request | Internal server error",
+     "message": "Beschreibung des Fehlers"
+   }
+   ```
+
+3. AUTHENTICATION: Keine API-Keys erforderlich fÃ¼r Client-Anfragen.
+   Der Server verwaltet alle API-Keys intern Ã¼ber Environment Variables.
+
+4. CORS: Der Server akzeptiert Requests von allen Origins (CORS enabled).
+
+5. TIMEOUTS: Alle Requests haben ein 30-Sekunden-Timeout.
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+1ï¸âƒ£  OPENAI API - 15 ENDPOINTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.1 CHAT COMPLETIONS (Mit Streaming Support)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/chat
+
+REQUEST BODY (Erforderlich):
+{
+  "messages": [                          // PFLICHTFELD - Array darf nicht leer sein!
+    { "role": "system", "content": "You are a helpful assistant" },
+    { "role": "user", "content": "Hello!" }
+  ],
+  "model": "gpt-4o-mini",                // Optional - Standard: "gpt-4o-mini"
+  "max_tokens": 8000,                    // Optional - Standard: 8000
+  "temperature": 0.8,                    // Optional - Standard: 0.8 (0-2)
+  "stream": false,                       // Optional - Standard: false
+  "tools": [...],                        // Optional - FÃ¼r Function Calling
+  "tool_choice": "auto"                  // Optional - FÃ¼r Function Calling
+}
+
+VERFÃœGBARE MODELLE:
+- gpt-4o
+- gpt-4o-mini (Standard)
+- gpt-4-turbo
+- gpt-3.5-turbo
+
+RESPONSE (Non-streaming):
+{
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "model": "gpt-4o-mini",
+  "choices": [{
+    "index": 0,
+    "message": { 
+      "role": "assistant", 
+      "content": "Hello! How can I help?" 
+    },
+    "finish_reason": "stop"
+  }],
+  "usage": { 
+    "prompt_tokens": 10, 
+    "completion_tokens": 8, 
+    "total_tokens": 18 
+  }
+}
+
+RESPONSE (Streaming):
+Content-Type: text/event-stream
+
+data: {"id":"chatcmpl-...","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"role":"assistant","content":"Hello"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-...","object":"chat.completion.chunk","created":1234567890,"model":"gpt-4o-mini","choices":[{"index":0,"delta":{"content":" there"},"finish_reason":null}]}
+
+data: [DONE]
+
+ERROR RESPONSES:
+- 400 Bad Request: messages fehlt oder ist leer
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "messages field is required and must be a non-empty array"
+  }
+  ```
+- 500 Internal Server Error: API-Key nicht konfiguriert oder OpenAI-Fehler
+
+INTEGRATION CODE:
+```javascript
+const BACKEND_URL = 'https://theserver-open-ai.replit.app';
+
+// Non-streaming example
+async function sendChatMessage(userMessage) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',  // oder 'gpt-4o' fÃ¼r bessere QualitÃ¤t
+        messages: [{ role: 'user', content: userMessage }],
+        temperature: 0.7,
+        max_tokens: 1000
+      })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Chat error:', error);
+    throw error;
+  }
+}
+
+// Streaming example - WICHTIG: Fehler-Handling vor Stream-Lesen!
+async function sendChatStreaming(userMessage, onChunk) {
+  const response = await fetch(`${BACKEND_URL}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: userMessage }],
+      stream: true
+    })
+  });
+
+  // KRITISCH: Fehler prÃ¼fen BEVOR Stream gelesen wird
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ 
+      error: 'Unknown error' 
+    }));
+    throw new Error(error.message || error.error || `HTTP ${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
+    
+    for (const line of lines) {
+      const data = line.replace('data: ', '');
+      if (data === '[DONE]') return;
+      
+      try {
+        const parsed = JSON.parse(data);
+        const content = parsed.choices[0]?.delta?.content;
+        if (content) onChunk(content);
+      } catch (e) {
+        // JSON Parse Errors ignorieren (passiert bei leeren Chunks)
+      }
+    }
+  }
+}
+```
+
+NUTZUNGSBEISPIEL:
+```javascript
+// Normaler Chat
+const answer = await sendChatMessage('Was ist die Hauptstadt von Deutschland?');
+console.log(answer);
+
+// Streaming Chat
+await sendChatStreaming('ErzÃ¤hle mir eine Geschichte', (chunk) => {
+  process.stdout.write(chunk);  // Echtzeit-Ausgabe
+});
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.2 EMBEDDINGS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/embeddings
+
+REQUEST BODY:
+{
+  "input": "Your text here",                     // String oder Array of Strings - PFLICHTFELD
+  "model": "text-embedding-3-small",             // Optional
+  "encoding_format": "float"                     // Optional: "float" oder "base64"
+}
+
+VERFÃœGBARE MODELLE:
+- text-embedding-3-small (Standard - gÃ¼nstiger)
+- text-embedding-3-large (hÃ¶here QualitÃ¤t)
+- text-embedding-ada-002 (legacy)
+
+RESPONSE:
+{
+  "object": "list",
+  "data": [{
+    "object": "embedding",
+    "index": 0,
+    "embedding": [0.123, -0.456, 0.789, ...]  // Vector mit 1536 Dimensionen
+  }],
+  "model": "text-embedding-3-small",
+  "usage": { "prompt_tokens": 8, "total_tokens": 8 }
+}
+
+ERROR RESPONSES:
+- 400 Bad Request: input fehlt oder ungÃ¼ltiger Typ
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "input field is required and must be a string or array of strings"
+  }
+  ```
+
+INTEGRATION CODE:
+```javascript
+async function generateEmbeddings(text) {
+  const response = await fetch(`${BACKEND_URL}/api/embeddings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      input: text,
+      model: 'text-embedding-3-small'
+    })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.data[0].embedding;  // Returns vector array
+}
+
+// Batch-Embeddings fÃ¼r mehrere Texte
+async function generateBatchEmbeddings(texts) {
+  const response = await fetch(`${BACKEND_URL}/api/embeddings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      input: texts,  // Array of strings
+      model: 'text-embedding-3-small'
+    })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.data.map(item => item.embedding);  // Array of vectors
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.3 IMAGE GENERATION (DALL-E)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/images/generate
+
+REQUEST BODY:
+{
+  "prompt": "A futuristic city at sunset",       // PFLICHTFELD - nicht leer!
+  "model": "dall-e-3",                            // Optional - Standard: "dall-e-3"
+  "n": 1,                                         // 1-10 fÃ¼r dall-e-2, nur 1 fÃ¼r dall-e-3
+  "size": "1024x1024",                            // Siehe verfÃ¼gbare GrÃ¶ÃŸen unten
+  "quality": "standard",                          // "standard" oder "hd" (nur dall-e-3)
+  "style": "vivid",                               // "vivid" oder "natural" (nur dall-e-3)
+  "response_format": "url"                        // "url" (Standard) oder "b64_json"
+}
+
+VERFÃœGBARE MODELLE:
+- dall-e-3 (Standard - beste QualitÃ¤t)
+- dall-e-2 (gÃ¼nstiger, mehrere Bilder mÃ¶glich)
+
+VERFÃœGBARE BILDGRÃ–SZEN:
+DALL-E 3:
+- 1024x1024 (quadratisch)
+- 1792x1024 (landscape)
+- 1024x1792 (portrait)
+
+DALL-E 2:
+- 256x256
+- 512x512
+- 1024x1024
+
+RESPONSE:
+{
+  "created": 1234567890,
+  "data": [{
+    "url": "https://oaidalleapiprodscus.blob.core.windows.net/...",
+    "revised_prompt": "Enhanced prompt used by DALL-E 3..."  // nur bei dall-e-3
+  }]
+}
+
+ERROR RESPONSES:
+- 400 Bad Request: prompt fehlt oder leer
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "prompt field is required and must be a non-empty string"
+  }
+  ```
+
+INTEGRATION CODE:
+```javascript
+async function generateImage(prompt, options = {}) {
+  const response = await fetch(`${BACKEND_URL}/api/images/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: prompt,
+      model: options.model || 'dall-e-3',
+      size: options.size || '1024x1024',
+      quality: options.quality || 'standard',
+      style: options.style || 'vivid',
+      response_format: 'url'
+    })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return {
+    url: data.data[0].url,
+    revisedPrompt: data.data[0].revised_prompt
+  };
+}
+
+// Beispiel: Bild generieren und anzeigen
+const { url, revisedPrompt } = await generateImage(
+  'A serene mountain landscape at sunset',
+  { quality: 'hd', size: '1792x1024' }
+);
+
+console.log('Generated:', url);
+console.log('Revised prompt:', revisedPrompt);
+
+// Im Browser: Bild in img-Tag laden
+document.getElementById('myImage').src = url;
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.4 IMAGE EDIT
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/images/edit
+CONTENT-TYPE: multipart/form-data
+
+FORM DATA (alle als form fields):
+- image: (file) PNG Bild zum Bearbeiten - PFLICHTFELD
+- mask: (file) PNG Maske (optional) - transparente Bereiche werden bearbeitet
+- prompt: (string) Beschreibung der gewÃ¼nschten Ã„nderung - PFLICHTFELD
+- model: (string) "dall-e-2" (Standard)
+- n: (number) 1-10 Anzahl Variationen
+- size: (string) "256x256", "512x512", oder "1024x1024"
+- response_format: (string) "url" oder "b64_json"
+
+WICHTIG: 
+- Bild MUSS PNG sein und quadratisch (max 4MB)
+- Maske (optional) MUSS gleiche GrÃ¶ÃŸe wie Bild haben
+- Transparente Bereiche in der Maske werden editiert
+
+ERROR RESPONSES:
+- 400 Bad Request: image oder prompt fehlt
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "image file is required for image editing"
+  }
+  ```
+
+INTEGRATION CODE:
+```javascript
+async function editImage(imageFile, prompt, maskFile = null) {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  formData.append('prompt', prompt);
+  if (maskFile) formData.append('mask', maskFile);
+  formData.append('size', '1024x1024');
+  
+  const response = await fetch(`${BACKEND_URL}/api/images/edit`, {
+    method: 'POST',
+    body: formData  // KEIN Content-Type Header! FormData setzt das automatisch
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.data[0].url;
+}
+
+// Beispiel: Bild aus Input-Element editieren
+const fileInput = document.getElementById('imageInput');
+const imageFile = fileInput.files[0];
+const editedUrl = await editImage(
+  imageFile, 
+  'Add a sunset in the background'
+);
+document.getElementById('result').src = editedUrl;
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.5 IMAGE VARIATIONS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/images/variations
+CONTENT-TYPE: multipart/form-data
+
+FORM DATA:
+- image: (file) PNG Bild - PFLICHTFELD, quadratisch, max 4MB
+- model: (string) "dall-e-2" (Standard)
+- n: (number) 1-10 Anzahl Variationen
+- size: (string) "256x256", "512x512", oder "1024x1024"
+- response_format: (string) "url" oder "b64_json"
+
+ERROR RESPONSES:
+- 400 Bad Request: image fehlt
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "image file is required for creating variations"
+  }
+  ```
+
+INTEGRATION CODE:
+```javascript
+async function createImageVariations(imageFile, numVariations = 2) {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  formData.append('n', numVariations.toString());
+  formData.append('size', '1024x1024');
+  
+  const response = await fetch(`${BACKEND_URL}/api/images/variations`, {
+    method: 'POST',
+    body: formData
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.data.map(img => img.url);  // Array von URLs
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.6 AUDIO TRANSCRIPTIONS (Whisper)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/audio/transcriptions
+CONTENT-TYPE: multipart/form-data
+
+FORM DATA:
+- file: (audio file) PFLICHTFELD - mp3, mp4, mpeg, mpga, m4a, wav, oder webm (max 25MB)
+- model: (string) "whisper-1" (Standard)
+- language: (string) ISO-639-1 Code (optional, z.B. "de", "en", "fr")
+- prompt: (string) Optional - hilft bei Kontext und Schreibweise
+- response_format: (string) "json" (Standard), "text", "srt", "verbose_json", oder "vtt"
+- temperature: (number) 0-1 fÃ¼r Sampling
+
+UNTERSTÃœTZTE FORMATE:
+mp3, mp4, mpeg, mpga, m4a, wav, webm (max 25MB)
+
+RESPONSE (json format):
+{
+  "text": "Transcribed audio content here..."
+}
+
+RESPONSE (verbose_json format):
+{
+  "task": "transcribe",
+  "language": "english",
+  "duration": 2.95,
+  "text": "Hello, how are you?",
+  "segments": [...]
+}
+
+ERROR RESPONSES:
+- 400 Bad Request: file fehlt
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "audio file is required for transcription"
+  }
+  ```
+
+INTEGRATION CODE:
+```javascript
+async function transcribeAudio(audioFile, language = 'en') {
+  const formData = new FormData();
+  formData.append('file', audioFile);
+  formData.append('model', 'whisper-1');
+  formData.append('language', language);
+  formData.append('response_format', 'json');
+  
+  const response = await fetch(`${BACKEND_URL}/api/audio/transcriptions`, {
+    method: 'POST',
+    body: formData
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.text;
+}
+
+// Beispiel: Audio-Datei transkribieren
+const audioInput = document.getElementById('audioFile');
+const audioFile = audioInput.files[0];
+const transcription = await transcribeAudio(audioFile, 'de');
+console.log('Transkription:', transcription);
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.7 AUDIO TRANSLATIONS (Whisper)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/audio/translations
+CONTENT-TYPE: multipart/form-data
+
+FUNKTION: Ãœbersetzt Audio aus JEDER Sprache ins ENGLISCHE
+
+FORM DATA:
+- file: (audio file) PFLICHTFELD - beliebige Sprache
+- model: (string) "whisper-1" (Standard)
+- prompt: (string) Optional - fÃ¼r besseren Kontext
+- response_format: (string) "json" (Standard), "text", "srt", "verbose_json", oder "vtt"
+- temperature: (number) 0-1
+
+RESPONSE:
+{
+  "text": "Translated to English content..."
+}
+
+ERROR RESPONSES:
+- 400 Bad Request: file fehlt
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "audio file is required for translation"
+  }
+  ```
+
+INTEGRATION CODE:
+```javascript
+async function translateAudioToEnglish(audioFile) {
+  const formData = new FormData();
+  formData.append('file', audioFile);
+  formData.append('model', 'whisper-1');
+  
+  const response = await fetch(`${BACKEND_URL}/api/audio/translations`, {
+    method: 'POST',
+    body: formData
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.text;
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.8 TEXT-TO-SPEECH (TTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/audio/speech
+
+REQUEST BODY:
+{
+  "input": "Hello, this is a test",              // PFLICHTFELD - nicht leer!
+  "model": "tts-1",                               // "tts-1" (Standard) oder "tts-1-hd"
+  "voice": "alloy",                               // Siehe verfÃ¼gbare Stimmen unten
+  "response_format": "mp3",                       // "mp3" (Standard), "opus", "aac", "flac"
+  "speed": 1.0                                    // Optional: 0.25 bis 4.0
+}
+
+VERFÃœGBARE STIMMEN:
+- alloy (Standard - neutral)
+- echo (mÃ¤nnlich)
+- fable (britisch, mÃ¤nnlich)
+- onyx (mÃ¤nnlich, tief)
+- nova (weiblich, jung)
+- shimmer (weiblich, warm)
+
+VERFÃœGBARE FORMATE:
+- mp3 (Standard - 128 kbps)
+- opus (beste Kompression fÃ¼r Internet)
+- aac (Ã¤hnlich wie mp3)
+- flac (verlustfrei, groÃŸe Datei)
+
+RESPONSE: Audio-Datei (Binary)
+Content-Type: audio/mp3 (oder anderes gewÃ¤hltes Format)
+
+ERROR RESPONSES:
+- 400 Bad Request: input fehlt oder leer
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "input field is required and must be a non-empty string"
+  }
+  ```
+- 500 Internal Server Error: API-Key fehlt
+
+INTEGRATION CODE:
+```javascript
+async function generateSpeech(text, voice = 'alloy', format = 'mp3') {
+  const response = await fetch(`${BACKEND_URL}/api/audio/speech`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'tts-1',
+      input: text,
+      voice: voice,
+      response_format: format
+    })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const audioBlob = await response.blob();
+  return audioBlob;
+}
+
+// Beispiel 1: Audio abspielen
+async function playText(text, voice = 'nova') {
+  const audioBlob = await generateSpeech(text, voice);
+  const audioUrl = URL.createObjectURL(audioBlob);
+  const audio = new Audio(audioUrl);
+  audio.play();
+}
+
+// Beispiel 2: Audio herunterladen
+async function downloadSpeech(text, filename = 'speech.mp3') {
+  const audioBlob = await generateSpeech(text, 'alloy', 'mp3');
+  const url = URL.createObjectURL(audioBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+}
+
+// Nutzung
+await playText('Hallo, wie geht es dir?', 'nova');
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.9 MODERATIONS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /api/moderations
+
+FUNKTION: PrÃ¼ft Text auf problematische Inhalte (Gewalt, Hass, Sex, etc.)
+
+REQUEST BODY:
+{
+  "input": "Text to check for violations",       // PFLICHTFELD - String oder Array
+  "model": "text-moderation-latest"              // Optional
+}
+
+VERFÃœGBARE MODELLE:
+- text-moderation-latest (Standard - aktuellstes Modell)
+- text-moderation-stable (stabile Version)
+
+RESPONSE:
+{
+  "id": "modr-...",
+  "model": "text-moderation-007",
+  "results": [{
+    "flagged": false,                             // true wenn problematisch
+    "categories": {
+      "sexual": false,
+      "hate": false,
+      "harassment": false,
+      "self-harm": false,
+      "sexual/minors": false,
+      "hate/threatening": false,
+      "violence/graphic": false,
+      "self-harm/intent": false,
+      "self-harm/instructions": false,
+      "harassment/threatening": false,
+      "violence": false
+    },
+    "category_scores": {                          // Konfidenz-Scores 0-1
+      "sexual": 0.00001,
+      "hate": 0.00002,
+      "harassment": 0.00003,
+      ...
+    }
+  }]
+}
+
+ERROR RESPONSES:
+- 400 Bad Request: input fehlt oder ungÃ¼ltiger Typ
+  ```json
+  {
+    "error": "Bad Request",
+    "message": "input field is required and must be a string or array"
+  }
+  ```
+
+INTEGRATION CODE:
+```javascript
+async function moderateContent(text) {
+  const response = await fetch(`${BACKEND_URL}/api/moderations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      input: text,
+      model: 'text-moderation-latest'
+    })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.results[0];
+}
+
+// Beispiel: Text vor VerÃ¶ffentlichung prÃ¼fen
+async function checkUserComment(comment) {
+  const result = await moderateContent(comment);
+  
+  if (result.flagged) {
+    console.log('âš ï¸ Problematischer Inhalt erkannt!');
+    
+    // Zeige, welche Kategorien verletzt wurden
+    Object.entries(result.categories).forEach(([category, violated]) => {
+      if (violated) {
+        console.log(`  - ${category}: ${result.category_scores[category]}`);
+      }
+    });
+    
+    return false;  // Ablehnen
+  }
+  
+  return true;  // OK zum Posten
+}
+
+// Nutzung
+const isOk = await checkUserComment('This is a normal comment');
+if (isOk) {
+  console.log('âœ“ Kommentar ist in Ordnung');
+} else {
+  console.log('âœ— Kommentar wurde blockiert');
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.10 LIST MODELS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /api/models
+
+FUNKTION: Listet alle verfÃ¼gbaren OpenAI-Modelle
+
+RESPONSE:
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gpt-4o",
+      "object": "model",
+      "created": 1687882411,
+      "owned_by": "system"
+    },
+    {
+      "id": "gpt-4o-mini",
+      "object": "model",
+      "created": 1692901427,
+      "owned_by": "system"
+    },
+    {
+      "id": "dall-e-3",
+      "object": "model",
+      "created": 1698785189,
+      "owned_by": "system"
+    },
+    ...
+  ]
+}
+
+INTEGRATION CODE:
+```javascript
+async function listModels() {
+  const response = await fetch(`${BACKEND_URL}/api/models`);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.data;  // Array of models
+}
+
+// Beispiel: Zeige alle Chat-Modelle
+const models = await listModels();
+const chatModels = models.filter(m => m.id.startsWith('gpt'));
+console.log('VerfÃ¼gbare Chat-Modelle:', chatModels.map(m => m.id));
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.11 FILES - Upload, List, Delete
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+UPLOAD FILE: POST /api/files
+LIST FILES: GET /api/files
+DELETE FILE: DELETE /api/files/:file_id
+
+UPLOAD REQUEST (multipart/form-data):
+- file: (file) PFLICHTFELD - max 512MB
+- purpose: (string) PFLICHTFELD - "assistants", "fine-tune", oder "batch"
+
+UPLOAD RESPONSE:
+{
+  "id": "file-abc123",
+  "object": "file",
+  "bytes": 120000,
+  "created_at": 1677610602,
+  "filename": "mydata.jsonl",
+  "purpose": "assistants"
+}
+
+LIST RESPONSE:
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "file-abc123",
+      "object": "file",
+      "bytes": 120000,
+      "created_at": 1677610602,
+      "filename": "mydata.jsonl",
+      "purpose": "assistants"
+    },
+    ...
+  ]
+}
+
+DELETE RESPONSE:
+{
+  "id": "file-abc123",
+  "object": "file",
+  "deleted": true
+}
+
+INTEGRATION CODE:
+```javascript
+// Upload file
+async function uploadFile(file, purpose = 'assistants') {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('purpose', purpose);
+  
+  const response = await fetch(`${BACKEND_URL}/api/files`, {
+    method: 'POST',
+    body: formData
+  });
+  
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// List files
+async function listFiles() {
+  const response = await fetch(`${BACKEND_URL}/api/files`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  return data.data;
+}
+
+// Delete file
+async function deleteFile(fileId) {
+  const response = await fetch(`${BACKEND_URL}/api/files/${fileId}`, {
+    method: 'DELETE'
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+1.12-1.15 ASSISTANTS & THREADS (4 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+CREATE ASSISTANT: POST /api/assistants
+LIST ASSISTANTS: GET /api/assistants
+CREATE THREAD: POST /api/threads
+ADD MESSAGE: POST /api/threads/:thread_id/messages
+RUN THREAD: POST /api/threads/:thread_id/runs
+
+INTEGRATION CODE:
+```javascript
+// Create assistant
+async function createAssistant(name, instructions, model = 'gpt-4o') {
+  const response = await fetch(`${BACKEND_URL}/api/assistants`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      name, 
+      instructions, 
+      model,
+      tools: [{ type: 'code_interpreter' }]
+    })
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// List assistants
+async function listAssistants() {
+  const response = await fetch(`${BACKEND_URL}/api/assistants`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// Create thread
+async function createThread() {
+  const response = await fetch(`${BACKEND_URL}/api/threads`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({})
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// Add message to thread
+async function addMessage(threadId, content, role = 'user') {
+  const response = await fetch(`${BACKEND_URL}/api/threads/${threadId}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role, content })
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// Run thread with assistant
+async function runThread(threadId, assistantId) {
+  const response = await fetch(`${BACKEND_URL}/api/threads/${threadId}/runs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assistant_id: assistantId })
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// VollstÃ¤ndiges Beispiel
+async function useAssistant() {
+  // 1. Assistant erstellen
+  const assistant = await createAssistant(
+    'Math Tutor',
+    'You are a personal math tutor. Help with math problems.',
+    'gpt-4o'
+  );
+  
+  // 2. Thread erstellen
+  const thread = await createThread();
+  
+  // 3. Nachricht hinzufÃ¼gen
+  await addMessage(thread.id, 'What is 25 * 4 + 18?');
+  
+  // 4. Thread ausfÃ¼hren
+  const run = await runThread(thread.id, assistant.id);
+  
+  return { assistant, thread, run };
+}
+```
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+2ï¸âƒ£  MISTRAL AI API - 36 ENDPOINTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.1 CHAT COMPLETIONS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /mistral/chat/completions
+
+REQUEST BODY:
+{
+  "model": "mistral-large-latest",               // Siehe verfÃ¼gbare Modelle
+  "messages": [                                   // PFLICHTFELD
+    { "role": "user", "content": "Hello!" }
+  ],
+  "temperature": 0.7,                             // Optional: 0-1
+  "max_tokens": 1000,                             // Optional
+  "stream": false                                 // Optional: true fÃ¼r Streaming
+}
+
+VERFÃœGBARE MODELLE:
+- mistral-large-latest (beste QualitÃ¤t)
+- mistral-medium-latest
+- mistral-small-latest (gÃ¼nstig & schnell)
+- open-mistral-nemo (open source)
+- codestral-latest (fÃ¼r Code)
+
+RESPONSE: Ã„hnlich wie OpenAI Chat API
+
+INTEGRATION CODE:
+```javascript
+async function mistralChat(message, model = 'mistral-small-latest') {
+  const response = await fetch(`${BACKEND_URL}/mistral/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: 'user', content: message }],
+      temperature: 0.7
+    })
+  });
+  
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.2 EMBEDDINGS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /mistral/embeddings
+
+REQUEST BODY:
+{
+  "model": "mistral-embed",                      // Einziges Embedding-Modell
+  "input": ["Text 1", "Text 2"]                  // String oder Array - PFLICHTFELD
+}
+
+RESPONSE:
+{
+  "object": "list",
+  "data": [{
+    "object": "embedding",
+    "embedding": [0.1, 0.2, ...],                // 1024 Dimensionen
+    "index": 0
+  }],
+  "model": "mistral-embed",
+  "usage": { "prompt_tokens": 10, "total_tokens": 10 }
+}
+
+INTEGRATION CODE:
+```javascript
+async function mistralEmbeddings(texts) {
+  const response = await fetch(`${BACKEND_URL}/mistral/embeddings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'mistral-embed',
+      input: Array.isArray(texts) ? texts : [texts]
+    })
+  });
+  
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  return data.data.map(item => item.embedding);
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.3 FIM (Fill-In-Middle) - Code Completion
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /mistral/fim/completions
+
+FUNKTION: VervollstÃ¤ndigt Code zwischen zwei Punkten (wie GitHub Copilot)
+
+REQUEST BODY:
+{
+  "model": "codestral-latest",                   // Nur codestral unterstÃ¼tzt FIM
+  "prompt": "def fibonacci(n):\n    ",           // Code VOR der LÃ¼cke
+  "suffix": "\n    return result",               // Code NACH der LÃ¼cke
+  "max_tokens": 100,
+  "temperature": 0.0
+}
+
+RESPONSE: Standard completion response
+
+INTEGRATION CODE:
+```javascript
+async function fillInMiddle(prefix, suffix) {
+  const response = await fetch(`${BACKEND_URL}/mistral/fim/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'codestral-latest',
+      prompt: prefix,
+      suffix: suffix,
+      max_tokens: 200,
+      temperature: 0.0
+    })
+  });
+  
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+// Beispiel: Code-VervollstÃ¤ndigung
+const prefix = `def calculate_sum(numbers):\n    `;
+const suffix = `\n    return total`;
+const completion = await fillInMiddle(prefix, suffix);
+console.log('Completed code:', prefix + completion + suffix);
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.4 FILES MANAGEMENT (4 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+UPLOAD: POST /mistral/files (multipart/form-data)
+LIST: GET /mistral/files
+GET: GET /mistral/files/:file_id
+DELETE: DELETE /mistral/files/:file_id
+
+Identisch zu OpenAI Files API - siehe Sektion 1.11
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.5 FINE-TUNING (7 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+CREATE JOB: POST /mistral/fine_tuning/jobs
+LIST JOBS: GET /mistral/fine_tuning/jobs
+GET JOB: GET /mistral/fine_tuning/jobs/:job_id
+START JOB: POST /mistral/fine_tuning/jobs/:job_id/start
+CANCEL JOB: POST /mistral/fine_tuning/jobs/:job_id/cancel
+ARCHIVE MODEL: POST /mistral/fine_tuning/models/:model_id/archive
+UNARCHIVE MODEL: POST /mistral/fine_tuning/models/:model_id/unarchive
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.6 BATCH API (4 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+CREATE: POST /mistral/batch/jobs
+LIST: GET /mistral/batch/jobs
+GET: GET /mistral/batch/jobs/:job_id
+CANCEL: POST /mistral/batch/jobs/:job_id/cancel
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.7 MODERATION (2 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+TEXT MODERATION: POST /mistral/moderations
+CHAT MODERATION: POST /mistral/chat/moderations
+
+Ã„hnlich wie OpenAI Moderations API
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.8 AUDIO TRANSCRIPTION
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /mistral/audio/transcriptions
+CONTENT-TYPE: multipart/form-data
+
+STANDARD MODEL: voxtral-mini-2507
+
+Ã„hnlich wie Whisper API - siehe Sektion 1.6
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.9 AGENTS API (5 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+CREATE: POST /mistral/agents
+LIST: GET /mistral/agents
+GET: GET /mistral/agents/:agent_id
+UPDATE: PUT /mistral/agents/:agent_id
+VERSION: POST /mistral/agents/:agent_id/version
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.10 CONVERSATIONS API (7 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+CREATE: POST /mistral/conversations
+LIST: GET /mistral/conversations
+GET: GET /mistral/conversations/:conversation_id
+GET ENTRIES: GET /mistral/conversations/:conversation_id/entries
+GET MESSAGES: GET /mistral/conversations/:conversation_id/messages
+BRANCH: POST /mistral/conversations/:conversation_id/branch
+COMPLETE: POST /mistral/conversations/:conversation_id/complete
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.11 DOCUMENT LIBRARIES (4 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+CREATE: POST /mistral/libraries
+LIST: GET /mistral/libraries
+GET: GET /mistral/libraries/:library_id
+DELETE: DELETE /mistral/libraries/:library_id
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+2.12 MODELS LIST
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /mistral/models
+
+Listet alle verfÃ¼gbaren Mistral AI Modelle
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+3ï¸âƒ£  CLAUDE/ANTHROPIC API - 10 ENDPOINTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+3.1 MESSAGES API (Mit Streaming)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /claude/messages
+
+REQUEST BODY:
+{
+  "model": "claude-sonnet-4-5-20250929",         // Standard
+  "messages": [                                   // PFLICHTFELD
+    { "role": "user", "content": "Hello!" }
+  ],
+  "max_tokens": 1024,                             // PFLICHTFELD bei Claude!
+  "system": "You are a helpful assistant",        // Optional
+  "temperature": 1.0,                             // Optional: 0-1
+  "stream": false                                 // Optional
+}
+
+VERFÃœGBARE MODELLE:
+- claude-sonnet-4-5-20250929 (Standard - beste Balance)
+- claude-opus-4-20250514 (hÃ¶chste Intelligenz)
+- claude-haiku-3-5-20241022 (schnellst & gÃ¼nstigst)
+
+WICHTIG: Bei Claude ist max_tokens PFLICHT!
+
+RESPONSE: Ã„hnlich wie OpenAI, aber andere Struktur
+
+INTEGRATION CODE:
+```javascript
+async function claudeChat(message, model = 'claude-sonnet-4-5-20250929') {
+  const response = await fetch(`${BACKEND_URL}/claude/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: 'user', content: message }],
+      max_tokens: 2048,  // PFLICHT bei Claude!
+      temperature: 0.7
+    })
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || `HTTP ${response.status}`);
+  }
+  
+  const data = await response.json();
+  return data.content[0].text;  // Claude response format
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+3.2 MESSAGE BATCHES (50% Kostenersparnis)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+CREATE BATCH: POST /claude/messages/batches
+GET BATCH: GET /claude/messages/batches/:batch_id
+GET RESULTS: GET /claude/messages/batches/:batch_id/results
+
+Batches kosten 50% weniger, brauchen aber ~24h
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+3.3 TOKEN COUNTING
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /claude/messages/count_tokens
+
+ZÃ¤hlt Tokens BEVOR Request gesendet wird (hilft bei Kostenplanung)
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+3.4 FILES API (3 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+UPLOAD: POST /claude/files (multipart/form-data)
+GET: GET /claude/files/:file_id
+DELETE: DELETE /claude/files/:file_id
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+3.5 ORGANIZATION & USAGE (2 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+GET ORGANIZATION: GET /claude/organizations/:organization_id
+GET USAGE: GET /claude/organization/usage
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+4ï¸âƒ£  PERPLEXITY AI API - 3 ENDPOINTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+4.1 SONAR CHAT (Echtzeit Web-Suche + AI)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /perplexity/chat/completions
+
+BESONDERHEIT: Antwortet MIT QUELLEN aus dem Web (aktuellste Informationen!)
+
+REQUEST BODY:
+{
+  "model": "sonar",                              // "sonar" oder "sonar-pro"
+  "messages": [                                  // PFLICHTFELD
+    { "role": "user", "content": "Latest news on AI?" }
+  ],
+  "max_tokens": 1000,
+  "temperature": 0.7,
+  "search_recency_filter": "month"               // "day", "week", "month", "year"
+}
+
+VERFÃœGBARE MODELLE:
+- sonar (Standard - schnell & gÃ¼nstig)
+- sonar-pro (bessere QualitÃ¤t, detailliertere Quellen)
+
+RESPONSE: Wie Chat API, aber mit citations (Quellenangaben!)
+
+INTEGRATION CODE:
+```javascript
+async function perplexitySearch(question) {
+  const response = await fetch(`${BACKEND_URL}/perplexity/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'sonar',
+      messages: [{ role: 'user', content: question }],
+      search_recency_filter: 'week',  // Nur aktuelle Quellen
+      max_tokens: 1000
+    })
+  });
+  
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  
+  return {
+    answer: data.choices[0].message.content,
+    citations: data.citations || []  // URLs der Quellen
+  };
+}
+
+// Beispiel: Aktuelle Informationen abfragen
+const result = await perplexitySearch('What are the latest developments in AI in 2025?');
+console.log('Answer:', result.answer);
+console.log('Sources:', result.citations);
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+4.2 SEARCH API
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /perplexity/search
+
+Reine Suche ohne AI-Antwort (nur Web-Ergebnisse)
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+4.3 CACHE STATS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /perplexity/cache/stats
+
+Zeigt Cache-Statistiken fÃ¼r Perplexity Requests
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+5ï¸âƒ£  GOOGLE GEMINI API - 14 ENDPOINTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+5.1 GENERATE CONTENT
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /gemini/models/:model/generateContent
+
+VERFÃœGBARE MODELLE:
+- gemini-2.0-flash-exp (neuestes Modell, experimentell)
+- gemini-1.5-flash (schnell & effizient)
+- gemini-1.5-pro (beste QualitÃ¤t)
+- gemini-1.0-pro (stabil)
+
+REQUEST BODY:
+{
+  "contents": [{                                 // PFLICHTFELD
+    "parts": [{ "text": "Write a story about a magic backpack" }]
+  }],
+  "generationConfig": {                          // Optional
+    "temperature": 0.9,
+    "maxOutputTokens": 2048
+  }
+}
+
+INTEGRATION CODE:
+```javascript
+async function geminiGenerate(prompt, model = 'gemini-1.5-flash') {
+  const response = await fetch(`${BACKEND_URL}/gemini/models/${model}/generateContent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: prompt }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1024
+      }
+    })
+  });
+  
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
+}
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+5.2 STREAM GENERATE
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /gemini/models/:model/streamGenerateContent
+
+Streaming-Version von generateContent
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+5.3 BATCH GENERATE
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /gemini/models/:model/batchGenerateContent
+
+Mehrere Prompts in einem Request (gÃ¼nstiger)
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+5.4 EMBEDDINGS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /gemini/models/:model/embedContent
+
+MODELLE:
+- text-embedding-004 (neuestes)
+- embedding-001
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+5.5-5.9 FILES API (5 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+UPLOAD: POST /gemini/upload (multipart/form-data)
+LIST: GET /gemini/files
+GET: GET /gemini/files/:file_id
+DELETE: DELETE /gemini/files/:file_id
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+5.10-5.12 MODELS (3 ENDPOINTS)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+LIST MODELS: GET /gemini/models
+GET MODEL: GET /gemini/models/:model
+BATCH EMBEDDING: POST /gemini/models/:model/batchEmbedContents
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+5.13 IMAGEN 4 (Bildgenerierung)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /gemini/models/imagen-4/generateImage
+
+Google's Bildgenerierungs-Modell
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+5.14 VEO 3 (Videogenerierung)
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /gemini/models/veo-3/generateVideo
+
+Google's Videogenerierungs-Modell
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+6ï¸âƒ£  RAPIDAPI SERVICES - 12 ENDPOINTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+6.1 JOBS SEARCH (JSearch) - 3 ENDPOINTS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+SEARCH JOBS: POST /rapidapi/jobs/search
+JOB DETAILS: POST /rapidapi/jobs/details
+SALARY ESTIMATE: POST /rapidapi/jobs/salary
+
+INTEGRATION CODE:
+```javascript
+async function searchJobs(query, page = 1) {
+  const response = await fetch(`${BACKEND_URL}/rapidapi/jobs/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: query,
+      page: page,
+      num_pages: 1,
+      remote_jobs_only: true
+    })
+  });
+  
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// Beispiel
+const jobs = await searchJobs('Python Developer in Berlin');
+console.log('Found jobs:', jobs.data);
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+6.2 YAHOO FINANCE - 6 ENDPOINTS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+KEY STATISTICS: GET /rapidapi/yahoo/key-statistics/:symbol
+FINANCIAL ANALYSIS: GET /rapidapi/yahoo/financial-analysis/:symbol
+EARNINGS TREND: GET /rapidapi/yahoo/earnings-trend/:symbol
+PRICE: GET /rapidapi/yahoo/price/:symbol
+MULTI QUOTE: POST /rapidapi/yahoo/multi-quote
+NEWS: GET /rapidapi/yahoo/news/:symbol
+
+INTEGRATION CODE:
+```javascript
+async function getStockPrice(symbol) {
+  const response = await fetch(`${BACKEND_URL}/rapidapi/yahoo/price/${symbol}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// Multi-Quote fÃ¼r mehrere Aktien
+async function getMultipleQuotes(symbols) {
+  const response = await fetch(`${BACKEND_URL}/rapidapi/yahoo/multi-quote`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ symbols: symbols })  // Array: ['AAPL', 'GOOGL', 'MSFT']
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// Beispiel
+const applePrice = await getStockPrice('AAPL');
+const quotes = await getMultipleQuotes(['AAPL', 'GOOGL', 'MSFT']);
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+6.3 GOOGLE SEARCH
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /rapidapi/google/search
+
+Web-Suche Ã¼ber Google
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+6.4 WEB SCRAPER
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /rapidapi/scraper/contacts
+
+Extrahiert Kontaktinformationen von Websites
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+6.5 AMAZON PRODUCT SEARCH
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: POST /rapidapi/amazon/search
+
+Sucht Produkte auf Amazon
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+7ï¸âƒ£  EOD HISTORICAL DATA API - 8 ENDPOINTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+7.1 HISTORICAL DATA
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /eod/historical/:symbol?from=YYYY-MM-DD&to=YYYY-MM-DD&period=d
+
+QUERY PARAMS:
+- from: Start-Datum (YYYY-MM-DD)
+- to: End-Datum (YYYY-MM-DD)
+- period: d (daily), w (weekly), m (monthly)
+
+INTEGRATION CODE:
+```javascript
+async function getHistoricalData(symbol, from, to) {
+  const params = new URLSearchParams({ from, to, period: 'd' });
+  const response = await fetch(`${BACKEND_URL}/eod/historical/${symbol}?${params}`);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
+}
+
+// Beispiel
+const data = await getHistoricalData('AAPL.US', '2024-01-01', '2024-12-31');
+```
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+7.2 REALTIME PRICES
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /eod/realtime/:symbol
+
+Aktuelle Echtzeit-Kurse (15min delay bei Free Tier)
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+7.3 INTRADAY DATA
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /eod/intraday/:symbol?interval=5m
+
+Intraday-Daten (5m, 1h Intervalle)
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+7.4 FUNDAMENTALS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /eod/fundamentals/:symbol
+
+Fundamentaldaten (Bilanzen, Kennzahlen, etc.)
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+7.5 SEARCH
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /eod/search/:query
+
+Sucht Aktien, ETFs, Fonds nach Name oder Symbol
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+7.6 EXCHANGE SYMBOLS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /eod/exchange-symbols/:exchange
+
+Listet alle Symbole einer BÃ¶rse (z.B. "US", "LSE", "XETRA")
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+7.7 NEWS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /eod/news?s=AAPL.US&offset=0&limit=50
+
+Finanz-Nachrichten zu Aktien
+
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+7.8 DIVIDENDS
+â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”
+
+ENDPOINT: GET /eod/dividends/:symbol
+
+Dividenden-Historie einer Aktie
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ” HEALTH CHECK & SERVER INFO
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+HEALTH CHECK: GET /health
+
+RESPONSE:
+{
+  "status": "ok",
+  "message": "Universal AI & Financial Data Proxy Server is running",
+  "apis": {
+    "openai": "15 endpoints",
+    "mistral": "36 endpoints",
+    "claude": "10 endpoints",
+    "perplexity": "3 endpoints",
+    "gemini": "14 endpoints",
+    "rapidapi": "12 endpoints",
+    "eod": "8 endpoints"
+  },
+  "total_endpoints": 98
+}
+
+SERVER INFO: GET /
+
+Gibt detaillierte Informationen Ã¼ber den Server und alle verfÃ¼gbaren APIs
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ“š SCHNELLSTART-BEISPIEL
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+```javascript
+const BACKEND_URL = 'https://theserver-open-ai.replit.app';
+
+// 1. OpenAI Chat
+const chatResponse = await fetch(`${BACKEND_URL}/api/chat`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: 'Hello!' }]
+  })
+});
+const chatData = await chatResponse.json();
+console.log('OpenAI:', chatData.choices[0].message.content);
+
+// 2. Image generieren
+const imageResponse = await fetch(`${BACKEND_URL}/api/images/generate`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    prompt: 'A beautiful sunset over mountains',
+    model: 'dall-e-3'
+  })
+});
+const imageData = await imageResponse.json();
+console.log('Image URL:', imageData.data[0].url);
+
+// 3. Perplexity Web-Suche
+const searchResponse = await fetch(`${BACKEND_URL}/perplexity/chat/completions`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    model: 'sonar',
+    messages: [{ role: 'user', content: 'Latest AI news?' }],
+    search_recency_filter: 'week'
+  })
+});
+const searchData = await searchResponse.json();
+console.log('Perplexity:', searchData.choices[0].message.content);
+
+// 4. Stock-Daten
+const stockResponse = await fetch(`${BACKEND_URL}/eod/realtime/AAPL.US`);
+const stockData = await stockResponse.json();
+console.log('AAPL Price:', stockData);
+
+// 5. Jobs suchen
+const jobsResponse = await fetch(`${BACKEND_URL}/rapidapi/jobs/search`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    query: 'Python Developer',
+    remote_jobs_only: true
+  })
+});
+const jobsData = await jobsResponse.json();
+console.log('Jobs:', jobsData);
+```
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+âš¡ TIPPS FÃœR PRODUKTIVE NUTZUNG
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+1. ERROR HANDLING: Immer try-catch verwenden und response.ok prÃ¼fen
+   ```javascript
+   if (!response.ok) {
+     const error = await response.json();
+     throw new Error(error.message || `HTTP ${response.status}`);
+   }
+   ```
+
+2. TIMEOUTS: Server hat 30s Timeout - fÃ¼r lange Requests streaming verwenden
+
+3. FILE UPLOADS: Bei FormData KEINEN Content-Type Header setzen!
+   ```javascript
+   // RICHTIG âœ“
+   fetch(url, { method: 'POST', body: formData });
+   
+   // FALSCH âœ—
+   fetch(url, { 
+     method: 'POST', 
+     headers: { 'Content-Type': 'multipart/form-data' },
+     body: formData 
+   });
+   ```
+
+4. STREAMING: Immer erst response.ok prÃ¼fen, DANN Stream lesen
+   
+5. MODELL-WAHL:
+   - GÃ¼nstig & schnell: gpt-4o-mini, mistral-small, gemini-1.5-flash
+   - Beste QualitÃ¤t: gpt-4o, claude-opus-4, gemini-1.5-pro
+   - Code: codestral-latest, gpt-4o
+   - Web-Suche: perplexity sonar
+
+6. BATCH-PROCESSING: FÃ¼r viele Requests nutze Batch-APIs (50% gÃ¼nstiger)
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ“ CHANGELOG
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+Version 1.0 (14. November 2025):
+- Initiale finale Dokumentation
+- 98 Endpoints dokumentiert (korrigiert von 101)
+- Alle Defaults aktualisiert (gpt-4o-mini, max_tokens 8000)
+- Error-Handling fÃ¼r alle Endpoints hinzugefÃ¼gt
+- KEINE Rate Limits (entfernt aus Dokumentation)
+- Integration-Code fÃ¼r alle wichtigen Endpoints
+- Deutsche Sprache fÃ¼r bessere VerstÃ¤ndlichkeit
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ðŸ“§ SUPPORT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+Bei Fragen oder Problemen:
+1. PrÃ¼fe zuerst diese Dokumentation
+2. Teste mit /health endpoint ob Server lÃ¤uft
+3. PrÃ¼fe Browser DevTools fÃ¼r genaue Fehlermeldungen
+4. Stelle sicher, dass alle API-Keys serverseitig konfiguriert sind
+
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+                              END OF DOCUMENTATION
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

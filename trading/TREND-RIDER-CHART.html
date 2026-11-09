@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TREND RIDER // Quant Chart Engine</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #04060a;
+      color: #e1e4ea;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+    }
+
+    /* ── HEADER ────────────────────────────────────────────── */
+    .header-bar {
+      flex-shrink: 0;
+      background: #0b0f17;
+      border: 1px solid #1a2233;
+      border-radius: 5px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .header-title {
+      color: #00e6ff;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0,230,255,0.35);
+      white-space: nowrap;
+    }
+    .pill {
+      background: #121824; color: #8f9cae; border: 1px solid #202b3d;
+      font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 3px;
+      cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+    }
+    .pill:hover { border-color: #00e6ff; color: #00e6ff; }
+    .pill.active { background: rgba(0,230,255,0.12); border-color: #00e6ff; color: #00e6ff; }
+    .input-group-cz {
+      display: flex; align-items: center; gap: 5px;
+      background: #0e1620; border: 1px solid #202b3d;
+      border-radius: 4px; padding: 4px 10px; flex-wrap: wrap;
+    }
+    .input-label { font-size: 10px; color: #4a5568; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+    .cz-input {
+      background: #04060a; border: 1px solid #2d3748; color: #00e6ff;
+      font-family: 'Courier New', monospace; font-size: 12px; font-weight: 700;
+      padding: 3px 7px; border-radius: 3px; outline: none; text-transform: uppercase;
+    }
+    .cz-input:focus { border-color: #00e6ff; }
+    .cz-input.narrow { width: 75px; }
+    select.cz-input  { color: #ecc94b; cursor: pointer; }
+    .btn-run {
+      background: #00e6ff; color: #04060a; border: none;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+      padding: 4px 11px; border-radius: 3px; cursor: pointer; white-space: nowrap;
+    }
+    .btn-run:hover { background: #fff; box-shadow: 0 0 10px rgba(0,230,255,0.5); }
+    .status-badge { font-family: 'Courier New', monospace; font-size: 10px; color: #4e5d78; letter-spacing: 0.5px; white-space: nowrap; }
+    .status-badge.live { color: #00e6ff; }
+    .status-badge.err  { color: #ff3366; }
+
+    /* ── SIGNAL STRIP ────────────────────────────────────────── */
+    .signal-strip {
+      flex-shrink: 0;
+      background: #0b0f17; border: 1px solid #1a2233; border-radius: 5px;
+      padding: 5px 12px; display: flex; align-items: center; gap: 14px;
+      flex-wrap: wrap; font-family: 'Courier New', monospace; font-size: 11px;
+    }
+    .sig-badge { font-size: 11px; font-weight: 800; padding: 2px 10px; border-radius: 3px; letter-spacing: 0.5px; white-space: nowrap; }
+    .sig-long    { background: rgba(0,255,135,0.12); color: #00ff87; border: 1px solid rgba(0,255,135,0.3); }
+    .sig-short   { background: rgba(255,51,102,0.12); color: #ff3366; border: 1px solid rgba(255,51,102,0.3); }
+    .sig-neutral { background: rgba(113,128,150,0.12); color: #718096; border: 1px solid rgba(113,128,150,0.3); }
+    .sig-loading { background: transparent; color: #4a5568; border: 1px solid #2d3748; }
+    .sig-item { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+    .sig-val  { font-weight: 700; }
+    .sig-lbl  { font-size: 9px; color: #4a5568; text-transform: uppercase; letter-spacing: 0.5px; }
+    .c8  { color: #00ff87; } .c13 { color: #00ccdd; } .c21 { color: #ecc94b; }
+    .c34 { color: #ff8c42; } .c55 { color: #ff3366; } .cmuted { color: #718096; }
+
+    /* ── TOOLBAR ─────────────────────────────────────────────── */
+    .toolbar {
+      flex-shrink: 0;
+      background: #0b0f17; border: 1px solid #1a2233; border-radius: 5px;
+      padding: 5px 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .tf-group { display: flex; gap: 2px; }
+    .tf-btn {
+      background: transparent; border: 1px solid #202b3d; color: #8a94a8;
+      font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 3px;
+      cursor: pointer; font-family: 'Courier New', monospace; transition: all 0.15s; letter-spacing: 0.5px;
+    }
+    .tf-btn:hover, .tf-btn.active { border-color: #00e6ff; color: #00e6ff; background: rgba(0,230,255,0.08); }
+    .tb-btn {
+      background: #0e1620; border: 1px solid #202b3d; color: #8a94a8;
+      font-size: 12px; padding: 3px 9px; border-radius: 3px; cursor: pointer; transition: all 0.15s;
+      font-family: 'Courier New', monospace;
+    }
+    .tb-btn:hover { border-color: #00e6ff; color: #00e6ff; }
+    .sep-v { width: 1px; height: 18px; background: #1a2233; flex-shrink: 0; }
+    /* Indicator button */
+    .ind-trigger { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
+    .ind-panel {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 200;
+      background: #0e1620; border: 1px solid #1a2233; border-radius: 4px;
+      padding: 6px 0; min-width: 170px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .ind-item { padding: 4px 14px; }
+    .ind-label { display: flex; align-items: center; gap: 8px; color: #a0aec0; font-size: 11px; cursor: pointer; user-select: none; }
+    .ind-label:hover { color: #e1e4ea; }
+    .ind-label input { accent-color: #00e6ff; cursor: pointer; }
+    .cursor-hint { font-size: 10px; color: #ecc94b; font-family: 'Courier New', monospace; letter-spacing: 0.5px; }
+
+    /* ── CHART AREA ──────────────────────────────────────────── */
+    .chart-area { flex: 1; min-height: 0; display: flex; gap: 6px; }
+
+    /* Left Tools Sidebar */
+    .tools-sidebar {
+      flex-shrink: 0; width: 34px;
+      background: #0b0f17; border: 1px solid #1a2233; border-radius: 5px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 6px 0; gap: 2px;
+    }
+    .tool-btn {
+      width: 26px; height: 26px; background: transparent;
+      border: 1px solid transparent; border-radius: 3px;
+      color: #8a94a8; font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; line-height: 1;
+    }
+    .tool-btn:hover { border-color: #2d3748; color: #e1e4ea; }
+    .tool-btn.active { background: rgba(0,230,255,0.1); border-color: #00e6ff; color: #00e6ff; }
+    .tool-sep { width: 18px; height: 1px; background: #1a2233; margin: 3px 0; }
+
+    /* Charts column */
+    .charts-col { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 5px; }
+
+    /* Chart wrappers */
+    .chart-wrap {
+      background: #0b0f17; border: 1px solid #1a2233; border-radius: 5px;
+      overflow: hidden; position: relative;
+    }
+    #main-wrap { flex: 1; min-height: 0; }
+    .rsi-wrap  { height: 130px; flex-shrink: 0; }
+
+    .chart-inner { position: absolute; inset: 0; }
+
+    .chart-badge {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(4,6,10,0.92); border: 1px solid #1a2233; border-radius: 3px;
+      font-family: 'Courier New', monospace; font-size: 10px; font-weight: 700;
+      padding: 2px 7px; z-index: 10; pointer-events: none; letter-spacing: 0.5px; color: #a0aec0;
+    }
+    .badge-rsi { color: #9c6fbe !important; border-color: rgba(156,111,190,0.3) !important; }
+
+    .chart-loading {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(11,15,23,0.92); z-index: 20;
+      font-family: 'Courier New', monospace; font-size: 12px; color: #4a5568;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .chart-loading.hidden { display: none; }
+
+    .ema-legend {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(4,6,10,0.92); border: 1px solid #1a2233; border-radius: 3px;
+      padding: 5px 9px; z-index: 10; pointer-events: none;
+      font-family: 'Courier New', monospace; font-size: 10px; line-height: 1.7;
+    }
+    .leg-row { display: flex; gap: 6px; align-items: center; }
+    .leg-dot { width: 14px; height: 2px; border-radius: 1px; display: inline-block; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────────── -->
+<div class="header-bar">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <div class="header-title">TREND RIDER // QUANT CHART ENGINE</div>
+    <div style="display:flex;gap:3px">
+      <button class="pill active" data-ticker="SAP"  data-exchange="XETRA" onclick="loadPreset(this)">SAP</button>
+      <button class="pill"        data-ticker="RHM"  data-exchange="XETRA" onclick="loadPreset(this)">RHM</button>
+      <button class="pill"        data-ticker="ADS"  data-exchange="XETRA" onclick="loadPreset(this)">ADS</button>
+      <button class="pill"        data-ticker="AAPL" data-exchange="US"    onclick="loadPreset(this)">AAPL</button>
+      <button class="pill"        data-ticker="NVDA" data-exchange="US"    onclick="loadPreset(this)">NVDA</button>
+    </div>
+    <div class="input-group-cz">
+      <span class="input-label">Custom:</span>
+      <input class="cz-input narrow" id="inp-ticker"   type="text" value="BMW" placeholder="TICKER">
+      <select class="cz-input" id="inp-exchange">
+        <option value="XETRA">XETRA</option><option value="US">US</option>
+        <option value="LSE">LSE</option><option value="PA">PA</option>
+        <option value="SW">SW</option><option value="AS">AS</option>
+        <option value="MC">MC</option><option value="ST">ST</option>
+        <option value="CO">CO</option><option value="TO">TO</option>
+        <option value="AX">AX</option><option value="SA">SA</option>
+        <option value="WAR">WAR</option><option value="IS">IS</option>
+        <option value="TA">TA</option><option value="NSE">NSE</option>
+        <option value="KO">KO</option>
+      </select>
+      <button class="btn-run" onclick="runManual()">&#x25B6; EXECUTE</button>
+    </div>
+  </div>
+  <div class="status-badge" id="status-txt">INITIALIZING...</div>
+</div>
+
+<!-- ── SIGNAL STRIP ─────────────────────────────────────────── -->
+<div class="signal-strip">
+  <span class="sig-badge sig-loading" id="sig-badge">— LOADING —</span>
+  <div class="sig-item"><span class="sig-val c8"     id="v-e8">—</span><span class="sig-lbl">EMA 8</span></div>
+  <div class="sig-item"><span class="sig-val c13"    id="v-e13">—</span><span class="sig-lbl">EMA 13</span></div>
+  <div class="sig-item"><span class="sig-val c21"    id="v-e21">—</span><span class="sig-lbl">EMA 21</span></div>
+  <div class="sig-item"><span class="sig-val c34"    id="v-e34">—</span><span class="sig-lbl">EMA 34</span></div>
+  <div class="sig-item"><span class="sig-val c55"    id="v-e55">—</span><span class="sig-lbl">EMA 55</span></div>
+  <div class="sig-item"><span class="sig-val cmuted" id="v-close">—</span><span class="sig-lbl">Close</span></div>
+  <div class="sig-item"><span class="sig-val cmuted" id="v-var">—</span><span class="sig-lbl">VaR 8↔55</span></div>
+  <div class="sig-item"><span class="sig-val cmuted" id="v-tstr">—</span><span class="sig-lbl">Trend Str%</span></div>
+</div>
+
+<!-- ── TOOLBAR ────────────────────────────────────────────── -->
+<div class="toolbar">
+  <!-- Timeframe -->
+  <div class="tf-group">
+    <button class="tf-btn" onclick="setTimeRange(1,this)">1M</button>
+    <button class="tf-btn" onclick="setTimeRange(3,this)">3M</button>
+    <button class="tf-btn" onclick="setTimeRange(6,this)">6M</button>
+    <button class="tf-btn" onclick="setTimeRange(12,this)">1Y</button>
+    <button class="tf-btn" onclick="setTimeRange(24,this)">2Y</button>
+    <button class="tf-btn active" id="tf-all" onclick="setTimeRange(0,this)">ALL</button>
+  </div>
+  <div class="sep-v"></div>
+  <!-- Zoom -->
+  <div style="display:flex;gap:3px">
+    <button class="tb-btn" onclick="doZoom(0.6)" title="Zoom In"  style="font-weight:900;font-size:15px">+</button>
+    <button class="tb-btn" onclick="doZoom(1.7)" title="Zoom Out" style="font-weight:900;font-size:15px">&#x2212;</button>
+    <button class="tb-btn" onclick="fitAll()"    title="Fit All"  style="font-size:13px">&#x29C9;</button>
+  </div>
+  <div class="sep-v"></div>
+  <!-- Indicators -->
+  <div style="position:relative">
+    <button class="tb-btn ind-trigger" onclick="toggleIndPanel(event)">&#x1F4CA; Indicators &#x25BE;</button>
+    <div id="ind-panel" class="ind-panel" style="display:none">
+      <div class="ind-item"><label class="ind-label"><input type="checkbox" id="chk-rsi" onchange="toggleRSI(this)"> RSI (14)</label></div>
+      <div class="ind-item"><label class="ind-label"><input type="checkbox" id="chk-bb"  onchange="toggleBB(this)">  Bollinger Bands (20, 2&#x3C3;)</label></div>
+    </div>
+  </div>
+  <div class="sep-v"></div>
+  <span class="cursor-hint" id="cursor-hint"></span>
+</div>
+
+<!-- ── CHART AREA ─────────────────────────────────────────── -->
+<div class="chart-area">
+
+  <!-- Left Tools Sidebar -->
+  <div class="tools-sidebar">
+    <!-- Cursor -->
+    <button class="tool-btn active" id="tool-cursor" onclick="setTool('cursor')" title="Crosshair">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="7" y1="0" x2="7" y2="14" stroke="currentColor" stroke-width="1.5"/><line x1="0" y1="7" x2="14" y2="7" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+    </button>
+    <!-- Horizontal Line -->
+    <button class="tool-btn" id="tool-hline" onclick="setTool('hline')" title="Horizontal Line">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="0" y1="7" x2="14" y2="7" stroke="currentColor" stroke-width="1.8"/><circle cx="3" cy="7" r="1.5" fill="currentColor"/><circle cx="11" cy="7" r="1.5" fill="currentColor"/></svg>
+    </button>
+    <div class="tool-sep"></div>
+    <!-- Undo -->
+    <button class="tool-btn" onclick="undoDrawing()" title="Undo last line">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5C2 4 4 2 6.5 2c2.2 0 4 1.5 4.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polyline points="0,4 2,7 4.5,4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </button>
+    <!-- Clear all -->
+    <button class="tool-btn" onclick="clearDrawings()" title="Clear all lines">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <!-- Charts Column -->
+  <div class="charts-col">
+
+    <!-- Main Chart -->
+    <div class="chart-wrap" id="main-wrap">
+      <div class="chart-badge" id="badge-daily">1D — QUANT MAIN VECTOR</div>
+      <div class="chart-inner" id="chart-daily"></div>
+      <div class="chart-loading" id="load-daily">LOADING DATA...</div>
+      <div class="ema-legend" id="legend-daily" style="display:none">
+        <div class="leg-row"><span class="leg-dot" style="background:#00e6ff"></span><span style="color:#00e6ff">EMA AVG (8·13·21·34·55)</span></div>
+        <div class="leg-row"><span class="leg-dot" style="background:#00ff87"></span><span class="c8">─ ─&nbsp; EMA 8 Entry</span></div>
+        <div class="leg-row"><span class="leg-dot" style="background:#ff3366"></span><span class="c55">——&nbsp; EMA 55 Stop</span></div>
+      </div>
+    </div>
+
+    <!-- RSI Sub-Chart -->
+    <div class="chart-wrap rsi-wrap" id="rsi-wrap" style="display:none">
+      <div class="chart-badge badge-rsi">RSI (14) &nbsp;|&nbsp; 30 OS / 70 OB</div>
+      <div class="chart-inner" id="chart-rsi"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+/* ================================================================
+   TREND RIDER // QUANT CHART ENGINE
+   Lightweight Charts (Apache 2.0) — full JS math, no subscription
+   Tools: crosshair, horizontal lines (draggable), undo/clear
+   Indicators: RSI (Wilder), Bollinger Bands — all computed in JS
+================================================================ */
+
+const EOD_PROXY    = 'https://gemini-os.replit.app/api/eod';
+const RIBBON_PERIODS = [8, 13, 21, 34, 55];
+
+/* ── STATE ───────────────────────────────────────────────── */
+let lwCharts    = { daily: null, rsi: null };
+let candleRef   = null;   // current candle series (for drawing + coordinateToPrice)
+let currentData = null;   // cached daily candles
+let drawLines   = [];     // [{ series, priceLine }] for undo
+let activeTool  = 'cursor';
+let bbSeries    = null;   // { upper, middle, lower }
+let syncBlock   = false;
+
+/* ── DATA ────────────────────────────────────────────────── */
+function normalize(raw) {
+  return raw.map(d => ({
+    time:   (d.date   || d.Date   || '').slice(0, 10),
+    open:   +(d.open   || d.Open   || d.close || d.Close || 0),
+    high:   +(d.high   || d.High   || d.close || d.Close || 0),
+    low:    +(d.low    || d.Low    || d.close || d.Close || 0),
+    close:  +(d.close  || d.Close  || 0),
+    volume: +(d.volume || d.Volume || 0),
+  })).filter(d => d.time.length === 10 && d.close > 0)
+     .sort((a, b) => a.time < b.time ? -1 : 1);
+}
+
+/* ── EMA CALCULATION (SMA-seeded) ─────────────────────────── */
+function calcEMAHistory(data, period) {
+  if (data.length < period) return [];
+  const k = 2 / (period + 1);
+  let ema = 0;
+  for (let i = 0; i < period; i++) ema += data[i].close;
+  ema /= period;
+  const out = [{ time: data[period - 1].time, value: ema }];
+  for (let i = period; i < data.length; i++) {
+    ema = data[i].close * k + ema * (1 - k);
+    out.push({ time: data[i].time, value: ema });
+  }
+  return out;
+}
+
+function calcEMALast(data, period) {
+  const arr = calcEMAHistory(data, period);
+  return arr.length ? arr[arr.length - 1].value : null;
+}
+
+/* Consolidated ribbon: (EMA8+13+21+34+55)/5 at every bar */
+function calcRibbonAvg(data) {
+  const histories = RIBBON_PERIODS.map(p => calcEMAHistory(data, p));
+  const ref = histories[histories.length - 1]; // EMA55 — shortest
+  if (!ref.length) return [];
+  return ref.map((pt, i) => ({
+    time:  pt.time,
+    value: histories.reduce((s, h) => s + h[i + (h.length - ref.length)].value, 0) / RIBBON_PERIODS.length,
+  }));
+}
+
+/* ── RSI (Wilder's smoothing) ─────────────────────────────── */
+function calcRSI(data, period = 14) {
+  if (data.length < period + 1) return [];
+  let g = 0, l = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = data[i].close - data[i-1].close;
+    if (d > 0) g += d; else l -= d;
+  }
+  g /= period; l /= period;
+  const out = [];
+  const push = (i, g, l) => out.push({ time: data[i].time, value: l === 0 ? 100 : 100 - 100 / (1 + g/l) });
+  push(period, g, l);
+  for (let i = period + 1; i < data.length; i++) {
+    const d = data[i].close - data[i-1].close;
+    g = (g * (period-1) + (d > 0 ? d : 0)) / period;
+    l = (l * (period-1) + (d < 0 ? -d : 0)) / period;
+    push(i, g, l);
+  }
+  return out;
+}
+
+/* ── BOLLINGER BANDS ──────────────────────────────────────── */
+function calcBB(data, period = 20, mult = 2) {
+  const upper = [], mid = [], lower = [];
+  for (let i = period - 1; i < data.length; i++) {
+    const sl   = data.slice(i - period + 1, i + 1);
+    const mean = sl.reduce((a, d) => a + d.close, 0) / period;
+    const std  = Math.sqrt(sl.reduce((a, d) => a + Math.pow(d.close - mean, 2), 0) / period);
+    upper.push({ time: data[i].time, value: mean + mult * std });
+    mid.push(  { time: data[i].time, value: mean });
+    lower.push({ time: data[i].time, value: mean - mult * std });
+  }
+  return { upper, mid, lower };
+}
+
+/* ── CHART CREATION ──────────────────────────────────────── */
+const LW_OPTS = {
+  layout: { background: { color: '#0b0f17' }, textColor: '#8a94a8', fontSize: 11 },
+  grid:   { vertLines: { color: '#101825' }, horzLines: { color: '#101825' } },
+  crosshair: { mode: 1 },
+  rightPriceScale: { borderColor: '#1a2233', scaleMargins: { top: 0.07, bottom: 0.15 } },
+  timeScale: { borderColor: '#1a2233', timeVisible: true, secondsVisible: false },
+  handleScroll: true, handleScale: true,
+};
+
+function makeChart(elId, showTime) {
+  const el  = document.getElementById(elId);
+  const cfg = JSON.parse(JSON.stringify(LW_OPTS));
+  cfg.width  = el.clientWidth;
+  cfg.height = el.clientHeight;
+  cfg.timeScale.visible = showTime;
+  const chart = LightweightCharts.createChart(el, cfg);
+  const ro = new ResizeObserver(() => {
+    if (chart) chart.applyOptions({ width: el.clientWidth, height: el.clientHeight });
+  });
+  ro.observe(el);
+  chart._ro = ro;
+  return chart;
+}
+
+function destroyChart(key) {
+  const c = lwCharts[key];
+  if (!c) return;
+  if (c._ro) c._ro.disconnect();
+  c.remove();
+  lwCharts[key] = null;
+}
+
+/* ── RENDER MAIN CHART ────────────────────────────────────── */
+function renderChart(candles) {
+  destroyChart('daily');
+  candleRef  = null;
+  drawLines  = [];
+  bbSeries   = null;
+
+  const rsiOn = document.getElementById('chk-rsi')?.checked;
+  const chart = makeChart('chart-daily', !rsiOn);
+  lwCharts.daily = chart;
+  if (!candles.length) return;
+
+  /* 1. Bollinger Bands behind candles (if enabled) */
+  const bbOn = document.getElementById('chk-bb')?.checked;
+  if (bbOn) _addBBSeries(chart, candles);
+
+  /* 2. Consolidated EMA average — behind candles */
+  const avg = calcRibbonAvg(candles);
+  if (avg.length) chart.addLineSeries({
+    color: '#00e6ff', lineWidth: 2,
+    priceLineVisible: false, lastValueVisible: true, crosshairMarkerVisible: false,
+  }).setData(avg);
+
+  /* 3. Candles on top */
+  candleRef = chart.addCandlestickSeries({
+    upColor: '#00ff87', downColor: '#ff3366', borderVisible: false,
+    wickUpColor: '#00ff87', wickDownColor: '#ff3366',
+  });
+  candleRef.setData(candles);
+
+  /* 4. EMA 8 dashed entry line */
+  const e8 = calcEMALast(candles, 8);
+  if (e8) candleRef.createPriceLine({ price: e8, color: '#00ff87', lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: ' EMA 8' });
+
+  /* 5. EMA 55 solid stop line */
+  const e55 = calcEMALast(candles, 55);
+  if (e55) candleRef.createPriceLine({ price: e55, color: '#ff3366', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: ' EMA 55' });
+
+  /* 6. Volume histogram — bottom 15% */
+  if (candles.some(d => d.volume > 0)) {
+    chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.85, bottom: 0 } });
+    chart.addHistogramSeries({ priceScaleId: 'volume', lastValueVisible: false, priceLineVisible: false })
+      .setData(candles.map(d => ({ time: d.time, value: d.volume, color: d.close >= d.open ? 'rgba(0,255,135,0.22)' : 'rgba(255,51,102,0.22)' })));
+  }
+
+  /* 7. Crosshair → show price hint for hline tool */
+  chart.subscribeCrosshairMove(param => {
+    if (!param.point || !candleRef) return;
+    const price = candleRef.coordinateToPrice(param.point.y);
+    const hint  = document.getElementById('cursor-hint');
+    if (price != null && activeTool === 'hline')
+      hint.textContent = '[ CLICK → H-LINE @ ' + price.toFixed(2) + ' ]';
+    else if (activeTool !== 'hline')
+      hint.textContent = '';
+  });
+
+  /* 8. Click → place horizontal line */
+  document.getElementById('chart-daily').onclick = e => {
+    if (activeTool !== 'hline' || !candleRef) return;
+    const price = candleRef.coordinateToPrice(e.offsetY);
+    if (price == null) return;
+    const pl = candleRef.createPriceLine({ price, color: '#ecc94b', lineWidth: 1, lineStyle: 0, axisLabelVisible: true, title: '', draggable: true });
+    drawLines.push({ series: candleRef, pl });
+  };
+
+  chart.timeScale().fitContent();
+}
+
+function _addBBSeries(chart, candles) {
+  const bb = calcBB(candles, 20, 2);
+  const lineOpts = { priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false };
+  bbSeries = {
+    upper:  chart.addLineSeries({ ...lineOpts, color: 'rgba(100,180,255,0.55)', lineWidth: 1 }),
+    mid:    chart.addLineSeries({ ...lineOpts, color: 'rgba(100,180,255,0.3)',  lineWidth: 1, lineStyle: 2 }),
+    lower:  chart.addLineSeries({ ...lineOpts, color: 'rgba(100,180,255,0.55)', lineWidth: 1 }),
+  };
+  bbSeries.upper.setData(bb.upper);
+  bbSeries.mid.setData(bb.mid);
+  bbSeries.lower.setData(bb.lower);
+}
+
+/* ── DRAWING TOOLS ───────────────────────────────────────── */
+function setTool(tool) {
+  activeTool = tool;
+  document.querySelectorAll('.tool-btn[id^="tool-"]').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tool-' + tool);
+  if (btn) btn.classList.add('active');
+  document.getElementById('chart-daily').style.cursor = tool === 'hline' ? 'crosshair' : 'default';
+  if (tool !== 'hline') document.getElementById('cursor-hint').textContent = '';
+}
+
+function undoDrawing() {
+  if (!drawLines.length) return;
+  const { series, pl } = drawLines.pop();
+  try { series.removePriceLine(pl); } catch(e) {}
+}
+
+function clearDrawings() {
+  drawLines.forEach(({ series, pl }) => { try { series.removePriceLine(pl); } catch(e) {} });
+  drawLines = [];
+}
+
+/* ── ZOOM & TIMEFRAME ────────────────────────────────────── */
+function setTimeRange(months, el) {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (!months) { lwCharts.daily?.timeScale().fitContent(); return; }
+  const to   = new Date().toISOString().slice(0, 10);
+  const from = new Date();
+  from.setMonth(from.getMonth() - months);
+  lwCharts.daily?.timeScale().setVisibleRange({ from: from.toISOString().slice(0, 10), to });
+}
+
+function doZoom(factor) {
+  const range = lwCharts.daily?.timeScale().getVisibleLogicalRange();
+  if (!range) return;
+  const mid  = (range.from + range.to) / 2;
+  const half = (range.to - range.from) / 2 * factor;
+  lwCharts.daily.timeScale().setVisibleLogicalRange({ from: mid - half, to: mid + half });
+}
+
+function fitAll() {
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tf-all').classList.add('active');
+  lwCharts.daily?.timeScale().fitContent();
+}
+
+/* ── INDICATOR PANEL ─────────────────────────────────────── */
+function toggleIndPanel(e) {
+  const p = document.getElementById('ind-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  e.stopPropagation();
+}
+document.addEventListener('click', () => {
+  const p = document.getElementById('ind-panel');
+  if (p) p.style.display = 'none';
+});
+
+/* ── RSI TOGGLE ──────────────────────────────────────────── */
+function toggleRSI(el) {
+  if (el.checked) {
+    document.getElementById('rsi-wrap').style.display = 'block';
+    lwCharts.daily?.timeScale().applyOptions({ visible: false });
+    renderRSI();
+    setupTimeSync();
+  } else {
+    document.getElementById('rsi-wrap').style.display = 'none';
+    lwCharts.daily?.timeScale().applyOptions({ visible: true });
+    destroyChart('rsi');
+  }
+}
+
+function renderRSI() {
+  destroyChart('rsi');
+  if (!currentData) return;
+  const el    = document.getElementById('chart-rsi');
+  const chart = makeChart('chart-rsi', true);
+  lwCharts.rsi = chart;
+
+  chart.applyOptions({
+    rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 }, borderColor: '#1a2233' },
+    layout: { background: { color: '#080b11' }, textColor: '#8a94a8', fontSize: 10 },
+  });
+
+  const rsiLine = chart.addLineSeries({
+    color: '#9c6fbe', lineWidth: 1.5,
+    priceLineVisible: false, lastValueVisible: true,
+  });
+  rsiLine.setData(calcRSI(currentData, 14));
+  rsiLine.createPriceLine({ price: 70, color: 'rgba(255,51,102,0.5)', lineWidth: 1, lineStyle: 2, axisLabelVisible: true,  title: 'OB' });
+  rsiLine.createPriceLine({ price: 50, color: 'rgba(113,128,150,0.25)', lineWidth: 1, lineStyle: 1, axisLabelVisible: false, title: '' });
+  rsiLine.createPriceLine({ price: 30, color: 'rgba(0,255,135,0.5)',   lineWidth: 1, lineStyle: 2, axisLabelVisible: true,  title: 'OS' });
+
+  chart.timeScale().fitContent();
+  if (lwCharts.daily) {
+    const range = lwCharts.daily.timeScale().getVisibleLogicalRange();
+    if (range) chart.timeScale().setVisibleLogicalRange(range);
+  }
+}
+
+function setupTimeSync() {
+  if (!lwCharts.daily || !lwCharts.rsi) return;
+  lwCharts.daily.timeScale().subscribeVisibleLogicalRangeChange(range => {
+    if (syncBlock || !range || !lwCharts.rsi) return;
+    syncBlock = true;
+    lwCharts.rsi.timeScale().setVisibleLogicalRange(range);
+    syncBlock = false;
+  });
+  lwCharts.rsi.timeScale().subscribeVisibleLogicalRangeChange(range => {
+    if (syncBlock || !range || !lwCharts.daily) return;
+    syncBlock = true;
+    lwCharts.daily.timeScale().setVisibleLogicalRange(range);
+    syncBlock = false;
+  });
+}
+
+/* ── BB TOGGLE ───────────────────────────────────────────── */
+function toggleBB(el) {
+  if (!lwCharts.daily || !currentData) return;
+  if (el.checked) {
+    if (bbSeries) return; // already shown
+    _addBBSeries(lwCharts.daily, currentData);
+  } else {
+    if (bbSeries) {
+      ['upper','mid','lower'].forEach(k => { try { lwCharts.daily.removeSeries(bbSeries[k]); } catch(e) {} });
+      bbSeries = null;
+    }
+  }
+}
+
+/* ── SIGNAL STRIP ────────────────────────────────────────── */
+function updateSignalStrip(ticker, daily) {
+  const e8 = calcEMALast(daily,8), e13 = calcEMALast(daily,13),
+        e21 = calcEMALast(daily,21), e34 = calcEMALast(daily,34), e55 = calcEMALast(daily,55);
+  const close = daily[daily.length - 1].close;
+  const fmt = v => v != null ? v.toFixed(2) : '—';
+  document.getElementById('v-e8').textContent    = fmt(e8);
+  document.getElementById('v-e13').textContent   = fmt(e13);
+  document.getElementById('v-e21').textContent   = fmt(e21);
+  document.getElementById('v-e34').textContent   = fmt(e34);
+  document.getElementById('v-e55').textContent   = fmt(e55);
+  document.getElementById('v-close').textContent = close.toFixed(2);
+  if (e8 && e55) {
+    const varAbs = Math.abs(e8 - e55), tStr = (e8 - e55) / e55 * 100;
+    document.getElementById('v-var').textContent  = varAbs.toFixed(2) + ' (' + (varAbs/e8*100).toFixed(1) + '%)';
+    const tEl = document.getElementById('v-tstr');
+    tEl.textContent   = (tStr > 0 ? '+' : '') + tStr.toFixed(2) + '%';
+    tEl.style.color   = tStr > 0 ? '#00ff87' : '#ff3366';
+  }
+  const isLong  = e8>e13 && e13>e21 && e21>e34 && e34>e55 && close>=e8;
+  const isShort = e8<e13 && e13<e21 && e21<e34 && e34<e55 && close<=e8;
+  const badge = document.getElementById('sig-badge');
+  badge.className = 'sig-badge ' + (isLong ? 'sig-long' : isShort ? 'sig-short' : 'sig-neutral');
+  badge.textContent = isLong ? '▲ QUANT ALPHA LONG // '+ticker : isShort ? '▼ QUANT ALPHA SHORT // '+ticker : '◆ RIBBON NEUTRAL // '+ticker;
+}
+
+/* ── STATUS ──────────────────────────────────────────────── */
+function setStatus(text, cls) {
+  const el = document.getElementById('status-txt');
+  el.textContent = text;
+  el.className   = 'status-badge ' + (cls || '');
+}
+
+/* ── MAIN LOADER ─────────────────────────────────────────── */
+async function loadTicker(ticker, exchange) {
+  ticker = ticker.toUpperCase(); exchange = exchange.toUpperCase();
+  setStatus('FETCHING ' + ticker + '.' + exchange + '...');
+  document.getElementById('load-daily').className  = 'chart-loading';
+  document.getElementById('legend-daily').style.display = 'none';
+  document.getElementById('sig-badge').className   = 'sig-badge sig-loading';
+  document.getElementById('sig-badge').textContent = '— LOADING ' + ticker + ' —';
+  document.getElementById('badge-daily').textContent = '1D — QUANT MAIN VECTOR // ' + ticker;
+  try {
+    const params = new URLSearchParams({ symbol: ticker+'.'+exchange, endpoint:'historical', period:'d' });
+    const res    = await fetch(EOD_PROXY + '?' + params);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const daily = normalize(await res.json());
+    if (daily.length < 55) throw new Error('Nur ' + daily.length + ' Bars — mind. 55 nötig');
+    currentData = daily;
+
+    renderChart(daily);
+    updateSignalStrip(ticker, daily);
+
+    /* Re-render indicators if they were on */
+    if (document.getElementById('chk-rsi').checked) { renderRSI(); setupTimeSync(); }
+
+    document.getElementById('load-daily').className    = 'chart-loading hidden';
+    document.getElementById('legend-daily').style.display = 'block';
+    setStatus('LIVE // ' + ticker + '.' + exchange + ' // ' + daily.length + ' BARS', 'live');
+  } catch(err) {
+    console.error('[TR]', err);
+    document.getElementById('load-daily').className = 'chart-loading hidden';
+    setStatus('ERROR: ' + err.message, 'err');
+    document.getElementById('sig-badge').textContent = '⚠ ' + err.message;
+    document.getElementById('sig-badge').className   = 'sig-badge sig-neutral';
+  }
+}
+
+/* ── PRESETS & MANUAL ────────────────────────────────────── */
+function loadPreset(btn) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  loadTicker(btn.dataset.ticker, btn.dataset.exchange);
+}
+
+function runManual() {
+  const t = document.getElementById('inp-ticker').value.trim();
+  const e = document.getElementById('inp-exchange').value;
+  if (!t) return;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  loadTicker(t, e);
+}
+
+document.getElementById('inp-ticker').addEventListener('keydown', e => { if (e.key === 'Enter') runManual(); });
+
+/* ── BOOT ────────────────────────────────────────────────── */
+window.addEventListener('load', () => loadTicker('SAP', 'XETRA'));
+</script>
+</body>
+</html>

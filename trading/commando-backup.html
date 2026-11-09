@@ -1,0 +1,1871 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUANTUM INFRARED ENGINE v22.0 // MEGA COMMANDO ZENTRALE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* ── Override Bootstrap 5.3 CSS variables so its own styles don't inject
+              dark text (#212529) onto our dark backgrounds ─────────────────── */
+        :root {
+            /* Our dark-theme palette */
+            --bg-main:    #0c0c0e;
+            --bg-panel:   #141419;
+            --bg-inner:   #1b1b22;
+            --gold:       #f1c40f;
+            --cyan:       #00e5ff;
+            --green:      #2ecc71;
+            --green-bright:#00ffaa;
+            --red:        #e74c3c;
+            --red-bright: #ff0055;
+            --magenta:    #ff00ff;
+            --white:      #ffffff;
+            --gray-text:  #b3b3cc;
+            --border:     #2d2d38;
+
+            /* Bootstrap override — forces Bootstrap's own components to use
+               light text / dark backgrounds matching our theme */
+            --bs-body-color:            #ffffff;
+            --bs-body-color-rgb:        255,255,255;
+            --bs-body-bg:               #0c0c0e;
+            --bs-card-color:            #ffffff;
+            --bs-card-bg:               #141419;
+            --bs-card-cap-bg:           #1b1b22;
+            --bs-border-color:          #2d2d38;
+            --bs-border-color-translucent: rgba(45,45,56,0.6);
+            --bs-secondary-color:       #b3b3cc;
+            --bs-secondary-color-rgb:   179,179,204;
+            --bs-emphasis-color:        #ffffff;
+            --bs-emphasis-color-rgb:    255,255,255;
+            --bs-link-color:            #00e5ff;
+            --bs-link-hover-color:      #33edff;
+            --bs-form-valid-color:      #00ffaa;
+            --bs-form-invalid-color:    #ff0055;
+        }
+
+        /* Hard reset for ALL elements — prevents any unexpected color leakage */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        /* Bootstrap card-body resets — its color/bg can override inherited styles */
+        .card-body {
+            color: var(--white) !important;
+            background-color: transparent !important;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--white);
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            letter-spacing: 0.4px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container-custom { max-width: 1400px; margin: 0 auto; }
+
+        /* ── CARDS ──────────────────────────────────────────────────────────── */
+        .card-custom {
+            background-color: var(--bg-panel) !important;
+            border: 2px solid var(--border) !important;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .card-header-custom {
+            background-color: var(--bg-inner);
+            border-bottom: 2px solid var(--border);
+            padding: 12px 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 13px;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        /* ── FORMS ──────────────────────────────────────────────────────────── */
+        .form-control-custom {
+            background: #000 !important;
+            border: 2px solid var(--border);
+            color: var(--white) !important;
+            font-family: 'Courier New', monospace;
+            border-radius: 2px;
+            font-size: 13px;
+            padding: 6px 10px;
+            width: 100%;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .form-control-custom:focus {
+            background: #000 !important;
+            border-color: var(--cyan) !important;
+            color: var(--white) !important;
+            box-shadow: 0 0 0 2px rgba(0,229,255,0.15) !important;
+            outline: none;
+        }
+        .form-control-custom::placeholder { color: var(--gray-text); opacity: 0.7; }
+        select.form-control-custom { cursor: pointer; }
+        select.form-control-custom option { background: #111; color: var(--white); }
+        label { color: var(--gray-text) !important; font-size: 11px !important; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ── BUTTONS ────────────────────────────────────────────────────────── */
+        .btn-pipeline {
+            background: var(--gold); color: #000 !important; font-weight: bold;
+            border: none; border-radius: 2px; padding: 8px 18px;
+            text-transform: uppercase; font-size: 12px; cursor: pointer; width: 100%;
+            letter-spacing: 0.5px; transition: background 0.15s;
+        }
+        .btn-pipeline:hover, .btn-pipeline:focus { background: #e0b200; outline: 2px solid var(--gold); outline-offset: 2px; }
+        .btn-pipeline-cyan {
+            background: transparent; color: var(--cyan) !important; border: 2px solid var(--cyan);
+            border-radius: 2px; padding: 8px 18px; text-transform: uppercase;
+            font-size: 12px; cursor: pointer; width: 100%; font-weight: bold;
+            transition: all 0.15s; letter-spacing: 0.5px;
+        }
+        .btn-pipeline-cyan:hover, .btn-pipeline-cyan:focus { background: var(--cyan); color: #000 !important; outline: 2px solid var(--cyan); outline-offset: 2px; }
+        .btn-pipeline-green {
+            background: transparent; color: var(--green-bright) !important; border: 2px solid var(--green-bright);
+            border-radius: 2px; padding: 8px 18px; text-transform: uppercase;
+            font-size: 12px; cursor: pointer; font-weight: bold; width: 100%; transition: all 0.15s;
+        }
+        .btn-pipeline-green:hover, .btn-pipeline-green:focus { background: var(--green-bright); color: #000 !important; outline: 2px solid var(--green-bright); outline-offset: 2px; }
+        .btn-suffix {
+            background: #1b1b22; color: var(--cyan) !important; border: 1px solid var(--border);
+            font-size: 11px; padding: 2px 8px; margin-right: 4px;
+            border-radius: 2px; cursor: pointer; transition: border-color 0.1s;
+        }
+        .btn-suffix:hover { border-color: var(--cyan); }
+        button:focus-visible { outline: 2px solid var(--gold) !important; outline-offset: 2px !important; }
+
+        /* ── TAB NAV ────────────────────────────────────────────────────────── */
+        .tab-nav {
+            display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 18px;
+            background: var(--bg-inner); border: 2px solid var(--border);
+            padding: 8px; border-radius: 4px;
+        }
+        .tab-btn {
+            background: transparent; color: var(--gray-text) !important; border: 1px solid var(--border);
+            padding: 6px 12px; font-size: 11px; font-family: 'Courier New', monospace; font-weight: bold;
+            text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer;
+            border-radius: 2px; transition: all 0.15s; white-space: nowrap;
+        }
+        .tab-btn:hover { color: var(--white) !important; border-color: var(--gray-text); }
+        .tab-btn.active { background: var(--gold); color: #000 !important; border-color: var(--gold); }
+        .tab-section { display: none; }
+        .tab-section.active { display: block; }
+
+        /* ── DIAGNOSTIC ─────────────────────────────────────────────────────── */
+        .debug-panel {
+            background: #09090c; border-left: 4px solid var(--gold);
+            padding: 8px 14px; font-size: 12px; color: var(--gray-text);
+        }
+        pre.result-pre {
+            background: #050507; border: 1px solid var(--border); padding: 14px;
+            color: var(--cyan); font-family: 'Courier New', monospace; font-size: 12px;
+            white-space: pre-wrap; border-radius: 2px; max-height: 280px; overflow-y: auto; margin-top: 12px;
+        }
+
+        /* ── SPREAD CORE ────────────────────────────────────────────────────── */
+        .output-box { background: var(--bg-inner); border: 1px solid var(--border); padding: 14px; border-radius: 2px; color: var(--white); }
+        .metric-title { color: var(--gold); border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-top: 14px; font-size: 13px; text-transform: uppercase; }
+        .text-long  { color: var(--green-bright) !important; font-weight: bold; }
+        .text-short { color: var(--red-bright)   !important; font-weight: bold; }
+
+        /* ── ANALYSIS TABLES ────────────────────────────────────────────────── */
+        .analysis-table-wrap {
+            background: var(--bg-inner); border: 1px solid var(--border);
+            border-radius: 2px; overflow-x: auto; margin-top: 14px;
+        }
+        .analysis-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        .analysis-table thead tr { background: var(--bg-main); }
+        .analysis-table th {
+            font-size: 10px; color: var(--cyan) !important; text-transform: uppercase;
+            border-bottom: 2px solid var(--border); padding: 10px 12px;
+            letter-spacing: 0.8px; background: var(--bg-main); font-weight: bold;
+            white-space: nowrap;
+        }
+        /* ── CRITICAL: explicit white text on all td — fixes Bootstrap color bleed */
+        .analysis-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 12px;
+            color: var(--white);
+            vertical-align: middle;
+        }
+        .analysis-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+        .row-strong     { background: rgba(0,255,170,0.06) !important; border-left: 4px solid var(--green-bright); }
+        .row-weak       { background: rgba(255,0,85,0.06)  !important; border-left: 4px solid var(--red-bright); }
+        .row-trap-long  { background: rgba(0,224,255,0.07) !important; border-left: 5px solid var(--cyan); }
+        .row-trap-short { background: rgba(255,0,255,0.07) !important; border-left: 5px solid var(--magenta); }
+        .text-green   { color: var(--green-bright) !important; font-weight: bold; }
+        .text-red     { color: var(--red-bright)   !important; font-weight: bold; }
+        .text-magenta { color: var(--magenta)       !important; font-weight: bold; }
+        .text-gold    { color: var(--gold)          !important; font-weight: bold; }
+        .text-white   { color: var(--white)         !important; }
+
+        /* ── BADGES ─────────────────────────────────────────────────────────── */
+        .badge-a { font-size: 10px; font-weight: bold; padding: 3px 7px; border-radius: 2px; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .bg-strong       { background: rgba(0,255,170,0.15);  color: var(--green-bright) !important; border: 1px solid var(--green-bright); }
+        .bg-weak         { background: rgba(255,0,85,0.15);   color: var(--red-bright)   !important; border: 1px solid var(--red-bright); }
+        .bg-neutral      { background: rgba(255,255,255,0.06);color: #ccc !important;               border: 1px solid #555; }
+        .bg-trap-short   { background: var(--magenta);        color: #fff !important; }
+        .bg-trap-long    { background: var(--cyan);           color: #000 !important; }
+        .bg-exhaustion   { background: rgba(255,183,0,0.15);  color: var(--gold) !important;        border: 1px solid var(--gold); }
+        .bg-action-buy   { background: var(--green-bright);   color: #000 !important; font-weight: 900; }
+        .bg-action-short { background: var(--red-bright);     color: #fff !important; font-weight: 900; }
+        .bg-stable       { background: rgba(255,255,255,0.05);color: var(--white) !important;       border: 1px solid #555; }
+
+        /* ── PROGRESS BAR ───────────────────────────────────────────────────── */
+        .module-progress { display: none; margin-bottom: 14px; }
+        .module-progress.active { display: block; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: var(--gold); }
+        .progress-track { width: 100%; height: 16px; background: #05050a; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--green-bright)); width: 0%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #000; transition: width 0.2s; min-width: 0; }
+
+        /* ── RESULT CARDS ───────────────────────────────────────────────────── */
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 14px; margin-top: 16px; }
+        .result-card {
+            background: var(--bg-panel); border: 1px solid var(--border);
+            border-radius: 4px; padding: 14px; display: flex; gap: 12px;
+            border-left: 4px solid var(--cyan); color: var(--white);
+        }
+        .result-card.card-long  { border-left-color: var(--green-bright); }
+        .result-card.card-short { border-left-color: var(--red-bright); }
+        .result-card.card-go    { border-left-color: var(--gold); }
+        .result-candle { flex-shrink: 0; width: 90px; height: 90px; background: #050507; border: 1px solid var(--border); border-radius: 3px; }
+        .result-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+        .result-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 6px; gap: 6px; }
+        .result-symbol { font-weight: 900; font-size: 13px; color: var(--white) !important; }
+        .result-ts { font-size: 10px; color: var(--gray-text); flex-shrink: 0; }
+        .sig-badge { font-size: 10px; font-weight: bold; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0; }
+        .badge-go    { background: rgba(241,196,15,0.15); color: var(--gold)         !important; border: 1px solid var(--gold); }
+        .badge-long  { background: rgba(0,255,170,0.1);   color: var(--green-bright) !important; border: 1px solid var(--green-bright); }
+        .badge-short { background: rgba(255,0,85,0.1);    color: var(--red-bright)   !important; border: 1px solid var(--red-bright); }
+        .result-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3px 8px; font-size: 11px; }
+        .result-metric { display: flex; justify-content: space-between; gap: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 2px; }
+        .result-label { color: var(--gray-text); flex-shrink: 0; }
+        .val-gold  { color: var(--gold)          !important; font-weight: bold; }
+        .val-white { color: var(--white)          !important; font-weight: 500; }
+        .val-up    { color: var(--green-bright)   !important; font-weight: bold; }
+        .val-down  { color: var(--red-bright)     !important; font-weight: bold; }
+        .conf-bar-wrap { grid-column: span 2; margin-top: 5px; }
+        .conf-bar-track { background: rgba(255,255,255,0.04); height: 4px; border-radius: 2px; }
+        .conf-bar-fill  { background: linear-gradient(90deg, var(--cyan), var(--gold)); height: 100%; border-radius: 2px; }
+
+        /* ── TWO-COLUMN LAYOUTS ─────────────────────────────────────────────── */
+        .dn-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .dn-col-header { font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; padding: 10px 14px; border-radius: 3px; text-align: center; margin-bottom: 12px; }
+        .dn-col-header.long  { border: 1px solid var(--green-bright); color: var(--green-bright) !important; background: rgba(0,255,170,0.03); }
+        .dn-col-header.short { border: 1px solid var(--red-bright);   color: var(--red-bright)   !important; background: rgba(255,0,85,0.03); }
+        .section-grid-header { font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; padding: 10px 14px; border-radius: 3px; text-align: center; margin-bottom: 14px; border: 1px solid var(--gold); color: var(--gold) !important; background: rgba(241,196,15,0.03); }
+
+        /* ── MEDIA QUERIES ──────────────────────────────────────────────────── */
+        @media (max-width: 1200px) {
+            .result-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .result-grid { grid-template-columns: 1fr; }
+            .dn-columns  { grid-template-columns: 1fr; }
+            .tab-btn { font-size: 10px; padding: 5px 8px; }
+            .analysis-table th, .analysis-table td { padding: 8px 8px; font-size: 11px; }
+            .result-card { flex-direction: column; }
+            .result-candle { width: 100%; height: 80px; }
+            .row.g-3 > [class*='col-md'] { flex: 0 0 100%; max-width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .tab-nav { gap: 2px; padding: 5px; }
+            .tab-btn { font-size: 9px; padding: 4px 6px; }
+            .result-metrics { grid-template-columns: 1fr; }
+            .conf-bar-wrap { grid-column: span 1; }
+        }
+
+        /* ── ACCESSIBILITY ──────────────────────────────────────────────────── */
+        :focus-visible {
+            outline: 2px solid var(--gold) !important;
+            outline-offset: 2px !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; animation: none !important; }
+        }
+        @media (prefers-contrast: more) {
+            :root { --border: #6d6d7a; --gray-text: #d4d4e8; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-custom">
+
+    <div class="text-center mb-4">
+        <h1 style="color: var(--gold); font-size: 22px; font-weight: bold; letter-spacing: 2px;">
+            ⚡ QUANTUM INFRARED ENGINE v22.0 // MEGA COMMANDO ZENTRALE
+        </h1>
+        <p style="color: var(--gray-text); font-size: 11px; margin:0;">
+            9 MODULES // SPREAD · ARGENTUM DAILY · INTRADAY ALPHA · BODY SLAM · HIDDEN SMASH · CONSULTUS DAILY · CONSULTUS WEEKLY · CORPUS PARVUS · DENARIUS
+        </p>
+    </div>
+
+    <!-- DIAGNOSTIC CONSOLE -->
+    <div class="card-custom mb-3">
+        <div class="card-header-custom" style="color:var(--cyan)">📡 Live Pipeline Diagnostic Console</div>
+        <div class="card-body p-3">
+            <div id="diagnosticConsole" class="debug-panel">System online. All 9 modules loaded. No errors logged.</div>
+        </div>
+    </div>
+
+    <!-- TAB NAVIGATION -->
+    <div class="tab-nav">
+        <button class="tab-btn active"  onclick="showTab('spread',this)">⚙️ Spread &amp; Core</button>
+        <button class="tab-btn"         onclick="showTab('argentum-daily',this)">📊 Argentum Daily</button>
+        <button class="tab-btn"         onclick="showTab('argentum-intraday',this)">⚡ Intraday Alpha</button>
+        <button class="tab-btn"         onclick="showTab('bodyslam',this)">💥 Body Slam</button>
+        <button class="tab-btn"         onclick="showTab('hiddensmash',this)">👻 Hidden Smash</button>
+        <button class="tab-btn"         onclick="showTab('consultus-daily',this)">📈 Consultus Daily</button>
+        <button class="tab-btn"         onclick="showTab('consultus-weekly',this)">📅 Consultus Weekly</button>
+        <button class="tab-btn"         onclick="showTab('corpus-parvus',this)">🗜️ Corpus Parvus</button>
+        <button class="tab-btn"         onclick="showTab('denarius',this)">🔬 Denarius Matrix</button>
+        <button class="tab-btn"         onclick="showTab('hedging',this)">🛡️ Hedging v18.1</button>
+        <button class="tab-btn"         onclick="showTab('volumina',this)">🌊 Volumina</button>
+        <button class="tab-btn"         onclick="showTab('peakvalley',this)">⛰️ Peak Valley</button>
+        <button class="tab-btn"         onclick="showTab('symbols',this)">📋 JSON Symbols</button>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 0: SPREAD & CORE -->
+    <div class="tab-section active" id="section-spread">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card card-custom">
+                    <div class="card-header-custom">🌌 AI Spread Matrix (Statistical Arb)</div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Stock Symbol</label>
+                                <input id="stockSymbol" type="text" class="form-control-custom" value="CBK">
+                                <div class="mt-1">
+                                    <button class="btn-suffix" onclick="setSuffix('stockSymbol','CBK.G')">.G</button>
+                                    <button class="btn-suffix" onclick="setSuffix('stockSymbol','CBK.F')">.F</button>
+                                    <button class="btn-suffix" onclick="setSuffix('stockSymbol','CBK')">Pure</button>
+                                    <button class="btn-suffix" onclick="setSuffix('stockSymbol','AAPL.US')">AAPL</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Index Reference</label>
+                                <input id="indexSymbol" type="text" class="form-control-custom" value="DAX.INDX">
+                                <div class="mt-1">
+                                    <button class="btn-suffix" onclick="setSuffix('indexSymbol','DAX.INDX')">DAX</button>
+                                    <button class="btn-suffix" onclick="setSuffix('indexSymbol','SPY.US')">SPY</button>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Pipeline Analytics Type</label>
+                                <select id="analysisType" class="form-control-custom">
+                                    <option value="realtime">Realtime Convergence Spread</option>
+                                    <option value="daily">Daily Spread Matrix</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button class="btn-pipeline" onclick="performAnalysis()">Execute Spread Pipeline</button>
+                            </div>
+                        </div>
+                        <pre id="result" class="result-pre">Awaiting matrix ignition...</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card card-custom">
+                    <div class="card-header-custom">🛠️ Core Execution Layers</div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Target Symbols (Comma Separated)</label>
+                                <input type="text" id="hedgingStockSymbol" class="form-control-custom" value="AAPL.US, CBK">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Mathematical Core Routine</label>
+                                <select id="hedgingAnalysisType" class="form-control-custom">
+                                    <option value="hedging">Dynamic Hedging Bracket Levels</option>
+                                    <option value="sma">Roof/Basement &amp; SMA Multi-Sigma</option>
+                                    <option value="candlestick">Candlestick Coverage Vector (SLAM)</option>
+                                    <option value="slimBody">Slim Body Volatility Compression</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button class="btn-pipeline" onclick="handleHedgingOrSMA()">Ignite Trading Engine</button>
+                            </div>
+                        </div>
+                        <div class="output-box mt-3">
+                            <div id="dynamicEngineContainer" style="font-size:12px; line-height:1.6;">
+                                <span style="color:var(--gray-text)">Awaiting layout payload...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 1: ARGENTUM DAILY -->
+    <div class="tab-section" id="section-argentum-daily">
+        <div class="card card-custom">
+            <div class="card-header-custom">📊 Argentum Daily — Z-Score Relative Strength Matrix v8.5</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Benchmark Modus</label>
+                        <select id="ag_benchMode" class="form-control-custom" onchange="ag_toggleBenchInput()">
+                            <option value="preset">Presets (SPY / QQQ)</option>
+                            <option value="custom">Manueller Ticker</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3" id="ag_presetGroup">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Benchmark Preset</label>
+                        <select id="ag_benchPreset" class="form-control-custom">
+                            <option value="SPY">🇺🇸 S&amp;P 500 ETF (SPY)</option>
+                            <option value="QQQ">🚀 NASDAQ 100 ETF (QQQ)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3" id="ag_customGroup" style="display:none;">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Custom Benchmark Ticker</label>
+                        <input type="text" id="ag_customBench" class="form-control-custom" placeholder="z.B. C, IWM, GLD">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="ag_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Z-Score Cut</label>
+                        <input type="number" id="ag_zLimit" class="form-control-custom" value="0.75" step="0.05">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="ag_executeMatrixScan()">VECTOR ANALYSE</button>
+                    </div>
+                </div>
+                <div id="ag_progress" class="mt-2" style="font-size:11px; color:var(--gold); display:none;">Initialisiere...</div>
+                <div class="analysis-table-wrap">
+                    <table class="analysis-table">
+                        <thead><tr>
+                            <th>Asset</th><th>Close</th><th>Bench Close</th>
+                            <th>Z-Score (20D)</th><th>Alpha Status</th><th>Confidence</th><th>Pair-Hedge Setup</th>
+                        </tr></thead>
+                        <tbody id="ag_tbody">
+                            <tr><td colspan="7" style="text-align:center; color:var(--gray-text); padding:24px;">Benchmark konfigurieren und Matrix starten.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 2: ARGENTUM INTRADAY -->
+    <div class="tab-section" id="section-argentum-intraday">
+        <div class="card card-custom">
+            <div class="card-header-custom">⚡ Argentum Intraday — Live Alpha Delta Radar v9.2</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Session Benchmark</label>
+                        <input type="text" id="ai_bench" class="form-control-custom" value="SPY.US">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="ai_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Alpha Trigger (%)</label>
+                        <input type="number" id="ai_alpha" class="form-control-custom" value="0.25" step="0.05">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="ai_executeScan()">PROXY SCANNEN</button>
+                    </div>
+                </div>
+                <div id="ai_progress" class="mt-2" style="font-size:11px; color:var(--gold); display:none;">Initialisiere Proxy-Tunnel...</div>
+                <div class="analysis-table-wrap">
+                    <table class="analysis-table">
+                        <thead><tr>
+                            <th>Asset</th><th>Prev Close</th><th>Live Px</th>
+                            <th>Session %</th><th>Bench %</th><th>Alpha Delta</th><th>Status</th><th>Setup</th>
+                        </tr></thead>
+                        <tbody id="ai_tbody">
+                            <tr><td colspan="8" style="text-align:center; color:var(--gray-text); padding:24px;">Scan starten. Daten via CORS-Proxy.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 3: BODY SLAM -->
+    <div class="tab-section" id="section-bodyslam">
+        <div class="card card-custom">
+            <div class="card-header-custom">💥 Body Slam — Anti-Cyclic Mean Reversion Reaper v4.1</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="bs_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">SMA-20 Filter-Schwelle (%)</label>
+                        <input type="number" id="bs_stretch" class="form-control-custom" value="6.0" step="0.5">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="bs_executeScan()">SCAN MARKETS</button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn-pipeline-green" onclick="bs_exportCSV()">📊 EXPORT CSV</button>
+                    </div>
+                </div>
+                <div id="bs_progress" class="mt-2" style="font-size:11px; color:var(--gold); display:none;">Processing...</div>
+                <div class="analysis-table-wrap">
+                    <table class="analysis-table" id="bs_table">
+                        <thead><tr>
+                            <th>Asset</th><th>Close</th><th>SMA-20</th>
+                            <th>Abweichung</th><th>Body Slam</th><th>Status</th><th>Action Plan</th>
+                        </tr></thead>
+                        <tbody id="bs_tbody">
+                            <tr><td colspan="7" style="text-align:center; color:var(--gray-text); padding:24px;">Cluster wählen und Scan starten.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 4: HIDDEN SMASH -->
+    <div class="tab-section" id="section-hiddensmash">
+        <div class="card card-custom">
+            <div class="card-header-custom">👻 Hidden Smash — Institutional Liquidity Trap Detector v6.0</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="hs_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">SMA-20 Filter (%)</label>
+                        <input type="number" id="hs_stretch" class="form-control-custom" value="5.0" step="0.5">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="hs_executeScan()">HUNT TRAPS</button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn-pipeline-green" onclick="hs_exportCSV()">📊 EXPORT CSV</button>
+                    </div>
+                </div>
+                <div id="hs_progress" class="mt-2" style="font-size:11px; color:var(--gold); display:none;">Scanne Liquiditätsfallen...</div>
+                <div class="analysis-table-wrap">
+                    <table class="analysis-table" id="hs_table">
+                        <thead><tr>
+                            <th>Asset</th><th>Close</th><th>SMA-20</th>
+                            <th>Abweichung</th><th>Hidden Smash Structure</th><th>Signal</th><th>Execution Plan</th>
+                        </tr></thead>
+                        <tbody id="hs_tbody">
+                            <tr><td colspan="7" style="text-align:center; color:var(--gray-text); padding:24px;">Cluster wählen und Scan starten.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 5: CONSULTUS DAILY -->
+    <div class="tab-section" id="section-consultus-daily">
+        <div class="card card-custom">
+            <div class="card-header-custom">📈 Consultus Daily — 3-Day Compression GO Engine</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="cd_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Account Balance ($)</label>
+                        <input type="number" id="cd_balance" class="form-control-custom" value="10000">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Delay (ms)</label>
+                        <input type="number" id="cd_delay" class="form-control-custom" value="2000" min="500">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="cd_startScan()">EXECUTE SCAN</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-green" onclick="cd_downloadReport()">📊 EXPORT GO</button>
+                    </div>
+                </div>
+                <div id="cd_progressSection" class="module-progress mt-3">
+                    <div class="progress-info">
+                        <div id="cd_progressText">Initializing...</div>
+                        <div>Scanned: <span id="cd_statusMsg" style="color:var(--cyan)">0/0</span></div>
+                    </div>
+                    <div class="progress-track"><div id="cd_progressFill" class="progress-fill">0%</div></div>
+                </div>
+                <div class="section-grid-header mt-3">▲ VALIDATED COMPRESSION TRACKS (GO SIGNALS ONLY — diffAB &lt; diffCB)</div>
+                <div class="result-grid" id="cd_goGrid">
+                    <div style="color:var(--gray-text); text-align:center; padding:30px; grid-column:1/-1;">Scan starten um GO-Signale zu laden.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 6: CONSULTUS WEEKLY -->
+    <div class="tab-section" id="section-consultus-weekly">
+        <div class="card card-custom">
+            <div class="card-header-custom">📅 Consultus Weekly — Friday-Close Compression Engine</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="cw_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Account Balance ($)</label>
+                        <input type="number" id="cw_balance" class="form-control-custom" value="10000">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Delay (ms)</label>
+                        <input type="number" id="cw_delay" class="form-control-custom" value="2000" min="500">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="cw_startScan()">EXECUTE SCAN</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-green" onclick="cw_downloadReport()">📊 EXPORT GO</button>
+                    </div>
+                </div>
+                <div id="cw_progressSection" class="module-progress mt-3">
+                    <div class="progress-info">
+                        <div id="cw_progressText">Initializing Weekly Engine...</div>
+                        <div>Scanned: <span id="cw_statusMsg" style="color:var(--cyan)">0/0</span></div>
+                    </div>
+                    <div class="progress-track"><div id="cw_progressFill" class="progress-fill">0%</div></div>
+                </div>
+                <div class="section-grid-header mt-3">▲ WEEKLY GO SIGNALS (3-FRIDAY COMPRESSION — diffAB &lt; diffCB)</div>
+                <div class="result-grid" id="cw_goGrid">
+                    <div style="color:var(--gray-text); text-align:center; padding:30px; grid-column:1/-1;">Scan starten um Weekly-GO-Signale zu laden.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 7: CORPUS PARVUS -->
+    <div class="tab-section" id="section-corpus-parvus">
+        <div class="card card-custom">
+            <div class="card-header-custom">🗜️ Corpus Parvus — Slim Body Compression Detector v1.0</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="cp_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Account Balance ($)</label>
+                        <input type="number" id="cp_balance" class="form-control-custom" value="10000">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Delay (ms)</label>
+                        <input type="number" id="cp_delay" class="form-control-custom" value="2000" min="500">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="cp_startScan()">EXECUTE SCAN</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-green" onclick="cp_downloadReport()">📊 EXPORT DATA</button>
+                    </div>
+                </div>
+                <div id="cp_progressSection" class="module-progress mt-3">
+                    <div class="progress-info">
+                        <div id="cp_progressText">Initializing Parvus Pipeline...</div>
+                        <div>Scanned: <span id="cp_statusMsg" style="color:var(--cyan)">0/0</span></div>
+                    </div>
+                    <div class="progress-track"><div id="cp_progressFill" class="progress-fill">0%</div></div>
+                </div>
+                <div class="section-grid-header mt-3">▲ VALIDATED CORPUS PARVUS TRACKS (bodyB &lt; bodyA — GO SIGNALS ONLY)</div>
+                <div class="result-grid" id="cp_goGrid">
+                    <div style="color:var(--gray-text); text-align:center; padding:30px; grid-column:1/-1;">Scan starten um Slim-Body-Formationen zu laden.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 8: DENARIUS -->
+    <div class="tab-section" id="section-denarius">
+        <div class="card card-custom">
+            <div class="card-header-custom">🔬 Denarius — Neural Cluster Spread Matrix v6.5 (Hard-Lock Confidence)</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Matrix Asset-Cluster</label>
+                        <select id="dn_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Delay (ms)</label>
+                        <input type="number" id="dn_delay" class="form-control-custom" value="2500" min="1000">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="dn_startScan()">CLUSTER SCAN</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-green" onclick="dn_exportHTML()">📊 EXPORT HTML</button>
+                    </div>
+                </div>
+                <div id="dn_progressSection" class="module-progress mt-3">
+                    <div class="progress-info">
+                        <div id="dn_progressText">Initializing Neural Matrix...</div>
+                        <div>Processed: <span id="dn_statusMsg" style="color:var(--cyan)">0/0</span></div>
+                    </div>
+                    <div class="progress-track"><div id="dn_progressFill" class="progress-fill">0%</div></div>
+                </div>
+                <div class="dn-columns mt-3">
+                    <div>
+                        <div class="dn-col-header long">▲ LONG CLUSTER SIGNALS (BULLISH)</div>
+                        <div id="dn_longGrid"></div>
+                    </div>
+                    <div>
+                        <div class="dn-col-header short">▼ SHORT CLUSTER SIGNALS (BEARISH)</div>
+                        <div id="dn_shortGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 9: HEDGING v18.1 -->
+    <div class="tab-section" id="section-hedging">
+        <div class="card card-custom">
+            <div class="card-header-custom">🛡️ Neural Hedging System v18.1 — Dynamic Cluster Bracket Matrix</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Target Symbols (Comma Separated)</label>
+                        <input type="text" id="hg_tickers" class="form-control-custom" value="AAPL.US,MSFT.US,TSLA.US" placeholder="AAPL.US,MSFT.US,DAX.INDX">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Account Balance ($)</label>
+                        <input type="number" id="hg_balance" class="form-control-custom" value="10000">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn-pipeline-cyan" onclick="hg_execute()">⚡ EXECUTE NEURAL HEDGING v18.1</button>
+                    </div>
+                </div>
+                <div id="hg_riskBanner" class="mt-3" style="display:none; padding:8px 14px; font-size:11px; border-radius:3px;"></div>
+                <div id="hg_status" class="mt-2" style="font-size:11px; color:var(--gold); display:none;"></div>
+                <div class="result-grid mt-3" id="hg_grid"></div>
+                <div class="mt-3">
+                    <div class="card-header-custom" style="color:var(--cyan);">📋 IB API PRODUCTION SCRIPT EXPORT</div>
+                    <pre id="hg_dump" class="result-pre" style="max-height:400px;">Awaiting execution...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 10: VOLUMINA -->
+    <div class="tab-section" id="section-volumina">
+        <div class="card card-custom">
+            <div class="card-header-custom">🌊 Volumina — Advanced Volume Compression Engine (RVOL + Pocket Detector)</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="vl_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Account Balance ($)</label>
+                        <input type="number" id="vl_balance" class="form-control-custom" value="10000">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Delay (ms)</label>
+                        <input type="number" id="vl_delay" class="form-control-custom" value="2000" min="500">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="vl_startScan()">VOLUME FILTER</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-green" onclick="vl_downloadReport()">📊 EXPORT</button>
+                    </div>
+                </div>
+                <div id="vl_progressSection" class="module-progress mt-3">
+                    <div class="progress-info">
+                        <div id="vl_progressText">Analyzing Liquidity Structures...</div>
+                        <div>Scanned: <span id="vl_statusMsg" style="color:var(--cyan)">0/0</span></div>
+                    </div>
+                    <div class="progress-track"><div id="vl_progressFill" class="progress-fill">0%</div></div>
+                </div>
+                <div class="section-grid-header mt-3">▲ VALIDATED VOLUME COMPRESSION SEGMENTS (volB &lt; volA — GO SIGNALS ONLY)</div>
+                <div class="result-grid" id="vl_goGrid">
+                    <div style="color:var(--gray-text); text-align:center; padding:30px; grid-column:1/-1;">Scan starten um Volumen-Kompressions-Signale zu laden.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 11: PEAK VALLEY -->
+    <div class="tab-section" id="section-peakvalley">
+        <div class="card card-custom">
+            <div class="card-header-custom">⛰️ Peak Valley — Geometric Formation Detector (Volume Confidence v7.0)</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="pv_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Delay (ms)</label>
+                        <input type="number" id="pv_delay" class="form-control-custom" value="2500" min="500">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="pv_startScan()">CLUSTER SCAN</button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn-pipeline-green" onclick="pv_downloadReport()">📊 EXPORT SCAN DATA</button>
+                    </div>
+                </div>
+                <div id="pv_progressSection" class="module-progress mt-3">
+                    <div class="progress-info">
+                        <div id="pv_progressText">Initializing Pipeline Core...</div>
+                        <div>Scanned: <span id="pv_statusMsg" style="color:var(--cyan)">0/0</span></div>
+                    </div>
+                    <div class="progress-track"><div id="pv_progressFill" class="progress-fill">0%</div></div>
+                </div>
+                <div class="dn-columns mt-3">
+                    <div>
+                        <div class="dn-col-header long">▲ VALLEY LONG FORMATIONS (BULLISH BOTTOM)</div>
+                        <div id="pv_longGrid">
+                            <div style="color:var(--gray-text); text-align:center; padding:20px;">Scan starten.</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="dn-col-header short">▼ PEAK SHORT FORMATIONS (BEARISH TOP)</div>
+                        <div id="pv_shortGrid">
+                            <div style="color:var(--gray-text); text-align:center; padding:20px;">Scan starten.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 12: JSON SYMBOLS EDITOR -->
+    <div class="tab-section" id="section-symbols">
+        <div class="card card-custom">
+            <div class="card-header-custom">📋 JSON Symbol Manager — Cluster Symbol Editor</div>
+            <div class="card-body p-4">
+                <p style="font-size:11px; color:var(--gray-text); margin-bottom:12px;">
+                    Bearbeite das Symbol-Universe direkt als JSON. Format: Array mit Objekten <code style="color:var(--cyan)">{id, label, symbols:[]}</code>.
+                    Klicke <strong>APPLY</strong> um alle Dropdowns zu aktualisieren. Alle 12 Module nutzen danach die neue Liste.
+                </p>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <textarea id="sym_editor" class="form-control-custom" style="height:480px; font-size:11px; line-height:1.4;"></textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn-pipeline" onclick="sym_apply()">✅ APPLY CHANGES</button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn-pipeline-cyan" onclick="sym_resetEditor()">↺ RELOAD FROM MEMORY</button>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="sym_status" style="padding:8px 0; font-size:11px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div><!-- /container-custom -->
+
+
+<script>
+/* ─── SHARED CONSTANTS & CLUSTER DATA ──────────────────────────────── */
+const PROXY_URL = 'https://gemini-os.replit.app/api/eod';
+
+const MARKET_CLUSTERS = [
+    { id:"dow30",          label:"🇺🇸 DOW JONES 30",       symbols:["AAPL.US","MSFT.US","JPM.US","GS.US","JNJ.US","NKE.US","V.US","HD.US","MCD.US","KO.US","IBM.US","CVX.US","DIS.US","CAT.US","BA.US","AXP.US","WMT.US","TRV.US","UNH.US","MMM.US","BRK-B.US","PG.US","MA.US","XOM.US","ABBV.US","AVGO.US","VZ.US","MRK.US","CSCO.US"] },
+    { id:"nasdaq",         label:"🇺🇸 NASDAQ TECH",         symbols:["AAPL.US","MSFT.US","NVDA.US","AMZN.US","GOOGL.US","META.US","TSLA.US","NFLX.US","ADBE.US","CRM.US","QCOM.US","INTC.US","AMD.US","PYPL.US","AMAT.US","MU.US"] },
+    { id:"dax",            label:"🇩🇪 DAX 40",              symbols:["ALV.XETRA","SAP.XETRA","SIE.XETRA","BMW.XETRA","MBG.XETRA","VOW3.XETRA","MUV2.XETRA","DTE.XETRA","DBK.XETRA","BAYN.XETRA","BAS.XETRA","ADS.XETRA","RWE.XETRA","RHM.XETRA","MRK.XETRA","HNR1.XETRA","ENR.XETRA","FRE.XETRA","HEI.XETRA","MTX.XETRA","DB1.XETRA","DPW.XETRA","EOAN.XETRA","IFX.XETRA","LIN.XETRA","BEI.XETRA","HEN3.XETRA","CON.XETRA","DHER.XETRA","ZAL.XETRA"] },
+    { id:"ftse",           label:"🇬🇧 FTSE 100",            symbols:["SHEL.LSE","AZN.LSE","HSBA.LSE","ULVR.LSE","BP.LSE","GSK.LSE","RIO.LSE","DGE.LSE","LSEG.LSE","REL.LSE","NG.LSE","CPG.LSE","LLOY.LSE","BT-A.LSE","VOD.LSE","AAL.LSE","BARC.LSE","NWG.LSE","STAN.LSE","BHP.LSE","PRU.LSE","AV.LSE","LGEN.LSE","TSCO.LSE","SBRY.LSE","BATS.LSE","IMB.LSE","RKT.LSE","WPP.LSE","BA.LSE","SSE.LSE","SGE.LSE"] },
+    { id:"cac40",          label:"🇫🇷 CAC 40",              symbols:["MC.PA","TTE.PA","SAN.PA","AI.PA","OR.PA","BNP.PA","DG.PA","RI.PA","CA.PA","ACA.PA","ORA.PA","DSY.PA","KER.PA","HO.PA","AIR.PA","ALO.PA","BN.PA","CAP.PA","CS.PA","EL.PA","EN.PA","GLE.PA","LR.PA","ML.PA","SU.PA"] },
+    { id:"smi",            label:"🇨🇭 SMI SWITZERLAND",     symbols:["NESN.SW","ROG.SW","NOVN.SW","ABBN.SW","UBSG.SW","ZURN.SW","SREN.SW","SIKA.SW","GIVN.SW","LONN.SW","SRENH.SW","SLHN.SW","ADEN.SW","BARN.SW","BALN.SW","BSKP.SW","FHZN.SW","GEBN.SW","BAER.SW","PGHN.SW","SCHN.SW","SGSN.SW","SOON.SW","UHR.SW","SCMN.SW"] },
+    { id:"atx",            label:"🇦🇹 ATX VIENNA",          symbols:["EBS.VI","OMV.VI","VER.VI","RBI.VI","VOE.VI","ANDR.VI","BG.VI","EVN.VI","IIA.VI","POST.VI","ABIN.VI","ADKO.VI","AGR.VI","AMAG.VI","ATS.VI","BHD.VI","BKS.VI","CAI.VI","DOC.VI","FACC.VI","FLU.VI","LNZ.VI","MMK.VI"] },
+    { id:"aex",            label:"🇳🇱 AEX AMSTERDAM",       symbols:["ASML.AS","INGA.AS","PHIA.AS","HEIA.AS","ABN.AS","AD.AS","NN.AS","AKZA.AS","WKL.AS","URW.AS","AALB.AS","ACOMO.AS","ADYEN.AS","AGN.AS","ASMI.AS","ASRNL.AS","BESI.AS","IMCD.AS","KPN.AS","RAND.AS","TKWY.AS","VPK.AS"] },
+    { id:"ibex",           label:"🇪🇸 IBEX 35 SPAIN",       symbols:["SAN.MC","BBVA.MC","ITX.MC","IBE.MC","REP.MC","TEF.MC","ACS.MC","FER.MC","CABK.MC","ENG.MC","A3M.MC","ACX.MC","AENA.MC","AMS.MC","ANA.MC","BKT.MC","CLNX.MC","EBRO.MC","ELE.MC","GRF.MC","IAG.MC","MAP.MC"] },
+    { id:"omx_stockholm",  label:"🇸🇪 OMXS30 STOCKHOLM",    symbols:["VOLV-B.ST","ERIC-B.ST","HM-B.ST","SEB-A.ST","SWED-A.ST","INVE-B.ST","ABB.ST","ATCO-A.ST","ALFA.ST","SSAB-A.ST","ASSA-B.ST","ATCO-B.ST","BOL.ST","ELUX-A.ST","ELUX-B.ST","ERIC-A.ST","HEXA-B.ST","INVE-A.ST","NDA-SE.ST","SEB-C.ST","SHB-A.ST","SHB-B.ST","SCA-B.ST"] },
+    { id:"omx_copenhagen", label:"🇩🇰 OMXC25 COPENHAGEN",   symbols:["NOVO-B.CO","MAERSK-B.CO","COLOB.CO","ORSTED.CO","GN.CO","DEMANT.CO","VWS.CO","CARL-B.CO","CHR.CO","DSV.CO"] },
+    { id:"bel20",          label:"🇧🇪 BEL 20 BRUSSELS",     symbols:["UCB.BR","KBC.BR","INGA.BR","COLR.BR","PROX.BR","SOLB.BR","ACKB.BR","ABI.BR","AED.BR","AGS.BR","ARGX.BR","BPOST.BR","COFB.BR","ELI.BR","GBLB.BR","KBCA.BR","MELE.BR","ONTEX.BR","SOF.BR","TITC.BR","UMI.BR"] },
+    { id:"psi",            label:"🇵🇹 PSI LISBON",          symbols:["EDP.LS","EDPR.LS","GALP.LS","BCP.LS","JMT.LS","NOS.LS","SON.LS","ALTR.LS","COR.LS","CTT.LS","GVOLT.LS","IBS.LS","IPR.LS","NBA.LS","NVG.LS","PHR.LS","RENE.LS","SEM.LS","SNC.LS","TDSA.LS"] },
+    { id:"tsx",            label:"🇨🇦 TSX CANADA",          symbols:["RY.TO","TD.TO","BNS.TO","CNR.TO","CP.TO","SHOP.TO","ENB.TO","TRI.TO","MFC.TO","SU.TO","BAM.A.TO","BMO.TO","BCE.TO","CNQ.TO","TRP.TO","WCN.TO","CSU.TO","NTR.TO","SLF.TO","MG.TO","FTS.TO"] },
+    { id:"asx",            label:"🇦🇺 ASX AUSTRALIA",       symbols:["BHP.AX","CBA.AX","CSL.AX","ANZ.AX","WBC.AX","NAB.AX","RIO.AX","WDS.AX","MQG.AX","WES.AX","WOW.AX","FMG.AX","GMG.AX","TCL.AX","REA.AX","ALL.AX","COH.AX","S32.AX","STO.AX","ORG.AX","MIN.AX","NCM.AX","QAN.AX","SHL.AX","ASX.AX","CPU.AX","AMP.AX","QBE.AX","IAG.AX","AGL.AX"] },
+    { id:"bovespa",        label:"🇧🇷 BOVESPA BRAZIL",      symbols:["PETR4.SA","VALE3.SA","ITUB4.SA","BBDC4.SA","ABEV3.SA","B3SA3.SA","WEGE3.SA","BBAS3.SA","SUZB3.SA","JBSS3.SA","BBDC3.SA","BBSE3.SA","BRFS3.SA","CSAN3.SA","ELET3.SA","ELET6.SA","GGBR4.SA","KLBN11.SA","PETR3.SA","SBSP3.SA","VIVT3.SA"] },
+    { id:"nse_direct",     label:"🇮🇳 NSE INDIA (NIFTY)",   symbols:["RELIANCE.NSE","TCS.NSE","HDFCBANK.NSE","INFY.NSE","ICICIBANK.NSE","HINDUNILVR.NSE","KOTAKBANK.NSE","SBIN.NSE","BHARTIARTL.NSE","BAJFINANCE.NSE","WIPRO.NSE","HCLTECH.NSE","TECHM.NSE","LT.NSE","MARUTI.NSE","SUNPHARMA.NSE","TITAN.NSE","ASIANPAINT.NSE","NTPC.NSE","POWERGRID.NSE","NESTLEIND.NSE","ULTRACEMCO.NSE","TATASTEEL.NSE","TATAMOTORS.NSE","ONGC.NSE","AXISBANK.NSE","DRREDDY.NSE","CIPLA.NSE","PERSISTENT.NSE","COFORGE.NSE"] },
+    { id:"zse",            label:"🇭🇷 ZSE ZAGREB",          symbols:["HT.ZSE","INA.ZSE","KOEI.ZSE","ATGR.ZSE","PODR.ZSE","ADRS.ZSE","ERNT.ZSE","HPB.ZSE","JNAF.ZSE","KRAS.ZSE","MAIS.ZSE","ARNT.ZSE","ATPL.ZSE","DLKV.ZSE","ADPL.ZSE","JDPL.ZSE","IGH.ZSE","INGR.ZSE","ADRS2.ZSE","DDJH.ZSE","RIVP.ZSE","ZABA.ZSE"] },
+    { id:"krx",            label:"🇰🇷 KRX SOUTH KOREA",     symbols:["005930.KO","000660.KO","005380.KO","000270.KO","051910.KO","035420.KO","068270.KO","373220.KO","207940.KO","006400.KO","003550.KO","012330.KO","028260.KO","009150.KO","000810.KO","055550.KO","105560.KO","086790.KO","096770.KO","017670.KO","030200.KO","003670.KO","011200.KO","066570.KO","034730.KO"] },
+    { id:"crypto",         label:"₿ CRYPTO TOP 10",         symbols:["BTC-USD.CC","ETH-USD.CC","BNB-USD.CC","SOL-USD.CC","XRP-USD.CC","DOGE-USD.CC","ADA-USD.CC","DOT-USD.CC","LINK-USD.CC","LTC-USD.CC"] }
+];
+
+function getCluster(id) { return MARKET_CLUSTERS.find(c => c.id === id); }
+
+function populateClusterSelect(elId) {
+    const sel = document.getElementById(elId);
+    if (!sel) return;
+    MARKET_CLUSTERS.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id; opt.textContent = c.label;
+        sel.appendChild(opt);
+    });
+}
+
+/* ─── TAB NAVIGATION ───────────────────────────────────────────────── */
+function showTab(name, btn) {
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+    btn.classList.add('active');
+}
+
+/* ─── SHARED FETCH HELPERS ─────────────────────────────────────────── */
+function logDebug(msg, isError = false) {
+    const el = document.getElementById('diagnosticConsole');
+    el.innerHTML = isError
+        ? `<span style="color:var(--red-bright);font-weight:bold;">[ERROR]</span> ${msg}`
+        : `<span style="color:var(--green-bright);">[OK]</span> ${msg}`;
+}
+
+async function fetchHistorical(symbol) {
+    const res = await fetch(`${PROXY_URL}?symbol=${encodeURIComponent(symbol)}&endpoint=historical&period=d`);
+    if (!res.ok) throw new Error(`HTTP ${res.status} [${symbol}]`);
+    const data = await res.json();
+    if (!data || (Array.isArray(data) && !data.length) || data.error) throw new Error(`No data [${symbol}]`);
+    return data;
+}
+
+async function fetchRealtime(symbol) {
+    const res = await fetch(`${PROXY_URL}?symbol=${encodeURIComponent(symbol)}&endpoint=real-time`);
+    if (!res.ok) throw new Error(`HTTP ${res.status} realtime [${symbol}]`);
+    return await res.json();
+}
+
+async function fetchFromProxySafe(symbol, endpoint = 'historical') {
+    logDebug(`Fetching ${symbol} [${endpoint}]...`);
+    const res = await fetch(`${PROXY_URL}?symbol=${encodeURIComponent(symbol.trim().toUpperCase())}&endpoint=${endpoint}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status} on [${symbol}]`);
+    const data = await res.json();
+    if (!data || (Array.isArray(data) && !data.length) || data.error) throw new Error(`Empty data [${symbol}]`);
+    return data;
+}
+
+/* ─── SHARED CANVAS CANDLE CHART ───────────────────────────────────── */
+function drawCandleMatrix(canvas, candles) {
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#050507'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const gH = Math.max(...candles.map(c => c.high));
+    const gL = Math.min(...candles.map(c => c.low));
+    const gR = gH - gL || 1;
+    const pad = 10, usH = canvas.height - pad * 2, cW = 16, sp = 10, sX = 12;
+    candles.forEach((c, i) => {
+        const x  = sX + i * (cW + sp);
+        const hY = pad + (1 - (c.high  - gL) / gR) * usH;
+        const lY = pad + (1 - (c.low   - gL) / gR) * usH;
+        const oY = pad + (1 - (c.open  - gL) / gR) * usH;
+        const cY = pad + (1 - (c.close - gL) / gR) * usH;
+        ctx.strokeStyle = '#3a4b5c'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(x + cW/2, hY); ctx.lineTo(x + cW/2, lY); ctx.stroke();
+        ctx.fillStyle = c.close >= c.open ? '#00ffaa' : '#ff0055';
+        ctx.fillRect(x, Math.min(oY, cY), cW, Math.abs(cY - oY) || 2);
+    });
+}
+
+/* ─── SHARED CSV EXPORT ────────────────────────────────────────────── */
+function exportTableCSV(tableId, filename) {
+    const csv = [];
+    document.querySelectorAll('#' + tableId + ' tr').forEach(row => {
+        csv.push(Array.from(row.querySelectorAll('td,th')).map(c => c.innerText.replace(',','.')).join(';'));
+    });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv.join('\n')], {type:'text/csv'}));
+    a.download = filename; a.click();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 0 — SPREAD & CORE
+══════════════════════════════════════════════════════════════════════ */
+function setSuffix(targetId, val) { document.getElementById(targetId).value = val; }
+
+async function performAnalysis() {
+    const stockSym = document.getElementById('stockSymbol').value.trim();
+    const indexSym = document.getElementById('indexSymbol').value.trim();
+    const type     = document.getElementById('analysisType').value;
+    const resultEl = document.getElementById('result');
+    resultEl.innerText = 'Synchronizing Dynamic Intermarket Vectors...';
+    try {
+        const sH = await fetchFromProxySafe(stockSym, 'historical');
+        const iH = await fetchFromProxySafe(indexSym, 'historical');
+        sH.sort((a,b) => new Date(b.date)-new Date(a.date));
+        iH.sort((a,b) => new Date(b.date)-new Date(a.date));
+        const hSC = parseFloat(sH[0].adjusted_close||sH[0].close||0);
+        const hIC = parseFloat(iH[0].adjusted_close||iH[0].close||0);
+        if (type === 'realtime') {
+            let sRT = hSC, iRT = hIC;
+            try { const d = await fetchFromProxySafe(stockSym,'realtime'); sRT = parseFloat(d.price||d.close||d.adjusted_close||0)||hSC; } catch(e){}
+            try { const d = await fetchFromProxySafe(indexSym,'realtime'); iRT = parseFloat(d.price||d.close||d.adjusted_close||0)||hIC; } catch(e){}
+            const sp = hSC ? ((sRT-hSC)/hSC)*100 : 0;
+            const ip = hIC ? ((iRT-hIC)/hIC)*100 : 0;
+            let sR = 'NEUTRAL', iR = 'NEUTRAL';
+            if (ip > sp) { iR='LONG'; sR='SHORT'; } else if (ip < sp) { iR='SHORT'; sR='LONG'; }
+            logDebug(`Realtime compiled: ${stockSym} vs ${indexSym}`);
+            resultEl.innerHTML = `=== ARGENTUM INTERMARKET SPREAD REALTIME ===\nTimestamp: ${new Date().toLocaleString('de-DE')}\n\n[CORE: ${stockSym.toUpperCase()}]\n• Ref Close:  $${hSC.toFixed(2)}\n• Current Px: $${sRT.toFixed(2)}\n• Velocity:   ${sp.toFixed(2)}%\n• Signal:     <span class="${sR==='LONG'?'text-long':'text-short'}">${sR}</span>\n\n[INDEX: ${indexSym.toUpperCase()}]\n• Ref Close:  $${hIC.toFixed(2)}\n• Current Px: $${iRT.toFixed(2)}\n• Velocity:   ${ip.toFixed(2)}%\n• Signal:     <span class="${iR==='LONG'?'text-long':'text-short'}">${iR}</span>`;
+        } else {
+            const sA = hIC ? hIC/hSC : 0;
+            const sB = (parseFloat(iH[1]?.adjusted_close||iH[1]?.close||1)) / (parseFloat(sH[1]?.adjusted_close||sH[1]?.close||1));
+            let sR='NEUTRAL', iR='NEUTRAL';
+            if (sA>sB){sR='SHORT';iR='LONG';}else if(sA<sB){sR='LONG';iR='SHORT';}
+            logDebug('Daily matrix compiled.');
+            resultEl.innerHTML = `=== DAILY SPREAD CONVERGENCE MATRIX ===\n• Spread T0:  ${sA.toFixed(4)}\n• Spread T-1: ${sB.toFixed(4)}\n\n[RECOM]\n• ${stockSym.toUpperCase()}: <span class="${sR==='LONG'?'text-long':'text-short'}">${sR}</span>\n• ${indexSym.toUpperCase()}: <span class="${iR==='LONG'?'text-long':'text-short'}">${iR}</span>`;
+        }
+    } catch(err) { logDebug(err.message,true); resultEl.innerHTML=`<span class="text-short">Pipeline Terminated: ${err.message}</span>`; }
+}
+
+async function handleHedgingOrSMA() {
+    const symbols = document.getElementById('hedgingStockSymbol').value.split(',');
+    const type    = document.getElementById('hedgingAnalysisType').value;
+    const cont    = document.getElementById('dynamicEngineContainer');
+    cont.innerHTML = 'Computing...';
+    let html = '';
+    for (let sym of symbols) {
+        sym = sym.trim(); if (!sym) continue;
+        try {
+            const data = await fetchFromProxySafe(sym,'historical');
+            data.sort((a,b) => new Date(b.date)-new Date(a.date));
+            const px = parseFloat(data[0].adjusted_close||data[0].close||0);
+            if (type === 'hedging') {
+                html += `<div class="metric-title">🛡️ Hedging Bracket: ${sym.toUpperCase()}</div>
+                <div>Base: $${px.toFixed(2)} (${data[0].date})</div>
+                <div class="row mt-1 small">
+                  <div class="col-6">• Intraday (-1%):</div><div class="col-6 text-warning">$${(px*.99).toFixed(2)}</div>
+                  <div class="col-6">• Daily (-2%):</div><div class="col-6 text-warning">$${(px*.98).toFixed(2)}</div>
+                  <div class="col-6">• Weekly (-5%):</div><div class="col-6 text-danger">$${(px*.95).toFixed(2)}</div>
+                  <div class="col-6">• Macro (-10%):</div><div class="col-6 text-danger fw-bold">$${(px*.90).toFixed(2)}</div>
+                </div>`;
+            } else if (type === 'sma') {
+                const prices = data.slice(0,3).map(d => parseFloat(d.adjusted_close||d.close||0));
+                const sma = prices.reduce((a,v)=>a+v,0)/prices.length;
+                const tr  = prices[0]>sma?'LONG':prices[0]<sma?'SHORT':'NEUTRAL';
+                const st  = tr==='LONG'?Math.min(...prices):Math.max(...prices);
+                html += `<div class="metric-title">📈 SMA (3D): ${sym.toUpperCase()}</div>
+                <div>3-Day Mean: $${sma.toFixed(2)} | Direction: <span class="${tr==='LONG'?'text-long':'text-short'}">${tr}</span> | Stop: $${st.toFixed(2)}</div>`;
+            } else if (type === 'candlestick') {
+                if (data.length<2) continue;
+                const cA=parseFloat(data[0].adjusted_close||data[0].close||0);
+                let oB=parseFloat(data[1].open||0),cB=parseFloat(data[1].adjusted_close||data[1].close||0);
+                if(oB>cB)[oB,cB]=[cB,oB];
+                const st=(oB<=cA&&cA<=cB)?'NO SLAM':'SLAM ARMED';
+                html += `<div class="metric-title">🕯️ Candlestick Coverage: ${sym.toUpperCase()}</div>
+                <div>T0 Close: $${cA.toFixed(2)} | T-1 Range: $${oB.toFixed(2)}–$${cB.toFixed(2)} | <span class="${st.includes('NO')?'':'text-warning'}">${st}</span></div>`;
+            } else if (type === 'slimBody') {
+                if (data.length<2) continue;
+                const bA=Math.abs(parseFloat(data[1].adjusted_close||data[1].close||0)-parseFloat(data[1].open||0));
+                const bB=Math.abs(parseFloat(data[0].adjusted_close||data[0].close||0)-parseFloat(data[0].open||0));
+                html += `<div class="metric-title">🗜️ Slim Body: ${sym.toUpperCase()}</div>
+                <div>Historic Body: $${bA.toFixed(2)} | Current Body: $${bB.toFixed(2)} | <span style="color:var(--cyan)">${bB<bA?'COMPRESSION (GO)':'CONSOLIDATION CONTINUES'}</span></div>`;
+            }
+        } catch(err) { html += `<div class="text-short my-2">Aborted ${sym.toUpperCase()}: ${err.message}</div>`; }
+    }
+    cont.innerHTML = html || '<span style="color:var(--gray-text)">Empty payload.</span>';
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 1 — ARGENTUM DAILY (Z-Score Relative Strength v8.5)
+══════════════════════════════════════════════════════════════════════ */
+function ag_toggleBenchInput() {
+    const m = document.getElementById('ag_benchMode').value;
+    document.getElementById('ag_presetGroup').style.display = m==='preset'?'':'none';
+    document.getElementById('ag_customGroup').style.display = m==='custom'?'':'none';
+}
+
+async function ag_executeMatrixScan() {
+    const m     = document.getElementById('ag_benchMode').value;
+    const bench = m==='preset' ? document.getElementById('ag_benchPreset').value : document.getElementById('ag_customBench').value.trim();
+    if (!bench) { alert('Benchmark eingeben!'); return; }
+    const clusterKey = document.getElementById('ag_cluster').value;
+    const zLimit     = parseFloat(document.getElementById('ag_zLimit').value)||0.75;
+    const tbody      = document.getElementById('ag_tbody');
+    const progEl     = document.getElementById('ag_progress');
+    tbody.innerHTML=''; progEl.style.display='block'; progEl.textContent=`Lade Benchmark: ${bench}...`;
+
+    let rawB;
+    try { rawB = await fetchHistorical(bench); } catch(e) { progEl.textContent=`❌ ${bench}: ${e.message}`; return; }
+    rawB.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    if (rawB.length<22) { progEl.textContent='❌ Benchmark: zu wenig Daten.'; return; }
+
+    const syms = getCluster(clusterKey).symbols;
+    for (let i=0; i<syms.length; i++) {
+        const sym = syms[i];
+        progEl.textContent = `Matrix ${i+1}/${syms.length}: ${sym}...`;
+        try {
+            const rawA = await fetchHistorical(sym);
+            rawA.sort((a,b)=>new Date(b.date)-new Date(a.date));
+            if (rawA.length<22) continue;
+            const its = Math.min(20, rawA.length, rawB.length);
+            const acFn = d => parseFloat(d.adjusted_close||d.close||0);
+            const aBase = acFn(rawA[its-1]), bBase = acFn(rawB[its-1]);
+            const sp = [];
+            for (let k=0;k<its;k++) {
+                sp.push((acFn(rawA[k])-aBase)/aBase - (acFn(rawB[k])-bBase)/bBase);
+            }
+            const cur=sp[0], mean=sp.reduce((s,v)=>s+v,0)/sp.length;
+            const std=Math.sqrt(sp.reduce((s,v)=>s+Math.pow(v-mean,2),0)/sp.length)||0.01;
+            const z=(cur-mean)/std;
+            let status='SYNCHRON',badge='bg-neutral',rowCls='',action='Neutraler Gleichlauf.',conf=Math.round(100-Math.abs(z)*45);
+            const dS=sym.replace('.US','').replace('.CC',''), dB=bench.replace('.US','').replace('.CC','');
+            if (z<=-2.0){status='💥 EXTREME UNWUCHT';badge='bg-strong';rowCls='row-strong';conf=Math.min(95,Math.round(40+Math.abs(z)*15));action=`🔥 ANTIZYKLISCH: <span class="text-green">BUY ${dS}</span> // <span class="text-red">SHORT ${dB}</span>`;}
+            else if(z>=2.0){status='💥 EXT. ÜBERHITZUNG';badge='bg-weak';rowCls='row-weak';conf=Math.min(95,Math.round(40+z*15));action=`🔥 ANTIZYKLISCH: <span class="text-red">SHORT ${dS}</span> // <span class="text-green">BUY ${dB}</span>`;}
+            else if(z>=zLimit){status='RELATIVE STÄRKE';badge='bg-strong';rowCls='row-strong';conf=Math.min(99,Math.round(50+z*20));action=`<span class="text-green">BUY ${dS}</span> // <span class="text-red">SHORT ${dB}</span>`;}
+            else if(z<=-zLimit){status='RELATIVE SCHWÄCHE';badge='bg-weak';rowCls='row-weak';conf=Math.min(99,Math.round(50+Math.abs(z)*20));action=`<span class="text-red">SHORT ${dS}</span> // <span class="text-green">BUY ${dB}</span>`;}
+            if(conf<5)conf=8;
+            const aC=acFn(rawA[0]),bC=acFn(rawB[0]),dec=aC<5?4:2;
+            tbody.insertAdjacentHTML('beforeend',`<tr class="${rowCls}"><td><strong>${dS}</strong></td><td>$${aC.toFixed(dec)}</td><td>$${bC.toFixed(2)}</td><td class="${z>=0?'text-green':'text-red'}" style="font-weight:bold;">${z.toFixed(2)}</td><td><span class="badge-a ${badge}">${status}</span></td><td class="text-gold">${conf}%</td><td style="font-size:11px;">${action}</td></tr>`);
+        } catch(e){ /* skip */ }
+        await new Promise(r=>setTimeout(r,350));
+    }
+    progEl.style.display='none';
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 2 — ARGENTUM INTRADAY (Live Alpha v9.2)
+══════════════════════════════════════════════════════════════════════ */
+async function ai_executeScan() {
+    let bench = document.getElementById('ai_bench').value.trim().toUpperCase();
+    if (!bench.includes('.')&&!bench.startsWith('^')) bench+='.US';
+    const clusterKey = document.getElementById('ai_cluster').value;
+    const alpha      = parseFloat(document.getElementById('ai_alpha').value)||0.25;
+    const tbody      = document.getElementById('ai_tbody');
+    const progEl     = document.getElementById('ai_progress');
+    tbody.innerHTML=''; progEl.style.display='block'; progEl.textContent=`Benchmark: ${bench}...`;
+
+    let bD;
+    try { bD = await fetchRealtime(bench); } catch(e){ progEl.textContent=`❌ ${bench}: ${e.message}`; return; }
+    if (!bD||bD.close===undefined){ progEl.textContent=`❌ Kein Realtime ${bench}.`; return; }
+    const bL=parseFloat(bD.close), bP=parseFloat(bD.previousClose)||parseFloat(bD.open)||bL;
+    const bR=bD.change_p!==undefined?parseFloat(bD.change_p):((bL-bP)/bP)*100;
+
+    const syms = getCluster(clusterKey).symbols;
+    for (let i=0;i<syms.length;i++) {
+        const sym=syms[i]; progEl.textContent=`Delta ${i+1}/${syms.length}: ${sym}...`;
+        try {
+            const d=await fetchRealtime(sym);
+            if (!d||d.close===undefined) continue;
+            const live=parseFloat(d.close), prev=parseFloat(d.previousClose)||parseFloat(d.open)||live;
+            const ret=d.change_p!==undefined?parseFloat(d.change_p):(prev?((live-prev)/prev)*100:0);
+            const al=ret-bR, dS=sym.replace('.US','').replace('.CC',''), dec=live<5?4:2;
+            let st='INTRADAY NEUTRAL',bdg='bg-neutral',rCls='',act='Gleichlauf.';
+            if(al>=alpha){st='INTRADAY STRONG';bdg='bg-strong';rCls='row-strong';act=`<span class="text-green">⚡ MOMENTUM LONG</span> // Out vs ${bench.split('.')[0]}`;}
+            else if(al<=-alpha){st='INTRADAY WEAK';bdg='bg-weak';rCls='row-weak';act=`<span class="text-red">⚠️ INTRADAY SHORT</span> // Under vs ${bench.split('.')[0]}`;}
+            tbody.insertAdjacentHTML('beforeend',`<tr class="${rCls}"><td><strong>${dS}</strong></td><td>$${prev.toFixed(dec)}</td><td>$${live.toFixed(dec)}</td><td class="${ret>=0?'text-green':'text-red'}">${ret.toFixed(2)}%</td><td class="${bR>=0?'text-green':'text-red'}">${bR.toFixed(2)}%</td><td class="${al>=0?'text-green':'text-red'}" style="font-weight:bold;">${al.toFixed(2)}%</td><td><span class="badge-a ${bdg}">${st}</span></td><td style="font-size:11px;">${act}</td></tr>`);
+        } catch(e){ /* skip */ }
+        await new Promise(r=>setTimeout(r,400));
+    }
+    progEl.style.display='none';
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 3 — BODY SLAM (Anti-Cyclic SMA-20 Reaper v4.1)
+══════════════════════════════════════════════════════════════════════ */
+async function bs_executeScan() {
+    const clusterKey = document.getElementById('bs_cluster').value;
+    const thr  = parseFloat(document.getElementById('bs_stretch').value)||6.0;
+    const tbody = document.getElementById('bs_tbody');
+    const progEl= document.getElementById('bs_progress');
+    tbody.innerHTML=''; progEl.style.display='block';
+
+    const syms = getCluster(clusterKey).symbols;
+    for (let i=0;i<syms.length;i++) {
+        const sym=syms[i]; progEl.textContent=`Analyzing ${i+1}/${syms.length}: ${sym}...`;
+        try {
+            const data=await fetchHistorical(sym);
+            data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+            if (data.length<22) continue;
+            const acB = d => parseFloat(d.adjusted_close||d.close||0);
+            const cA=acB(data[0]), oB=parseFloat(data[1].open), cB=acB(data[1]);
+            const bMin=Math.min(oB,cB), bMax=Math.max(oB,cB);
+            let sma=0; for(let k=0;k<20;k++) sma+=acB(data[k]); sma/=20;
+            const str=((cA-sma)/sma)*100;
+            let slam='NO SLAM';
+            if(cA>bMax) slam='SLAM LONG';
+            if(cA<bMin) slam='SLAM SHORT';
+            let st='STABLE',act='In Range',bdg='bg-stable',rCls='';
+            const ex=10.0;
+            if (str<=-thr) {
+                if(str<=-ex){rCls='row-strong';bdg='bg-action-buy';st=slam==='SLAM LONG'?'REBOUND CONFIRMED':'PANIC CAPITULATION';act=slam==='SLAM LONG'?'🚀 ANTI-CYCLIC LONG (High Conf)':'🔥 ANTI-CYCLIC LONG (Scale-In)';}
+                else if(slam==='SLAM LONG'){rCls='row-strong';bdg='bg-action-buy';st='ANTI-CYCLIC REBOUND';act='🚀 Spekulatives Long';}
+                else{bdg='bg-exhaustion';st='PANIC EXHAUSTION';act='🩸 SHORT REDUCE';}
+            } else if(str>=thr) {
+                if(str>=ex){rCls='row-weak';bdg='bg-action-short';st=slam==='SLAM SHORT'?'REVERSAL CONFIRMED':'FOMO CLIMAX';act=slam==='SLAM SHORT'?'🚨 ANTI-CYCLIC SHORT (High Conf)':'⚡ ANTI-CYCLIC SHORT (Scale-In)';}
+                else if(slam==='SLAM SHORT'){rCls='row-weak';bdg='bg-action-short';st='ANTI-CYCLIC REVERSAL';act='🚨 Spekulatives Short';}
+                else{bdg='bg-exhaustion';st='BUYING EXHAUSTION';act='⚠️ LONG REDUCE';}
+            }
+            const dec=cA<2?4:2;
+            tbody.insertAdjacentHTML('beforeend',`<tr class="${rCls}"><td><strong>${sym}</strong></td><td>$${cA.toFixed(dec)}</td><td>$${sma.toFixed(dec)}</td><td class="${str>=0?'text-red':'text-green'}">${str.toFixed(2)}%</td><td>${slam}</td><td><span class="badge-a ${bdg}">${st}</span></td><td style="font-size:11px;">${act}</td></tr>`);
+        } catch(e){ /* skip */ }
+        await new Promise(r=>setTimeout(r,1000));
+    }
+    progEl.style.display='none';
+}
+function bs_exportCSV(){ exportTableCSV('bs_table',`BODYSLAM_${new Date().toISOString().slice(0,10)}.csv`); }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 4 — HIDDEN SMASH (Liquidity Trap Detector v6.0)
+══════════════════════════════════════════════════════════════════════ */
+async function hs_executeScan() {
+    const clusterKey = document.getElementById('hs_cluster').value;
+    const thr  = parseFloat(document.getElementById('hs_stretch').value)||5.0;
+    const tbody = document.getElementById('hs_tbody');
+    const progEl= document.getElementById('hs_progress');
+    tbody.innerHTML=''; progEl.style.display='block';
+
+    const syms = getCluster(clusterKey).symbols;
+    for (let i=0;i<syms.length;i++) {
+        const sym=syms[i]; progEl.textContent=`Trap Hunt ${i+1}/${syms.length}: ${sym}...`;
+        try {
+            const apiSym=sym.endsWith('.US')?sym.replace('.US',''):sym;
+            const data=await fetchHistorical(apiSym);
+            data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+            if (data.length<22) continue;
+            const acH = d => parseFloat(d.adjusted_close||d.close||0);
+            const cA=acH(data[0]),hA=parseFloat(data[0].high),lA=parseFloat(data[0].low);
+            const hB=parseFloat(data[1].high),lB=parseFloat(data[1].low);
+            let sma=0; for(let k=0;k<20;k++) sma+=acH(data[k]); sma/=20;
+            const str=((cA-sma)/sma)*100;
+            let trap='NO TRAP';
+            if(hA>hB&&cA<hB) trap='BULL TRAP (SHORT)';
+            else if(lA<lB&&cA>lB) trap='BEAR TRAP (LONG)';
+            let st='STABLE',act='Keine Trap-Struktur.',bdg='bg-stable',rCls='';
+            if(trap==='BULL TRAP (SHORT)'){
+                if(str>=thr){st='HIDDEN SMASH SHORT';bdg='bg-trap-short';rCls='row-trap-short';act='🚨 COUNTER SHORT // Gier-Spike kollabiert!';}
+                else{st='TRAP WATCH';bdg='bg-exhaustion';act='⚠️ Bull Trap. Beobachten.';}
+            } else if(trap==='BEAR TRAP (LONG)'){
+                if(str<=-thr){st='HIDDEN SMASH LONG';bdg='bg-trap-long';rCls='row-trap-long';act='🔥 COUNTER LONG // Panik-Tief aufgekauft!';}
+                else{st='TRAP WATCH';bdg='bg-exhaustion';act='⚠️ Bear Trap. Neutrales Band.';}
+            }
+            const dec=cA<2?4:2;
+            tbody.insertAdjacentHTML('beforeend',`<tr class="${rCls}"><td><strong>${sym}</strong></td><td>$${cA.toFixed(dec)}</td><td>$${sma.toFixed(dec)}</td><td class="${str>=0?'text-red':'text-green'}">${str.toFixed(2)}%</td><td class="${trap.includes('BULL')?'text-red':trap.includes('BEAR')?'text-green':''}"><strong>${trap}</strong></td><td><span class="badge-a ${bdg}">${st}</span></td><td style="font-size:11px;">${act}</td></tr>`);
+        } catch(e){ /* skip */ }
+        await new Promise(r=>setTimeout(r,1000));
+    }
+    progEl.style.display='none';
+}
+function hs_exportCSV(){ exportTableCSV('hs_table',`HIDDEN_SMASH_${new Date().toISOString().slice(0,10)}.csv`); }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 5 — CONSULTUS DAILY (3-Day Compression GO Engine)
+══════════════════════════════════════════════════════════════════════ */
+let cd_sigs=[], cd_scan=false;
+
+async function cd_startScan() {
+    if(cd_scan) return;
+    const clusterKey=document.getElementById('cd_cluster').value;
+    const delay=parseInt(document.getElementById('cd_delay').value)||2000;
+    cd_scan=true; cd_sigs=[];
+    document.getElementById('cd_goGrid').innerHTML='';
+    document.getElementById('cd_progressSection').classList.add('active');
+    const syms=getCluster(clusterKey).symbols;
+    for(let i=0;i<syms.length;i++){
+        const sym=syms[i], pct=Math.round(i/syms.length*100);
+        document.getElementById('cd_progressText').textContent=`COMPRESSION // ${sym}...`;
+        document.getElementById('cd_progressFill').style.width=pct+'%';
+        document.getElementById('cd_progressFill').textContent=pct+'%';
+        document.getElementById('cd_statusMsg').textContent=`${i}/${syms.length}`;
+        await cd_analyze(sym);
+        await new Promise(r=>setTimeout(r,delay));
+    }
+    document.getElementById('cd_progressSection').classList.remove('active');
+    cd_scan=false; cd_renderSigs();
+}
+
+async function cd_analyze(sym) {
+    try {
+        const data=await fetchHistorical(sym);
+        data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        if(data.length<3) return;
+        const ac = d => parseFloat(d.adjusted_close||d.close||0);
+        const kA=ac(data[0]),kB=ac(data[1]),kC=ac(data[2]);
+        if(Math.abs(kA-kB)<Math.abs(kC-kB)){
+            const lT=Math.max(kA,kB,kC),sT=Math.min(kA,kB,kC),risk=Math.abs(lT-sT);
+            const bal=parseFloat(document.getElementById('cd_balance').value)||10000;
+            const qty=risk>0?Math.floor((bal*.01)/risk):0;
+            const rng=((parseFloat(data[0].high)-parseFloat(data[0].low))/parseFloat(data[0].low))*100;
+            const vol=data[1].volume?((parseFloat(data[0].volume)-parseFloat(data[1].volume))/parseFloat(data[1].volume))*100:0;
+            cd_sigs.push({sym,date:data[0].date,kA,kB,kC,lT,sT,risk,qty,rng,vol,dec:kA<2?4:2,
+                candles:[{open:parseFloat(data[2].open),high:parseFloat(data[2].high),low:parseFloat(data[2].low),close:kC},
+                         {open:parseFloat(data[1].open),high:parseFloat(data[1].high),low:parseFloat(data[1].low),close:kB},
+                         {open:parseFloat(data[0].open),high:parseFloat(data[0].high),low:parseFloat(data[0].low),close:kA}]});
+        }
+    } catch(e){}
+}
+
+function cd_renderSigs() {
+    const grid=document.getElementById('cd_goGrid');
+    if(!cd_sigs.length){grid.innerHTML='<div style="color:var(--gray-text);text-align:center;padding:30px;grid-column:1/-1;">Keine GO-Signale.</div>';return;}
+    grid.innerHTML='';
+    cd_sigs.forEach(s=>{
+        const d=new Date(s.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+        const card=document.createElement('div'); card.className='result-card card-go';
+        card.innerHTML=`<canvas class="result-candle" width="100" height="100"></canvas><div class="result-info"><div class="result-header"><div><span class="result-symbol">${s.sym}</span> <span class="result-ts">EOD: ${d}</span></div><span class="sig-badge badge-go">GO</span></div><div class="result-metrics"><div class="result-metric"><span class="result-label">LONG:</span><span class="val-up">$${s.lT.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">SHORT:</span><span class="val-down">$${s.sT.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Risk:</span><span class="val-white">$${s.risk.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Qty 1%:</span><span class="val-gold">${s.qty} pcs</span></div><div class="result-metric"><span class="result-label">Range:</span><span class="val-white">${s.rng.toFixed(2)}%</span></div><div class="result-metric"><span class="result-label">Vol:</span><span class="${s.vol>=0?'val-up':'val-down'}">${s.vol>=0?'▲':'▼'} ${Math.abs(s.vol).toFixed(1)}%</span></div><div class="result-metric" style="grid-column:span 2;border:none;"><span class="result-label">C→B→A:</span><span style="color:var(--cyan);font-size:10px;">${s.kC.toFixed(s.dec)}→${s.kB.toFixed(s.dec)}→${s.kA.toFixed(s.dec)}</span></div></div></div>`;
+        grid.appendChild(card); drawCandleMatrix(card.querySelector('canvas'),s.candles);
+    });
+}
+
+function cd_downloadReport() {
+    if(!cd_sigs.length){alert('Keine GO-Daten.');return;}
+    const lines=['=== CONSULTUS DAILY GO REPORT ==='];
+    cd_sigs.forEach(s=>{lines.push(`${s.sym} | GO | ${s.date} | LONG:$${s.lT.toFixed(s.dec)} | SHORT:$${s.sT.toFixed(s.dec)} | Risk:$${s.risk.toFixed(s.dec)} | Qty:${s.qty}`);});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'}));
+    a.download='consultus_daily_go.txt'; a.click();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 6 — CONSULTUS WEEKLY (Friday-Close Compression Engine)
+══════════════════════════════════════════════════════════════════════ */
+let cw_sigs=[], cw_scan=false;
+
+async function cw_startScan() {
+    if(cw_scan) return;
+    const clusterKey=document.getElementById('cw_cluster').value;
+    const delay=parseInt(document.getElementById('cw_delay').value)||2000;
+    cw_scan=true; cw_sigs=[];
+    document.getElementById('cw_goGrid').innerHTML='';
+    document.getElementById('cw_progressSection').classList.add('active');
+    const syms=getCluster(clusterKey).symbols;
+    for(let i=0;i<syms.length;i++){
+        const sym=syms[i], pct=Math.round(i/syms.length*100);
+        document.getElementById('cw_progressText').textContent=`FRIDAY CLOSES // ${sym}...`;
+        document.getElementById('cw_progressFill').style.width=pct+'%';
+        document.getElementById('cw_progressFill').textContent=pct+'%';
+        document.getElementById('cw_statusMsg').textContent=`${i}/${syms.length}`;
+        await cw_analyze(sym);
+        await new Promise(r=>setTimeout(r,delay));
+    }
+    document.getElementById('cw_progressSection').classList.remove('active');
+    cw_scan=false; cw_renderSigs();
+}
+
+async function cw_analyze(sym) {
+    try {
+        const data=await fetchHistorical(sym);
+        if(data.length<10) return;
+        const fridays=data.filter(d=>new Date(d.date).getDay()===5);
+        if(fridays.length<3) return;
+        fridays.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        const acW = d => parseFloat(d.adjusted_close||d.close||0);
+        const kA=acW(fridays[0]),kB=acW(fridays[1]),kC=acW(fridays[2]);
+        if(Math.abs(kA-kB)<Math.abs(kC-kB)){
+            const lT=Math.max(kA,kB,kC),sT=Math.min(kA,kB,kC),risk=Math.abs(lT-sT);
+            const bal=parseFloat(document.getElementById('cw_balance').value)||10000;
+            const qty=risk>0?Math.floor((bal*.01)/risk):0;
+            const rng=((parseFloat(fridays[0].high)-parseFloat(fridays[0].low))/parseFloat(fridays[0].low))*100;
+            const vol=fridays[1].volume?((parseFloat(fridays[0].volume)-parseFloat(fridays[1].volume))/parseFloat(fridays[1].volume))*100:0;
+            cw_sigs.push({sym,date:fridays[0].date,kA,kB,kC,lT,sT,risk,qty,rng,vol,dec:kA<2?4:2,
+                candles:[{open:parseFloat(fridays[2].open),high:parseFloat(fridays[2].high),low:parseFloat(fridays[2].low),close:kC},
+                         {open:parseFloat(fridays[1].open),high:parseFloat(fridays[1].high),low:parseFloat(fridays[1].low),close:kB},
+                         {open:parseFloat(fridays[0].open),high:parseFloat(fridays[0].high),low:parseFloat(fridays[0].low),close:kA}]});
+        }
+    } catch(e){}
+}
+
+function cw_renderSigs() {
+    const grid=document.getElementById('cw_goGrid');
+    if(!cw_sigs.length){grid.innerHTML='<div style="color:var(--gray-text);text-align:center;padding:30px;grid-column:1/-1;">Keine Weekly-GO-Signale.</div>';return;}
+    grid.innerHTML='';
+    cw_sigs.sort((a,b)=>a.risk-b.risk);
+    cw_sigs.forEach(s=>{
+        const d=new Date(s.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+        const card=document.createElement('div'); card.className='result-card card-go';
+        card.innerHTML=`<canvas class="result-candle" width="100" height="100"></canvas><div class="result-info"><div class="result-header"><div><span class="result-symbol">${s.sym}</span> <span class="result-ts">Fri: ${d}</span></div><span class="sig-badge badge-go">WEEKLY GO</span></div><div class="result-metrics"><div class="result-metric"><span class="result-label">LONG:</span><span class="val-up">$${s.lT.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">SHORT:</span><span class="val-down">$${s.sT.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Risk:</span><span class="val-white">$${s.risk.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Qty 1%:</span><span class="val-gold">${s.qty} pcs</span></div><div class="result-metric"><span class="result-label">Range:</span><span class="val-white">${s.rng.toFixed(2)}%</span></div><div class="result-metric"><span class="result-label">Vol:</span><span class="${s.vol>=0?'val-up':'val-down'}">${s.vol>=0?'▲':'▼'} ${Math.abs(s.vol).toFixed(1)}%</span></div><div class="result-metric" style="grid-column:span 2;border:none;"><span class="result-label">3-Fri C→B→A:</span><span style="color:var(--cyan);font-size:10px;">${s.kC.toFixed(s.dec)}→${s.kB.toFixed(s.dec)}→${s.kA.toFixed(s.dec)}</span></div></div></div>`;
+        grid.appendChild(card); drawCandleMatrix(card.querySelector('canvas'),s.candles);
+    });
+}
+
+function cw_downloadReport() {
+    if(!cw_sigs.length){alert('Keine Weekly-GO-Daten.');return;}
+    const lines=['=== CONSULTUS WEEKLY GO REPORT ==='];
+    cw_sigs.forEach(s=>{lines.push(`${s.sym} | WEEKLY GO | Fri:${s.date} | LONG:$${s.lT.toFixed(s.dec)} | SHORT:$${s.sT.toFixed(s.dec)} | Risk:$${s.risk.toFixed(s.dec)} | Qty:${s.qty}`);});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'}));
+    a.download='consultus_weekly_go.txt'; a.click();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 7 — CORPUS PARVUS (Slim Body Confidence Detector v1.0)
+══════════════════════════════════════════════════════════════════════ */
+let cp_sigs=[], cp_scan=false;
+
+async function cp_startScan() {
+    if(cp_scan) return;
+    const clusterKey=document.getElementById('cp_cluster').value;
+    const delay=parseInt(document.getElementById('cp_delay').value)||2000;
+    cp_scan=true; cp_sigs=[];
+    document.getElementById('cp_goGrid').innerHTML='';
+    document.getElementById('cp_progressSection').classList.add('active');
+    const syms=getCluster(clusterKey).symbols;
+    for(let i=0;i<syms.length;i++){
+        const sym=syms[i], pct=Math.round(i/syms.length*100);
+        document.getElementById('cp_progressText').textContent=`CORPUS RATIO // ${sym}...`;
+        document.getElementById('cp_progressFill').style.width=pct+'%';
+        document.getElementById('cp_progressFill').textContent=pct+'%';
+        document.getElementById('cp_statusMsg').textContent=`${i}/${syms.length}`;
+        await cp_analyze(sym);
+        await new Promise(r=>setTimeout(r,delay));
+    }
+    document.getElementById('cp_progressSection').classList.remove('active');
+    cp_scan=false; cp_renderSigs();
+}
+
+async function cp_analyze(sym) {
+    try {
+        const data=await fetchHistorical(sym);
+        data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        if(data.length<5) return;
+        const acP = d => parseFloat(d.adjusted_close||d.close||0);
+        const oA=parseFloat(data[1].open),cA=acP(data[1]);
+        const oB=parseFloat(data[0].open),cB=acP(data[0]);
+        const bA=Math.abs(cA-oA), bB=Math.abs(cB-oB);
+        if(bB<bA){
+            let trend='Sideways';
+            if(cB>cA&&cA>acP(data[2])) trend='Bullish Uptrend';
+            else if(cB<cA&&cA<acP(data[2])) trend='Bearish Downtrend';
+            const lBrk=cB*1.01,lPyr=cB*1.02,sBrk=cB*0.99,sPyr=cB*0.98,risk=lBrk-sBrk;
+            const bal=parseFloat(document.getElementById('cp_balance').value)||10000;
+            const qty=risk>0?Math.floor((bal*.01)/risk):0;
+            const vol=data[1].volume?((parseFloat(data[0].volume)-parseFloat(data[1].volume))/parseFloat(data[1].volume))*100:0;
+            const rng=((parseFloat(data[0].high)-parseFloat(data[0].low))/parseFloat(data[0].low))*100;
+            let conf=60;
+            if(vol<0) conf+=15+Math.min(Math.abs(vol)*.3,15); else conf-=15;
+            if(trend!=='Sideways') conf+=10;
+            conf=Math.min(Math.max(Math.round(conf),15),95);
+            cp_sigs.push({sym,date:data[0].date,bA,bB,lBrk,lPyr,sBrk,sPyr,trend,vol,rng,risk,qty,conf,dec:cB<2?4:2,
+                candles:[{open:parseFloat(data[2].open),high:parseFloat(data[2].high),low:parseFloat(data[2].low),close:parseFloat(data[2].close)},
+                         {open:oA,high:parseFloat(data[1].high),low:parseFloat(data[1].low),close:cA},
+                         {open:oB,high:parseFloat(data[0].high),low:parseFloat(data[0].low),close:cB}]});
+        }
+    } catch(e){}
+}
+
+function cp_renderSigs() {
+    const grid=document.getElementById('cp_goGrid');
+    if(!cp_sigs.length){grid.innerHTML='<div style="color:var(--gray-text);text-align:center;padding:30px;grid-column:1/-1;">Keine Corpus-Parvus-Formationen.</div>';return;}
+    grid.innerHTML='';
+    cp_sigs.sort((a,b)=>b.conf-a.conf);
+    cp_sigs.forEach(s=>{
+        const d=new Date(s.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+        const card=document.createElement('div'); card.className='result-card'; card.style.borderLeftColor='var(--cyan)';
+        card.innerHTML=`<canvas class="result-candle" width="100" height="100"></canvas><div class="result-info"><div class="result-header"><div><span class="result-symbol">${s.sym}</span> <span class="result-ts">EOD: ${d}</span></div><span class="sig-badge badge-go">GO</span></div><div class="result-metrics"><div class="result-metric"><span class="result-label">LONG Brk:</span><span class="val-up">$${s.lBrk.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">LONG Pyr:</span><span class="val-white">$${s.lPyr.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">SHORT Brk:</span><span class="val-down">$${s.sBrk.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">SHORT Pyr:</span><span class="val-white">$${s.sPyr.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Body A:</span><span class="val-white">${s.bA.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Body B:</span><span class="val-gold">${s.bB.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Trend:</span><span class="val-white" style="font-size:10px;">${s.trend}</span></div><div class="result-metric"><span class="result-label">Qty 1%:</span><span class="val-gold">${s.qty} pcs</span></div><div class="result-metric"><span class="result-label">Vol:</span><span class="${s.vol>=0?'val-up':'val-down'}">${s.vol>=0?'▲':'▼'} ${Math.abs(s.vol).toFixed(1)}%</span></div><div class="result-metric"><span class="result-label">Range:</span><span class="val-white">${s.rng.toFixed(2)}%</span></div><div class="conf-bar-wrap"><div style="display:flex;justify-content:space-between;font-size:10px;"><span class="result-label">Parvus Confidence:</span><span class="val-gold">${s.conf}%</span></div><div class="conf-bar-track"><div class="conf-bar-fill" style="width:${s.conf}%"></div></div></div></div></div>`;
+        grid.appendChild(card); drawCandleMatrix(card.querySelector('canvas'),s.candles);
+    });
+}
+
+function cp_downloadReport() {
+    if(!cp_sigs.length){alert('Keine Corpus-Parvus-Daten.');return;}
+    const lines=['=== CORPUS PARVUS COMPRESSION REPORT ==='];
+    cp_sigs.forEach(s=>{lines.push(`${s.sym} | GO | Conf:${s.conf}% | Trend:${s.trend} | BodyA:${s.bA.toFixed(4)} | BodyB:${s.bB.toFixed(4)} | LONG:$${s.lBrk.toFixed(4)} | SHORT:$${s.sBrk.toFixed(4)} | Qty:${s.qty}`);});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'}));
+    a.download='corpus_parvus_report.txt'; a.click();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 8 — DENARIUS (Neural Cluster Spread Matrix v6.5)
+══════════════════════════════════════════════════════════════════════ */
+let dn_raw=[], dn_scan=false;
+
+async function dn_startScan() {
+    if(dn_scan) return;
+    const clusterKey=document.getElementById('dn_cluster').value;
+    const delay=parseInt(document.getElementById('dn_delay').value)||2500;
+    dn_scan=true; dn_raw=[];
+    document.getElementById('dn_longGrid').innerHTML='';
+    document.getElementById('dn_shortGrid').innerHTML='';
+    document.getElementById('dn_progressSection').classList.add('active');
+    const syms=getCluster(clusterKey).symbols;
+    for(let i=0;i<syms.length;i++){
+        const sym=syms[i], pct=Math.round(i/syms.length*100);
+        document.getElementById('dn_progressText').textContent=`NEURAL MATRIX // ${sym}...`;
+        document.getElementById('dn_progressFill').style.width=pct+'%';
+        document.getElementById('dn_progressFill').textContent=pct+'%';
+        document.getElementById('dn_statusMsg').textContent=`${i}/${syms.length}`;
+        try {
+            const data=await fetchHistorical(sym);
+            data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+            if(data.length>=5) dn_raw.push({sym,data,dec:parseFloat(data[0].close)<2?4:2});
+        } catch(e){}
+        await new Promise(r=>setTimeout(r,delay));
+    }
+    document.getElementById('dn_progressSection').classList.remove('active');
+    dn_scan=false; dn_harmonize();
+}
+
+function dn_harmonize() {
+    if(!dn_raw.length) return;
+    const targetDate=dn_raw.map(r=>r.data[0].date).sort((a,b)=>new Date(a)-new Date(b))[0];
+    const processed=[];
+    dn_raw.forEach(r=>{
+        const hist=r.data.filter(d=>d.date<=targetDate);
+        if(hist.length<3) return;
+        const t0=hist[0],t1=hist[1],t2=hist[2];
+        const acD = d => parseFloat(d.adjusted_close||d.close||0);
+        const c0=acD(t0),c2=acD(t2);
+        const spread=c0/c2, signal=spread>=1.0?'LONG':'SHORT';
+        const vT=t1.volume?((parseFloat(t0.volume)-parseFloat(t1.volume))/parseFloat(t1.volume))*100:0;
+        const trPct=((parseFloat(t0.high)-parseFloat(t0.low))/parseFloat(t0.low))*100;
+        const dev=Math.abs(spread-1)*100; let score=50,conf;
+        if(signal==='SHORT'){
+            score+=dev*10;
+            if(vT>0){score+=Math.min(vT*.5,15);conf=Math.min(Math.max(Math.round(score),10),95);}
+            else{score-=(dev*8)*(Math.abs(vT)/100);score-=Math.abs(vT)*.4;conf=Math.min(Math.min(Math.max(Math.round(score),10),95),80);}
+        } else {
+            score+=dev*12;
+            if(vT>0){score+=Math.min(vT*.4,12);conf=Math.min(Math.max(Math.round(score),10),95);}
+            else{score-=Math.abs(vT)*.2;conf=Math.min(Math.min(Math.max(Math.round(score),10),95),80);}
+        }
+        processed.push({sym:r.sym,signal,spread,delta:c0-c2,price:c0,vol:trPct,vT,conf,date:t0.date,dec:r.dec,
+            candles:[{open:parseFloat(t2.open),high:parseFloat(t2.high),low:parseFloat(t2.low),close:parseFloat(t2.close)},
+                     {open:parseFloat(t1.open),high:parseFloat(t1.high),low:parseFloat(t1.low),close:parseFloat(t1.close)},
+                     {open:parseFloat(t0.open),high:parseFloat(t0.high),low:parseFloat(t0.low),close:parseFloat(t0.close)}]});
+    });
+    processed.sort((a,b)=>b.conf-a.conf);
+    processed.forEach(r=>{
+        const isL=r.signal==='LONG', cont=document.getElementById(isL?'dn_longGrid':'dn_shortGrid');
+        const d=new Date(r.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+        const card=document.createElement('div'); card.className=`result-card ${isL?'card-long':'card-short'}`;
+        card.innerHTML=`<canvas class="result-candle" width="100" height="100"></canvas><div class="result-info"><div class="result-header"><div><span class="result-symbol">${r.sym}</span> <span class="result-ts">${d}</span></div><span class="sig-badge ${isL?'badge-long':'badge-short'}">${r.signal}</span></div><div class="result-metrics"><div class="result-metric"><span class="result-label">Price:</span><span class="val-white">$${r.price.toFixed(r.dec)}</span></div><div class="result-metric"><span class="result-label">Spread:</span><span class="${r.spread>=1?'val-up':'val-down'}">${r.spread.toFixed(4)}</span></div><div class="result-metric"><span class="result-label">Δ vs T-2:</span><span class="${r.delta>=0?'val-up':'val-down'}">${r.delta>=0?'+':''}${r.delta.toFixed(r.dec)}</span></div><div class="result-metric"><span class="result-label">Volatility:</span><span class="val-white">${r.vol.toFixed(2)}%</span></div><div class="result-metric"><span class="result-label">Vol Trend:</span><span class="${r.vT>=0?'val-up':'val-down'}">${r.vT>=0?'▲':'▼'} ${Math.abs(r.vT).toFixed(1)}%</span></div><div class="conf-bar-wrap"><div style="display:flex;justify-content:space-between;font-size:10px;"><span class="result-label">Confidence (v6.5 Hard-Lock):</span><span class="val-gold">${r.conf}%</span></div><div class="conf-bar-track"><div class="conf-bar-fill" style="width:${r.conf}%"></div></div></div></div></div>`;
+        cont.appendChild(card); drawCandleMatrix(card.querySelector('canvas'),r.candles);
+    });
+}
+
+function dn_exportHTML() {
+    const body = document.getElementById('dn_longGrid').innerHTML + document.getElementById('dn_shortGrid').innerHTML;
+    const h = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>DENARIUS EXPORT<\/title><\/head><body style="background:#0c0c0e;color:#fff;font-family:monospace;padding:20px;">' + body + '<\/body><\/html>';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([h], {type:'text/html'}));
+    a.download = 'denarius_' + new Date().toISOString().slice(0,10) + '.html'; a.click();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 9 — NEURAL HEDGING v18.1 (Dynamic Cluster Bracket Matrix)
+══════════════════════════════════════════════════════════════════════ */
+async function hg_execute() {
+    const tickers = document.getElementById('hg_tickers').value.split(',').map(t=>t.trim()).filter(Boolean);
+    const bal     = parseFloat(document.getElementById('hg_balance').value)||10000;
+    const grid    = document.getElementById('hg_grid');
+    const dump    = document.getElementById('hg_dump');
+    const banner  = document.getElementById('hg_riskBanner');
+    const status  = document.getElementById('hg_status');
+    if (!tickers.length) return;
+    grid.innerHTML=''; status.style.display='block'; status.textContent='Fetching realtime cluster data...'; banner.style.display='none';
+
+    const dataset=[];
+    for (const sym of tickers) {
+        status.textContent=`Fetching: ${sym}...`;
+        try {
+            const d=await fetchRealtime(sym);
+            if (d&&d.close) dataset.push({...d, code:sym.split('.')[0], sym});
+        } catch(e){}
+        await new Promise(r=>setTimeout(r,350));
+    }
+    if (!dataset.length) { status.textContent='❌ No data received.'; return; }
+
+    const negCount=dataset.filter(d=>parseFloat(d.change_p||0)<0).length;
+    const isCrisis=negCount>=(tickers.length/2)&&tickers.length>1;
+    const riskPct=isCrisis?0.75:1.0;
+    const allowedRisk=bal*(riskPct/100);
+
+    banner.style.display='block';
+    if (isCrisis) {
+        banner.style.cssText='border-left:4px solid var(--red-bright);background:rgba(255,0,85,0.05);padding:8px 14px;font-size:11px;color:var(--red-bright);';
+        banner.innerHTML=`⚠️ SYSTEMIC RISK WARNING — ${negCount}/${tickers.length} Assets negativ. Risk komprimiert: 0.75%. Budget/Position: <strong>$${allowedRisk.toFixed(2)}</strong>`;
+    } else {
+        banner.style.cssText='border-left:4px solid var(--green-bright);background:rgba(0,255,170,0.05);padding:8px 14px;font-size:11px;color:var(--green-bright);';
+        banner.innerHTML=`✅ CLUSTER HEALTH STABLE — Asynchroner/bullischer Lauf. Max Risikotoleranz: 1.00%. Budget/Position: <strong>$${allowedRisk.toFixed(2)}</strong>`;
+    }
+
+    let dumpTxt = `=== ARGENTUM // NEURAL HEDGING SYSTEM v18.1 ===\nGENERATED: ${new Date().toLocaleString()}\n`;
+    dumpTxt += `CLUSTER-STATE: ${isCrisis?'⚠️ MITIGATION 0.75%':'✅ STABLE 1.00%'} | BUDGET/POSITION: $${allowedRisk.toFixed(2)}\n${'='.repeat(55)}\n\n`;
+
+    dataset.forEach(md => {
+        const px=parseFloat(md.close), chg=parseFloat(md.change_p||0);
+        const dec=px<5?4:2;
+        const vola=Math.max(1.25, Math.abs(chg)), bias=chg>=0?1.0:1.15;
+        const levels=[
+            {name:'Neural Intraday',     mult:0.85*vola*bias},
+            {name:'Neural Daily Shift',  mult:1.75*vola*bias},
+            {name:'Neural Weekly Range', mult:3.50*vola*bias},
+            {name:'Neural Macro Shock',  mult:6.50*vola*bias}
+        ];
+        const colors=['var(--cyan)','var(--gold)','var(--magenta)','var(--red-bright)'];
+        let levelsHtml='', ibShares=0, ibStop=0;
+        levels.forEach((lv,li) => {
+            const stop=px*(1-lv.mult/100), dist=px-stop;
+            const qty=dist>0?Math.floor(allowedRisk/dist):0;
+            if(li===0){ibShares=qty;ibStop=stop;}
+            levelsHtml+=`<div class="result-metric"><span class="result-label" style="color:${colors[li]};font-size:10px;">${lv.name}</span><span class="val-white" style="font-size:10px;">Stop $${stop.toFixed(dec)} | Qty ${qty} | -${lv.mult.toFixed(2)}%</span></div>`;
+        });
+        const card=document.createElement('div'); card.className=`result-card ${chg>=0?'card-long':'card-short'}`;
+        card.style.flexDirection='column'; card.style.gap='8px';
+        card.innerHTML=`<div class="result-header"><div><span class="result-symbol">${md.code}</span> <span class="result-ts">$${px.toFixed(dec)}</span></div><span class="sig-badge ${chg>=0?'badge-long':'badge-short'}">${chg>=0?'+':''}${chg.toFixed(2)}%</span></div><div style="font-size:10px;color:var(--gold);">⚡ Vola Base: ${vola.toFixed(2)}% | Budget: $${allowedRisk.toFixed(2)}</div><div class="result-metrics">${levelsHtml}</div>`;
+        grid.appendChild(card);
+
+        const cleanSym=md.code;
+        dumpTxt+=`### ${cleanSym} | $${px.toFixed(dec)} | ${chg>=0?'+':''}${chg.toFixed(2)}% ###\n`;
+        levels.forEach(lv=>{
+            const stop=px*(1-lv.mult/100);
+            const qty=Math.floor(allowedRisk/Math.max(px-stop,0.001));
+            dumpTxt+=`  [>] ${lv.name}: Stop $${stop.toFixed(dec)} | Qty ${qty} | Risk $${(px-stop).toFixed(dec)}\n`;
+        });
+        dumpTxt+=`\n  [IB Python]\n`;
+        dumpTxt+=`  bracket = ib.bracketOrder('BUY', ${ibShares}, 0, ${(px*1.05).toFixed(dec)}, ${ibStop.toFixed(dec)})\n`;
+        dumpTxt+=`  bracket[0].orderType = 'MKT'\n`;
+        dumpTxt+=`  for o in bracket: ib.placeOrder(contract, o)\n\n`;
+    });
+    dump.textContent=dumpTxt;
+    status.style.display='none';
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 10 — VOLUMINA (Volume Compression Engine)
+══════════════════════════════════════════════════════════════════════ */
+let vl_sigs=[], vl_scan=false;
+
+async function vl_startScan() {
+    if(vl_scan) return;
+    const clusterKey=document.getElementById('vl_cluster').value;
+    const delay=parseInt(document.getElementById('vl_delay').value)||2000;
+    vl_scan=true; vl_sigs=[];
+    document.getElementById('vl_goGrid').innerHTML='';
+    document.getElementById('vl_progressSection').classList.add('active');
+    const syms=getCluster(clusterKey).symbols;
+    for(let i=0;i<syms.length;i++){
+        const sym=syms[i], pct=Math.round(i/syms.length*100);
+        document.getElementById('vl_progressText').textContent=`VOLUMETRIC RATIO // ${sym}...`;
+        document.getElementById('vl_progressFill').style.width=pct+'%';
+        document.getElementById('vl_progressFill').textContent=pct+'%';
+        document.getElementById('vl_statusMsg').textContent=`${i}/${syms.length}`;
+        await vl_analyze(sym);
+        await new Promise(r=>setTimeout(r,delay));
+    }
+    document.getElementById('vl_progressSection').classList.remove('active');
+    vl_scan=false; vl_renderSigs();
+}
+
+async function vl_analyze(sym) {
+    try {
+        const data=await fetchHistorical(sym);
+        data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        if(data.length<7) return;
+        const t0=data[0], t1=data[1];
+        const volB=parseFloat(t0.volume), volA=parseFloat(t1.volume);
+        const closeB=parseFloat(t0.adjusted_close||t0.close||0);
+        if(volB<volA&&volB>0){
+            const avg5=data.slice(1,6).reduce((s,d)=>s+parseFloat(d.volume||0),0)/5;
+            const rVol=avg5>0?(volB/avg5):1.0;
+            const lBrk=closeB*1.01, lPyr=closeB*1.02;
+            const sBrk=closeB*0.99, sPyr=closeB*0.98;
+            const risk=lBrk-sBrk;
+            const bal=parseFloat(document.getElementById('vl_balance').value)||10000;
+            const qty=risk>0?Math.floor((bal*0.01)/risk):0;
+            const volDrop=((volA-volB)/volA)*100;
+            const rng=((parseFloat(t0.high)-parseFloat(t0.low))/parseFloat(t0.low))*100;
+            let conf=65;
+            if(volDrop>20) conf+=10;
+            if(rng<2) conf+=10;
+            if(rVol<0.8) conf+=10;
+            conf=Math.min(Math.max(Math.round(conf),20),95);
+            vl_sigs.push({sym,date:t0.date,closeB,volDrop,rVol,rng,lBrk,lPyr,sBrk,sPyr,qty,conf,dec:closeB<2?4:2,
+                candles:data.slice(0,3).reverse().map(d=>({open:parseFloat(d.open),high:parseFloat(d.high),low:parseFloat(d.low),close:parseFloat(d.close)}))});
+        }
+    } catch(e){}
+}
+
+function vl_renderSigs() {
+    const grid=document.getElementById('vl_goGrid');
+    if(!vl_sigs.length){grid.innerHTML='<div style="color:var(--gray-text);text-align:center;padding:30px;grid-column:1/-1;">Keine Volume-Compression-Signale.</div>';return;}
+    grid.innerHTML='';
+    vl_sigs.sort((a,b)=>b.conf-a.conf);
+    vl_sigs.forEach(s=>{
+        const d=new Date(s.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+        const card=document.createElement('div'); card.className='result-card'; card.style.borderLeftColor='var(--magenta)';
+        card.innerHTML=`<canvas class="result-candle" width="100" height="100"></canvas><div class="result-info"><div class="result-header"><div><span class="result-symbol">${s.sym}</span> <span class="result-ts">EOD: ${d}</span></div><span class="sig-badge badge-go">VOL-GO</span></div><div class="result-metrics"><div class="result-metric"><span class="result-label">LONG Brk:</span><span class="val-up">$${s.lBrk.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">LONG Pyr:</span><span class="val-white">$${s.lPyr.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">SHORT Brk:</span><span class="val-down">$${s.sBrk.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">SHORT Pyr:</span><span class="val-white">$${s.sPyr.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Vol Drop:</span><span class="val-up">▼ ${s.volDrop.toFixed(1)}%</span></div><div class="result-metric"><span class="result-label">RVOL (5D):</span><span class="${s.rVol<0.8?'val-up':'val-white'}">${s.rVol.toFixed(2)}x</span></div><div class="result-metric"><span class="result-label">Range:</span><span class="val-white">${s.rng.toFixed(2)}%</span></div><div class="result-metric"><span class="result-label">Qty 1%:</span><span class="val-gold">${s.qty} pcs</span></div><div class="conf-bar-wrap"><div style="display:flex;justify-content:space-between;font-size:10px;"><span class="result-label">Vol Confidence:</span><span class="val-gold">${s.conf}%</span></div><div class="conf-bar-track"><div class="conf-bar-fill" style="width:${s.conf}%"></div></div></div></div></div>`;
+        grid.appendChild(card); drawCandleMatrix(card.querySelector('canvas'),s.candles);
+    });
+}
+
+function vl_downloadReport() {
+    if(!vl_sigs.length){alert('Keine Volume-Daten.');return;}
+    const lines=['=== VOLUMINA COMPRESSION REPORT ==='];
+    vl_sigs.forEach(s=>lines.push(`${s.sym} | Conf:${s.conf}% | VolDrop:${s.volDrop.toFixed(1)}% | RVOL:${s.rVol.toFixed(2)} | LONG:$${s.lBrk.toFixed(s.dec)} | SHORT:$${s.sBrk.toFixed(s.dec)} | Qty:${s.qty}`));
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'}));
+    a.download='volumina_report.txt'; a.click();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 11 — PEAK VALLEY (Geometric Formation Detector v7.0)
+══════════════════════════════════════════════════════════════════════ */
+let pv_sigs=[], pv_scan=false;
+
+async function pv_startScan() {
+    if(pv_scan) return;
+    const clusterKey=document.getElementById('pv_cluster').value;
+    const delay=parseInt(document.getElementById('pv_delay').value)||2500;
+    pv_scan=true; pv_sigs=[];
+    document.getElementById('pv_longGrid').innerHTML='';
+    document.getElementById('pv_shortGrid').innerHTML='';
+    document.getElementById('pv_progressSection').classList.add('active');
+    const syms=getCluster(clusterKey).symbols;
+    for(let i=0;i<syms.length;i++){
+        const sym=syms[i], pct=Math.round(i/syms.length*100);
+        document.getElementById('pv_progressText').textContent=`STRUCTURE SCAN // ${sym}...`;
+        document.getElementById('pv_progressFill').style.width=pct+'%';
+        document.getElementById('pv_progressFill').textContent=pct+'%';
+        document.getElementById('pv_statusMsg').textContent=`${i}/${syms.length}`;
+        await pv_analyze(sym);
+        await new Promise(r=>setTimeout(r,delay));
+    }
+    document.getElementById('pv_progressSection').classList.remove('active');
+    pv_scan=false; pv_renderSigs();
+}
+
+async function pv_analyze(sym) {
+    try {
+        const data=await fetchHistorical(sym);
+        data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+        if(data.length<5) return;
+        const acV = d => parseFloat(d.adjusted_close||d.close||0);
+        const c0=acV(data[0]), c1=acV(data[1]), c2=acV(data[2]);
+        let signal=null;
+        if(c1===Math.min(c0,c1,c2)&&c1!==c0&&c1!==c2) signal='Valley LONG';
+        else if(c1===Math.max(c0,c1,c2)&&c1!==c0&&c1!==c2) signal='Peak SHORT';
+        if(!signal) return;
+        const rng=((parseFloat(data[0].high)-parseFloat(data[0].low))/parseFloat(data[0].low))*100;
+        const volChg=data[1].volume?((parseFloat(data[0].volume)-parseFloat(data[1].volume))/parseFloat(data[1].volume))*100:0;
+        const amplitude=(Math.abs(c0-c1)/c1)*100;
+        let conf=50;
+        if(signal==='Peak SHORT'){
+            if(volChg>0){conf+=15+Math.min(volChg*0.4,15);conf+=Math.min(amplitude*8,15);}
+            else{conf-=10;conf-=Math.abs(volChg)*0.3;}
+        } else {
+            if(volChg>0){conf+=12+Math.min(volChg*0.35,12);conf+=Math.min(amplitude*6,12);}
+            else{conf-=8;conf-=Math.abs(volChg)*0.25;}
+        }
+        conf=Math.min(Math.max(Math.round(conf),10),95);
+        pv_sigs.push({sym,signal,date:data[0].date,c0,c1,c2,rng,volChg,amplitude,conf,dec:c0<2?4:2,
+            candles:[data[2],data[1],data[0]].map(d=>({open:parseFloat(d.open),high:parseFloat(d.high),low:parseFloat(d.low),close:parseFloat(d.close)}))});
+    } catch(e){}
+}
+
+function pv_renderSigs() {
+    const lGrid=document.getElementById('pv_longGrid');
+    const sGrid=document.getElementById('pv_shortGrid');
+    if(!pv_sigs.length){lGrid.innerHTML='<div style="color:var(--gray-text);text-align:center;padding:20px;">Keine Formationen.</div>';return;}
+    lGrid.innerHTML=''; sGrid.innerHTML='';
+    pv_sigs.sort((a,b)=>b.conf-a.conf);
+    pv_sigs.forEach(s=>{
+        const isL=s.signal==='Valley LONG', cont=isL?lGrid:sGrid;
+        const d=new Date(s.date).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+        const card=document.createElement('div'); card.className=`result-card ${isL?'card-long':'card-short'}`;
+        card.innerHTML=`<canvas class="result-candle" width="100" height="100"></canvas><div class="result-info"><div class="result-header"><div><span class="result-symbol">${s.sym}</span> <span class="result-ts">${d}</span></div><span class="sig-badge ${isL?'badge-long':'badge-short'}">${s.signal}</span></div><div class="result-metrics"><div class="result-metric"><span class="result-label">C-2:</span><span class="val-white">$${s.c2.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">C-1 (Peak/Valley):</span><span class="${isL?'val-down':'val-up'}" style="font-weight:900;">$${s.c1.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">C-0 (Current):</span><span class="val-white">$${s.c0.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">Amplitude:</span><span class="val-gold">${s.amplitude.toFixed(2)}%</span></div><div class="result-metric"><span class="result-label">Vol Change:</span><span class="${s.volChg>=0?'val-up':'val-down'}">${s.volChg>=0?'▲':'▼'} ${Math.abs(s.volChg).toFixed(1)}%</span></div><div class="result-metric"><span class="result-label">Range:</span><span class="val-white">${s.rng.toFixed(2)}%</span></div><div class="conf-bar-wrap"><div style="display:flex;justify-content:space-between;font-size:10px;"><span class="result-label">Vol Confidence v7.0:</span><span class="val-gold">${s.conf}%</span></div><div class="conf-bar-track"><div class="conf-bar-fill" style="width:${s.conf}%"></div></div></div></div></div>`;
+        cont.appendChild(card); drawCandleMatrix(card.querySelector('canvas'),s.candles);
+    });
+}
+
+function pv_downloadReport() {
+    if(!pv_sigs.length){alert('Keine Peak/Valley Daten.');return;}
+    const lines=['=== PEAK VALLEY REPORT ==='];
+    pv_sigs.forEach(s=>lines.push(`${s.sym} | ${s.signal} | Conf:${s.conf}% | Amp:${s.amplitude.toFixed(2)}% | C1:$${s.c1.toFixed(s.dec)} | Vol:${s.volChg.toFixed(1)}%`));
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'}));
+    a.download='peak_valley_report.txt'; a.click();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 12 — JSON SYMBOL EDITOR (Consistent Cluster Manager)
+══════════════════════════════════════════════════════════════════════ */
+const ALL_CLUSTER_SELECTS = [
+    'ag_cluster','ai_cluster','bs_cluster','hs_cluster',
+    'cd_cluster','cw_cluster','cp_cluster','dn_cluster',
+    'vl_cluster','pv_cluster'
+];
+
+function sym_loadEditor() {
+    document.getElementById('sym_editor').value = JSON.stringify(MARKET_CLUSTERS, null, 2);
+}
+
+function sym_apply() {
+    const status = document.getElementById('sym_status');
+    try {
+        const parsed = JSON.parse(document.getElementById('sym_editor').value);
+        if (!Array.isArray(parsed)) throw new Error('Root must be an array of cluster objects');
+        parsed.forEach((c,i) => { if(!c.id||!c.label||!Array.isArray(c.symbols)) throw new Error(`Cluster ${i} missing id/label/symbols`); });
+        MARKET_CLUSTERS.splice(0, MARKET_CLUSTERS.length, ...parsed);
+        ALL_CLUSTER_SELECTS.forEach(id => {
+            const sel = document.getElementById(id);
+            if (!sel) return;
+            const cur = sel.value;
+            sel.innerHTML = '';
+            MARKET_CLUSTERS.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id; opt.textContent = c.label;
+                sel.appendChild(opt);
+            });
+            if (MARKET_CLUSTERS.find(c => c.id === cur)) sel.value = cur;
+        });
+        status.innerHTML = `<span style="color:var(--green-bright)">✅ Applied! ${parsed.length} clusters. All 10 module dropdowns updated.</span>`;
+    } catch(e) {
+        status.innerHTML = `<span style="color:var(--red-bright)">❌ JSON Error: ${e.message}</span>`;
+    }
+}
+
+function sym_resetEditor() {
+    sym_loadEditor();
+    document.getElementById('sym_status').innerHTML = '<span style="color:var(--gold)">↺ Reloaded from current memory.</span>';
+}
+
+
+/* ─── INIT ─────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+    ALL_CLUSTER_SELECTS.forEach(populateClusterSelect);
+    sym_loadEditor();
+
+    ['stockSymbol','indexSymbol'].forEach(id => {
+        document.getElementById(id).addEventListener('keypress', e => { if(e.key==='Enter') performAnalysis(); });
+    });
+});
+</script>
+
+</body>
+</html>

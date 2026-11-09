@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>QUANT MACRO SPREAD TERMINAL v4.1</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #020106;
+            --panel: #070414;
+            --panel-inner: #0f0826;
+            --border: #00f0ff; 
+            --accent: #00ffaa;
+            --orange: #ff7700;
+            --red: #ff0055;
+            --white: #ffffff;
+            --muted: #6e618b;
+            
+            --font-cyber: 'Orbitron', sans-serif;
+            --font-data: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Optimierter globaler Scrollbar für echten Terminal-Look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020106; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        body { 
+            background-color: var(--bg); 
+            color: var(--white); 
+            font-family: var(--font-data); 
+            font-size: 15px;
+            padding: 10px; 
+            line-height: 1.4;
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: auto;
+            background-color: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 0 35px rgba(0, 240, 255, 0.15);
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+
+        .title-area h1 { 
+            font-family: var(--font-cyber);
+            color: var(--border); 
+            font-size: 19px; 
+            font-weight: 900;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        /* HARDCORE RESPONSIVE GRID MATRIX */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .box { 
+            background: var(--panel-inner); 
+            border: 1px solid rgba(0, 240, 255, 0.4); 
+            padding: 14px; 
+            border-radius: 4px;
+        }
+
+        .cat-title {
+            font-family: var(--font-cyber);
+            font-size: 10px;
+            color: var(--orange);
+            margin: 12px 0 6px 0;
+            padding-left: 5px;
+            border-left: 2px solid var(--orange);
+            letter-spacing: 0.5px;
+        }
+
+        .ticker-list {
+            max-height: 300px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-right: 2px;
+        }
+
+        .asset-btn {
+            width: 100%;
+            background: #000;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            color: var(--white);
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+        .asset-btn:hover { border-color: var(--border); background: rgba(0, 240, 255, 0.03); }
+        .asset-btn.active { border-color: var(--accent); background: rgba(0, 255, 170, 0.08); box-shadow: inset 0 0 8px rgba(0, 255, 170, 0.1); }
+
+        /* HERO DISPLAY */
+        .hero-banner {
+            background: #05030f; 
+            margin-bottom: 15px; 
+            display: flex; 
+            flex-direction: column;
+            gap: 15px;
+            border-left: 4px solid var(--border);
+        }
+
+        .hero-title-side h2 { font-size: 20px; font-family: var(--font-cyber); color: var(--white); line-height: 1.2; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .metric-card { background: rgba(0,0,0,0.4); border: 1px solid rgba(0, 240, 255, 0.2); padding: 12px; border-radius: 4px; }
+        .m-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: var(--font-mono); font-size: 13px; }
+
+        .spread-box {
+            background: #04020a;
+            border: 1px dashed var(--orange);
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .spread-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .verdict-box { background: #000; border-left: 4px solid var(--accent); padding: 14px; font-size: 14px; line-height: 1.5; border-radius: 0 4px 4px 0; }
+
+        /* RASIERTES STYLING FÜR PREISE & PROZENTE */
+        .price-text { font-size: 26px; font-family: var(--font-cyber); font-weight: 900; letter-spacing: -1px; }
+        .change-text { font-size: 14px; font-family: var(--font-mono); font-weight: bold; }
+
+        .txt-green { color: var(--accent); }
+        .txt-red { color: var(--red); }
+        .txt-gold { color: var(--orange); }
+        .txt-blue { color: var(--border); }
+
+        /* -----------------------------------------
+           MEDIA QUERIES FÜR MAXIMALE READABILITY
+        ----------------------------------------- */
+        
+        /* Tablet & Desktop Layouts */
+        @media (min-width: 768px) {
+            body { padding: 15px; }
+            .container { padding: 20px; }
+            header { flex-direction: row; justify-content: space-between; align-items: center; }
+            .title-area h1 { font-size: 23px; }
+            .ticker-list { max-height: 450px; }
+            .hero-banner { flex-direction: row; justify-content: space-between; align-items: center; }
+            .hero-title-side h2 { font-size: 22px; }
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            .spread-grid { grid-template-columns: repeat(2, 1fr); }
+            .price-text { font-size: 32px; }
+        }
+
+        /* High-Res Big Screens */
+        @media (min-width: 1200px) {
+            .layout-grid { grid-template-columns: 360px 1fr; }
+            .ticker-list { max-height: 720px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="title-area">
+            <h1>🛡️ QUANT MACRO SPREAD TERMINAL v4.1</h1>
+            <p style="font-size:11px; color: var(--muted); font-family: var(--font-cyber);">Intermarket Divergence Engine // Institutional Spread Matrix</p>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 12px; color: var(--accent);" id="apiStatus">CLUSTER CORE: INITIALIZING...</div>
+    </header>
+
+    <div class="layout-grid">
+        <div class="box">
+            <h3 style="font-family:var(--font-cyber); font-size:12px; color:var(--border); margin-bottom:8px; border-bottom: 1px solid rgba(0,240,255,0.2); padding-bottom:5px;">📊 INDEX REGISTRY</h3>
+            <div class="ticker-list" id="sidebarContainer"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column;">
+            <div class="box hero-banner">
+                <div class="hero-title-side">
+                    <span style="font-family:var(--font-cyber); font-size:10px; color:var(--muted); display:block; margin-bottom:2px;">TARGET BENCHMARK METRIC</span>
+                    <h2 id="indexName">-</h2>
+                    <div style="font-size:12px; font-family:var(--font-mono); color:var(--muted); margin-top:4px;">
+                        System: <span id="indexTicker" class="txt-blue">-</span> // Cluster: <span id="indexCat" class="txt-gold">-</span>
+                    </div>
+                </div>
+                <div style="text-align: left; min-width: 160px;">
+                    <span style="font-family:var(--font-cyber); font-size:10px; color:var(--accent); display:block; margin-bottom:2px;">INDEX POINTS (LIVE)</span>
+                    <div id="indexPrice" class="price-text txt-green">LOADING...</div>
+                    <div id="indexChange" class="change-text">-</div>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h4 style="font-family:var(--font-cyber); font-size:11px; color:var(--border); margin-bottom:10px; text-transform:uppercase; border-bottom:1px solid rgba(0,240,255,0.1); padding-bottom:4px;">⚡ Bandwidth DATA</h4>
+                    <div class="m-row"><span>Intraday High:</span> <span id="m-high">-</span></div>
+                    <div class="m-row"><span>Intraday Low:</span> <span id="m-low">-</span></div>
+                    <div class="m-row"><span>Opening Print:</span> <span id="m-open">-</span></div>
+                    <div class="m-row"><span>Previous Close:</span> <span id="m-prev">-</span></div>
+                </div>
+
+                <div class="metric-card">
+                    <h4 style="font-family:var(--font-cyber); font-size:11px; color:var(--orange); margin-bottom:10px; text-transform:uppercase; border-bottom:1px solid rgba(255,119,0,0.1); padding-bottom:4px;">📐 Dispersion Analytics</h4>
+                    <div class="m-row"><span>Range Dispersion:</span> <span id="r-dispersion" class="txt-blue">-</span></div>
+                    <div class="m-row"><span>Friction Multiplier:</span> <span id="r-vola" class="txt-gold">-</span></div>
+                    <div class="m-row"><span>Momentum Vector:</span> <span id="r-vector">-</span></div>
+                </div>
+            </div>
+
+            <div class="spread-box">
+                <h4 style="font-family:var(--font-cyber); font-size:11px; color:var(--orange); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">🔗 INTERMARKET SPREAD MATRIX (ANTI-NaN SHIELD)</h4>
+                <div class="spread-grid">
+                    <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:3px;">
+                        <div style="color:var(--muted); font-size:10px; font-family:var(--font-cyber); margin-bottom:4px;">🛢️ ENERGY-EQUITY GAP (BCOMCL vs SIXE)</div>
+                        <div class="m-row" style="border:none; padding:2px 0;"><span>Spread Performance-Gap:</span> <span id="spreadEnergy" class="txt-blue">0.00%</span></div>
+                        <div id="spreadEnergyStatus" style="font-size:11px; margin-top:5px; color:var(--muted); line-height:1.3;">-</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:3px;">
+                        <div style="color:var(--muted); font-size:10px; font-family:var(--font-cyber); margin-bottom:4px;">🏛️ RISK-ON MONITOR (SX7E vs SX6E)</div>
+                        <div class="m-row" style="border:none; padding:2px 0;"><span>Spread Alpha-Gap:</span> <span id="spreadRisk" class="txt-blue">0.00%</span></div>
+                        <div id="spreadRiskStatus" style="font-size:11px; margin-top:5px; color:var(--muted); line-height:1.3;">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="verdict-box">
+                <strong class="txt-blue" style="font-family:var(--font-cyber); font-size:12px; text-transform:uppercase; display:block; margin-bottom:5px;">📊 Algorithmic Macro Regime Verdict:</strong>
+                <div id="verdictText" style="color: #b1a4cb;">Berechne Zustand im Cluster-Netzwerk...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const PROXY_URL = 'https://gemini-os.replit.app/api/eod';
+
+    const macroRegistry = [
+        { cat: "🌋 Commodities: Broad / Energy", tickers: [
+            { code: "BCOM", name: "Bloomberg Commodity Broad Index" },
+            { code: "BCOMEN", name: "Bloomberg Energy Sector Index" },
+            { code: "BCOMCL", name: "Bloomberg WTI Crude Oil Index" },
+            { code: "BCOMCO", name: "Bloomberg Brent Crude Index" },
+            { code: "BCOMNG", name: "Bloomberg Natural Gas Index" }
+        ]},
+        { cat: "✨ Commodities: Metals", tickers: [
+            { code: "BCOMPR", name: "Bloomberg Precious Metals Index" },
+            { code: "BCOMGC", name: "Bloomberg Gold Index" },
+            { code: "BCOMSI", name: "Bloomberg Silver Index" },
+            { code: "BCOMIN", name: "Bloomberg Industrial Metals Index" },
+            { code: "BCOMHG", name: "Bloomberg Copper Index" }
+        ]},
+        { cat: "🇺🇸 US Market Sectors (CBOE Group)", tickers: [
+            { code: "SIXE", name: "Energy Select Sector Index" },
+            { code: "SIXM", name: "Financial Select Sector Index" },
+            { code: "SIXB", name: "Materials Select Sector Index" },
+            { code: "SIXI", name: "Industrials Select Sector Index" },
+            { code: "SIXC", name: "Communication Services Sector Index" }
+        ]},
+        { cat: "🇪🇺 European Sectors (STOXX Group)", tickers: [
+            { code: "SX7E", name: "EURO STOXX Banks PR Index" },
+            { code: "SX6E", name: "EURO STOXX Utilities PR Index" },
+            { code: "SX4E", name: "EURO STOXX Chemicals PR Index" },
+            { code: "SX3E", name: "EURO STOXX Food & Beverage PR Index" }
+        ]}
+    ];
+
+    // NaN-Schutz: Garantierte numerische Fallbacks
+    let globalPerformanceCache = {
+        "BCOMCL": 0.0,
+        "SIXE": 0.0,
+        "SX7E": 0.0,
+        "SX6E": 0.0
+    };
+
+    function initTerminal() {
+        const container = document.getElementById('sidebarContainer');
+        container.innerHTML = "";
+
+        macroRegistry.forEach(group => {
+            const catHeader = document.createElement('div');
+            catHeader.className = "cat-title";
+            catHeader.textContent = group.cat.toUpperCase();
+            container.appendChild(catHeader);
+
+            group.tickers.forEach(t => {
+                const btn = document.createElement('button');
+                btn.className = "asset-btn";
+                btn.id = `btn-${t.code}`;
+                btn.innerHTML = `<span>▶ ${t.code}</span><span style="font-size:11px; opacity:0.5; max-width:170px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${t.name}</span>`;
+                btn.onclick = () => executeMacroPipeline(t.code, t.name, group.cat);
+                container.appendChild(btn);
+            });
+        });
+
+        preloadSpreadAnchors();
+        const first = macroRegistry[0].tickers[0];
+        executeMacroPipeline(first.code, first.name, macroRegistry[0].cat);
+    }
+
+    async function preloadSpreadAnchors() {
+        const anchors = ["BCOMCL", "SIXE", "SX7E", "SX6E"];
+        for (let a of anchors) {
+            try {
+                let res = await fetch(`${PROXY_URL}?symbol=${a}.INDX&endpoint=real-time`);
+                if(res.ok) {
+                    let d = await res.json();
+                    // NaN Schutz: Nur überschreiben wenn d.change_p eine echte Zahl ist
+                    if(d && d.change_p && !isNaN(parseFloat(d.change_p))) {
+                        globalPerformanceCache[a] = parseFloat(d.change_p);
+                    }
+                }
+            } catch(e) {
+                globalPerformanceCache[a] = 0.0;
+            }
+        }
+        calculateIntermarketSpreads();
+    }
+
+    async function executeMacroPipeline(code, name, category) {
+        document.querySelectorAll('.asset-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.getElementById(`btn-${code}`);
+        if(activeBtn) activeBtn.classList.add('active');
+
+        document.getElementById('indexName').textContent = name;
+        document.getElementById('indexTicker').textContent = code + ".INDX";
+        document.getElementById('indexCat').textContent = category;
+        document.getElementById('indexPrice').textContent = "QUANT CORE SYNC...";
+
+        try {
+            let res = await fetch(`${PROXY_URL}?symbol=${code}.INDX&endpoint=real-time`);
+            if(res.ok) {
+                let data = await res.json();
+                if(data && data.close && parseFloat(data.close) > 0) {
+                    if(data.change_p && globalPerformanceCache.hasOwnProperty(code) && !isNaN(parseFloat(data.change_p))) {
+                        globalPerformanceCache[code] = parseFloat(data.change_p);
+                    }
+                    renderTerminal(data, code);
+                    calculateIntermarketSpreads();
+                    return;
+                }
+            }
+            triggerSyntheticFallback(code);
+        } catch (e) {
+            triggerSyntheticFallback(code);
+        }
+    }
+
+    function calculateIntermarketSpreads() {
+        // Mathematische Absicherung gegen ungeladene Werte (NaN-Schutz)
+        let oilPerf = parseFloat(globalPerformanceCache["BCOMCL"]) || 0.0;
+        let energyStocksPerf = parseFloat(globalPerformanceCache["SIXE"]) || 0.0;
+        let energySpread = oilPerf - energyStocksPerf;
+        
+        const energyElem = document.getElementById('spreadEnergy');
+        const energyStatus = document.getElementById('spreadEnergyStatus');
+        energyElem.textContent = (energySpread >= 0 ? "+" : "") + energySpread.toFixed(2) + "%";
+        
+        if(Math.abs(energySpread) > 1.0) {
+            energyElem.className = "txt-red";
+            energyStatus.textContent = energySpread > 0 
+                ? "🚨 ARBITRAGE: Öl pumpt vorwärts, Aktien hängen hinterher! Eventueller künstlicher Future-Squeeze."
+                : "⚠️ RISK OUT-OF-SYNC: Energie-Aktien steigen ohne physischen Öl-Support. Rally wackelig.";
+        } else {
+            energyElem.className = "txt-green";
+            energyStatus.textContent = "🟢 SPREAD NORMAL: Physischer Rohstoff und Equity-Sektor korrelieren stabil.";
+        }
+
+        let bankPerf = parseFloat(globalPerformanceCache["SX7E"]) || 0.0;
+        let utilityPerf = parseFloat(globalPerformanceCache["SX6E"]) || 0.0;
+        let riskSpread = bankPerf - utilityPerf;
+
+        const riskElem = document.getElementById('spreadRisk');
+        const riskStatus = document.getElementById('spreadRiskStatus');
+        riskElem.textContent = (riskSpread >= 0 ? "+" : "") + riskSpread.toFixed(2) + "%";
+
+        if(riskSpread > 0.5) {
+            riskElem.className = "txt-green";
+            riskStatus.textContent = "🚀 CYCLICAL RISK-ON: Kapital akkumuliert Banken und meidet defensive Utilities.";
+        } else if(riskSpread < -0.5) {
+            riskElem.className = "txt-red";
+            riskStatus.textContent = "🚨 SAFE HAVEN FLIGHT: Institutionelle rotieren fluchtartig in Utilities. Stress im Bankensektor!";
+        } else {
+            riskElem.className = "txt-blue";
+            riskStatus.textContent = "⚖️ NEUTRAL DISTRIBUTION: Ausgeglichene Gewichtung zwischen defensiven und zyklischen Assets.";
+        }
+    }
+
+    function renderTerminal(data, code) {
+        let price = parseFloat(data.close);
+        let high = data.high ? parseFloat(data.high) : price;
+        let low = data.low ? parseFloat(data.low) : price;
+        let open = data.open ? parseFloat(data.open) : price;
+        let prev = data.previousClose ? parseFloat(data.previousClose) : price;
+        let cp = data.change_p ? parseFloat(data.change_p) : 0;
+
+        document.getElementById('indexPrice').textContent = price.toLocaleString('de-DE', { minimumFractionDigits: 2 });
+        document.getElementById('indexChange').textContent = (cp >= 0 ? "+" : "") + cp.toFixed(2) + "%";
+        document.getElementById('indexChange').className = cp >= 0 ? "txt-green" : "txt-red";
+
+        document.getElementById('m-high').textContent = high.toLocaleString('de-DE', { minimumFractionDigits: 2 });
+        document.getElementById('m-low').textContent = low.toLocaleString('de-DE', { minimumFractionDigits: 2 });
+        document.getElementById('m-open').textContent = open.toLocaleString('de-DE', { minimumFractionDigits: 2 });
+        document.getElementById('m-prev').textContent = prev.toLocaleString('de-DE', { minimumFractionDigits: 2 });
+
+        let dispersion = open > 0 ? ((high - low) / open) * 100 : 0.5;
+        document.getElementById('r-dispersion').textContent = dispersion.toFixed(2) + "%";
+
+        let riskMultiplier = "🟢 LOW RISK STREAM";
+        if(dispersion > 2.0) { riskMultiplier = "💥 HIGH TENSION SQUEEZE"; document.getElementById('r-vola').className = "txt-red"; }
+        else if(dispersion > 1.0) { riskMultiplier = "🟡 ACTIVE DISPERSION"; document.getElementById('r-vola').className = "txt-gold"; }
+        else { document.getElementById('r-vola').className = "txt-green"; }
+        document.getElementById('r-vola').textContent = riskMultiplier;
+
+        document.getElementById('r-vector').textContent = cp > 0.5 ? "🏹 ACCUMULATION VECTOR" : (cp < -0.5 ? "🚨 LIQUIDATION VECTOR" : "⚖️ MEAN REVERSION");
+        document.getElementById('r-vector').className = cp >= 0 ? "txt-green" : "txt-red";
+
+        // Taktisches Macro Regime Verdict v4.1
+        let stateText = "";
+        if (code === "BCOMCL" || code === "SIXE") {
+            let oilP = parseFloat(globalPerformanceCache["BCOMCL"]) || 0.0;
+            let engP = parseFloat(globalPerformanceCache["SIXE"]) || 0.0;
+            let gap = Math.abs(oilP - engP);
+            if (gap > 1.2) {
+                stateText = `🚨 STRATEGISCHE ARBITRAGE-WARNUNG! Der Intermarket-Spread zwischen WTI-Rohöl und US-Energieaktien klafft mit ${gap.toFixed(2)}% weit auseinander. Entweder antizipiert der Aktienmarkt sinkende physische Nachfrage oder der Future-Markt overperformt spekulativ.`;
+            } else {
+                stateText = `🟢 SYNCED ENERGY CLUSTER. Physische Rohstoffpreise und Aktien-Equity fließen im perfekten Gleichschritt. Keine Divergenzen detektiert. Trend intakt.`;
+            }
+        } else if (code.startsWith("SX")) {
+            let b = parseFloat(globalPerformanceCache["SX7E"]) || 0.0;
+            let u = parseFloat(globalPerformanceCache["SX6E"]) || 0.0;
+            if (b - u > 0.5) {
+                stateText = `🚀 AGGRESSIVES RISK-ON REGIME. Die Stoxx-Sektorrotation beweist: Banken verzeichnen massive Zuflüsse auf Kosten defensiver Versorger. Das institutionelle Kapital bereitet sich auf wirtschaftliche Expansion vor.`;
+            } else if (b - u < -0.5) {
+                stateText = `🚨 RISK-OFF REGIME / SYSTEMISCHER SCHUTZFLUG. Banken werden abverkauft, während Geld in krisenresistente Utilities umgeschichtet wird. Die Insider sichern sich geräuschlos gegen Marktturbulenzen ab!`;
+            } else {
+                stateText = `⚖️ MACRO EQUILIBRIUM. Keine extremen Umschichtungen in Europa messbar. Sektoren verhalten sich stabil innerhalb der normalen Konfidenzbänder.`;
+            }
+        } else {
+            stateText = `📊 MONITORE CLUSTER-DYNAMIK... Das System berechnet die Range Dispersion (${dispersion.toFixed(2)}%) und aktualisiert fortlaufend die Intermarket Spread Matrix. Wähle gezielt Ticker aus der Navigation für Echtzeit-Analysen.`;
+        }
+        document.getElementById('verdictText').textContent = stateText;
+    }
+
+    function triggerSyntheticFallback(code) {
+        let seed = code.charCodeAt(0) || 60;
+        let base = 120 + (seed % 150) + (Math.random() * 3);
+        let mock = { close: base, high: base*1.008, low: base*0.992, open: base*1.002, previousClose: base*0.997, change_p: 0.45 };
+        renderTerminal(mock, code);
+        document.getElementById('indexPrice').innerHTML += ` <span style="font-size:10px; color:var(--orange);">[SYNTH-DATA]</span>`;
+    }
+
+    window.onload = initTerminal;
+</script>
+</body>
+</html>

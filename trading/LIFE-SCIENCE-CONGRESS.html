@@ -1,0 +1,1101 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US Congress Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a3668;
+            --secondary-color: #2a5298;
+            --accent-color: #4a6fa5;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-family: 'Georgia', 'Times New Roman', Times, serif;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+
+        .results-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+
+        .detail-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+
+        .chart-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table th {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .party-democrat {
+            color: #1a3668;
+        }
+
+        .party-republican {
+            color: #dc3545;
+        }
+
+        .party-independent {
+            color: #ffc107;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .example-dropdown {
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem 0;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .search-card, .results-container, .detail-container, .chart-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <header class="header rounded-3 mb-4">
+            <div class="container px-4">
+                <h1 class="display-5 fw-bold mb-2"><i class="fas fa-landmark me-3"></i>US Congress Explorer</h1>
+                <p class="lead">Entdecken Sie Abgeordnete, Gesetze und Abstimmungen im US-Kongress</p>
+            </div>
+        </header>
+
+        <main>
+            <div class="search-card">
+                <div class="example-dropdown">
+                    <label for="exampleQueries" class="form-label">Beispiel-Abfragen</label>
+                    <select class="form-select" id="exampleQueries">
+                        <option value="">-- Beispiel auswählen --</option>
+                       
+                        <option value="bills:American Rescue Plan">Gesetz: American Rescue Plan</option>
+                        <option value="bills:Infrastructure Investment">Gesetz: Infrastructure Investment</option>
+                        <option value="bills:COVID-19 Relief">Gesetz: COVID-19 Relief</option>
+                        <option value="bills:Tax Cuts and Jobs Act">Gesetz: Tax Cuts and Jobs Act</option>
+                        <option value="votes:American Rescue Plan">Abstimmung: American Rescue Plan</option>
+                        <option value="votes:Infrastructure Investment">Abstimmung: Infrastructure Investment</option>
+                        <option value="votes:COVID-19 Relief">Abstimmung: COVID-19 Relief</option>
+                        <option value="votes:Tax Cuts and Jobs Act">Abstimmung: Tax Cuts and Jobs Act</option>
+                        <option value="committees:Ways and Means">Ausschuss: Ways and Means</option>
+                        <option value="committees:Finance">Ausschuss: Finance</option>
+                        <option value="committees:Judiciary">Ausschuss: Judiciary</option>
+                        <option value="committees:Energy and Commerce">Ausschuss: Energy and Commerce</option>
+                    </select>
+                </div>
+
+                <form id="searchForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="searchQuery" class="form-label">Abgeordneter / Begriff</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" class="form-control" id="searchQuery" placeholder="Name, Partei, Staat">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dataType" class="form-label">Datentyp</label>
+                            <select class="form-select" id="dataType">
+                                
+                                
+                                <option value="bills">Gesetze</option>
+                                <option value="votes">Abstimmungen</option>
+                                <option value="committees">Ausschüsse</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="partyFilter" class="form-label">Partei</label>
+                            <select class="form-select" id="partyFilter">
+                                <option value="">Alle</option>
+                                <option value="Democrat">Demokraten</option>
+                                <option value="Republican">Republikaner</option>
+                                <option value="Independent">Unabhängige</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search me-2"></i>Suchen
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="loadingContainer" class="text-center py-4 d-none">
+                <div class="loading-spinner"></div>
+                <p class="mt-3">Daten werden geladen...</p>
+            </div>
+
+            <div id="errorContainer" class="alert alert-danger d-none" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+
+            <div id="chartContainer" class="chart-container d-none">
+                <h2 class="h4 mb-4">Sitzverteilung nach Partei</h2>
+                <canvas id="partyChart"></canvas>
+            </div>
+
+            <div id="resultsContainer" class="results-container d-none">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="h4">Ergebnisse</h2>
+                    <div>
+                        <button id="exportCSV" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-file-csv me-2"></i>CSV exportieren
+                        </button>
+                        <button id="exportPDF" class="btn btn-outline-primary">
+                            <i class="fas fa-file-pdf me-2"></i>PDF exportieren
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="resultsTable" class="table table-striped table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Partei</th>
+                                <th>Bundesstaat</th>
+                                <th>Amtszeit</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Ergebnisse werden hier dynamisch eingefügt -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="detailContainer" class="detail-container d-none">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="h4">Detailansicht</h2>
+                    <button id="backButton" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Zurück
+                    </button>
+                </div>
+
+                <div id="detailContent">
+                    <!-- Detailansicht wird hier dynamisch eingefügt -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Statische Daten -->
+    <script>
+        // Statische Daten für Abgeordnete, Gesetze, Abstimmungen und Ausschüsse
+        const staticData = {
+            people: [
+                {
+                    id: 1,
+                    firstname: "Nancy",
+                    lastname: "Pelosi",
+                    party: "Democrat",
+                    state: "CA",
+                    district: "12",
+                    startdate: "2003-01-03",
+                    enddate: "",
+                    birthday: "1940-03-26",
+                    link: "https://www.house.gov/representatives/nancy-pelosi",
+                    bioguide_id: "P000197",
+                    bills_sponsored: [
+                        { title: "H.R. 1", introduced_date: "2023-01-01", current_status: "Introduced" },
+                        { title: "H.R. 2", introduced_date: "2023-02-01", current_status: "Passed House" }
+                    ]
+                },
+                {
+                    id: 2,
+                    firstname: "Mitch",
+                    lastname: "McConnell",
+                    party: "Republican",
+                    state: "KY",
+                    district: "6",
+                    startdate: "1985-01-03",
+                    enddate: "",
+                    birthday: "1942-02-20",
+                    link: "https://www.mcconnell.senate.gov",
+                    bioguide_id: "M000303",
+                    bills_sponsored: [
+                        { title: "S. 1", introduced_date: "2023-01-15", current_status: "Introduced" },
+                        { title: "S. 2", introduced_date: "2023-02-15", current_status: "Passed Senate" }
+                    ]
+                },
+                {
+                    id: 3,
+                    firstname: "Alexandria",
+                    lastname: "Ocasio-Cortez",
+                    party: "Democrat",
+                    state: "NY",
+                    district: "14",
+                    startdate: "2019-01-03",
+                    enddate: "",
+                    birthday: "1989-10-13",
+                    link: "https://ocasio-cortez.house.gov",
+                    bioguide_id: "O000172",
+                    bills_sponsored: [
+                        { title: "H.R. 3", introduced_date: "2023-03-01", current_status: "Introduced" },
+                        { title: "H.R. 4", introduced_date: "2023-04-01", current_status: "Passed House" }
+                    ]
+                },
+                {
+                    id: 4,
+                    firstname: "Ted",
+                    lastname: "Lieu",
+                    party: "Republican",
+                    state: "WA",
+                    district: "3",
+                    startdate: "1989-01-03",
+                    enddate: "",
+                    birthday: "1950-06-22",
+                    link: "https://lieu.house.gov",
+                    bioguide_id: "L000492",
+                    bills_sponsored: [
+                        { title: "H.R. 5", introduced_date: "2023-05-01", current_status: "Introduced" },
+                        { title: "H.R. 6", introduced_date: "2023-06-01", current_status: "Passed House" }
+                    ]
+                },
+                {
+                    id: 5,
+                    firstname: "Jerrold",
+                    lastname: "Nadler",
+                    party: "Democrat",
+                    state: "NY",
+                    district: "10",
+                    startdate: "1992-01-06",
+                    enddate: "",
+                    birthday: "1947-06-14",
+                    link: "https://nadler.house.gov",
+                    bioguide_id: "N000008",
+                    bills_sponsored: [
+                        { title: "H.R. 7", introduced_date: "2023-07-01", current_status: "Introduced" },
+                        { title: "H.R. 8", introduced_date: "2023-08-01", current_status: "Passed House" }
+                    ]
+                }
+            ],
+            bills: [
+                {
+                    id: 1,
+                    title: "H.R. 1: The American Rescue Plan Act of 2021",
+                    sponsor_party: "Democrat",
+                    sponsor_state: "CA",
+                    introduced_date: "2021-03-11",
+                    current_status: "Enacted",
+                    summary: "The American Rescue Plan Act of 2021 is a $1.9 trillion economic stimulus package passed by the 117th United States Congress and signed into law by President Joe Biden on March 11, 2021.",
+                    votes: [
+                        { question: "Passage", result: "Passed", created: "2021-03-11" },
+                        { question: "Amendment", result: "Failed", created: "2021-03-10" }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "S. 1: The Infrastructure Investment and Jobs Act",
+                    sponsor_party: "Democrat",
+                    sponsor_state: "CA",
+                    introduced_date: "2021-11-15",
+                    current_status: "Enacted",
+                    summary: "The Infrastructure Investment and Jobs Act is a $1.2 trillion infrastructure package passed by the 117th United States Congress and signed into law by President Joe Biden on November 15, 2021.",
+                    votes: [
+                        { question: "Passage", result: "Passed", created: "2021-11-15" },
+                        { question: "Amendment", result: "Failed", created: "2021-11-14" }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "H.R. 2: The COVID-19 HEROES Act",
+                    sponsor_party: "Democrat",
+                    sponsor_state: "CA",
+                    introduced_date: "2020-04-10",
+                    current_status: "Enacted",
+                    summary: "The COVID-19 HEROES Act is a $2.2 trillion economic stimulus package passed by the 116th United States Congress and signed into law by President Donald Trump on March 27, 2020.",
+                    votes: [
+                        { question: "Passage", result: "Passed", created: "2020-04-10" },
+                        { question: "Amendment", result: "Failed", created: "2020-04-09" }
+                    ]
+                },
+                {
+                    id: 4,
+                    title: "S. 1: The Tax Cuts and Jobs Act of 2017",
+                    sponsor_party: "Republican",
+                    sponsor_state: "TX",
+                    introduced_date: "2017-02-02",
+                    current_status: "Enacted",
+                    summary: "The Tax Cuts and Jobs Act of 2017 is a $1.5 trillion tax reform package passed by the 115th United States Congress and signed into law by President Donald Trump on December 22, 2017.",
+                    votes: [
+                        { question: "Passage", result: "Passed", created: "2017-02-02" },
+                        { question: "Amendment", result: "Failed", created: "2017-02-01" }
+                    ]
+                }
+            ],
+            votes: [
+                {
+                    id: 1,
+                    question: "H.R. 1: The American Rescue Plan Act of 2021",
+                    result: "Passed",
+                    created: "2021-03-11",
+                    session: "117th Congress",
+                    description: "Vote on passage of the American Rescue Plan Act of 2021",
+                    voter_states: [
+                        { state: "CA", option: "Yea", total: 53 },
+                        { state: "NY", option: "Yea", total: 27 },
+                        { state: "TX", option: "Nay", total: 36 }
+                    ]
+                },
+                {
+                    id: 2,
+                    question: "S. 1: The Infrastructure Investment and Jobs Act",
+                    result: "Passed",
+                    created: "2021-11-15",
+                    session: "117th Congress",
+                    description: "Vote on passage of the Infrastructure Investment and Jobs Act",
+                    voter_states: [
+                        { state: "CA", option: "Yea", total: 53 },
+                        { state: "NY", option: "Yea", total: 27 },
+                        { state: "TX", option: "Nay", total: 36 }
+                    ]
+                },
+                {
+                    id: 3,
+                    question: "H.R. 2: The COVID-19 HEROES Act",
+                    result: "Passed",
+                    created: "2020-04-10",
+                    session: "116th Congress",
+                    description: "Vote on passage of the COVID-19 HEROES Act",
+                    voter_states: [
+                        { state: "CA", option: "Yea", total: 53 },
+                        { state: "NY", option: "Yea", total: 27 },
+                        { state: "TX", option: "Nay", total: 36 }
+                    ]
+                },
+                {
+                    id: 4,
+                    question: "S. 1: The Tax Cuts and Jobs Act of 2017",
+                    result: "Passed",
+                    created: "2017-02-02",
+                    session: "115th Congress",
+                    description: "Vote on passage of the Tax Cuts and Jobs Act of 2017",
+                    voter_states: [
+                        { state: "CA", option: "Yea", total: 53 },
+                        { state: "NY", option: "Yea", total: 27 },
+                        { state: "TX", option: "Nay", total: 36 }
+                    ]
+                }
+            ],
+            committees: [
+                {
+                    id: 1,
+                    name: "House Committee on Ways and Means",
+                    chamber: "House",
+                    startdate: "1919-03-04",
+                    enddate: "",
+                    description: "The House Committee on Ways and Means is a standing committee of the United States House of Representatives.",
+                    members: [
+                        { name: "Nancy Pelosi", party: "Democrat", state: "CA" },
+                        { name: "Richard Neal", party: "Democrat", state: "MA" },
+                        { name: "Dave Camp", party: "Republican", state: "MI" }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "Senate Committee on Finance",
+                    chamber: "Senate",
+                    startdate: "1971-01-13",
+                    enddate: "",
+                    description: "The Senate Committee on Finance is a standing committee of the United States Senate.",
+                    members: [
+                        { name: "Ron Wyden", party: "Democrat", state: "OR" },
+                        { name: "Sherrod Brown", party: "Democrat", state: "OH" },
+                        { name: "Mitch McConnell", party: "Republican", state: "KY" }
+                    ]
+                },
+                {
+                    id: 3,
+                    name: "House Committee on the Judiciary",
+                    chamber: "House",
+                    startdate: "1816-03-04",
+                    enddate: "",
+                    description: "The House Committee on the Judiciary is a standing committee of the United States House of Representatives.",
+                    members: [
+                        { name: "Jerrold Nadler", party: "Democrat", state: "NY" },
+                        { name: "Jim Jordan", party: "Republican", state: "OH" },
+                        { name: "John Lewis", party: "Democrat", state: "GA" }
+                    ]
+                },
+                {
+                    id: 4,
+                    name: "House Committee on Energy and Commerce",
+                    chamber: "House",
+                    startdate: "1977-01-04",
+                    enddate: "",
+                    description: "The House Committee on Energy and Commerce is a standing committee of the United States House of Representatives.",
+                    members: [
+                        { name: "Frank Pallone", party: "Democrat", state: "NJ" },
+                        { name: "Greg Walden", party: "Republican", state: "OR" },
+                        { name: "Erik Paulsen", party: "Democrat", state: "MN" }
+                    ]
+                }
+            ]
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.getElementById('searchForm');
+            const searchQuery = document.getElementById('searchQuery');
+            const dataType = document.getElementById('dataType');
+            const partyFilter = document.getElementById('partyFilter');
+            const exampleQueries = document.getElementById('exampleQueries');
+            const loadingContainer = document.getElementById('loadingContainer');
+            const errorContainer = document.getElementById('errorContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            const chartContainer = document.getElementById('chartContainer');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const detailContainer = document.getElementById('detailContainer');
+            const detailContent = document.getElementById('detailContent');
+            const backButton = document.getElementById('backButton');
+            const exportCSV = document.getElementById('exportCSV');
+            const exportPDF = document.getElementById('exportPDF');
+
+            let resultsTable = null;
+            let partyChart = null;
+            let currentData = [];
+
+            // Beispiel-Abfragen-Dropdown-Handler
+            exampleQueries.addEventListener('change', function() {
+                const selectedExample = this.value.split(':');
+                if (selectedExample.length === 2) {
+                    dataType.value = selectedExample[0];
+                    searchQuery.value = selectedExample[1];
+                    fetchData();
+                }
+            });
+
+            // Formular-Submit-Handler
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                fetchData();
+            });
+
+            // Zurück-Button-Handler
+            backButton.addEventListener('click', function() {
+                detailContainer.classList.add('d-none');
+                resultsContainer.classList.remove('d-none');
+            });
+
+            // CSV-Export-Button-Handler
+            exportCSV.addEventListener('click', function() {
+                exportTableToCSV('congress_data.csv');
+            });
+
+            // PDF-Export-Button-Handler
+            exportPDF.addEventListener('click', function() {
+                exportTableToPDF('congress_data.pdf');
+            });
+
+            // Daten abrufen (simuliert)
+            function fetchData() {
+                const query = searchQuery.value.trim().toLowerCase();
+                const type = dataType.value;
+                const party = partyFilter.value;
+
+                if (!query && type === 'people') {
+                    showError('Bitte geben Sie einen Suchbegriff ein.');
+                    return;
+                }
+
+                showLoading();
+
+                // Simulierte Verzögerung für den Ladevorgang
+                setTimeout(() => {
+                    hideLoading();
+
+                    // Daten filtern
+                    let filteredData = staticData[type];
+
+                    if (query) {
+                        filteredData = filteredData.filter(item => {
+                            if (type === 'people') {
+                                return item.firstname.toLowerCase().includes(query) ||
+                                       item.lastname.toLowerCase().includes(query) ||
+                                       item.party.toLowerCase().includes(query) ||
+                                       item.state.toLowerCase().includes(query);
+                            } else if (type === 'bills') {
+                                return item.title.toLowerCase().includes(query) ||
+                                       item.sponsor_party.toLowerCase().includes(query) ||
+                                       item.sponsor_state.toLowerCase().includes(query);
+                            } else if (type === 'votes') {
+                                return item.question.toLowerCase().includes(query) ||
+                                       item.result.toLowerCase().includes(query) ||
+                                       item.session.toLowerCase().includes(query);
+                            } else if (type === 'committees') {
+                                return item.name.toLowerCase().includes(query) ||
+                                       item.chamber.toLowerCase().includes(query);
+                            }
+                            return false;
+                        });
+                    }
+
+                    // Daten nach Partei filtern
+                    if (party) {
+                        filteredData = filteredData.filter(item => {
+                            if (type === 'people') {
+                                return item.party === party;
+                            } else if (type === 'bills') {
+                                return item.sponsor_party === party;
+                            } else if (type === 'votes') {
+                                return item.voter_states.some(state => state.option === party);
+                            } else if (type === 'committees') {
+                                return item.chamber === party;
+                            }
+                            return true;
+                        });
+                    }
+
+                    if (filteredData.length === 0) {
+                        showError('Keine Ergebnisse gefunden.');
+                        return;
+                    }
+
+                    currentData = filteredData;
+                    processData(filteredData, type);
+                }, 1000);
+            }
+
+            // Daten verarbeiten
+            function processData(data, type) {
+                hideError();
+
+                // Ergebnisse anzeigen
+                displayResults(data, type);
+
+                // Chart anzeigen
+                if (type === 'people') {
+                    displayPartyChart(data);
+                } else {
+                    chartContainer.classList.add('d-none');
+                }
+            }
+
+            // Ergebnisse anzeigen
+            function displayResults(data, type) {
+                // Tabelle initialisieren oder aktualisieren
+                if (resultsTable) {
+                    resultsTable.destroy();
+                }
+
+                const tableBody = $('#resultsTable tbody');
+                tableBody.empty();
+
+                data.forEach(item => {
+                    const row = document.createElement('tr');
+
+                    // Daten basierend auf Datentyp extrahieren
+                    let name, party, state, term;
+
+                    if (type === 'people') {
+                        name = `${item.firstname} ${item.lastname}`;
+                        party = item.party;
+                        state = item.state;
+                        term = `${item.startdate} - ${item.enddate || 'Aktuell'}`;
+                    } else if (type === 'bills') {
+                        name = item.title;
+                        party = item.sponsor_party || 'Unbekannt';
+                        state = item.sponsor_state || 'Unbekannt';
+                        term = item.introduced_date;
+                    } else if (type === 'votes') {
+                        name = item.question;
+                        party = item.result;
+                        state = item.session;
+                        term = item.created;
+                    } else if (type === 'committees') {
+                        name = item.name;
+                        party = item.chamber;
+                        state = item.id;
+                        term = `${item.startdate} - ${item.enddate || 'Aktuell'}`;
+                    }
+
+                    row.innerHTML = `
+                        <td>${name}</td>
+                        <td><span class="party-${party.toLowerCase()}">${party}</span></td>
+                        <td>${state}</td>
+                        <td>${term}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary view-details" data-item='${JSON.stringify(item)}'>
+                                <i class="fas fa-info-circle me-1"></i>Details
+                            </button>
+                        </td>
+                    `;
+
+                    tableBody.append(row);
+                });
+
+                // DataTable initialisieren
+                resultsTable = $('#resultsTable').DataTable({
+                    responsive: true,
+                    pageLength: 10,
+                    language: {
+                        // Lokale Einstellungen für deutsche Sprache
+                        "sEmptyTable": "Keine Daten in der Tabelle verfügbar",
+                        "sInfo": "_START_ bis _END_ von _TOTAL_ Einträgen",
+                        "sInfoEmpty": "0 bis 0 von 0 Einträgen",
+                        "sInfoFiltered": "(gefiltert von _MAX_ insgesamt Einträgen)",
+                        "sInfoPostFix": "",
+                        "sInfoThousands": ".",
+                        "sLengthMenu": "_MENU_ Einträge anzeigen",
+                        "sLoadingRecords": "Wird geladen...",
+                        "sProcessing": "Bitte warten...",
+                        "sSearch": "Suchen:",
+                        "sZeroRecords": "Keine übereinstimmenden Einträge gefunden",
+                        "oPaginate": {
+                            "sFirst": "Erste",
+                            "sLast": "Letzte",
+                            "sNext": "Nächste",
+                            "sPrevious": "Vorherige"
+                        },
+                        "oAria": {
+                            "sSortAscending": ": aktivieren, um Spalte aufsteigend zu sortieren",
+                            "sSortDescending": ": aktivieren, um Spalte absteigend zu sortieren"
+                        }
+                    }
+                });
+
+                // Event-Listener für Details-Buttons hinzufügen
+                document.querySelectorAll('.view-details').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const item = JSON.parse(this.getAttribute('data-item'));
+                        showDetails(item, type);
+                    });
+                });
+
+                resultsContainer.classList.remove('d-none');
+            }
+
+            // Detailansicht anzeigen
+            function showDetails(item, type) {
+                detailContent.innerHTML = '';
+
+                // Detailansicht basierend auf Datentyp erstellen
+                if (type === 'people') {
+                    detailContent.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <img src="${item.link ? item.link + '/photo' : 'https://via.placeholder.com/300'}" alt="${item.firstname} ${item.lastname}" class="img-fluid rounded">
+                            </div>
+                            <div class="col-md-8">
+                                <h3>${item.firstname} ${item.lastname}</h3>
+                                <p class="lead party-${item.party.toLowerCase()}">${item.party}</p>
+                                <p><strong>Bundesstaat:</strong> ${item.state}</p>
+                                <p><strong>Amtszeit:</strong> ${item.startdate} - ${item.enddate || 'Aktuell'}</p>
+                                <p><strong>Geburtsdatum:</strong> ${item.birthday || 'Unbekannt'}</p>
+                                <p><strong>Wahlkreis:</strong> ${item.district || 'Unbekannt'}</p>
+                                <p><strong>Website:</strong> <a href="${item.link || '#'}" target="_blank">${item.link || 'Keine Website verfügbar'}</a></p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h4>Biografie</h4>
+                            <p>${item.bioguide_id || 'Keine Biografie verfügbar.'}</p>
+                        </div>
+
+                        <div class="mt-4">
+                            <h4>Eingebrachte Bills</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Titel</th>
+                                            <th>Datum</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${item.bills_sponsored && item.bills_sponsored.length > 0 ?
+                                            item.bills_sponsored.map(bill => `
+                                                <tr>
+                                                    <td>${bill.title}</td>
+                                                    <td>${bill.introduced_date}</td>
+                                                    <td>${bill.current_status}</td>
+                                                </tr>
+                                            `).join('') :
+                                            '<tr><td colspan="3">Keine Bills verfügbar</td></tr>'
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else if (type === 'bills') {
+                    detailContent.innerHTML = `
+                        <h3>${item.title}</h3>
+                        <p class="lead party-${item.sponsor_party.toLowerCase()}">${item.sponsor_party}</p>
+                        <p><strong>Einführungsdatum:</strong> ${item.introduced_date}</p>
+                        <p><strong>Status:</strong> ${item.current_status}</p>
+                        <p><strong>Beschreibung:</strong> ${item.summary || 'Keine Beschreibung verfügbar.'}</p>
+
+                        <div class="mt-4">
+                            <h4>Abstimmungen</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Frage</th>
+                                            <th>Ergebnis</th>
+                                            <th>Datum</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${item.votes && item.votes.length > 0 ?
+                                            item.votes.map(vote => `
+                                                <tr>
+                                                    <td>${vote.question}</td>
+                                                    <td>${vote.result}</td>
+                                                    <td>${vote.created}</td>
+                                                </tr>
+                                            `).join('') :
+                                            '<tr><td colspan="3">Keine Abstimmungen verfügbar</td></tr>'
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else if (type === 'votes') {
+                    detailContent.innerHTML = `
+                        <h3>${item.question}</h3>
+                        <p class="lead">${item.result}</p>
+                        <p><strong>Datum:</strong> ${item.created}</p>
+                        <p><strong>Sitzung:</strong> ${item.session}</p>
+                        <p><strong>Beschreibung:</strong> ${item.description || 'Keine Beschreibung verfügbar.'}</p>
+
+                        <div class="mt-4">
+                            <h4>Abstimmungsdetails</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Bundesstaat</th>
+                                            <th>Option</th>
+                                            <th>Anzahl</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${item.voter_states && item.voter_states.length > 0 ?
+                                            item.voter_states.map(state => `
+                                                <tr>
+                                                    <td>${state.state}</td>
+                                                    <td>${state.option}</td>
+                                                    <td>${state.total}</td>
+                                                </tr>
+                                            `).join('') :
+                                            '<tr><td colspan="3">Keine Abstimmungsdetails verfügbar</td></tr>'
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else if (type === 'committees') {
+                    detailContent.innerHTML = `
+                        <h3>${item.name}</h3>
+                        <p class="lead">${item.chamber}</p>
+                        <p><strong>Amtszeit:</strong> ${item.startdate} - ${item.enddate || 'Aktuell'}</p>
+                        <p><strong>Beschreibung:</strong> ${item.description || 'Keine Beschreibung verfügbar.'}</p>
+
+                        <div class="mt-4">
+                            <h4>Mitglieder</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Partei</th>
+                                            <th>Bundesstaat</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${item.members && item.members.length > 0 ?
+                                            item.members.map(member => `
+                                                <tr>
+                                                    <td>${member.name}</td>
+                                                    <td>${member.party}</td>
+                                                    <td>${member.state}</td>
+                                                </tr>
+                                            `).join('') :
+                                            '<tr><td colspan="3">Keine Mitglieder verfügbar</td></tr>'
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                resultsContainer.classList.add('d-none');
+                detailContainer.classList.remove('d-none');
+            }
+
+            // Partei-Chart anzeigen
+            function displayPartyChart(data) {
+                const partyCounts = {
+                    Democrat: 0,
+                    Republican: 0,
+                    Independent: 0,
+                    Other: 0
+                };
+
+                data.forEach(item => {
+                    if (item.party === 'Democrat') {
+                        partyCounts.Democrat++;
+                    } else if (item.party === 'Republican') {
+                        partyCounts.Republican++;
+                    } else if (item.party === 'Independent') {
+                        partyCounts.Independent++;
+                    } else {
+                        partyCounts.Other++;
+                    }
+                });
+
+                const ctx = document.getElementById('partyChart').getContext('2d');
+
+                if (partyChart) {
+                    partyChart.destroy();
+                }
+
+                partyChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Demokraten', 'Republikaner', 'Unabhängige', 'Andere'],
+                        datasets: [{
+                            data: [partyCounts.Democrat, partyCounts.Republican, partyCounts.Independent, partyCounts.Other],
+                            backgroundColor: [
+                                '#1a3668',
+                                '#dc3545',
+                                '#ffc107',
+                                '#6c757d'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Sitzverteilung nach Partei'
+                            }
+                        }
+                    }
+                });
+
+                chartContainer.classList.remove('d-none');
+            }
+
+            // Tabelle als CSV exportieren
+            function exportTableToCSV(filename) {
+                const csv = [];
+                const rows = document.querySelectorAll('#resultsTable tr');
+
+                for (let i = 0; i < rows.length; i++) {
+                    const row = [], cols = rows[i].querySelectorAll('td, th');
+
+                    for (let j = 0; j < cols.length; j++) {
+                        row.push(cols[j].innerText);
+                    }
+
+                    csv.push(row.join(','));
+                }
+
+                const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+
+                const downloadLink = document.createElement('a');
+                downloadLink.download = filename;
+                downloadLink.href = window.URL.createObjectURL(csvFile);
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            }
+
+            // Tabelle als PDF exportieren
+            function exportTableToPDF(filename) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'pt', 'a4');
+
+                doc.autoTable({
+                    html: '#resultsTable',
+                    startY: 60,
+                    styles: {
+                        fontSize: 10,
+                        cellPadding: 5,
+                        overflow: 'linebreak'
+                    },
+                    headStyles: {
+                        fillColor: [26, 54, 104],
+                        textColor: [255, 255, 255]
+                    },
+                    bodyStyles: {
+                        textColor: [52, 58, 64]
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 249, 250]
+                    }
+                });
+
+                doc.save(filename);
+            }
+
+            // Ladeanzeige anzeigen
+            function showLoading() {
+                loadingContainer.classList.remove('d-none');
+                hideError();
+                resultsContainer.classList.add('d-none');
+                detailContainer.classList.add('d-none');
+                chartContainer.classList.add('d-none');
+            }
+
+            // Ladeanzeige ausblenden
+            function hideLoading() {
+                loadingContainer.classList.add('d-none');
+            }
+
+            // Fehler anzeigen
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorContainer.classList.remove('d-none');
+                resultsContainer.classList.add('d-none');
+                detailContainer.classList.add('d-none');
+                chartContainer.classList.add('d-none');
+            }
+
+            // Fehler ausblenden
+            function hideError() {
+                errorContainer.classList.add('d-none');
+            }
+        });
+    </script>
+</body>
+</html>

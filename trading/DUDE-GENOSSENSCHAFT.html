@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUDE BANK — Genossenschaft Mechanics</title>
+<style>
+  :root {
+    --bg: #060d06;
+    --surface: #0b1a0b;
+    --card: #0f1f0f;
+    --border: #1a321a;
+    --green: #3fb950;
+    --green2: #7ee787;
+    --gold: #c9a84c;
+    --blue: #58a6ff;
+    --red: #f85149;
+    --orange: #d29922;
+    --text: #c9d1d9;
+    --muted: #3d5c3d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .header {
+    background: linear-gradient(135deg, #061206 0%, #0b1f0b 50%, #061206 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(63,185,80,0.06) 0%, transparent 70%);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
+  .header h1 { font-size: clamp(28px, 5vw, 48px); font-weight: 900; color: var(--green2); letter-spacing: -1px; }
+  .header-sub { margin-top: 12px; font-size: 14px; color: #555; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+  .content { max-width: 980px; margin: 0 auto; padding: 48px 24px; }
+
+  /* PRINCIPLE CARDS */
+  .principles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .principle-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    border-top: 3px solid var(--green);
+    transition: border-color 0.2s;
+  }
+  .principle-card:hover { border-color: var(--green2); }
+  .p-num { font-size: 11px; font-family: monospace; color: var(--muted); margin-bottom: 8px; letter-spacing: 2px; }
+  .p-title { font-size: 16px; font-weight: 700; color: var(--green2); margin-bottom: 12px; }
+  .p-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .p-body strong { color: var(--text); }
+
+  /* SECTION TITLES */
+  .section-header {
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--green); margin-bottom: 4px; }
+  .section-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .section-gap { margin-top: 48px; }
+
+  /* MECHANICS TABLE */
+  .mech-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+  .mech-table th { background: rgba(63,185,80,0.08); color: var(--green); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 12px 16px; border: 1px solid var(--border); text-align: left; }
+  .mech-table td { padding: 12px 16px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .mech-table tr:nth-child(even) td { background: rgba(63,185,80,0.02); }
+  .mech-table td:first-child { color: var(--text); font-weight: 600; }
+  .mech-table .val-green { color: var(--green); font-weight: 700; }
+  .mech-table .val-red { color: var(--red); font-weight: 700; }
+  .mech-table .val-gold { color: var(--gold); font-weight: 700; }
+
+  /* AGIO VISUAL */
+  .agio-visual {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+  .agio-title { font-size: 14px; font-weight: 700; color: var(--green2); margin-bottom: 20px; }
+  .agio-scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .agio-box {
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .agio-box.uber { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3); }
+  .agio-box.par { background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.3); }
+  .agio-box.unter { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3); }
+  .agio-box-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .agio-box.uber .agio-box-label { color: var(--green); }
+  .agio-box.par .agio-box-label { color: var(--blue); }
+  .agio-box.unter .agio-box-label { color: var(--red); }
+  .agio-box-rate { font-size: 28px; font-weight: 900; margin-bottom: 8px; }
+  .agio-box.uber .agio-box-rate { color: var(--green2); }
+  .agio-box.par .agio-box-rate { color: var(--blue); }
+  .agio-box.unter .agio-box-rate { color: var(--red); }
+  .agio-box-desc { font-size: 12px; color: #666; line-height: 1.5; }
+
+  /* DRAWDOWN TABLE */
+  .drawdown-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+  .drawdown-table th { background: rgba(210,153,34,0.1); color: var(--orange); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+  .drawdown-table td { padding: 10px 14px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; }
+  .drawdown-table td:first-child { color: var(--red); font-weight: 700; font-family: monospace; }
+  .drawdown-table td:last-child { color: var(--orange); font-weight: 700; }
+
+  /* RAIFFEISEN HISTORY */
+  .history-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .hist-year { font-size: 11px; font-family: monospace; color: var(--green); letter-spacing: 2px; margin-bottom: 8px; }
+  .hist-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .hist-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .hist-body strong { color: var(--text); }
+
+  /* WARNING BOX */
+  .warning-box {
+    background: rgba(248,81,73,0.06);
+    border: 1px solid rgba(248,81,73,0.2);
+    border-left: 4px solid var(--red);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .warning-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .warning-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .warning-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+
+  .magritte-quote {
+    font-style: italic;
+    font-size: 12px;
+    color: #3fb95088;
+    padding-left: 12px;
+    border-left: 2px solid rgba(63,185,80,0.2);
+    margin-top: 12px;
+  }
+
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 10px; background: rgba(63,185,80,0.1); color: var(--green); border: 1px solid rgba(63,185,80,0.2); }
+  .tag-red { background: rgba(248,81,73,0.1); color: var(--red); border-color: rgba(248,81,73,0.2); }
+  .tag-gold { background: rgba(201,168,76,0.1); color: var(--gold); border-color: rgba(201,168,76,0.2); }
+
+  @media (max-width: 600px) {
+    .agio-scenarios { grid-template-columns: 1fr; }
+    .principles-grid { grid-template-columns: 1fr; }
+    .content { padding: 24px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK eG — Genossenschafts-Mechanik</div>
+  <h1>Raiffeisen & eG-Grundlagen</h1>
+  <p class="header-sub">
+    Friedrich Wilhelm Raiffeisen (1864) als Blaupause für die Dude Bank — Geschäftsguthaben, Identitätsprinzip,
+    Agio-Schutz, Haftungskaskade, Lombardkredit-Risiken und Sweat Equity. Vollständig extrahiert aus DUDE-BANK-CONVO.txt.
+  </p>
+</div>
+
+<div class="content">
+
+  <!-- RAIFFEISEN GESCHICHTE -->
+  <div class="section-header">
+    <div class="section-label">Geschichte</div>
+    <div class="section-title">Friedrich Wilhelm Raiffeisen — Der Ur-Dude (1818–1888)</div>
+  </div>
+
+  <div class="history-card">
+    <div class="hist-year">1864 — GRÜNDUNG DER ERSTEN RAIFFEISENKASSE</div>
+    <div class="hist-title">Das Genossenschaftsprinzip als Anti-Wucher-Instrument</div>
+    <div class="hist-body">
+      Raiffeisen sah, wie Wucherer auf dem Land Bauern ruinierten: Hohe Zinsen, Pfändungen bei der Ernte,
+      generationsübergreifende Schuldknechtschaft. Sein Gegenmittel: <strong>Solidarkredit der Gemeinschaft</strong>.
+      Bauern sammelten gemeinsam Kapital in einer Genossenschaft, liehen es sich gegenseitig zu fairen Konditionen
+      und hafteten gemeinsam — aber nur bis zur Höhe ihres Einlagenanteils.
+      <br><br>
+      Die radikale Innovation: <strong>1 Mitglied = 1 Stimme</strong> — unabhängig von der Einlagengröße.
+      Ein Bauer mit 100 Mark hatte genau dieselbe Stimme wie der wohlhabendste Kaufmann.
+      Das ist das Identitätsprinzip, das heute im GenG (§ 43) verankert ist.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas une banque — c'est un réseau de confiance."</div>
+    <div class="tags">
+      <span class="tag">Raiffeisen 1864</span>
+      <span class="tag">1 Dude = 1 Vote</span>
+      <span class="tag">Identitätsprinzip</span>
+    </div>
+  </div>
+
+  <div class="history-card">
+    <div class="hist-year">HEUTE — GLOBAL</div>
+    <div class="hist-title">Das größte Genossenschaftsnetz der Welt</div>
+    <div class="hist-body">
+      Das Raiffeisen/Desjardins/Credit Union Modell ist heute die <strong>größte alternative Bankenstruktur weltweit</strong>:
+      Über <strong>3 Millionen Genossenschaften</strong>, mehr als <strong>1,2 Milliarden Mitglieder</strong>,
+      in über 100 Ländern. Deutschland: Volksbanken und Raiffeisenbanken haben mehr Filialen als Deutsche Bank
+      und Commerzbank zusammen. Das Modell hat zwei Weltkriege, die Weltwirtschaftskrise und die Finanzkrise 2008
+      überlebt — keine einzige Raiffeisenbank ist 2008 in Konkurs gegangen.
+      <br><br>
+      <strong>Dude Bank Vision:</strong> 1.000.000 Dudes × 1.000 € Geschäftsguthaben = 1 Milliarde Euro Kapital.
+      Gleiche Raiffeisen-DNA, aber als DeFi-hybrides Modell mit KI-Management.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas une exception locale. C'est un mouvement mondial."</div>
+    <div class="tags">
+      <span class="tag">1,2 Mrd. Mitglieder</span>
+      <span class="tag">2008 kein Bankrott</span>
+      <span class="tag tag-gold">1M Dudes Vision</span>
+    </div>
+  </div>
+
+  <!-- GRUNDSTRUKTUR -->
+  <div class="section-header section-gap">
+    <div class="section-label">Struktur</div>
+    <div class="section-title">GenG-Grundmechanik: Was jeder Dude wissen muss</div>
+  </div>
+
+  <table class="mech-table">
+    <thead>
+      <tr>
+        <th>Konzept</th>
+        <th>Erklärung</th>
+        <th>Dude Bank Umsetzung</th>
+        <th>Gesetzliche Basis</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Geschäftsguthaben</td>
+        <td>Der Mitgliedsanteil (z.B. 1.000 €). Nicht das Gleiche wie Einlage. Der Dude ist damit Miteigentümer.</td>
+        <td>1 Dude = 1 Anteil = 1.000 € Mindesteinlage, tokenisiert als Dude-Token</td>
+        <td class="val-gold">GenG § 15–22</td>
+      </tr>
+      <tr>
+        <td>Einlagenkonto</td>
+        <td>Geld, das der Dude zusätzlich zur Genossenschaft bringt. Kein Stimmrecht. Variabel.</td>
+        <td>DeFi Liquidity Pool — jeder Dude kann mehr als 1 Anteil einzahlen</td>
+        <td class="val-gold">GenG § 21b</td>
+      </tr>
+      <tr>
+        <td>Identitätsprinzip</td>
+        <td>1 Mitglied = 1 Stimme — unabhängig von der Einlagenmenge</td>
+        <td>Smart Contract Governance: 1 Wallet = 1 Vote</td>
+        <td class="val-gold">GenG § 43 Abs. 3</td>
+      </tr>
+      <tr>
+        <td>Förderauftrag</td>
+        <td>Die eG muss primär ihre Mitglieder fördern, nicht Gewinn maximieren</td>
+        <td>Alle KI-Erträge fließen zuerst in Mitgliederdividenden und Kreditangebote</td>
+        <td class="val-gold">GenG § 1</td>
+      </tr>
+      <tr>
+        <td>Insolvenzschutz</td>
+        <td>Mitglieder haften nur bis zur Höhe ihres Geschäftsguthabens (begrenzte Nachschusspflicht)</td>
+        <td>Smart Contract automatische Verlustabschreibung auf Geschäftsguthaben, bevor Einlagekonten berührt werden</td>
+        <td class="val-gold">GenG § 87a</td>
+      </tr>
+      <tr>
+        <td>Vorstand</td>
+        <td>Müssen <strong>natürliche Personen</strong> sein. Eine KI kann <strong>nicht</strong> Vorstand sein.</td>
+        <td>KI ist Advisory/Execution Layer. Zwei menschliche Vorstände sind rechtlich zwingend.</td>
+        <td class="val-red">GenG § 24 ⚠</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 1 DUDE = 1 VOTE -->
+  <div class="principles-grid">
+    <div class="principle-card">
+      <div class="p-num">PRINZIP #1</div>
+      <div class="p-title">1 Dude = 1 Vote</div>
+      <div class="p-body">
+        Das mächtigste Prinzip der Genossenschaft. Ein Dude mit 1.000 € Einlage hat
+        genau dasselbe Stimmgewicht wie einer mit 100.000 €. Kein Plutokrat kann die
+        Bank durch Massenankauf von Anteilen übernehmen.
+        <br><br>
+        Im Gegensatz zu Kapitalgesellschaften (AG, GmbH) wo <strong>mehr Aktien = mehr Macht</strong>
+        gilt bei der eG: <strong>1 Mitglied = 1 Stimme</strong>, egal wie viele Anteile.
+      </div>
+    </div>
+    <div class="principle-card">
+      <div class="p-num">PRINZIP #2</div>
+      <div class="p-title">Förderauftrag statt Gewinnmaximierung</div>
+      <div class="p-body">
+        Die Dude Bank eG ist keine Profit-Maschine. Sie ist verpflichtet, zuerst
+        ihre Mitglieder zu fördern: günstige Kredite, faire Einlagen-Zinsen, Finanzbildung.
+        Gewinn ist ein Mittel, kein Zweck.
+        <br><br>
+        Raiffeisen formulierte: „Was dem Einzelnen nicht möglich ist, das vermögen viele."
+        Das DeFi-Äquivalent: Was ein kleiner Dude nicht stemmen kann,
+        vermögen 1.000.000 Dudes gemeinsam.
+      </div>
+    </div>
+    <div class="principle-card">
+      <div class="p-num">PRINZIP #3</div>
+      <div class="p-title">Offene Tür (Open Membership)</div>
+      <div class="p-body">
+        Jeder kann Mitglied werden — aber nur wenn er den <strong>Erprobten Dude Filter</strong>
+        besteht (Social Vouching, Zahlung des Geschäftsguthabens, Rulebook-Akzeptanz).
+        Kein Ausschluss nach Herkunft, Rasse oder Religion. Ausschluss nur bei
+        Rulebook-Verletzung.
+      </div>
+    </div>
+    <div class="principle-card">
+      <div class="p-num">PRINZIP #4</div>
+      <div class="p-title">Gemeinschaftliche Selbsthilfe</div>
+      <div class="p-body">
+        Die Dudes helfen sich gegenseitig. Das Bürgenkonzept (3 Guardian Dudes für
+        Social Recovery, Kredit-Bürgschaft) ist direkt von Raiffeisen abgeleitet:
+        Die Gemeinschaft bürgt für das Mitglied — nicht eine anonyme Versicherung.
+      </div>
+    </div>
+    <div class="principle-card">
+      <div class="p-num">PRINZIP #5</div>
+      <div class="p-title">Wirtschaftliche Teilhabe der Mitglieder</div>
+      <div class="p-body">
+        Überschüsse werden anteilig nach Nutzung (nicht nach Kapital) ausgeschüttet.
+        Ein Dude, der mehr Kredit-Volumen generiert oder mehr Kapital einbringt,
+        bekommt eine höhere Dividende — aber nie auf Kosten des Grundprinzips.
+      </div>
+    </div>
+    <div class="principle-card">
+      <div class="p-num">PRINZIP #6</div>
+      <div class="p-title">Demokratische Kontrolle</div>
+      <div class="p-body">
+        Alle wesentlichen Entscheidungen: Generalversammlung (On-Chain DAO-Vote).
+        CRO-Veto und KI-CEO können Empfehlungen machen — aber die Dude-Gemeinschaft
+        hat das letzte Wort bei strategischen Weichenstellungen (Kapitalerhöhung, Regeländerungen, Merger).
+      </div>
+    </div>
+  </div>
+
+  <!-- AGIO / PARI / UNTER-PARI -->
+  <div class="section-header section-gap">
+    <div class="section-label">Kapitalerhöhung</div>
+    <div class="section-title">Agio, Über-Pari, Unter-Pari — Schutz der Ur-Dudes</div>
+  </div>
+
+  <div class="agio-visual">
+    <div class="agio-title">Drei Szenarien der Mitgliedschafts-Eintrittspreis-Festsetzung</div>
+    <div class="agio-scenarios">
+      <div class="agio-box uber">
+        <div class="agio-box-label">Über-Pari</div>
+        <div class="agio-box-rate">+20%</div>
+        <div class="agio-box-desc">
+          Neuer Dude zahlt 1.200 € für einen 1.000 €-Anteil. Das Agio von 200 € schützt die Ur-Dudes
+          vor Verwässerung. Angemessen wenn die Bank bereits etabliert und profitabel ist.
+          <br><br><strong>Magritte-Schiff:</strong> Wer das Schiff erst im sicheren Fahrwasser betritt,
+          zahlt mehr als die Gründer, die das Risiko des Hafenbaus trugen.
+        </div>
+      </div>
+      <div class="agio-box par">
+        <div class="agio-box-label">Al Pari</div>
+        <div class="agio-box-rate">= 100%</div>
+        <div class="agio-box-desc">
+          Neuer Dude zahlt exakt den Nominalwert des Anteils (1.000 €).
+          Standard-Szenario in der Aufbauphase wenn Netzwerkeffekte noch wichtiger
+          sind als Kapitalschutz.
+        </div>
+      </div>
+      <div class="agio-box unter">
+        <div class="agio-box-label">Unter-Pari</div>
+        <div class="agio-box-rate">−20%</div>
+        <div class="agio-box-desc">
+          Neuer Dude zahlt nur 800 € für einen 1.000 €-Anteil. Strategisch sinnvoll als
+          Anreiz für Dudes mit besonders wertvollem Know-How, Netzwerk oder Sweat Equity.
+          Aber: Verwässert die Ur-Dudes!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="history-card">
+    <div class="hist-year">VERWÄSSERUNG (DILUTION) — DETAIL</div>
+    <div class="hist-title">Warum Neuemissionen die Ur-Dudes schädigen können</div>
+    <div class="hist-body">
+      Wenn 10 Ur-Dudes jeweils 1.000 € eingezahlt haben (Total: 10.000 €) und nun 10 neue Dudes
+      ebenfalls je 1.000 € zahlen — hat sich der Anteil jedes Ur-Dudes am Gesamtvermögen von
+      <strong>10% auf 5% halbiert</strong>. Das ist Verwässerung.
+      <br><br>
+      <strong>Agio als Schutz:</strong> Wenn neue Dudes 1.200 € zahlen (200 € Agio), fließen diese
+      200 € als Rücklage (Kapitalrücklage) in die Genossenschaft, die das Vermögen der Ur-Dudes
+      stärkt. Der effektive Wert ihrer Anteile wird weniger verwässert.
+      <br><br>
+      <strong>Dude Bank Regel:</strong> Agio-Höhe wird quartalsweise durch die KI-CFO berechnet,
+      basierend auf aktuellem Substanzwert pro Anteil (Net Asset Value). Volle Transparenz On-Chain.
+    </div>
+    <div class="tags">
+      <span class="tag">Agio</span>
+      <span class="tag">Verwässerung</span>
+      <span class="tag">NAV Berechnung</span>
+    </div>
+  </div>
+
+  <!-- HAFTUNGSKASKADE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Risiko</div>
+    <div class="section-title">Haftungskaskade — Wer zahlt wenn es schiefgeht</div>
+  </div>
+
+  <table class="mech-table">
+    <thead>
+      <tr>
+        <th>Ebene</th>
+        <th>Instrument</th>
+        <th>Wer zahlt zuerst</th>
+        <th>Status bei Verlust</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Ebene 1 (First Loss)</td>
+        <td>Eigenkapital (Geschäftsguthaben aller Dudes)</td>
+        <td>Ur-Dudes → Alle Mitglieder anteilig</td>
+        <td class="val-red">Vollständiger Verlust möglich</td>
+      </tr>
+      <tr>
+        <td>Ebene 2 (Second Loss)</td>
+        <td>Hybridanleihen / Genussscheine (nachrangig)</td>
+        <td>Anleihe-Investoren die nachrangig gezeichnet haben</td>
+        <td class="val-red">Zinszahlung ausgesetzt, Kapital gefährdet</td>
+      </tr>
+      <tr>
+        <td>Ebene 3 (Senior)</td>
+        <td>Senior-Anleihen / Einlagenkonten</td>
+        <td>Senior-Gläubiger, bevorzugt bedient</td>
+        <td class="val-gold">Teilschutz durch Rang</td>
+      </tr>
+      <tr>
+        <td>Ebene 4 (Insured)</td>
+        <td>Einlagensicherung (falls BaFin lizenziert)</td>
+        <td>Einlagensicherungsfonds bis 100.000 € pro Person</td>
+        <td class="val-green">Gesetzlich geschützt</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- LOMBARDKREDIT RISIKO -->
+  <div class="warning-box">
+    <div class="warning-label">⚠ Kritische Analyse — Gemini hatte Recht</div>
+    <div class="warning-title">Eigen-Kollateral Cluster-Risiko im Lombardkredit</div>
+    <div class="warning-body">
+      Wenn ein Dude seinen Dude-Bank-Anteil (Geschäftsguthaben-Token) als <strong>Sicherheit</strong>
+      für einen Lombardkredit bei der Dude Bank selbst verwendet — entsteht ein gefährlicher Rückkopplungsloop:
+      <br><br>
+      <strong>Normale Situation:</strong> Dude hat 1.000 € Token-Wert. Bank verleiht ihm 500 € (50% Haircut).
+      ✓ Das funktioniert wenn der Token-Wert stabil bleibt.
+      <br><br>
+      <strong>Krisen-Szenario:</strong> Markt kollabiert → Dude-Token fällt auf 400 €. Bank muss Kredit kündigen
+      → Dude muss Token liquidieren → Token-Preis fällt weiter → Alle anderen Lombard-Dudes werden liquidiert
+      → Massenpanik → Token → 0. <strong>Das ist die Death Spiral.</strong>
+      <br><br>
+      <strong>Raiffeisen-Lösung:</strong> Eigenkapital der Bank darf NICHT als Kredit-Sicherheit für Mitglieder
+      dienen. Das Collateral muss <strong>externe Assets</strong> sein: BTC, ETH, RWA-Tokens, nicht der eigene Dude-Token.
+    </div>
+  </div>
+
+  <!-- SWEAT EQUITY -->
+  <div class="section-header section-gap">
+    <div class="section-label">Sweat Equity</div>
+    <div class="section-title">Bounty-System & Sacheinlage — Arbeiten statt Zahlen</div>
+  </div>
+
+  <table class="mech-table">
+    <thead>
+      <tr>
+        <th>Mechanismus</th>
+        <th>Beschreibung</th>
+        <th>Rechtliches Risiko</th>
+        <th>Dude Bank Lösung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Sweat Equity</td>
+        <td>Dude leistet Arbeit (Code, Design, Marketing) und erhält dafür Genossenschaftsanteile statt Cash</td>
+        <td class="val-red">Sacheinlage nach GenG § 7b: Braucht Bewertungsgutachten. Kann Lohnsteuer auslösen (geldwerter Vorteil)</td>
+        <td>Bounty-System: Klar definierte Bounties werden in Dude-Token ausgezahlt, Steuerpflicht klar kommuniziert</td>
+      </tr>
+      <tr>
+        <td>Skin-in-the-Game</td>
+        <td>Entwickler-Dudes müssen eigenes Kapital vested in der Bank halten (Taleb-Prinzip)</td>
+        <td class="val-gold">Kein direktes Rechtsrisiko, aber Lockup-Perioden müssen im Rulebook klar definiert sein</td>
+        <td>Vesting-Smart-Contract: Developer-Token freigeschaltet erst nach 2-Jahres-Cliff</td>
+      </tr>
+      <tr>
+        <td>Refactoring Agent Bounty</td>
+        <td>KI-Sub-Agent identifiziert ineffizienten Code, Dudes können Bounty verdienen durch Beheben</td>
+        <td class="val-gold">Open Source Vergütung: Gut etabliert. Steuerlich: Einkommen aus selbständiger Tätigkeit</td>
+        <td>GitHub Integration + On-Chain Bounty-Tracker Agent verifiziert und zahlt automatisch aus</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SOZIALE SICHERHEIT -->
+  <div class="section-header section-gap">
+    <div class="section-label">DeFi</div>
+    <div class="section-title">Social Recovery (ERC-4337) — Der verlorene Stock Problem</div>
+  </div>
+
+  <div class="history-card">
+    <div class="hist-year">PROBLEM: PRIVATE KEY VERLUST = GELD VERLOREN</div>
+    <div class="hist-title">Das mittelalterliche Kerbholz-Dilemma im 21. Jahrhundert</div>
+    <div class="hist-body">
+      Mittelalter: Ein Stockholder verliert seinen Stock (Kerbholz-Hälfte) → Keine Auszahlung möglich,
+      Geld gehört dem König. Heute: Ein Dude verliert seinen Private Key / Seed Phrase →
+      Alle Krypto-Assets für immer verloren.
+      <br><br>
+      <strong>Dude Bank Lösung: Social Recovery via ERC-4337</strong>
+      <br><br>
+      Jeder Dude bestimmt <strong>3 Guardian-Dudes</strong> (Bürgen aus der Genossenschaft).
+      Bei Schlüsselverlust: 2 von 3 Guardians bestätigen per Smart Contract die Identität
+      des Dudes → Neuer Key wird algorithmisch generiert → Kein Totalverlust.
+      <br><br>
+      <strong>Blockchain vs. Mittelalter:</strong>
+    </div>
+    <div class="tags">
+      <span class="tag">ERC-4337</span>
+      <span class="tag">Social Recovery</span>
+      <span class="tag">3 Guardian Dudes</span>
+      <span class="tag">Account Abstraction</span>
+    </div>
+  </div>
+
+  <table class="mech-table">
+    <thead>
+      <tr><th>System</th><th>Schlüssel verloren</th><th>Lösung</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Mittelalter (Kerbholz)</td><td>Stock verloren = keine Auszahlung, Geld weg</td><td class="val-red">Kein Recovery möglich — König behält alles</td></tr>
+      <tr><td>Wall Street (zentralisiert)</td><td>Passwort vergessen</td><td class="val-gold">Zentraler Server setzt zurück — aber Datenmono­pol</td></tr>
+      <tr><td>Krypto (klassisch)</td><td>Seed Phrase verloren</td><td class="val-red">Kein Recovery — 3,7 Mio. BTC permanent verloren</td></tr>
+      <tr><td>Dude Bank (ERC-4337)</td><td>Private Key weg</td><td class="val-green">2/3 Guardian-Bestätigung → Neuer Key, kein Verlust</td></tr>
+    </tbody>
+  </table>
+
+</div><!-- /content -->
+
+<div style="text-align:center;padding:32px;color:#3d5c3d;font-size:12px;border-top:1px solid #1a321a;">
+  DUDE BANK eG — Genossenschafts-Mechanik · GenG-Grundlagen · Raiffeisen DNA · Social Recovery · 2026
+</div>
+
+</body>
+</html>

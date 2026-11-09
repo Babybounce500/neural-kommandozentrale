@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TREND RIDER FINTECH // EMA Ribbon Quant Engine</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #0b0e14;
+      --bg2:    #141a24;
+      --bg3:    #1a2333;
+      --border: #2d3748;
+      --accent: #00e6ff;
+      --green:  #00ff87;
+      --red:    #ff3366;
+      --yellow: #ecc94b;
+      --text:   #e1e4ea;
+      --muted:  #718096;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 14px; }
+
+    /* ── HEADER ────────────────────────────────────────────── */
+    .cz-header {
+      display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap;
+      border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
+    }
+    .cz-header h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin: 0; }
+    .cz-header .sub { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+    /* ── COCKPIT (Budget Input) ─────────────────────────────── */
+    .cockpit {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 5px;
+      padding: 12px 16px; margin-bottom: 12px;
+    }
+    .cockpit-title { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); font-weight: 700; margin-bottom: 10px; }
+    .cockpit-inner { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+    .cockpit-label { color: #a0aec0; font-weight: 600; font-size: 12px; display: block; margin-bottom: 4px; }
+    .cockpit-input {
+      background: var(--bg) !important; border: 1px solid #4a5568 !important;
+      color: var(--accent) !important; font-family: 'Courier New', monospace;
+      font-weight: 700; font-size: 15px; max-width: 180px; padding: 6px 10px;
+    }
+    .cockpit-input:focus { border-color: var(--accent) !important; box-shadow: none !important; }
+
+    /* ── KPI BOXES ──────────────────────────────────────────── */
+    .kpi-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .kpi-box {
+      flex: 1; min-width: 160px;
+      background: var(--bg3); border-left: 4px solid var(--accent);
+      padding: 10px 14px; border-radius: 4px;
+    }
+    .kpi-box.kpi-pnl { border-left-color: var(--green); }
+    .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+    .kpi-val { font-size: 20px; font-weight: 700; font-family: 'Courier New', monospace; color: var(--text); }
+    .kpi-val.pos { color: var(--green); }
+    .kpi-val.neg { color: var(--red); }
+
+    /* ── MARKET TABS ────────────────────────────────────────── */
+    #market-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+    .mbt {
+      background: rgba(0,230,255,0.04); border: 1px solid rgba(0,230,255,0.15);
+      color: var(--muted); padding: 4px 9px; border-radius: 3px; cursor: pointer;
+      font-size: 10px; font-weight: 600; transition: all 0.15s; white-space: nowrap;
+    }
+    .mbt:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,230,255,0.08); }
+    .mbt.active { background: rgba(0,230,255,0.12); border-color: var(--accent); color: var(--accent); box-shadow: 0 0 6px rgba(0,230,255,0.2); }
+
+    /* ── CONTROL BAR ────────────────────────────────────────── */
+    #ctrl-bar {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 5px;
+      padding: 8px 14px; margin-bottom: 10px; font-size: 12px;
+    }
+    .ctrl-info { display: flex; gap: 18px; flex-wrap: wrap; }
+    .ctrl-item { color: var(--muted); }
+    .ctrl-item span { color: var(--accent); font-weight: 700; }
+    .ctrl-btns { display: flex; gap: 6px; align-items: center; }
+    .btn-cz {
+      border: 1px solid var(--accent); color: var(--accent); background: rgba(0,230,255,0.08);
+      padding: 5px 14px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.5px; transition: all 0.15s; white-space: nowrap;
+    }
+    .btn-cz:hover:not(:disabled) { box-shadow: 0 0 10px rgba(0,230,255,0.35); background: rgba(0,230,255,0.15); }
+    .btn-cz:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-stop { border-color: var(--red); color: var(--red); background: rgba(255,51,102,0.08); display: none; }
+    .btn-stop:hover { background: rgba(255,51,102,0.15) !important; box-shadow: 0 0 8px rgba(255,51,102,0.3) !important; }
+    .btn-export { border-color: #4a5568; color: #a0aec0; background: transparent; }
+    .btn-export:hover:not(:disabled) { border-color: var(--yellow) !important; color: var(--yellow) !important; background: rgba(236,201,75,0.08) !important; box-shadow: none !important; }
+    .btn-recalc { border-color: var(--yellow); color: var(--yellow); background: rgba(236,201,75,0.08); }
+
+    /* ── MANUAL INPUT ───────────────────────────────────────── */
+    #custom-wrap {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 5px;
+      padding: 8px 14px; margin-bottom: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    }
+    .custom-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+    #custom-input {
+      flex: 1; min-width: 200px; background: var(--bg); border: 1px solid #4a5568;
+      color: var(--accent); font-family: 'Courier New', monospace; font-size: 12px;
+      padding: 5px 10px; border-radius: 3px; outline: none;
+    }
+    #custom-input:focus { border-color: var(--accent); }
+    #custom-input::placeholder { color: #4a5568; }
+
+    /* ── PROGRESS ───────────────────────────────────────────── */
+    #progress-wrap { margin-bottom: 10px; display: none; }
+    #progress-track { background: rgba(255,255,255,0.05); border-radius: 3px; height: 6px; overflow: hidden; margin-bottom: 4px; }
+    #progress-fill { background: linear-gradient(90deg, #0080ff, var(--accent)); height: 100%; width: 0; transition: width 0.35s; }
+    #progress-text { font-size: 10px; color: var(--muted); text-align: center; font-family: 'Courier New', monospace; }
+
+    /* ── CHAMPION BOX ────────────────────────────────────────── */
+    #champion-box {
+      display: none;
+      background: linear-gradient(135deg, rgba(0,230,255,0.06), rgba(0,255,135,0.04));
+      border: 1px solid rgba(0,230,255,0.3); border-radius: 5px;
+      padding: 10px 16px; margin-bottom: 10px;
+      box-shadow: 0 0 20px rgba(0,230,255,0.08);
+    }
+    .champ-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+    .champ-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .champ-sym { color: var(--accent); font-weight: 700; font-size: 16px; font-family: 'Courier New', monospace; }
+    .champ-name { color: #a0aec0; font-size: 12px; }
+    .champ-signal { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+    .champ-signal.long { background: rgba(0,255,135,0.15); color: var(--green); border: 1px solid rgba(0,255,135,0.3); }
+    .champ-signal.short { background: rgba(255,51,102,0.15); color: var(--red); border: 1px solid rgba(255,51,102,0.3); }
+    .champ-profit { font-size: 18px; font-weight: 700; color: var(--green); font-family: 'Courier New', monospace; margin-left: auto; }
+    .champ-detail { font-size: 10px; color: var(--muted); }
+
+    /* ── STATS BAR ──────────────────────────────────────────── */
+    #stats-bar { display: none; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .sbox { background: var(--bg2); border: 1px solid var(--border); border-radius: 5px; padding: 6px 14px; text-align: center; flex: 1; min-width: 80px; }
+    .sbox .sv { font-size: 20px; font-weight: 700; line-height: 1.1; font-family: 'Courier New', monospace; }
+    .sbox .sl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
+    .sb-long  .sv { color: var(--green); }
+    .sb-short .sv { color: var(--red); }
+    .sb-total .sv { color: #a0aec0; }
+    .sb-profit .sv { color: var(--accent); }
+
+    /* ── TABLE ──────────────────────────────────────────────── */
+    .table-responsive { overflow-x: auto; }
+    #tr-table { width: 100%; border-collapse: collapse; background: var(--bg2); font-size: 12px; }
+    #tr-table th {
+      background: #111827; color: #a0aec0; text-transform: uppercase; padding: 10px 11px;
+      text-align: center; font-size: 10px; border-bottom: 2px solid var(--border);
+      border-top: none; letter-spacing: 0.5px; white-space: nowrap; font-weight: 600;
+    }
+    #tr-table th:first-child { text-align: left; }
+    #tr-table td { text-align: center; padding: 9px 11px; border-bottom: 1px solid rgba(45,55,72,0.7); color: var(--text); vertical-align: middle; }
+    #tr-table td:first-child { text-align: left; }
+    .td-tick { font-weight: 700; color: var(--accent); cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
+    .td-tick:hover { text-decoration: underline; }
+    .td-name-sub { display: block; font-size: 9px; color: #4a5568; font-weight: 400; margin-top: 1px; }
+    #tr-table tr:nth-child(even) { background: #17202e; }
+    #tr-table tr:hover { background: #1e293b; }
+
+    .alpha-long  { color: var(--green) !important; font-weight: 700; }
+    .alpha-short { color: var(--red)   !important; font-weight: 700; }
+    .pnl-pos { color: var(--green) !important; font-weight: 700; font-family: 'Courier New', monospace; }
+    .pnl-neg { color: var(--red)   !important; font-weight: 700; font-family: 'Courier New', monospace; }
+    .pnl-neu { color: var(--muted) !important; font-family: 'Courier New', monospace; }
+    .mono    { font-family: 'Courier New', monospace; }
+    .meta-pivot { color: var(--yellow) !important; font-family: 'Courier New', monospace; }
+    .text-warn  { color: var(--yellow) !important; }
+
+    /* ── MODAL ──────────────────────────────────────────────── */
+    .modal-content { background: #131722 !important; border: 1px solid var(--border); }
+    .modal-header { border-bottom: 1px solid var(--border); }
+    .modal-title { color: var(--accent); font-weight: 700; font-size: 14px; letter-spacing: 1px; }
+    .close { color: #fff; opacity: 0.5; }
+    .close:hover { color: var(--accent); opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="container-fluid">
+
+  <div class="cz-header">
+    <h1>TREND RIDER FINTECH <span style="font-size:14px;font-weight:400;color:var(--muted)">// EMA Ribbon Quant Engine</span></h1>
+    <span class="sub">5-EMA Ribbon &bull; Institutional Risk Execution Grid &bull; Dynamic Position Sizing</span>
+  </div>
+
+  <!-- Budget Cockpit -->
+  <div class="cockpit">
+    <div class="cockpit-title">&#x1F3DB; Mandate Risk &amp; Capital Allocation Framework</div>
+    <div class="cockpit-inner">
+      <div>
+        <label class="cockpit-label" for="trade-budget">Target Allocation per Position (EUR):</label>
+        <input type="number" id="trade-budget" class="form-control cockpit-input" value="100000" step="5000" min="1000">
+      </div>
+      <button class="btn-cz btn-recalc" onclick="recalculateDashboard()">&#x21BB; Rebalance Portfolio</button>
+    </div>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi-box">
+      <div class="kpi-label">Consolidated Allocated Capital</div>
+      <div class="kpi-val" id="kpi-capital">EUR 0</div>
+    </div>
+    <div class="kpi-box kpi-pnl">
+      <div class="kpi-label">Total Strategy Alpha Net P&amp;L</div>
+      <div class="kpi-val" id="kpi-pnl">EUR 0</div>
+    </div>
+    <div class="kpi-box" style="border-left-color:var(--yellow)">
+      <div class="kpi-label">Active Signals / Scanned</div>
+      <div class="kpi-val" id="kpi-signals" style="color:var(--yellow)">0 / 0</div>
+    </div>
+  </div>
+
+  <div id="market-tabs"></div>
+
+  <div id="ctrl-bar">
+    <div class="ctrl-info">
+      <div class="ctrl-item">Exchange: <span id="info-exchange">&#x2014;</span></div>
+      <div class="ctrl-item">Currency: <span id="info-currency">&#x2014;</span></div>
+      <div class="ctrl-item">Stocks: <span id="info-count">&#x2014;</span></div>
+      <div class="ctrl-item">EMA Ribbon: <span>8 · 13 · 21 · 34 · 55</span></div>
+    </div>
+    <div class="ctrl-btns">
+      <button class="btn-cz btn-export" id="btn-csv"  onclick="exportCSV()"  disabled>&#x2193; CSV</button>
+      <button class="btn-cz btn-export" id="btn-html" onclick="exportHTML()" disabled>&#x2193; HTML</button>
+      <button class="btn-cz btn-stop"   id="stop-btn" onclick="stopScan()">&#x25A0; STOP</button>
+      <button class="btn-cz"            id="scan-btn" onclick="startScan()">&#x25B6; SCAN MARKET</button>
+    </div>
+  </div>
+
+  <div id="custom-wrap">
+    <span class="custom-label">&#x1F50D; Custom Scan:</span>
+    <input id="custom-input" type="text" placeholder="AAPL.US, MSFT.US, NVDA.US, SAP.XETRA &#x2026;" />
+    <button class="btn-cz" onclick="runCustomScan()" style="padding:5px 12px;">&#x25B6; RUN CUSTOM</button>
+    <span style="font-size:10px;color:#4a5568;">Comma-separated EOD symbols</span>
+  </div>
+
+  <div id="progress-wrap">
+    <div id="progress-track"><div id="progress-fill"></div></div>
+    <div id="progress-text">Scanning&#x2026;</div>
+  </div>
+
+  <div id="champion-box">
+    <div class="champ-label">&#x1F3C6; Top Alpha Signal — EMA Ribbon Confirmation</div>
+    <div class="champ-line">
+      <span class="champ-sym" id="champ-sym"></span>
+      <span class="champ-name" id="champ-name"></span>
+      <span class="champ-signal" id="champ-signal"></span>
+      <span class="champ-detail" id="champ-detail"></span>
+      <span class="champ-profit" id="champ-profit"></span>
+    </div>
+  </div>
+
+  <div id="stats-bar" style="display:flex">
+    <div class="sbox sb-long">  <div class="sv" id="st-long">0</div>  <div class="sl">QUANT LONG</div></div>
+    <div class="sbox sb-short"> <div class="sv" id="st-short">0</div> <div class="sl">QUANT SHORT</div></div>
+    <div class="sbox sb-total"> <div class="sv" id="st-total">0</div> <div class="sl">Scanned</div></div>
+    <div class="sbox sb-profit"><div class="sv" id="st-profit">&#x2014;</div><div class="sl">Top Alpha P&amp;L</div></div>
+  </div>
+
+  <div class="table-responsive">
+    <table id="tr-table">
+      <thead>
+        <tr>
+          <th>ASSET TICKER</th>
+          <th>EMA 8 (Entry)</th>
+          <th>EMA 55 (Trailing Stop)</th>
+          <th>VaR (Points)</th>
+          <th>VaR (%)</th>
+          <th>TREND STRENGTH %</th>
+          <th>DATE</th>
+          <th>SHARES (@ Budget)</th>
+          <th>LAST CLOSE</th>
+          <th>EMA META-&#x00D8;</th>
+          <th>SIGNAL STATE</th>
+          <th>ALPHA NET P&amp;L</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</div><!-- /container -->
+
+<!-- TradingView Modal -->
+<div class="modal fade" id="tv-modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tv-modal-title">QUANT FEED // LIVE GRAPH ANALYSIS</h5>
+        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+      </div>
+      <div class="modal-body" style="padding:0;height:550px;">
+        <div id="tv-widget" style="width:100%;height:100%;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script src="stocks.js"></script>
+<script>
+/* ====================================================================
+   TREND RIDER FINTECH // EMA Ribbon Quant Engine
+   Algorithm: 5-EMA ribbon (8/13/21/34/55) — all aligned = signal
+   Bugs fixed vs. original:
+   - sortTable: was cells[7]="Executed" no-op → now sorts by P&L desc
+   - openTradingViewChart: only handled XETRA → now all exchanges
+   - No more hidden columns 7+8 (Allocation Weight was hidden)
+   New: 38-market support, manual ticker input, CSV/HTML export,
+   champion box, trend strength %, TradingView for all markets
+==================================================================== */
+
+const EOD_PROXY    = 'https://gemini-os.replit.app/api/eod';
+let   globalCache  = {};
+
+/* ── SHORT-LIVED TTL CACHE (sessionStorage, same pattern as marketplace.js's in-memory TTL) ── */
+const EOD_CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
+async function fetchCached(url) {
+  const key = 'eodcache:' + url;
+  try {
+    const hit = sessionStorage.getItem(key);
+    if (hit) {
+      const parsed = JSON.parse(hit);
+      if (Date.now() - parsed.t < EOD_CACHE_TTL_MS) return parsed.data;
+    }
+  } catch (e) { /* storage unavailable or corrupt entry -- fall through to live fetch */ }
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const data = await res.json();
+  try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), data })); } catch (e) { /* quota exceeded -- skip caching this one */ }
+  return data;
+}
+
+/* ── TV SYMBOL MAPPING ─────────────────────────────────────── */
+function toTVSymbol(sym) {
+  const dot = sym.lastIndexOf('.');
+  if (dot < 0) return sym;
+  const t = sym.slice(0, dot), x = sym.slice(dot + 1);
+  const m = {
+    US:'',XETRA:'XETR:',LSE:'LSE:',PA:'EURONEXT:',SW:'SIX:',VI:'WBAG:',
+    AS:'EURONEXT:',MC:'BME:',ST:'OMXSTO:',CO:'OMXCOP:',BR:'EURONEXT:',
+    LS:'EURONEXT:',TO:'TSX:',AX:'ASX:',SA:'BMFBOVESPA:',MX:'BMV:',
+    WAR:'GPW:',JSE:'JSE:',TA:'TASE:',IS:'BIST:',SHG:'SSE:',SHE:'SZSE:',
+    TW:'TWSE:',EGX:'EGX:',NSE:'NSE:',KO:'KRX:',KQ:'KOSDAQ:',
+    DU:'XDUS:',STU:'XSTU:',HE:'OMXHEX:',OL:'OSEBX:'
+  };
+  const p = m[x];
+  if (p === '') return t;
+  return p ? (p + t) : (x + ':' + t);
+}
+
+/* ── STATE ──────────────────────────────────────────────────── */
+let currentMarket = null;
+let isScanning    = false;
+let shouldStop    = false;
+let scanStats     = { long:0, short:0, total:0, signals:0, maxProfit:-Infinity, topRow:null };
+
+/* ── INIT ───────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof MARKETS === 'undefined' || !MARKETS.length) {
+    document.getElementById('market-tabs').innerHTML =
+      '<div style="color:var(--red);font-size:12px;">&#x26A0; stocks.js not found.</div>';
+    return;
+  }
+  renderMarketTabs();
+  const defId = MARKETS.find(m => m.id === 'dax') ? 'dax' : MARKETS[0].id;
+  applyMarket(defId);
+  setTimeout(startScan, 500);
+});
+
+/* ── TABS ───────────────────────────────────────────────────── */
+function renderMarketTabs() {
+  document.getElementById('market-tabs').innerHTML =
+    MARKETS.map(m =>
+      '<button class="mbt" data-id="' + m.id + '" onclick="handleTabClick(\'' + m.id + '\')">' + m.label + '</button>'
+    ).join('');
+}
+
+function handleTabClick(id) {
+  if (isScanning) stopScan();
+  applyMarket(id);
+}
+
+function applyMarket(id) {
+  currentMarket = MARKETS.find(m => m.id === id) || MARKETS[0];
+  document.querySelectorAll('.mbt').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+  document.getElementById('info-exchange').textContent = currentMarket.exchange || id.toUpperCase();
+  document.getElementById('info-currency').textContent = currentMarket.currency || '?';
+  document.getElementById('info-count').textContent    = currentMarket.stocks.length;
+  clearResults();
+}
+
+/* ── CUSTOM SCAN ────────────────────────────────────────────── */
+function runCustomScan() {
+  const raw  = document.getElementById('custom-input').value;
+  const syms = raw.split(',').map(s => s.trim()).filter(Boolean);
+  if (!syms.length) { alert('Enter at least one symbol (e.g. AAPL.US, SAP.XETRA)'); return; }
+  const suffix = syms[0].includes('.') ? syms[0].split('.').slice(-1)[0] : '';
+  const currMap = {US:'USD',XETRA:'EUR',LSE:'GBP',SW:'CHF',VI:'EUR',AS:'EUR',
+    MC:'EUR',PA:'EUR',BR:'EUR',LS:'EUR',TO:'CAD',AX:'AUD',SA:'BRL',MX:'MXN',
+    WAR:'PLN',ST:'SEK',CO:'DKK',JSE:'ZAR',TA:'ILS',IS:'TRY',NSE:'INR',KO:'KRW'};
+  if (isScanning) stopScan();
+  currentMarket = {
+    id:'_custom', label:'CUSTOM', exchange:'Manual Input',
+    currency: currMap[suffix] || 'EUR',
+    stocks: syms.map(s => ({ sym: s, name: s }))
+  };
+  document.querySelectorAll('.mbt').forEach(b => b.classList.remove('active'));
+  document.getElementById('info-exchange').textContent = 'Manual Input';
+  document.getElementById('info-currency').textContent = currentMarket.currency;
+  document.getElementById('info-count').textContent    = syms.length;
+  clearResults();
+  startScan();
+}
+
+/* ── SCAN LIFECYCLE ─────────────────────────────────────────── */
+async function startScan() {
+  if (isScanning || !currentMarket) return;
+  isScanning = true;
+  shouldStop = false;
+  scanStats  = { long:0, short:0, total:0, signals:0, maxProfit:-Infinity, topRow:null };
+  globalCache = {};
+
+  clearResults();
+  document.getElementById('scan-btn').disabled      = true;
+  document.getElementById('stop-btn').style.display = 'inline-block';
+  document.getElementById('progress-wrap').style.display = 'block';
+  setExportEnabled(false);
+
+  const stocks = currentMarket.stocks;
+  const CHUNK_SIZE = 7; // parallel batch size -- replaces the old 1-at-a-time + 300ms sleep crawl
+  for (let i = 0; i < stocks.length; i += CHUNK_SIZE) {
+    if (shouldStop) break;
+    const batch = stocks.slice(i, i + CHUNK_SIZE);
+    scanStats.total += batch.length;
+    updateProgress(Math.min(i + CHUNK_SIZE, stocks.length), stocks.length, batch.map(s => s.name || s.sym).join(', '));
+    await Promise.all(batch.map(fetchAndProcess));
+  }
+  finishScan();
+}
+
+function stopScan() { shouldStop = true; }
+
+function finishScan() {
+  isScanning = false;
+  shouldStop = false;
+  document.getElementById('scan-btn').disabled      = false;
+  document.getElementById('stop-btn').style.display = 'none';
+  document.getElementById('progress-wrap').style.display = 'none';
+  renderStats();
+  renderChampion();
+  updatePortfolioKPIs();
+  setExportEnabled(document.querySelector('#tr-table tbody tr') !== null);
+}
+
+/* ── EMA ────────────────────────────────────────────────────── */
+function calcEMA(data, period) {
+  const k = 2 / (period + 1);
+  let ema  = parseFloat(data[0].close !== undefined ? data[0].close : data[0].Close);
+  for (let i = 1; i < data.length; i++) {
+    ema = (parseFloat(data[i].close !== undefined ? data[i].close : data[i].Close) * k) + (ema * (1 - k));
+  }
+  return ema;
+}
+
+/* ── FETCH & PROCESS ────────────────────────────────────────── */
+async function fetchAndProcess(stock) {
+  try {
+    if (!globalCache[stock.sym]) {
+      const params = new URLSearchParams({ symbol: stock.sym, endpoint: 'historical', period: 'd' });
+      const data = await fetchCached(EOD_PROXY + '?' + params);
+      if (!Array.isArray(data) || data.length < 55) return;
+      globalCache[stock.sym] = data;
+    }
+    processStock(stock, globalCache[stock.sym]);
+  } catch(e) { console.error('[TR] ' + stock.sym, e); }
+}
+
+function processStock(stock, rawData) {
+  const data = [...rawData].sort((a, b) => new Date(a.date || a.Date) - new Date(b.date || b.Date));
+  if (data.length < 55) return;
+
+  const c = d => parseFloat(d.close !== undefined ? d.close : d.Close);
+  const latest      = data[data.length - 1];
+  const close       = c(latest);
+  const currentDate = latest.date || latest.Date || '—';
+
+  const ema8  = calcEMA(data, 8);
+  const ema13 = calcEMA(data, 13);
+  const ema21 = calcEMA(data, 21);
+  const ema34 = calcEMA(data, 34);
+  const ema55 = calcEMA(data, 55);
+
+  const ribbonLong  = ema8 > ema13 && ema13 > ema21 && ema21 > ema34 && ema34 > ema55;
+  const ribbonShort = ema8 < ema13 && ema13 < ema21 && ema21 < ema34 && ema34 < ema55;
+  const emaAvg      = (ema8 + ema13 + ema21 + ema34 + ema55) / 5;
+
+  const budget  = parseFloat(document.getElementById('trade-budget').value) || 100000;
+  const shares  = budget / close;
+
+  // Trend Strength: how far EMA8 has spread from EMA55 (%)
+  const trendStr = ((ema8 - ema55) / ema55 * 100);
+
+  let matched = false, signal = '', sigClass = '', rawProfit = 0;
+
+  if (ribbonLong && close >= ema8) {
+    signal    = 'QUANT ALPHA LONG';
+    sigClass  = 'alpha-long';
+    rawProfit = (close - ema8) * shares;
+    scanStats.long++;
+    matched = true;
+  } else if (ribbonShort && close <= ema8) {
+    signal    = 'QUANT ALPHA SHORT';
+    sigClass  = 'alpha-short';
+    rawProfit = (ema8 - close) * shares;
+    scanStats.short++;
+    matched = true;
+  }
+
+  if (!matched) return;
+
+  scanStats.signals++;
+
+  if (rawProfit > scanStats.maxProfit) {
+    scanStats.maxProfit = rawProfit;
+    scanStats.topRow = { stock, signal, sigClass, rawProfit, close, ema8, ema55, trendStr };
+  }
+
+  const VaR     = Math.abs(ema8 - ema55);
+  const varPct  = (VaR / ema8 * 100).toFixed(2);
+  const pClass  = rawProfit > 0.01 ? 'pnl-pos' : 'pnl-neu';
+
+  renderRow(
+    stock, ema8, ema55, VaR.toFixed(2), varPct + '%',
+    trendStr.toFixed(2) + '%', currentDate, shares.toFixed(0),
+    close, emaAvg, signal, sigClass, rawProfit, pClass
+  );
+  sortTable();
+}
+
+/* ── RENDER ROW ─────────────────────────────────────────────── */
+function renderRow(stock, ema8, ema55, varPts, varPct, trendStr, date, shares, close, emaAvg, signal, sigClass, rawProfit, pClass) {
+  const row = document.querySelector('#tr-table tbody').insertRow(-1);
+  row.dataset.profit = rawProfit;
+  row.dataset.sym    = stock.sym;
+
+  const nc = row.insertCell(0);
+  nc.innerHTML = '<span class="td-tick" onclick="openTVChart(\'' + stock.sym + '\')">' + stock.sym + '</span>' +
+    (stock.name && stock.name !== stock.sym ? '<span class="td-name-sub">' + (stock.name.length > 28 ? stock.name.slice(0,28)+'…' : stock.name) + '</span>' : '');
+
+  row.insertCell(1).innerHTML  = '<span class="mono">' + ema8.toFixed(2) + '</span>';
+  row.insertCell(2).innerHTML  = '<span class="mono">' + ema55.toFixed(2) + '</span>';
+  row.insertCell(3).innerHTML  = '<span class="mono">' + varPts + '</span>';
+  row.insertCell(4).innerHTML  = '<span class="text-warn mono">' + varPct + '</span>';
+
+  const tsCell = row.insertCell(5);
+  const tsNum  = parseFloat(trendStr);
+  tsCell.innerHTML = '<span class="mono" style="color:' + (tsNum > 0 ? 'var(--green)' : 'var(--red)') + '">' +
+    (tsNum > 0 ? '+' : '') + trendStr + '</span>';
+
+  row.insertCell(6).textContent = date;
+  row.insertCell(7).innerHTML   = '<span class="mono">' + shares + '</span>';
+  row.insertCell(8).innerHTML   = '<span class="mono">' + close.toFixed(2) + '</span>';
+
+  const mc = row.insertCell(9);
+  mc.innerHTML = '<span class="meta-pivot">' + emaAvg.toFixed(2) + '</span>';
+
+  const sc = row.insertCell(10);
+  sc.textContent = signal;
+  sc.className   = sigClass;
+
+  const pc = row.insertCell(11);
+  pc.textContent = fmtProfit(rawProfit);
+  pc.className   = pClass;
+  pc.setAttribute('data-raw', rawProfit);
+}
+
+/* ── SORT (by P&L descending) ───────────────────────────────── */
+/* BUG FIX: original sorted by cells[7]="Executed" → all same value → no-op
+   Now stores rawProfit in row.dataset.profit, sorts numerically desc */
+function sortTable() {
+  const tbody = document.querySelector('#tr-table tbody');
+  Array.from(tbody.rows)
+    .sort((a, b) => parseFloat(b.dataset.profit || 0) - parseFloat(a.dataset.profit || 0))
+    .forEach(r => tbody.appendChild(r));
+}
+
+/* ── RECALCULATE (budget changed) ───────────────────────────── */
+function recalculateDashboard() {
+  const tbody = document.querySelector('#tr-table tbody');
+  tbody.innerHTML = '';
+  scanStats = { long:0, short:0, total:0, signals:0, maxProfit:-Infinity, topRow:null };
+  const mkt = currentMarket;
+  for (const sym in globalCache) {
+    const stock = mkt && mkt.stocks.find(s => s.sym === sym);
+    processStock(stock || { sym, name: sym }, globalCache[sym]);
+  }
+  renderStats();
+  renderChampion();
+  updatePortfolioKPIs();
+}
+
+/* ── KPI UPDATE ─────────────────────────────────────────────── */
+function updatePortfolioKPIs() {
+  const rows    = document.querySelectorAll('#tr-table tbody tr');
+  const budget  = parseFloat(document.getElementById('trade-budget').value) || 100000;
+  let   totalPnL = 0;
+
+  rows.forEach(row => {
+    const pc = row.querySelector('[data-raw]');
+    if (pc) totalPnL += parseFloat(pc.getAttribute('data-raw')) || 0;
+  });
+
+  const total = rows.length * budget;
+  document.getElementById('kpi-capital').textContent  = total.toLocaleString('de-DE', { style:'currency', currency:'EUR', maximumFractionDigits:0 });
+
+  const pnlEl = document.getElementById('kpi-pnl');
+  pnlEl.textContent = totalPnL.toLocaleString('de-DE', { style:'currency', currency:'EUR', maximumFractionDigits:0 });
+  pnlEl.className = 'kpi-val ' + (totalPnL >= 0 ? 'pos' : 'neg');
+
+  document.getElementById('kpi-signals').textContent = rows.length + ' / ' + scanStats.total;
+}
+
+/* ── CHAMPION BOX ────────────────────────────────────────────── */
+function renderChampion() {
+  const t = scanStats.topRow;
+  if (!t) return;
+  document.getElementById('champ-sym').textContent  = t.stock.sym;
+  document.getElementById('champ-name').textContent = t.stock.name && t.stock.name !== t.stock.sym ? t.stock.name : '';
+  const sc = t.sigClass === 'alpha-long' ? 'long' : 'short';
+  document.getElementById('champ-signal').className   = 'champ-signal ' + sc;
+  document.getElementById('champ-signal').textContent = t.signal;
+  document.getElementById('champ-detail').textContent =
+    'Close: ' + t.close.toFixed(2) + ' | EMA8: ' + t.ema8.toFixed(2) +
+    ' | EMA55: ' + t.ema55.toFixed(2) + ' | Trend Str: ' +
+    (t.trendStr > 0 ? '+' : '') + t.trendStr.toFixed(2) + '%';
+  document.getElementById('champ-profit').textContent = fmtProfit(t.rawProfit);
+  document.getElementById('champion-box').style.display = 'block';
+}
+
+/* ── STATS ──────────────────────────────────────────────────── */
+function renderStats() {
+  document.getElementById('st-long').textContent  = scanStats.long;
+  document.getElementById('st-short').textContent = scanStats.short;
+  document.getElementById('st-total').textContent = scanStats.total;
+  document.getElementById('st-profit').textContent =
+    scanStats.maxProfit > -Infinity ? fmtProfit(scanStats.maxProfit) : '—';
+  document.getElementById('stats-bar').style.display = 'flex';
+}
+
+/* ── TV CHART ────────────────────────────────────────────────── */
+function openTVChart(sym) {
+  const tvSym = toTVSymbol(sym);
+  document.getElementById('tv-modal-title').textContent = 'QUANT FEED // ' + sym + ' // EMA STRUCTURE';
+  document.getElementById('tv-widget').innerHTML = '';
+  new TradingView.widget({
+    container_id: 'tv-widget', autosize: true,
+    symbol: tvSym, interval: 'D', timezone: 'Europe/Berlin',
+    theme: 'dark', style: '1', locale: 'en',
+    toolbar_bg: '#141a24', enable_publishing: false,
+    hide_side_toolbar: false, allow_symbol_change: true,
+    studies: ['MAExp@tv-basicstudies', 'MAExp@tv-basicstudies', 'MAExp@tv-basicstudies']
+  });
+  $('#tv-modal').modal('show');
+}
+
+/* ── EXPORT CSV ─────────────────────────────────────────────── */
+function exportCSV() {
+  const tbody = document.querySelector('#tr-table tbody');
+  const rows  = Array.from(tbody.rows);
+  if (!rows.length) return;
+  const headers = Array.from(document.querySelectorAll('#tr-table thead th')).map(h => '"' + h.textContent.trim() + '"');
+  const budget  = document.getElementById('trade-budget').value;
+  let csv = '﻿';
+  csv += '"TREND RIDER FINTECH // EMA Ribbon Quant Engine"\n';
+  csv += '"Market: ' + (currentMarket ? currentMarket.label : '') + ' | Budget: EUR ' + Number(budget).toLocaleString('de-DE') + ' | ' + new Date().toLocaleString('de-DE') + '"\n\n';
+  csv += headers.join(';') + '\n';
+  rows.forEach(row => {
+    const cells = Array.from(row.cells).map(td => '"' + td.textContent.trim().replace(/"/g, '""') + '"');
+    csv += cells.join(';') + '\n';
+  });
+  downloadFile(csv, 'TR_' + (currentMarket ? currentMarket.id : 'CUSTOM').toUpperCase() + '_' + fmtDateStamp() + '.csv', 'text/csv;charset=utf-8');
+}
+
+/* ── EXPORT HTML ─────────────────────────────────────────────── */
+function exportHTML() {
+  const tbody = document.querySelector('#tr-table tbody');
+  const rows  = Array.from(tbody.rows);
+  if (!rows.length) return;
+  const thead  = document.querySelector('#tr-table thead').innerHTML;
+  const budget = Number(document.getElementById('trade-budget').value).toLocaleString('de-DE');
+  const ts     = new Date().toLocaleString('de-DE');
+  let html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>TREND RIDER // ' + (currentMarket ? currentMarket.label : '') + '</title><style>' +
+    'body{background:#0b0e14;color:#e1e4ea;font-family:Arial,sans-serif;padding:20px;margin:0}' +
+    'h2{color:#00e6ff;font-size:18px;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid #2d3748;padding-bottom:8px}' +
+    '.meta{color:#718096;font-size:11px;margin-bottom:16px}' +
+    'table{border-collapse:collapse;width:100%;font-size:11px}' +
+    'th{background:#111827;color:#a0aec0;text-transform:uppercase;padding:8px;border:1px solid #2d3748;font-size:10px;white-space:nowrap}' +
+    'td{padding:8px;border:1px solid #2d3748;text-align:center}' +
+    'td:first-child{text-align:left;font-weight:700;color:#00e6ff}' +
+    'tr:nth-child(even){background:#17202e}' +
+    '</style></head><body>' +
+    '<h2>TREND RIDER FINTECH // EMA Ribbon Quant Engine</h2>' +
+    '<div class="meta">' + (currentMarket ? currentMarket.label + ' &bull; ' + currentMarket.exchange + ' &bull; ' : '') +
+    'Budget: EUR ' + budget + ' &bull; ' + ts + ' &bull; ' + rows.length + ' signals</div>' +
+    '<table><thead>' + thead + '</thead><tbody>';
+  rows.forEach(row => {
+    html += '<tr>';
+    Array.from(row.cells).forEach(td => { html += '<td>' + td.textContent.trim() + '</td>'; });
+    html += '</tr>';
+  });
+  html += '</tbody></table></body></html>';
+  downloadFile(html, 'TR_' + (currentMarket ? currentMarket.id : 'CUSTOM').toUpperCase() + '_' + fmtDateStamp() + '.html', 'text/html;charset=utf-8');
+}
+
+/* ── PROGRESS ───────────────────────────────────────────────── */
+function updateProgress(cur, total, name) {
+  const pct = Math.round(cur / total * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = '[ ' + name + ' — ' + cur + ' / ' + total + ' — ' + pct + '% ]';
+}
+
+/* ── HELPERS ────────────────────────────────────────────────── */
+function clearResults() {
+  document.querySelector('#tr-table tbody').innerHTML = '';
+  document.getElementById('stats-bar').style.display    = 'none';
+  document.getElementById('champion-box').style.display = 'none';
+  document.getElementById('kpi-capital').textContent    = 'EUR 0';
+  document.getElementById('kpi-pnl').textContent        = 'EUR 0';
+  document.getElementById('kpi-pnl').className          = 'kpi-val';
+  document.getElementById('kpi-signals').textContent    = '0 / 0';
+  setExportEnabled(false);
+}
+
+function setExportEnabled(on) {
+  document.getElementById('btn-csv').disabled  = !on;
+  document.getElementById('btn-html').disabled = !on;
+}
+
+function fmtProfit(amount) {
+  try {
+    return amount.toLocaleString('de-DE', { style:'currency', currency:'EUR', minimumFractionDigits:0, maximumFractionDigits:0 });
+  } catch(e) { return Math.round(amount).toLocaleString() + ' EUR'; }
+}
+
+function fmtDateStamp() { return new Date().toISOString().slice(0,10).replace(/-/g,''); }
+
+function downloadFile(content, name, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>

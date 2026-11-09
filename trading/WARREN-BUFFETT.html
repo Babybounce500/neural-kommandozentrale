@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warren Buffett — The Oracle of Omaha</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #0f1629;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #10b981;
+    --accent2: #34d399;
+    --gold: #f59e0b;
+    --blue: #3b82f6;
+    --red: #ef4444;
+    --purple: #8b5cf6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #001a0e 50%, #0a0e1a 100%);
+    border-bottom: 1px solid #0d2918;
+    padding: 60px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(16,185,129,0.12) 0%, transparent 70%);
+  }
+  .hero-badge { display:inline-block; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:var(--accent); padding:4px 16px; border-radius:20px; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px; }
+  .hero-title { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; letter-spacing:-1px; color:#fff; margin-bottom:8px; }
+  .hero-title span { color:var(--accent); }
+  .hero-sub { font-size:1.1rem; color:var(--muted); margin-bottom:24px; }
+  .hero-stats { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+  .hero-stat { text-align:center; }
+  .hero-stat-val { font-size:1.8rem; font-weight:800; color:var(--accent); }
+  .hero-stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  .container { max-width:1200px; margin:0 auto; padding:40px 20px; }
+
+  .section-header {
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:24px; padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  .section-header h2 { font-size:1.3rem; font-weight:700; color:#fff; }
+  .section-icon { font-size:1.4rem; }
+  .section-tag { margin-left:auto; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); color:var(--accent); padding:2px 10px; border-radius:12px; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+
+  .section { margin-bottom:48px; }
+
+  .timeline { position:relative; padding-left:30px; }
+  .timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:linear-gradient(180deg, var(--accent), transparent); }
+  .tl-item { position:relative; margin-bottom:24px; }
+  .tl-item::before { content:''; position:absolute; left:-26px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+  .tl-year { font-size:11px; color:var(--accent); font-weight:700; letter-spacing:2px; margin-bottom:4px; }
+  .tl-title { font-weight:700; color:#fff; margin-bottom:4px; }
+  .tl-desc { font-size:0.9rem; color:var(--muted); }
+
+  .info-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:24px; margin-bottom:16px;
+  }
+  .info-card h3 { color:var(--accent); margin-bottom:12px; font-size:1rem; }
+
+  .formula-block {
+    background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.2);
+    border-left:4px solid var(--accent); border-radius:8px;
+    padding:20px 24px; margin:16px 0; font-family:monospace;
+  }
+  .formula-block .formula { font-size:1.2rem; color:var(--accent2); font-weight:700; margin-bottom:8px; }
+  .formula-block .formula-desc { font-size:0.85rem; color:var(--muted); }
+
+  .grid-two { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .grid-three { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+
+  .lw-table { width:100%; border-collapse:collapse; }
+  .lw-table th { background:rgba(16,185,129,0.1); color:var(--accent); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); }
+  .lw-table td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; color:var(--text); }
+  .lw-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .lw-table td:first-child { color:#fff; font-weight:600; }
+
+  .moat-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px;
+    border-top:3px solid var(--gold);
+  }
+  .moat-icon { font-size:2rem; margin-bottom:8px; }
+  .moat-name { font-weight:700; color:#fff; margin-bottom:4px; }
+  .moat-desc { font-size:0.85rem; color:var(--muted); margin-bottom:12px; }
+  .moat-example { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:6px; padding:8px 12px; font-size:0.8rem; color:var(--gold); }
+
+  .metric-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px;
+  }
+  .metric-name { font-size:0.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .metric-formula { font-size:0.95rem; color:var(--accent2); font-family:monospace; font-weight:700; margin-bottom:8px; }
+  .metric-threshold { font-size:0.8rem; }
+  .metric-threshold span { color:var(--accent); font-weight:700; }
+
+  .quote-block {
+    background:rgba(16,185,129,0.05); border-left:4px solid var(--accent);
+    border-radius:0 8px 8px 0; padding:16px 20px; margin:12px 0;
+    font-style:italic; color:var(--text);
+  }
+  .quote-block cite { display:block; margin-top:8px; font-style:normal; font-size:0.8rem; color:var(--accent); }
+
+  .rule-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  .rule-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:8px; padding:16px; display:flex; gap:14px; align-items:flex-start;
+  }
+  .rule-num { font-size:1.5rem; font-weight:800; color:rgba(16,185,129,0.3); flex-shrink:0; line-height:1; }
+  .rule-text { font-size:0.9rem; color:var(--text); }
+  .rule-text strong { color:#fff; display:block; margin-bottom:4px; }
+
+  .holding-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px;
+  }
+  .holding-ticker { font-size:1.2rem; font-weight:800; color:var(--accent); margin-bottom:4px; }
+  .holding-name { font-size:0.8rem; color:var(--muted); margin-bottom:8px; }
+  .holding-why { font-size:0.85rem; color:var(--text); margin-bottom:8px; }
+  .holding-moat { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.15); border-radius:4px; padding:3px 8px; font-size:11px; color:var(--gold); display:inline-block; }
+
+  .graham-vs {
+    display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:center;
+  }
+  .vs-label { text-align:center; font-size:1.5rem; font-weight:800; color:var(--muted); }
+
+  .circle-visual {
+    position:relative; width:220px; height:220px; margin:0 auto;
+  }
+  .circle-outer { position:absolute; inset:0; border-radius:50%; border:3px dashed rgba(16,185,129,0.3); display:flex; align-items:center; justify-content:center; }
+  .circle-inner { width:120px; height:120px; border-radius:50%; background:rgba(16,185,129,0.1); border:3px solid var(--accent); display:flex; align-items:center; justify-content:center; text-align:center; }
+  .circle-label { font-size:0.75rem; font-weight:700; color:var(--accent); }
+  .circle-unknown { position:absolute; right:10px; bottom:30px; font-size:0.7rem; color:var(--muted); font-style:italic; }
+
+  .berkshire-tree {
+    text-align:center;
+  }
+  .bk-root { display:inline-block; background:rgba(16,185,129,0.1); border:2px solid var(--accent); border-radius:8px; padding:12px 24px; color:var(--accent); font-weight:700; margin-bottom:24px; }
+  .bk-branches { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+  .bk-branch { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px 16px; text-align:center; min-width:140px; }
+  .bk-branch-title { font-weight:700; color:#fff; font-size:0.9rem; margin-bottom:4px; }
+  .bk-branch-desc { font-size:0.75rem; color:var(--muted); }
+  .bk-branch-val { font-size:0.8rem; color:var(--gold); margin-top:4px; }
+
+  @media (max-width:640px) {
+    .hero { padding:40px 20px; }
+    .hero-stats { gap:20px; }
+    .graham-vs { grid-template-columns:1fr; }
+    .vs-label { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Trading Legend · Value Investing Godfather</div>
+  <h1 class="hero-title">Warren <span>Buffett</span></h1>
+  <p class="hero-sub">The Oracle of Omaha · Berkshire Hathaway · Graham's Greatest Student</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val">20%+</div><div class="hero-stat-label">CAGR Berkshire 1965–2024</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">$1.000</div><div class="hero-stat-label">BRK.A Kurs 1965 → $800.000+</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">94 Jahre</div><div class="hero-stat-label">Geboren 1930 · Still Active</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">99%</div><div class="hero-stat-label">Vermögen gespendet (Gates Foundation)</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- BIOGRAFIE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📜</span>
+      <h2>Biografie · Vom Zeitungsjungen zum reichsten Investor</h2>
+      <span class="section-tag">1930 – Heute</span>
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-year">1930</div>
+        <div class="tl-title">Geburt in Omaha, Nebraska</div>
+        <div class="tl-desc">Warren Edward Buffett wird am 30. August 1930 geboren. Vater Howard Buffett: Börsenmakler und Kongressabgeordneter. Erste Aktien mit 11 Jahren (Cities Service Preferred, $38).</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1942–1947</div>
+        <div class="tl-title">Erste Business-Ventures · Zeitungsjunge</div>
+        <div class="tl-desc">Steckt Zeitungen aus, verkauft Kaugummi Tür-zu-Tür, hat Pinball-Machines in Friseursalons. Mit 16 hat er $6.000 erspart (~$85.000 heute). Liest "The Intelligent Investor" von Graham.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1950–1951</div>
+        <div class="tl-title">Columbia Business School · Benjamin Graham</div>
+        <div class="tl-desc">Einziger Student, der in Grahams Kurs ein A+ bekommt. Graham: "Kaufe $1 Assets für 50 Cent." Buffett verschlingt Grahams Buch und bietet kostenlos in Grahams Firma zu arbeiten an — Graham lehnt ab.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1954–1956</div>
+        <div class="tl-title">Graham-Newman · New York</div>
+        <div class="tl-desc">Graham ruft ihn zurück. Buffett arbeitet 2 Jahre für Graham. Studiert intensiv Net-Net Stocks, Cigar Butts, Working Capital. Graham schließt Fonds: Buffett kehrt nach Omaha zurück.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1956–1969</div>
+        <div class="tl-title">Buffett Partnership Ltd. · Omaha</div>
+        <div class="tl-desc">Startet eigene Limited Partnership mit $105.000 (7 Kommanditisten). 13 Jahre: +2.704% vs. +166% Dow. Schließt Partnership 1969: "Ich finde keine günstigen Aktien mehr."</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1965</div>
+        <div class="tl-title">Berkshire Hathaway Übernahme</div>
+        <div class="tl-desc">Kauft marode Textilfabrik Berkshire Hathaway aus persönlicher Rache gegen Management — später nennt er es den teuersten Fehler seines Lebens. Wandelt sie zur Holding-Gesellschaft um.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1972</div>
+        <div class="tl-title">See's Candies · Qualitätsshift</div>
+        <div class="tl-desc">Charlie Munger überzeugt Buffett: Zahle nicht Graham-Cigar-Butt-Preise für Schrottfirmen — kaufe hervorragende Unternehmen zu fairen Preisen. See's Candies für $25M: Macht heute $80M+ Gewinn/Jahr.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1988</div>
+        <div class="tl-title">Coca-Cola · $1 Milliarde Investment</div>
+        <div class="tl-desc">Nach dem Crash 1987 kauft Buffett 7% von Coca-Cola für ~$1 Mrd. Position heute wert: $25+ Mrd. Dividenden in 2023: ~$736 Mio. — mehr als der ursprüngliche Kaufpreis pro Jahr.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2016</div>
+        <div class="tl-title">Apple · $36 Milliarden</div>
+        <div class="tl-desc">Kauft massiv Apple-Aktien — gegen sein Dogma "kein Tech". Begründung: Apple ist kein Tech-Unternehmen, sondern eine Consumer-Marke mit dem stärksten MOAT der Welt. Peak-Position: ~$178 Mrd.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENJAMIN GRAHAM FOUNDATION -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📖</span>
+      <h2>Benjamin Graham · Das Fundament</h2>
+      <span class="section-tag">Intelligent Investor · Security Analysis</span>
+    </div>
+    <div class="info-card" style="border-color:rgba(16,185,129,0.2);">
+      <p style="color:var(--muted);margin-bottom:20px;">Graham lehrte Buffett das grundlegende Prinzip: Eine Aktie ist kein Ticker-Symbol — sie ist ein Anteil an einem echten Unternehmen. Der Markt ist Mr. Market: manisch-depressiv, aber immer bereit zu handeln.</p>
+      <div class="graham-vs">
+        <div class="info-card" style="border-color:rgba(239,68,68,0.2);margin-bottom:0;">
+          <h3 style="color:var(--red)">Graham Original · Cigar Butt</h3>
+          <ul style="list-style:none;">
+            <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:var(--muted);">→ Kaufe extrem günstige "Net-Net" Aktien</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:var(--muted);">→ Kurs &lt; Nettoumlaufvermögen</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:var(--muted);">→ Ein letzter Zug am Zigarrenstummel</li>
+            <li style="padding:6px 0;font-size:0.85rem;color:var(--muted);">→ Keine Qualitätsanforderung nötig</li>
+          </ul>
+        </div>
+        <div class="vs-label">→</div>
+        <div class="info-card" style="border-color:rgba(16,185,129,0.2);margin-bottom:0;">
+          <h3 style="color:var(--accent)">Buffett Evolution · Quality Compounder</h3>
+          <ul style="list-style:none;">
+            <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:var(--muted);">→ Hervorragendes Unternehmen zu fairem Preis</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:var(--muted);">→ Nachhaltiger Wettbewerbsvorteil (MOAT)</li>
+            <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:var(--muted);">→ Management mit Integrität & Kompetenz</li>
+            <li style="padding:6px 0;font-size:0.85rem;color:var(--muted);">→ Für immer halten (Compound Interest)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="quote-block" style="margin-top:16px;">"Es ist weit besser, ein wunderbares Unternehmen zu einem fairen Preis zu kaufen, als ein faires Unternehmen zu einem wunderbaren Preis."<cite>— Warren Buffett (Charlie Munger Einfluss sichtbar)</cite></div>
+    </div>
+  </div>
+
+  <!-- DER MOAT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🏰</span>
+      <h2>Economic MOAT · Der Burggraben-Konzept</h2>
+      <span class="section-tag">5 MOAT-Typen</span>
+    </div>
+    <div class="grid-three">
+      <div class="moat-card">
+        <div class="moat-icon">🏷️</div>
+        <div class="moat-name">Brand MOAT</div>
+        <div class="moat-desc">Kunden zahlen Prämie für Marke. Unabhängig von Produktqualität. Emotional verankert.</div>
+        <div class="moat-example">Coca-Cola · Apple · Louis Vuitton</div>
+      </div>
+      <div class="moat-card">
+        <div class="moat-icon">🔄</div>
+        <div class="moat-name">Switching Cost MOAT</div>
+        <div class="moat-desc">Wechsel zu Konkurrenz ist teuer, zeitaufwändig oder schmerzhaft. Kunden bleiben aus Trägheit.</div>
+        <div class="moat-example">Microsoft Office · Salesforce · SAP</div>
+      </div>
+      <div class="moat-card">
+        <div class="moat-icon">📈</div>
+        <div class="moat-name">Network Effect MOAT</div>
+        <div class="moat-desc">Produkt wird wertvoller je mehr Nutzer. Metcalfes Gesetz: Wert ~ n². Selbstverstärkend.</div>
+        <div class="moat-example">American Express · Visa · Meta</div>
+      </div>
+      <div class="moat-card">
+        <div class="moat-icon">⚡</div>
+        <div class="moat-name">Cost Advantage MOAT</div>
+        <div class="moat-desc">Strukturell niedrigere Kosten durch Scale, Prozesse oder Geographie. Nachahmer benachteiligt.</div>
+        <div class="moat-example">GEICO · BNSF Railway · Costco</div>
+      </div>
+      <div class="moat-card">
+        <div class="moat-icon">🔒</div>
+        <div class="moat-name">Intangible Assets MOAT</div>
+        <div class="moat-desc">Lizenzen, Patente, Regulierungsgenehmigungen, die Konkurrenz ausschließen oder verteuern.</div>
+        <div class="moat-example">Moody's · S&P · Pharma Patents</div>
+      </div>
+      <div class="moat-card" style="border-top-color:var(--red)">
+        <div class="moat-icon">⚠️</div>
+        <div class="moat-name">Kein MOAT · Danger Zone</div>
+        <div class="moat-desc">Airlines, Commodity-Produzenten, Einzelhandel ohne Differenzierung. Preistaker, kein Preissetzer.</div>
+        <div class="moat-example" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:var(--red)">Buffett: "Airlines = Kapitalgrab"</div>
+      </div>
+    </div>
+    <div class="formula-block">
+      <div class="formula">MOAT Test: Kann das Unternehmen die Preise erhöhen ohne Kunden zu verlieren?</div>
+      <div class="formula-desc">Coca-Cola: Ja → Wide MOAT | Airline: Nein → No MOAT | See's Candies: Ja → Buffetts Lieblingstest</div>
+    </div>
+  </div>
+
+  <!-- INTRINSIC VALUE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🧮</span>
+      <h2>Intrinsic Value & Margin of Safety</h2>
+      <span class="section-tag">Core Valuation Framework</span>
+    </div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>Intrinsic Value · DCF Prinzip</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:16px;">Intrinsic Value = Barwert aller zukünftigen Cashflows, die ein Unternehmen über seine Lebensdauer generiert. Buffett nutzt Owner Earnings — nicht buchhalterischen Gewinn.</p>
+        <div class="formula-block" style="margin:0;">
+          <div class="formula">IV = Σ (Owner Earnings_t / (1+r)^t)</div>
+          <div class="formula-desc">Owner Earnings = Net Income + D&A − CapEx − Working Capital ΔCapital<br>r = Diskontrate (Buffett: ~10% als US-Langzins-Proxy)</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>Margin of Safety · Grahams Kernlehre</h3>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:16px;">Kaufe nie zum Intrinsic Value. Kaufe mit Sicherheitsmarge — Puffer gegen Fehler in der Analyse und unvorhergesehene Ereignisse. Die Marge schützt vor dem eigenen Irrtum.</p>
+        <div style="position:relative;height:80px;background:rgba(255,255,255,0.03);border-radius:8px;overflow:hidden;margin-bottom:12px;">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:60%;background:rgba(16,185,129,0.15);border-right:2px dashed var(--accent);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:0.8rem;color:var(--accent);font-weight:700;">Kaufkurs (60% IV)</span>
+          </div>
+          <div style="position:absolute;right:0;top:0;bottom:0;width:40%;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:0.8rem;color:var(--gold);">Sicherheitsmarge 40%</span>
+          </div>
+        </div>
+        <div class="formula-block" style="margin:0;">
+          <div class="formula">Kaufkurs ≤ 0,60 × Intrinsic Value → 40% Marge</div>
+          <div class="formula-desc">Buffett bei Big Opportunities: 30–50% Abschlag | Graham: Net-Net = oft 66% Rabatt</div>
+        </div>
+      </div>
+    </div>
+    <div class="info-card" style="margin-top:12px;">
+      <h3>DCF Sensitivitäts-Analyse · Die 3×3 Wahrheit</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px;">Gordon Growth Model (vereinfacht): IV = Owner Earnings / (r − g). Kleine Änderungen bei Diskontrate oder Wachstum verschieben den Inneren Wert dramatisch — Buffetts größte Unsicherheitsquelle.</p>
+      <div style="overflow-x:auto;">
+        <table class="lw-table" style="font-size:0.8rem;">
+          <thead>
+            <tr>
+              <th style="background:rgba(16,185,129,0.1);">Diskontrate r \ Wachstum g</th>
+              <th style="color:var(--muted);">g = 3%</th>
+              <th style="color:var(--accent);">g = 5% (Base)</th>
+              <th style="color:var(--gold);">g = 7%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;color:var(--muted);">r = 7% (Niedrig-Zins-Ära)</td>
+              <td style="color:var(--accent);">25× OE</td>
+              <td style="color:var(--green);font-weight:700;">50× OE ↑↑</td>
+              <td style="color:var(--gold);">∞ (r ≤ g: Modell bricht zusammen)</td>
+            </tr>
+            <tr style="background:rgba(16,185,129,0.05);">
+              <td style="font-weight:700;color:var(--accent);">r = 10% (Buffett Standard)</td>
+              <td style="color:var(--muted);">14× OE</td>
+              <td style="color:var(--accent);font-weight:700;">20× OE ← Basis</td>
+              <td style="color:var(--gold);">33× OE</td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;color:var(--red);">r = 13% (Steigende Zinsen)</td>
+              <td style="color:var(--red);">10× OE ↓↓</td>
+              <td style="color:var(--muted);">12.5× OE</td>
+              <td style="color:var(--accent);">17× OE</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="formula-block" style="margin-top:12px;">
+        <div class="formula">Zinsschock-Effekt: r 7%→13% bei g=5%: IV kollabiert von 50×OE auf 12.5×OE = −75% Bewertungskorrektur</div>
+        <div class="formula-desc">Deshalb Margin of Safety: Ein 40% Abschlag schützt vor Fehlkalkulation in der Diskontrate. Steigende Zinsen sind der größte Feind von Growth Stocks — AAPL 2022 ist das Lehrbuchbeispiel.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CIRCLE OF COMPETENCE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🎯</span>
+      <h2>Circle of Competence · Nur kaufen was man versteht</h2>
+      <span class="section-tag">Self-Awareness als Alpha</span>
+    </div>
+    <div class="grid-two">
+      <div class="info-card">
+        <div class="circle-visual">
+          <div class="circle-outer">
+            <div class="circle-inner">
+              <div class="circle-label">DEIN<br>KREIS</div>
+            </div>
+          </div>
+          <div class="circle-unknown" style="right:5px;top:20px;">Alles was du<br>nicht verstehst</div>
+        </div>
+        <div style="text-align:center;margin-top:16px;">
+          <div style="font-size:0.85rem;color:var(--muted);">Die Größe des Kreises ist unwichtig.</div>
+          <div style="font-size:0.85rem;color:var(--accent);">Wichtig: Die Grenzen genau kennen.</div>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>Anwendung in der Praxis</h3>
+        <table class="lw-table">
+          <thead><tr><th>Bereich</th><th>Buffett Status</th><th>Begründung</th></tr></thead>
+          <tbody>
+            <tr><td>Versicherung</td><td style="color:var(--accent)">✓ Kompetenz</td><td style="color:var(--muted);font-size:0.8rem;">GEICO, Float-Konzept, Aktuarwesen</td></tr>
+            <tr><td>Consumer Brands</td><td style="color:var(--accent)">✓ Kompetenz</td><td style="color:var(--muted);font-size:0.8rem;">MOAT-Brands: Coke, See's, Gillette</td></tr>
+            <tr><td>Banking</td><td style="color:var(--accent)">✓ Kompetenz</td><td style="color:var(--muted);font-size:0.8rem;">Wells Fargo, Goldman (selektiv)</td></tr>
+            <tr><td>Tech (bis 2000)</td><td style="color:var(--red)">✗ Außerhalb</td><td style="color:var(--muted);font-size:0.8rem;">"Ich verstehe das Geschäftsmodell nicht"</td></tr>
+            <tr><td>Apple (ab 2016)</td><td style="color:var(--accent)">✓ Kompetenz</td><td style="color:var(--muted);font-size:0.8rem;">Consumer brand, nicht Tech — Reframing</td></tr>
+            <tr><td>Kryptowährungen</td><td style="color:var(--red)">✗ Außerhalb</td><td style="color:var(--muted);font-size:0.8rem;">"Ratte-Gift Quadrat" — kein Cashflow</td></tr>
+          </tbody>
+        </table>
+        <div class="quote-block" style="margin-top:12px;">"Risk comes from not knowing what you're doing."<cite>— Warren Buffett</cite></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MR. MARKET -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🎭</span>
+      <h2>Mr. Market · Grahams geniale Metapher</h2>
+      <span class="section-tag">Psychologie der Märkte</span>
+    </div>
+    <div class="info-card" style="border-color:rgba(16,185,129,0.2);">
+      <p style="color:var(--muted);margin-bottom:20px;">Mr. Market ist dein imaginärer Geschäftspartner, der täglich an deine Tür klopft und anbietet, dir seinen Anteil zu kaufen oder dir deinen zu verkaufen — zu einem von ihm genannten Preis.</p>
+      <div class="grid-three" style="margin-bottom:16px;">
+        <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:16px;text-align:center;">
+          <div style="font-size:2rem;margin-bottom:8px;">😊</div>
+          <div style="font-weight:700;color:#4ade80;margin-bottom:4px;">Euphorisch</div>
+          <div style="font-size:0.8rem;color:var(--muted);">Bietet irrsinnig hohe Preise. Nutze es: VERKAUFE an Mr. Market.</div>
+        </div>
+        <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:16px;text-align:center;">
+          <div style="font-size:2rem;margin-bottom:8px;">😐</div>
+          <div style="font-weight:700;color:#93c5fd;margin-bottom:4px;">Rational</div>
+          <div style="font-size:0.8rem;color:var(--muted);">Faire Preise. Kein extremes Signal. Warte auf Extreme.</div>
+        </div>
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:16px;text-align:center;">
+          <div style="font-size:2rem;margin-bottom:8px;">😰</div>
+          <div style="font-weight:700;color:var(--red);margin-bottom:4px;">Panisch</div>
+          <div style="font-size:0.8rem;color:var(--muted);">Bietet lächerlich niedrige Preise. Nutze es: KAUFE von Mr. Market.</div>
+        </div>
+      </div>
+      <div class="quote-block">"Be fearful when others are greedy, and be greedy when others are fearful."<cite>— Warren Buffett (jährliches Shareholder Letter Mantra)</cite></div>
+      <div style="margin-top:12px;padding:16px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.15);border-radius:8px;">
+        <div style="color:var(--gold);font-weight:700;margin-bottom:8px;">Die goldene Regel:</div>
+        <div style="color:var(--muted);font-size:0.9rem;">Mr. Market ist dein Diener, nicht dein Ratgeber. Nutze seine Launen — folge ihnen nie. Der Markt ist eine Abstimmungsmaschine kurzfristig und eine Waagmaschine langfristig.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUFFETT METRIKEN -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📐</span>
+      <h2>Buffett's Investment-Metriken · Die Checkliste</h2>
+      <span class="section-tag">Quantitative Filter</span>
+    </div>
+    <div class="grid-three">
+      <div class="metric-card">
+        <div class="metric-name">Return on Equity (ROE)</div>
+        <div class="metric-formula">ROE = Net Income / Shareholders' Equity</div>
+        <div class="metric-threshold">Ziel: <span>&gt;15% konsistent</span> über 10 Jahre</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Return on Invested Capital (ROIC)</div>
+        <div class="metric-formula">ROIC = NOPAT / Invested Capital</div>
+        <div class="metric-threshold">Ziel: <span>&gt;WACC + 5%</span> · Echte Wertschöpfung</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Debt / Equity Ratio</div>
+        <div class="metric-formula">D/E = Total Debt / Equity</div>
+        <div class="metric-threshold">Ziel: <span>&lt;0.5</span> · Wenig Fremdkapital</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Owner Earnings</div>
+        <div class="metric-formula">OE = NI + D&A − CapEx − ΔWC</div>
+        <div class="metric-threshold">Buffetts eigene Kennzahl. <span>Wahrer Free Cashflow</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Profit Margin</div>
+        <div class="metric-formula">PM = Net Income / Revenue</div>
+        <div class="metric-threshold">Ziel: <span>&gt;10%</span> Netto-Marge konsistent</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">P/E zur Qualität</div>
+        <div class="metric-formula">PEG = P/E / EPS Growth Rate</div>
+        <div class="metric-threshold">PEG <span>&lt;1</span> = günstig · &gt;2 = teuer</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Buffett Indicator</div>
+        <div class="metric-formula">BI = Market Cap Total / GDP</div>
+        <div class="metric-threshold"><span>&gt;100%</span> = Markt überteuert · &lt;75% = günstig</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">Float (Insurance)</div>
+        <div class="metric-formula">Float = Prämien − ausgez. Claims</div>
+        <div class="metric-threshold">Kostenloses Kapital für <span>Investments</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">EPS Growth</div>
+        <div class="metric-formula">Konsistentes EPS ↑ über Zyklen</div>
+        <div class="metric-threshold">Ziel: <span>10%+ CAGR</span> über 10 Jahre ohne Bruch</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BERKSHIRE STRUKTUR -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">🏢</span>
+      <h2>Berkshire Hathaway · Das Imperium</h2>
+      <span class="section-tag">Float + Compounding Machine</span>
+    </div>
+    <div class="info-card">
+      <div class="berkshire-tree">
+        <div class="bk-root">🏰 BERKSHIRE HATHAWAY (BRK)</div>
+        <div class="bk-branches">
+          <div class="bk-branch" style="border-top:3px solid #10b981;">
+            <div class="bk-branch-title">Insurance</div>
+            <div class="bk-branch-desc">GEICO · Gen Re · BHRG</div>
+            <div class="bk-branch-val">~$170B Float</div>
+          </div>
+          <div class="bk-branch" style="border-top:3px solid #3b82f6;">
+            <div class="bk-branch-title">Equity Portfolio</div>
+            <div class="bk-branch-desc">Apple · BofA · Coke · AmEx</div>
+            <div class="bk-branch-val">~$300B+ Wert</div>
+          </div>
+          <div class="bk-branch" style="border-top:3px solid #f59e0b;">
+            <div class="bk-branch-title">Operating Companies</div>
+            <div class="bk-branch-desc">BNSF · Berkshire Energy · See's</div>
+            <div class="bk-branch-val">~$30B+ Earnings</div>
+          </div>
+          <div class="bk-branch" style="border-top:3px solid #8b5cf6;">
+            <div class="bk-branch-title">Cash Reserve</div>
+            <div class="bk-branch-desc">T-Bills · Dry Powder</div>
+            <div class="bk-branch-val">$170B+ (2024)</div>
+          </div>
+        </div>
+      </div>
+      <div class="formula-block" style="margin-top:24px;">
+        <div class="formula">Float × Investmentrendite = Kostenloses Leverage</div>
+        <div class="formula-desc">GEICO sammelt Prämien heute → Zahlt Claims morgen → Dazwischen: Buffett investiert das Kapital gratis. Float war Berkshires geheimer Alpha-Faktor für Jahrzehnte.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY HOLDINGS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">💼</span>
+      <h2>Berkshire Top Holdings · MOATs in der Praxis</h2>
+      <span class="section-tag">Portfolio Logik</span>
+    </div>
+    <div class="grid-three">
+      <div class="holding-card">
+        <div class="holding-ticker">AAPL</div>
+        <div class="holding-name">Apple Inc.</div>
+        <div class="holding-why">Keine Tech-Aktie — Consumer-Brand mit iPhone-Ökosystem. 2 Mrd. Geräte, Switching Cost = extrem hoch.</div>
+        <span class="holding-moat">Brand + Switching Cost</span>
+      </div>
+      <div class="holding-card">
+        <div class="holding-ticker">BAC</div>
+        <div class="holding-name">Bank of America</div>
+        <div class="holding-why">Größte US-Retail-Bank. Scale Advantage. Kaufte 2011 nach Krise zu massivem Abschlag — $5B Preferred.</div>
+        <span class="holding-moat">Scale + Network Effect</span>
+      </div>
+      <div class="holding-card">
+        <div class="holding-ticker">KO</div>
+        <div class="holding-name">Coca-Cola</div>
+        <div class="holding-why">Seit 1988. Globale Distribution + Marke = schier unzerstörbarer MOAT. Dividende wächst seit 62 Jahren.</div>
+        <span class="holding-moat">Brand + Distribution</span>
+      </div>
+      <div class="holding-card">
+        <div class="holding-ticker">AXP</div>
+        <div class="holding-name">American Express</div>
+        <div class="holding-why">Two-sided Network: Händler + Karteninhaber. Affluent Spending Demographics. Buffett hält seit 1994.</div>
+        <span class="holding-moat">Network Effect</span>
+      </div>
+      <div class="holding-card">
+        <div class="holding-ticker">BNSF</div>
+        <div class="holding-name">Burlington Northern Railroad</div>
+        <div class="holding-why">Schienen kann man nicht replizieren. Natural Monopoly auf Infrastruktur. $44B Acquisition 2010.</div>
+        <span class="holding-moat">Natural Monopoly</span>
+      </div>
+      <div class="holding-card">
+        <div class="holding-ticker">OXY</div>
+        <div class="holding-name">Occidental Petroleum</div>
+        <div class="holding-why">Neueste große Position. Low-cost Permian Basin Producer. Inflation Hedge + Energy MOAT durch Kosten.</div>
+        <span class="holding-moat">Cost Advantage</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 REGELN -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <h2>Buffett's Goldene Regeln · Kondensierte Weisheit</h2>
+      <span class="section-tag">Zeitlos · 60+ Jahre bewiesen</span>
+    </div>
+    <div class="rule-grid">
+      <div class="rule-card"><div class="rule-num">01</div><div class="rule-text"><strong>Verliere nie Geld (Regel Nr. 1)</strong>Regel Nr. 2: Vergiss Regel Nr. 1 nicht. Kapitalerhalt hat absoluten Vorrang.</div></div>
+      <div class="rule-card"><div class="rule-num">02</div><div class="rule-text"><strong>Kaufe hervorragende Unternehmen zu fairen Preisen</strong>Nicht faire Unternehmen zu hervorragenden Preisen. Qualität schlägt Günstigkeit langfristig.</div></div>
+      <div class="rule-card"><div class="rule-num">03</div><div class="rule-text"><strong>Halte für immer (liebstes Haltepflichtziel: ewig)</strong>Compounding braucht Zeit. Jeder Verkauf ist ein Steuerereignis. Lass den Zinseszins arbeiten.</div></div>
+      <div class="rule-card"><div class="rule-num">04</div><div class="rule-text"><strong>Kaufe nur was du in 5 Minuten erklären kannst</strong>Komplexität ist oft ein Warnsignal. Wenn du das Geschäftsmodell nicht verstehst, besitze es nicht.</div></div>
+      <div class="rule-card"><div class="rule-num">05</div><div class="rule-text"><strong>Sei gierig wenn andere ängstlich sind</strong>Die besten Kaufkurse entstehen in Panik. Cash in Krisen zu haben ist eine Strategie, kein Versagen.</div></div>
+      <div class="rule-card"><div class="rule-num">06</div><div class="rule-text"><strong>MOAT ist nicht verhandelbar</strong>Kein MOAT = kein Investment. Der Burggraben schützt vor Inflation und Konkurrenz über Jahrzehnte.</div></div>
+      <div class="rule-card"><div class="rule-num">07</div><div class="rule-text"><strong>Management mit Integrität & Kompetenz</strong>Integrität ohne Kompetenz ist wertlos. Kompetenz ohne Integrität ist gefährlich. Beide sind Pflicht.</div></div>
+      <div class="rule-card"><div class="rule-num">08</div><div class="rule-text"><strong>Diversifikation ist Schutz vor Unwissenheit</strong>Wenn du weißt was du tust, brauchst du keine 100 Positionen. Fokus-Portfolio mit Conviction.</div></div>
+      <div class="rule-card"><div class="rule-num">09</div><div class="rule-text"><strong>Preis ist was du zahlst, Wert ist was du bekommst</strong>Margin of Safety: Kaufe immer mit Abschlag zum Intrinsic Value — mindestens 30%.</div></div>
+      <div class="rule-card"><div class="rule-num">10</div><div class="rule-text"><strong>Lese täglich 500 Seiten</strong>Wissen ist wie Zinseszins — es baut auf sich selbst auf. Investiere täglich in dein Humankapital.</div></div>
+    </div>
+  </div>
+
+  <!-- ZITATE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-icon">💬</span>
+      <h2>Unsterbliche Buffett-Zitate</h2>
+      <span class="section-tag">Das Orakel spricht</span>
+    </div>
+    <div class="grid-two">
+      <div>
+        <div class="quote-block">"Someone is sitting in the shade today because someone planted a tree a long time ago."<cite>— Über langfristiges Compounding</cite></div>
+        <div class="quote-block">"Our favorite holding period is forever."<cite>— Zu Berkshire's Investment-Philosophie</cite></div>
+        <div class="quote-block">"It takes 20 years to build a reputation and five minutes to ruin it. If you think about that, you'll do things differently."<cite>— Über Integrität</cite></div>
+      </div>
+      <div>
+        <div class="quote-block">"The stock market is a device to transfer money from the impatient to the patient."<cite>— Über Zeit als Investment-Vorteil</cite></div>
+        <div class="quote-block">"I never attempt to make money on the stock market. I buy on the assumption that they could close the market the next day and not reopen it for five years."<cite>— Über Business-Denken vs. Trading</cite></div>
+        <div class="quote-block">"Only buy something that you'd be perfectly happy to hold if the market shut down for 10 years."<cite>— Der ultimative Qualitätstest</cite></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 0;border-top:1px solid var(--border);margin-top:20px;">
+    <div style="font-size:0.85rem;color:var(--muted)">DUDE BANK · Trading Legends Series · Modul 13</div>
+    <div style="font-size:0.75rem;color:#334155;margin-top:4px;">Warren Buffett · The Oracle of Omaha · Value Investing since 1941</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUDE BANK — Magritte Gallery</title>
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #111;
+    --card: #161616;
+    --border: #262626;
+    --gold: #c9a84c;
+    --gold2: #f5d47a;
+    --blue: #4a9eff;
+    --green: #39d353;
+    --red: #f85149;
+    --purple: #a371f7;
+    --orange: #fb8500;
+    --teal: #26e8c8;
+    --text: #ddd;
+    --muted: #555;
+    --quote: #e8e0cc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0d0a00 0%, #1a1200 50%, #0d0a00 100%);
+    border-bottom: 1px solid var(--gold);
+    padding: 40px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(201,168,76,0.08) 0%, transparent 70%);
+  }
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+  .header h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 50%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+  .header-sub {
+    margin-top: 16px;
+    font-size: 15px;
+    color: #888;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+  .header-meta {
+    margin-top: 20px;
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .meta-pill {
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+
+  /* NAV TABS */
+  .nav-tabs {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 14px 16px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+
+  /* INTRO */
+  .intro-bar {
+    background: rgba(201,168,76,0.05);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    font-size: 13px;
+    color: #777;
+    line-height: 1.6;
+  }
+  .intro-bar em { color: var(--gold); font-style: normal; }
+
+  /* SECTION */
+  .section {
+    padding: 32px;
+    display: none;
+  }
+  .section.active { display: block; }
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* GALLERY GRID */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+  }
+
+  /* CARD */
+  .magritte-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .magritte-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+  .card-accent-bar {
+    height: 3px;
+    width: 100%;
+  }
+  .card-body { padding: 20px; }
+  .card-num {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    font-family: monospace;
+  }
+  .card-quote {
+    font-size: 15px;
+    font-style: italic;
+    color: var(--gold2);
+    line-height: 1.5;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .card-translation {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+  .card-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+  .card-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .card-image-desc {
+    font-size: 13px;
+    color: #aaa;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .card-prompt-box {
+    background: #0d0d0d;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 11px;
+    color: #688;
+    font-family: monospace;
+    line-height: 1.6;
+    position: relative;
+  }
+  .prompt-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #396;
+    margin-bottom: 6px;
+  }
+  .card-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .tag {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* THEME COLORS */
+  .theme-trading { background: rgba(74,158,255,0.1); color: var(--blue); border: 1px solid rgba(74,158,255,0.2); }
+  .theme-genossenschaft { background: rgba(57,211,83,0.1); color: var(--green); border: 1px solid rgba(57,211,83,0.2); }
+  .theme-ki { background: rgba(163,113,247,0.1); color: var(--purple); border: 1px solid rgba(163,113,247,0.2); }
+  .theme-theologie { background: rgba(251,133,0,0.1); color: var(--orange); border: 1px solid rgba(251,133,0,0.2); }
+  .theme-kerbholz { background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+  .theme-templer { background: rgba(248,81,73,0.1); color: var(--red); border: 1px solid rgba(248,81,73,0.2); }
+  .theme-japan { background: rgba(38,232,200,0.1); color: var(--teal); border: 1px solid rgba(38,232,200,0.2); }
+  .theme-bank { background: rgba(201,168,76,0.15); color: var(--gold2); border: 1px solid rgba(201,168,76,0.3); }
+
+  .accent-trading { background: var(--blue); }
+  .accent-genossenschaft { background: var(--green); }
+  .accent-ki { background: var(--purple); }
+  .accent-theologie { background: var(--orange); }
+  .accent-kerbholz { background: var(--gold); }
+  .accent-templer { background: var(--red); }
+  .accent-japan { background: var(--teal); }
+  .accent-bank { background: var(--gold2); }
+
+  /* FULL GALLERY */
+  .all-section {
+    display: block;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .gallery-grid { grid-template-columns: 1fr; }
+    .section { padding: 16px; }
+    .header { padding: 24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK eG — Conversation Insights</div>
+  <h1>Magritte Gallery</h1>
+  <p class="header-sub">
+    Alle surrealistischen Bildmantras aus der DUDE-BANK-CONVO — von Van Tharp bis Kerbholz,
+    von Templer-Banking bis Candlestick-Charts. Extrahiert aus 5.942 Zeilen Gemini-Konversation.
+  </p>
+  <div class="header-meta">
+    <span class="meta-pill">44 Bildprompts</span>
+    <span class="meta-pill">11 Themen</span>
+    <span class="meta-pill">AI Image Ready</span>
+    <span class="meta-pill">Ceci n'est pas une pipe…</span>
+  </div>
+</div>
+
+<div class="intro-bar">
+  <em>Die Methode:</em> Gemini wendete René Magrittes „Ceci n'est pas une pipe" (1929) auf Finanzmärkte, Bankenrecht, Kirchengeschichte und DeFi-Protokolle an.
+  Das Kernprinzip: <em>Representation ≠ Reality</em> — ein Chart ist nicht der Markt, ein Backtest ist nicht die Zukunft, ein Smart Contract ist nicht unhackbar, ein Lombard-Kredit ist nicht sicher.
+  Diese Galerie bewahrt alle 44 Bildvisionenals AI-Generierungs-Prompts.
+</div>
+
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="showSection('all')">Alle (44)</button>
+  <button class="tab-btn" onclick="showSection('trading')">Trading (5)</button>
+  <button class="tab-btn" onclick="showSection('genossenschaft')">Genossenschaft (7)</button>
+  <button class="tab-btn" onclick="showSection('bank')">DUDE BANK (6)</button>
+  <button class="tab-btn" onclick="showSection('ki')">KI Governance (12)</button>
+  <button class="tab-btn" onclick="showSection('theologie')">Theologie (4)</button>
+  <button class="tab-btn" onclick="showSection('kerbholz')">Kerbholz (6)</button>
+  <button class="tab-btn" onclick="showSection('templer')">Templer (3)</button>
+  <button class="tab-btn" onclick="showSection('japan')">Japan (1)</button>
+</div>
+
+<!-- ALL SECTION -->
+<div id="sec-all" class="section all-section active">
+
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-num">44</div><div class="stat-label">Magritte Bilder</div></div>
+    <div class="stat-card"><div class="stat-num">5942</div><div class="stat-label">Zeilen Konversation</div></div>
+    <div class="stat-card"><div class="stat-num">11</div><div class="stat-label">Themenbereiche</div></div>
+    <div class="stat-card"><div class="stat-num">54</div><div class="stat-label">Ceci n'est pas Quotes</div></div>
+    <div class="stat-card"><div class="stat-num">1929</div><div class="stat-label">Original Magritte Jahr</div></div>
+    <div class="stat-card"><div class="stat-num">2026</div><div class="stat-label">Dude Bank Vision</div></div>
+  </div>
+
+  <!-- ═══ TRADING ═══ -->
+  <div class="section-title">I — TRADING & VAN THARP (Charts als Magritte-Pipas)</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-trading"></div>
+      <div class="card-body">
+        <div class="card-num">TRADING #001 · Z. 710</div>
+        <div class="card-quote">„Ceci n'est pas une courbe."</div>
+        <div class="card-translation">(Dies ist keine Kurve — es ist eine Illusion der Zukunft.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision</div>
+        <div class="card-image-desc">
+          Magritte malt einen perfekten, aufsteigenden Chartverlag auf einem Bildschirm — grüne Linien, goldene Kerzen, makellose
+          Trendkanäle. Darunter steht in Van Tharps Handschrift: „Ceci n'est pas le marché." Denn der Chart ist nur die
+          Repräsentation vergangener Preise. Der Markt selbst — die zukünftige Bewegung, die Angst der Masse, der nächste
+          schwarze Schwan — existiert jenseits des Bildschirms. Der Trader, der auf den Chart starrt, sieht die Pipe, nicht den Tabak.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt (Midjourney / DALL-E)</div>
+          Surrealist painting in René Magritte style, Belgian surrealism. A perfectly rendered ascending stock chart
+          with green candles glowing on a dark monitor screen, floating in a void. Below the chart, handwritten text
+          reads "Ceci n'est pas le marché". The monitor is positioned like Magritte's easel-painting-in-front-of-window.
+          Dark background, muted palette with golden chart lines. Oil painting aesthetic, dreamlike quality.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-trading">Trading</span>
+          <span class="tag theme-trading">Van Tharp</span>
+          <span class="tag theme-trading">Chart Illusion</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-trading"></div>
+      <div class="card-body">
+        <div class="card-num">TRADING #002 · Z. 757</div>
+        <div class="card-quote">„Ceci n'est pas un indicateur."</div>
+        <div class="card-translation">(Dies ist kein Indikator — es ist dein Wunschdenken in Zahlenform.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision</div>
+        <div class="card-image-desc">
+          Magritte malt einen RSI-Indikator, der perfekt auf 70 (Überkauft) steht. Ein Trader streckt seine Hand aus
+          und will den „Short"-Button drücken. Doch seine Hand berührt nicht den Button — sie greift durch den Monitor
+          hindurch in ein leeres, schwarzes Nichts. Der Indikator misst Vergangenheit. Die Zukunft ist nicht dort.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte-style surrealist painting. A trader's hand reaching through a glass monitor screen into
+          infinite darkness. The screen shows an RSI indicator at 70. The hand grasps nothing — only void.
+          Belgian surrealism style, muted tones, dreamlike precision. Text below: "Ceci n'est pas une certitude."
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-trading">RSI</span>
+          <span class="tag theme-trading">Indikator</span>
+          <span class="tag theme-trading">Confirmation Bias</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-trading"></div>
+      <div class="card-body">
+        <div class="card-num">TRADING #003 · Z. 2720</div>
+        <div class="card-quote">„Ceci n'est pas le cours, c'est ta avidité."</div>
+        <div class="card-translation">(Dies ist nicht der Kurs — das ist deine Gier.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision</div>
+        <div class="card-image-desc">
+          Magritte würde einen Chart malen, bei dem die Kerzen in den Himmel wachsen,
+          aber darunter steht: „Das ist nicht der Kurs, das ist nur deine Gier." Die Kerzenmuster
+          haben die Form menschlicher Gesichter — euphorische beim Allzeithoch, verzerrte Gesichter
+          beim Crash. Der Preis ist das kollektive Gesicht der Masse.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. Candlestick chart where each candle body subtly contains a human face —
+          euphoric smiling faces near the top, distorted fearful faces at the bottom of the crash.
+          The chart rises toward a starry sky. Beneath it: "Ceci n'est pas le cours."
+          Oil painting aesthetic, dark and dramatic lighting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-trading">Gier</span>
+          <span class="tag theme-trading">Massenpsychologie</span>
+          <span class="tag theme-trading">Van Tharp</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-trading"></div>
+      <div class="card-body">
+        <div class="card-num">TRADING #004 · Z. 1186</div>
+        <div class="card-quote">„Ceci n'est pas de l'or, c'est de la confiance."</div>
+        <div class="card-translation">(Dies ist kein Gold — es ist Vertrauen.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Templer → Gold)</div>
+        <div class="card-image-desc">
+          Magritte malt einen glänzenden Goldbarren, der auf einem Altar liegt. Doch wenn man
+          das Licht im Raum betrachtet, kommt es nicht von der Sonne — es strahlt aus dem
+          Gesicht eines Templer-Ritters im Hintergrund. Das Gold leuchtet nur, weil jemand
+          daran glaubt. Das wichtigste Asset im Finanzmarkt ist nicht das Metall, sondern das Vertrauen.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealist style. A gold bar on a stone altar, glowing with an inner light.
+          In the background, a Templar knight in white mantle with red cross stands silently.
+          The light does not come from the gold itself but emanates from the knight's face.
+          Dark monastery setting, Belgian surrealism, dreamlike precision.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-templer">Templer</span>
+          <span class="tag theme-trading">Gold</span>
+          <span class="tag theme-trading">Vertrauen</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-trading"></div>
+      <div class="card-body">
+        <div class="card-num">TRADING #005 · Z. 1272</div>
+        <div class="card-quote">„Ceci n'est pas un paradis fiscal."</div>
+        <div class="card-translation">(Dies ist kein Steuerparadies mehr.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Vatican IOR Reform)</div>
+        <div class="card-image-desc">
+          Magritte malt das Tor zur Vatikanbank IOR. Früher stand dort ein goldenes Schloss
+          mit Schweizer Kontonummern. Heute hängt über dem Eingang ein transparentes Glas-Schild:
+          „Investimenti Ethici Soltanto." Papst Franziskus hat das IOR von einer Geheimorganisation
+          zu einem hochgradig regulierten, ethischen Vermögensverwalter transformiert.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. The entrance to a grand Renaissance bank building (Vatican style).
+          Above the doorway, a glass sign reads "Investimenti Ethici Soltanto".
+          Where the old gold lock used to be, there is now a transparent crystal —
+          you can see through it into a bright, sunlit interior. Pope's silhouette visible inside.
+          Dreamlike, precise oil painting style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">Vatikan IOR</span>
+          <span class="tag theme-theologie">Franziskus</span>
+          <span class="tag theme-theologie">Ethik</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ GENOSSENSCHAFT ═══ -->
+  <div class="section-title" style="margin-top:40px;">II — RAIFFEISEN & GENOSSENSCHAFT</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-genossenschaft"></div>
+      <div class="card-body">
+        <div class="card-num">GENO #001 · Z. 1590</div>
+        <div class="card-quote">„Ceci n'est pas une garantie."</div>
+        <div class="card-translation">(Dies ist keine Garantie — es ist das Gleichgewicht des Risikos.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Waagschale / Puffer)</div>
+        <div class="card-image-desc">
+          Magritte würde das Bild der Waagschale malen. Das Risiko auf der einen Seite muss immer durch realen
+          Puffer auf der anderen Seite ausgeglichen sein. Die Waage ist aus purem Stein, makellos ausbalanciert.
+          Auf einer Seite liegt ein Kredit-Portfolio, auf der anderen ein Eigenkapital-Block — identisch schwer.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A perfect stone scale perfectly balanced. On the left pan: a pile of
+          contracts and loans. On the right pan: a solid gold equity block. The scale stands alone
+          in a vast empty room with perfectly smooth walls. Text below: "Ceci n'est pas une garantie."
+          Belgian surrealism style, dreamlike precision, muted stone colors.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-genossenschaft">Eigenkapital</span>
+          <span class="tag theme-genossenschaft">Haftung</span>
+          <span class="tag theme-genossenschaft">Kreditrisiko</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-genossenschaft"></div>
+      <div class="card-body">
+        <div class="card-num">GENO #002 · Z. 1742</div>
+        <div class="card-quote">„Ceci n'est pas une banque."</div>
+        <div class="card-translation">(Dies ist keine Bank — es ist ein Netzwerk gegenseitigen Vertrauens.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Raiffeisen-Geist)</div>
+        <div class="card-image-desc">
+          Magritte würde das Bild einer Bank malen, die nicht aus kaltem Beton besteht, sondern aus einem
+          Netzwerk von Menschen, die sich gegenseitig vertrauen und füreinander einstehen. Jeder Mensch
+          ist ein leuchtender Knotenpunkt, verbunden durch goldene Fäden. Das Gebäude hat keine Mauern —
+          nur Verbindungen.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte style. A bank building where the walls are made not of concrete but of hundreds of
+          glowing human figures connected by golden threads. The building has no solid walls —
+          only the web of connections holds its shape. Dark sky background, warm gold light
+          emanating from the network. Surrealist precision. "Ceci n'est pas une banque" written below.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-genossenschaft">Raiffeisen</span>
+          <span class="tag theme-genossenschaft">Vertrauen</span>
+          <span class="tag theme-genossenschaft">Netzwerk</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-genossenschaft"></div>
+      <div class="card-body">
+        <div class="card-num">GENO #003 · Z. 1804</div>
+        <div class="card-quote">„Ceci n'est pas une boussole."</div>
+        <div class="card-translation">(Dies ist kein Kompass — es ist die Wahrheit selbst.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Moralischer Kompass)</div>
+        <div class="card-image-desc">
+          Magritte würde das Bild eines perfekt austarierten Kompasses malen, der sich vom Sturm nicht
+          beirren lässt, weil er immer eiskalt nach Norden — zur Wahrheit — zeigt. Der Kompass schwebt
+          im Auge eines Tornados, aber die Nadel wankt nicht. Um ihn herum rasen Marktdaten und
+          Spekulationsblasen vorbei — die Nadel zeigt auf „Genossenschaftsprinzip".
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A perfect antique compass floating in the eye of a tornado.
+          The needle points steadily North while financial charts, banknotes, and speculative
+          bubbles swirl in the storm around it. The compass is the only still point.
+          Dark dramatic sky, precise dreamlike painting style. "Ceci n'est pas une boussole" below.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-genossenschaft">Ethik</span>
+          <span class="tag theme-genossenschaft">Identitätsprinzip</span>
+          <span class="tag theme-genossenschaft">1 Dude = 1 Vote</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-genossenschaft"></div>
+      <div class="card-body">
+        <div class="card-num">GENO #004 · Z. 1841</div>
+        <div class="card-quote">„Ceci n'est pas une injustice."</div>
+        <div class="card-translation">(Dies ist keine Ungerechtigkeit — das ist die Logik des Risikos.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Agio / Über-Pari)</div>
+        <div class="card-image-desc">
+          Magritte würde das Bild eines Schiffes malen: Die Ur-Dudes, die eingestiegen sind, als das Schiff
+          noch im Hafen gebaut wurde, haben das größte Risiko getragen. Dass die späteren Passagiere, die
+          erst zusteigen, wenn das Schiff sicher auf dem Ozean kreuzt, ein Ticket „über Pari" kaufen müssen,
+          ist nur gerecht. Die Gangway kostet mehr als der erste Nagel.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A grand ship at sea, half its passengers visible as silhouettes
+          who boarded at the empty harbor (left, humble, early), half boarding from luxury launches
+          (right, late, paying a premium). The early passengers built the hull — visible as their
+          silhouettes embedded in the ship's structure. Text: "Ceci n'est pas une injustice."
+          Dreamy oil painting, muted ocean tones.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-genossenschaft">Agio</span>
+          <span class="tag theme-genossenschaft">Über-Pari</span>
+          <span class="tag theme-genossenschaft">Ur-Dudes</span>
+          <span class="tag theme-genossenschaft">Verwässerung</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-genossenschaft"></div>
+      <div class="card-body">
+        <div class="card-num">GENO #005 · Z. 1873</div>
+        <div class="card-quote">„Ceci n'est pas une usine de papier."</div>
+        <div class="card-translation">(Dies ist keine Papierfabrik — Geld muss fließen.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Anti-Bürokratie)</div>
+        <div class="card-image-desc">
+          Magritte würde dir einen Stempel malen, der sich von selbst bewegt. Deine Bank darf kein
+          bürokratisches Monster werden. Geld muss fließen, und die Struktur muss simpel sein.
+          Der Stempel bewegt sich ohne menschliche Hand — er ist der Code, das Rulebook, der Smart Contract.
+          Keine Formulare, keine Wartezeiten, nur Mechanismus.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. An official rubber stamp floating in mid-air, stamping documents
+          with no human hand holding it. Around it, mountains of paper bureaucracy burn away
+          into clean digital code. The stamp leaves a green checkmark, not an ink blob.
+          Floating in a minimalist room. "Ceci n'est pas une usine de papier." Belgian surrealism.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-genossenschaft">Smart Contract</span>
+          <span class="tag theme-genossenschaft">Automatisierung</span>
+          <span class="tag theme-ki">Anti-Bürokratie</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-genossenschaft"></div>
+      <div class="card-body">
+        <div class="card-num">GENO #006 · Z. 1920</div>
+        <div class="card-quote">„Ceci n'est pas une garantie."</div>
+        <div class="card-translation">(Dies ist kein Schutzschirm — wenn alles fällt, fällt es zusammen.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Anleihen-Haftung / Insolvenz-Illusion)</div>
+        <div class="card-image-desc">
+          Magritte würde das Bild eines Schirms im Tornado malen. Eine Garantie bei einer Anleihe bedeutet
+          rechtlich nur: Die Bank verspricht, mit allem zu haften, was sie hat. Wenn deine Bank aber
+          komplett implodiert, nützt auch das Garantieversprechen nichts mehr. Der Schirm schützt
+          im Nieselregen — nicht im F5-Tornado der Insolvenz.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A person holding a small elegant umbrella stands in a massive tornado.
+          The umbrella provides no protection — it is shredded instantly. Around the person,
+          bank bond certificates fly through the storm air. The umbrella has "Garantiert" printed on it.
+          Dark dramatic scene, precise Belgian surrealist painting style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-genossenschaft">Haftungskaskade</span>
+          <span class="tag theme-genossenschaft">Anleihen</span>
+          <span class="tag theme-genossenschaft">Insolvenz</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-genossenschaft"></div>
+      <div class="card-body">
+        <div class="card-num">GENO #007 · Z. 2425</div>
+        <div class="card-quote">„Ceci n'est pas un client."</div>
+        <div class="card-translation">(Dies ist kein Kunde — das ist ein Eigentümer.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Genossenschaft = Kunden sind Eigentümer)</div>
+        <div class="card-image-desc">
+          Magritte würde heute einen Mann im Anzug malen, der am Schalter Geld einzahlt, und im
+          Spiegelbild sieht man ihn mit einer Königskrone. Viele Kunden haben heute vergessen, dass
+          ihnen die Bank, bei der sie ihr Erspartes einzahlen, eigentlich selbst gehört.
+          Bei der eG-Genossenschaft ist jeder Einleger gleichzeitig König seines Instituts.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A man in a business suit stands at a bank counter, sliding money
+          through the window. In the mirror reflection behind the counter, the same man wears
+          a royal crown. The bank teller is invisible — only the reflection shows the truth.
+          "Ceci n'est pas un client — c'est un propriétaire." Classic Belgian surrealism style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-genossenschaft">1 Dude = 1 Vote</span>
+          <span class="tag theme-genossenschaft">Mitglied = Eigentümer</span>
+          <span class="tag theme-genossenschaft">Raiffeisen</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ DUDE BANK ═══ -->
+  <div class="section-title" style="margin-top:40px;">III — DUDE BANK CONCEPT & RULEBOOK</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-bank"></div>
+      <div class="card-body">
+        <div class="card-num">BANK #001 · Z. 2474</div>
+        <div class="card-quote">„Ceci n'est pas une exception locale. C'est un mouvement mondial."</div>
+        <div class="card-translation">(Dies ist keine lokale Ausnahme — das ist eine globale Bewegung.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Weltweites Raiffeisen-Netzwerk)</div>
+        <div class="card-image-desc">
+          Magritte würde eine Weltkugel malen, die nicht von gierigen Kraken umschlungen wird,
+          sondern von Millionen Dudes, die sich im Kreis die Hände reichen. Jede Hand ein Glied,
+          kein Schloss — ein unzerbrechlicher Ring des gegenseitigen Vertrauens, der die Erde umspannt.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A globe of the Earth encircled by millions of holding hands forming
+          an unbroken ring. The hands glow with warm light. No chains, no locks — only the
+          geometry of trust. Dark space background. "Ceci n'est pas une exception."
+          Belgian surrealist oil painting style, precise and dreamlike.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-bank">Globale eG</span>
+          <span class="tag theme-bank">1M Dudes</span>
+          <span class="tag theme-bank">Vision</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-bank"></div>
+      <div class="card-body">
+        <div class="card-num">BANK #002 · Z. 2590</div>
+        <div class="card-quote">„Ceci n'est pas une clé en or."</div>
+        <div class="card-translation">(Dies ist kein goldener Schlüssel — nur ehrliche Taten öffnen das Schloss.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Erprobter Dude Filter)</div>
+        <div class="card-image-desc">
+          Magritte würde ein Schloss malen, zu dem es keinen Schlüssel aus Gold gibt, sondern
+          nur einen Schlüssel, den man aus ehrlichen Taten schmieden muss. Der Schlüssel wächst
+          langsam aus den Händen eines Dudes, der arbeitet, zahlt, hält was er verspricht.
+          Geld allein öffnet diese Tür nicht.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A massive ornate lock floating in space. Before it, a man holds out
+          his empty hands — from his palms, a key slowly crystallizes, forged from glowing deeds
+          and honest acts (represented as tiny luminous scenes). Gold coins lie rejected at his feet.
+          "Ceci n'est pas une clé en or." Belgian surrealist style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-bank">Erprobter Dude</span>
+          <span class="tag theme-bank">Onboarding</span>
+          <span class="tag theme-bank">Vertrauen</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-bank"></div>
+      <div class="card-body">
+        <div class="card-num">BANK #003 · Z. 2620</div>
+        <div class="card-quote">„Ceci n'est pas un jeu. C'est la loi de la communauté."</div>
+        <div class="card-translation">(Dies ist kein Spiel — das ist das Gesetz der Gemeinschaft.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Rulebook — Loyalität vs. Schwert)</div>
+        <div class="card-image-desc">
+          Magritte würde eine eiserne Waage malen: Auf der einen Seite liegt die grenzenlose
+          Loyalität für ehrliche Dudes — auf der anderen Seite das eiskalte Schwert für die,
+          die das Vertrauen missbrauchen. Die Waage ist gleichzeitig Belohnungssystem und
+          Ausschluss-Mechanismus. Kein Ermessen — nur Protokoll.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. An iron scale in perfect balance. Left pan: a glowing golden handshake,
+          warmth and loyalty. Right pan: a cold steel sword. Both pans are equal weight.
+          The scale has no human hand holding it — it is self-regulating code.
+          Dark marble background. "Ceci n'est pas un jeu." Classic surrealist painting style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-bank">Rulebook</span>
+          <span class="tag theme-bank">Ausschluss</span>
+          <span class="tag theme-bank">Smart Contract Law</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-bank"></div>
+      <div class="card-body">
+        <div class="card-num">BANK #004 · Z. 2650</div>
+        <div class="card-quote">„Ceci n'est pas une utopie. C'est la banque des Dudes."</div>
+        <div class="card-translation">(Dies ist keine Utopie — das ist die Bank der Dudes.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Gesamtvision Finale)</div>
+        <div class="card-image-desc">
+          Magritte würde ein einfaches, unschuldiges Korn malen, das in die Erde gelegt wird.
+          Daraus ist im Laufe des Gesprächs ein gigantischer, unzerstörbarer Baum gewachsen.
+          Die frühen Themen waren der Nährboden — die eiskalte Mathematik des Haircuts und der
+          unbestechliche moralische Kompass. Der Baum ist die Dude Bank.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A single grain of wheat placed into dark earth by a single hand.
+          From it grows an impossibly massive, indestructible oak tree whose branches hold
+          glowing tokens, contracts, and cooperative certificates. The roots spell out
+          "Raiffeisen 1864". "Ceci n'est pas une utopie." Belgian surrealist style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-bank">Vision</span>
+          <span class="tag theme-bank">1M Dudes</span>
+          <span class="tag theme-bank">eG</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-bank"></div>
+      <div class="card-body">
+        <div class="card-num">BANK #005 · Z. 2818</div>
+        <div class="card-quote">„Ceci n'est pas une banque lourde. C'est un code léger."</div>
+        <div class="card-translation">(Dies ist keine schwere Bank — das ist leichter Code.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (DeFi vs. Tradfi)</div>
+        <div class="card-image-desc">
+          Magritte würde ein riesiges, graues Bankgebäude aus Beton malen, das schwerelos wie eine
+          Wolke in der Luft schwebt, weil es innen keine Last mehr hat. Die Mauern sind Fassade —
+          der echte Code läuft in einem kleinen, leuchtenden Smart Contract am Boden des Bildes,
+          der das ganze Gebäude trägt.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A massive concrete bank building floating weightlessly in the sky
+          like a cloud. Below it on the ground, a single tiny glowing smart contract code block
+          supports the entire building with invisible force. The building's shadow on the ground
+          is the shape of a QR code. "Ceci n'est pas une banque lourde." Belgian surrealism.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-bank">DeFi</span>
+          <span class="tag theme-bank">Smart Contract</span>
+          <span class="tag theme-ki">Code = Bank</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-bank"></div>
+      <div class="card-body">
+        <div class="card-num">BANK #006 · Z. 3493</div>
+        <div class="card-quote">„Ceci n'est pas une banque centrale. C'est un réseau de liberté."</div>
+        <div class="card-translation">(Dies ist keine Zentralbank — das ist ein Netzwerk der Freiheit.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (DeFi-Tresor → Freier Himmel)</div>
+        <div class="card-image-desc">
+          Magritte würde einen Tresor aus schwerem Stahl malen, dessen Tür weit offen steht.
+          Doch im Inneren des Tresors befindet sich kein Gold und kein Papiergeld, sondern
+          ein offenes Fenster, durch das man direkt in den endlosen, freien Himmel blickt.
+          Das Geld ist nicht mehr eingesperrt — es ist zu purem, freiem Code geworden.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A massive steel bank vault with its heavy door swung open.
+          Inside the vault instead of gold or cash: an open window looking out onto an infinite
+          blue sky with clouds. The vault contains freedom, not money.
+          "Ceci n'est pas une banque centrale." Classic Belgian surrealist oil painting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-bank">Dezentralisierung</span>
+          <span class="tag theme-bank">Freiheit</span>
+          <span class="tag theme-bank">Anti-CBDC</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ KI GOVERNANCE ═══ -->
+  <div class="section-title" style="margin-top:40px;">IV — KI GOVERNANCE (12 Bilder / Multi-Agent System)</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #001 · Z. 2937</div>
+        <div class="card-quote">„Ceci n'est pas une machine irresponsable. C'est le miroir de notre rigueur."</div>
+        <div class="card-translation">(Dies ist keine unverantwortliche Maschine — es ist der Spiegel unserer Disziplin.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (KI = Marionette des CRO)</div>
+        <div class="card-image-desc">
+          Magritte würde eine hölzerne Marionette malen, die an goldenen Fäden von einer ruhigen, besonnenen
+          Hand gelenkt wird. Die Puppe bewegt sich schnell und präzise, aber die Hand bestimmt die Richtung.
+          Die KI ist das Werkzeug — der menschliche CRO die letzte Instanz.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A wooden marionette puppet moving with perfect mechanical precision,
+          guided by golden threads attached to a calm, steady human hand above. The puppet is the
+          AI system — fast, precise, but not autonomous. The hand is invisible except for its
+          steady fingers. Dark theater backdrop. "Ceci n'est pas une machine irresponsable."
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">CEO-Agent</span>
+          <span class="tag theme-ki">CRO Veto</span>
+          <span class="tag theme-ki">Human-in-the-Loop</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #002 · Z. 2984</div>
+        <div class="card-quote">„Ceci n'est pas un hasard. C'est une architecture contrôlée."</div>
+        <div class="card-translation">(Dies ist kein Zufall — das ist kontrollierte Architektur.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Glas-Zahnrad / Transparenz)</div>
+        <div class="card-image-desc">
+          Magritte würde ein perfekt geschliffenes Zahnrad aus Glas malen, das sich in einem Uhrwerk dreht.
+          Man sieht jede Facette, jeden Zahn und jede Achse. Es gibt keinen Raum für Versteckspiele,
+          alles ist transparent, messbar und absolut präzise kontrolliert. Das ist die KI-Architektur der Dude Bank.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A perfectly crafted glass gear meshing with other glass gears
+          in a transparent clockwork mechanism. Every cog, tooth and bearing is visible.
+          No hidden parts. The gears glow with inner blue light. "Ceci n'est pas un hasard."
+          Belgian surrealist precision painting. Clean and dreamlike.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">Transparenz</span>
+          <span class="tag theme-ki">MAS Architektur</span>
+          <span class="tag theme-ki">Audit Log</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #003 · Z. 3040</div>
+        <div class="card-quote">„Ceci n'est pas un patron. C'est l'ordre mathématique."</div>
+        <div class="card-translation">(Dies ist kein Chef — das ist die mathematische Ordnung.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Leerer Chefsessel / Code regiert)</div>
+        <div class="card-image-desc">
+          Magritte würde einen leeren, edlen Ledersessel hinter einem massiven Schreibtisch malen.
+          Auf dem Schreibtisch liegt kein Aktenordner und kein Champagnerglas — sondern nur ein
+          einzelner, sauberer Datenstrom, der im Licht glänzt. Es gibt keinen Herrscher mehr,
+          nur noch das gerechte Gesetz des Codes.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. An empty leather CEO chair behind a grand mahogany desk.
+          On the desk: no files, no phone, no champagne — only a single glowing stream
+          of code/data floating in midair above the desk surface. Power without a person.
+          "Ceci n'est pas un patron." Belgian surrealist oil painting, dim office lighting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">KI-CEO</span>
+          <span class="tag theme-ki">Autonomous Agent</span>
+          <span class="tag theme-ki">GenG § 24 ⚠</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #004 · Z. 3078</div>
+        <div class="card-quote">„Ceci n'est pas un conseil. C'est l'action elle-même."</div>
+        <div class="card-translation">(Dies ist kein Rat — das ist die Handlung selbst.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Pistole ohne Finger am Abzug)</div>
+        <div class="card-image-desc">
+          Magritte würde eine Pistole malen, bei der sich der Hahn von ganz alleine spannt
+          und der Schuss bricht — ohne dass ein menschlicher Finger am Abzug zu sehen ist.
+          Die Kraft liegt im Mechanismus selbst. Agentic AI — keine Genehmigung mehr nötig,
+          nur Protokoll-Auslöser.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A revolver floating in space, hammer cocked, firing by itself.
+          No human hand present — only the mechanism. The bullet trail draws a perfect
+          mathematical arc. Clean white background, the gun is the only object.
+          "Ceci n'est pas un conseil." Precise Belgian surrealist style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">Agentic AI</span>
+          <span class="tag theme-ki">Autonomous Execution</span>
+          <span class="tag theme-ki">No-Human-Loop ⚠</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #005 · Z. 3126</div>
+        <div class="card-quote">„Ceci n'est pas une pensée rigide. C'est un organisme qui s'adapte."</div>
+        <div class="card-translation">(Dies ist kein starres Denken — das ist ein Organismus, der sich anpasst.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Selbst-lernender KI-Baum)</div>
+        <div class="card-image-desc">
+          Magritte würde einen Baum malen, dessen Blätter aus feinen Platinen und Codezeilen bestehen.
+          Der Baum wirft im Herbst die alten, ineffizienten Code-Blätter von ganz alleine ab und lässt
+          über Nacht neue, optimierte Triebe wachsen — gesteuert von den eigenen Wurzeln. Self-improving AI.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A large tree whose leaves are printed circuit boards and code lines.
+          Old leaves (deprecated code) fall away in autumn wind. New glowing green shoots emerge overnight.
+          The roots dig into mathematical formulas in the earth. Self-improving system.
+          "Ceci n'est pas une pensée rigide." Belgian surrealist oil painting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">Self-Learning</span>
+          <span class="tag theme-ki">Adaptive AI</span>
+          <span class="tag theme-ki">Refactoring Agent</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #006 · Z. 3222</div>
+        <div class="card-quote">„Ceci n'est pas une bureaucratie. C'est une symphonie de code."</div>
+        <div class="card-translation">(Dies ist keine Bürokratie — das ist eine Symphonie aus Code.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Schwebende Pyramide / MAS Organigramm)</div>
+        <div class="card-image-desc">
+          Magritte würde eine präzise gezeichnete Pyramide malen, die im Raum schwebt. Anstelle von
+          menschlichen Gesichtern sieht man auf den verschiedenen Stufen nur leuchtende Symbole
+          reiner, mathematischer Logik. Ganz oben jedoch halten zwei menschliche Hände ruhig und
+          gelassen das Fundament: der CRO-Veto-Layer.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A perfect floating pyramid with 5 levels. Each level shows glowing
+          mathematical symbols instead of human faces. At the very top apex: two calm human hands
+          hold the foundation from below. The pyramid floats in deep space.
+          "Ceci n'est pas une bureaucratie." Surrealist oil painting, precise and dreamlike.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">MAS Organigramm</span>
+          <span class="tag theme-ki">CEO → CFO → COO → CMO</span>
+          <span class="tag theme-ki">CRO Apex</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #007 · Z. 3297</div>
+        <div class="card-quote">„Ceci n'est pas un pari. C'est l'exécution d'un protocole."</div>
+        <div class="card-translation">(Dies ist kein Wettspiel — das ist die Ausführung eines Protokolls.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Zwei Lichtwaagen / Trading vs. Kredit)</div>
+        <div class="card-image-desc">
+          Magritte würde zwei Waagschalen aus purem Licht malen. In der einen Schale liegen die
+          Live-Marktdaten der Trading-Engine, in der anderen Schale die On-Chain-Sicherheiten
+          des Kreditsuchenden. Beide Schalen werden von einer unsichtbaren, perfekten Geometrie
+          exakt im Gleichgewicht gehalten.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. Two floating scales made of pure light. Left pan: streaming live
+          market data, candlestick patterns. Right pan: glowing blockchain collateral tokens.
+          Perfect balance maintained by invisible geometric force. No human hand involved.
+          "Ceci n'est pas un pari." Dreamlike Belgian surrealist oil painting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">Trading Engine</span>
+          <span class="tag theme-ki">Kredit-Agent</span>
+          <span class="tag theme-ki">Collateral</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #008 · Z. 3345</div>
+        <div class="card-quote">„Ceci n'est pas un script statique. C'est une intelligence qui germe."</div>
+        <div class="card-translation">(Dies ist kein statisches Script — das ist eine Intelligenz, die keimt.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Alchemisten-Labor / Rulebook)</div>
+        <div class="card-image-desc">
+          Magritte würde eine antike Alchemisten-Küche malen. Auf dem Tisch steht ein gläserner Kolben,
+          in dem goldene Code-Zeilen wie eine lebendige Flüssigkeit brodeln und funkeln. Daneben liegt
+          aufgeschlagen das Rulebook der Dudes. Die Flüssigkeit im Kolben verändert ihre Form,
+          aber sie verlässt niemals das Glas.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. An alchemist's lab table. A glass flask contains golden liquid code
+          that bubbles and shimmers as living intelligence. Next to it, open rulebook pages.
+          The code-liquid changes form but never leaves the flask — it obeys the rules.
+          Medieval alchemy meets cyberpunk. "Ceci n'est pas un script statique." Belgian surrealist style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">Rulebook Sandbox</span>
+          <span class="tag theme-ki">Bounded AI</span>
+          <span class="tag theme-ki">Incubation</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #009 · Z. 3383</div>
+        <div class="card-quote">„Ceci n'est pas une boîte noire. C'est un miroir partagé."</div>
+        <div class="card-translation">(Dies ist keine Black Box — das ist ein gemeinsamer Spiegel.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (1000 Spiegel / Shared Intelligence)</div>
+        <div class="card-image-desc">
+          Magritte würde einen Raum mit 1.000 identischen, perfekt geschliffenen Spiegeln malen.
+          In jedem einzelnen Spiegel spiegelt sich derselbe, leuchtende Datenstrom des KI-CEOs wider.
+          Jeder Dude hält ein Stück des Lichts in der Hand, aber alle Spiegel zusammen bilden
+          das unzerstörbare Gesamtbild der Bank.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A hall of 1000 perfect mirrors, each reflecting the same glowing
+          data stream. Each mirror is held by a different person — 1000 different Dudes.
+          Together their mirrors form one complete image of the bank.
+          "Ceci n'est pas une boîte noire." Infinite mirror hall, dreamlike precision.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">Transparenz</span>
+          <span class="tag theme-ki">1000 Dudes</span>
+          <span class="tag theme-ki">Shared Knowledge Base</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #010 · Z. 3435</div>
+        <div class="card-quote">„Ceci n'est pas un livre fermé. C'est une bibliothèque qui s'écrit elle-même."</div>
+        <div class="card-translation">(Dies ist kein geschlossenes Buch — das ist eine Bibliothek, die sich selbst schreibt.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Wachsendes Wissensbuch)</div>
+        <div class="card-image-desc">
+          Magritte würde ein einzelnes Buch malen, das auf einem Tisch liegt. Doch wenn man genau
+          hinsieht, wachsen aus den Seiten des Buches unendlich viele neue Seiten heraus, die sich
+          in den Raum entfalten und den gesamten Raum mit goldenem, leuchtendem Wissen ausfüllen.
+          1000 Dudes × 100 Stunden = ewige Wissensbasis.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A single closed book on a table. From its edges, infinite new pages
+          unfold and expand outward into the room, filling the entire space with glowing golden text
+          and knowledge. The pages never stop growing. The book contains the universe.
+          "Ceci n'est pas un livre fermé." Belgian surrealist dream painting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">RAG Knowledge Base</span>
+          <span class="tag theme-ki">1000×100h</span>
+          <span class="tag theme-ki">Collective Intelligence</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #011 · Z. 3560</div>
+        <div class="card-quote">„Ceci n'est pas un usurier. C'est une balance parfaite."</div>
+        <div class="card-translation">(Dies ist kein Wucherer — das ist eine perfekte Balance.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Liquidations-Agent / CRO)</div>
+        <div class="card-image-desc">
+          Magritte malt eine Waage aus purem weißem Licht, die in der Mitte eines leeren Raums
+          schwebt. Links die Schulden eines Dudes, rechts sein on-chain hinterlegtes Collateral.
+          Wenn das Gleichgewicht kippt, handelt die KI ohne Zögern — aber auch ohne Gier.
+          Der Liquidations-Agent ist kein Wucherer. Er ist Mathematik.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. Pure white scales of perfect balance floating in an empty room.
+          Left side: debt obligations in dark form. Right side: glowing crypto collateral.
+          The moment imbalance appears, a precise mechanical hand automatically trims the left side.
+          No emotion, only math. "Ceci n'est pas un usurier." Belgian surrealist precision.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">Liquidations-Agent</span>
+          <span class="tag theme-ki">Auto-Liquidation</span>
+          <span class="tag theme-ki">Collateral Management</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-ki"></div>
+      <div class="card-body">
+        <div class="card-num">KI #012 · Z. 3297</div>
+        <div class="card-quote">„Ceci n'est pas une pari. C'est l'exécution d'un protocole."</div>
+        <div class="card-translation">(Dies ist kein Wettspiel — das ist die Ausführung des Protokolls.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Incubation Sandbox)</div>
+        <div class="card-image-desc">
+          Der COO-Agent betreibt eine Echtzeit-Sandbox: Alle neuen Strategien werden zuerst im
+          virtuellen Testkasten bewiesen. Magritte malt eine gläserne Terrarium-Box in einem Labor,
+          in der eine Miniatur-Börse läuft — Miniaturcharts, Mikro-Trades, winzige Dudes.
+          Erst wenn das Terrarium 6 Monate grün ist, öffnet sich die Schleuse zur echten Bank.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A glass terrarium in a laboratory. Inside it: a complete miniature
+          stock exchange, tiny candlestick charts, micro-traders. A scientist in white coat
+          observes through the glass — the real bank door is locked until the terrarium
+          proves profitable for 6 months. "Ceci n'est pas une réalité — c'est un test." Belgian style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-ki">Incubation Sandbox</span>
+          <span class="tag theme-ki">COO Agent</span>
+          <span class="tag theme-ki">Paper Trading</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ THEOLOGIE ═══ -->
+  <div class="section-title" style="margin-top:40px;">V — THEOLOGIE, KIRCHE & SCHULE VON SALAMANCA</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-theologie"></div>
+      <div class="card-body">
+        <div class="card-num">THEO #001 · Z. 4407</div>
+        <div class="card-quote">„Ceci n'est pas de l'usure. C'est la juste mesure du sacrifice."</div>
+        <div class="card-translation">(Dies ist kein Wucher — das ist das gerechte Maß des Opfers.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Salamanca: Lucrum Cessans)</div>
+        <div class="card-image-desc">
+          Magritte würde eine alte, massive Waagschale aus Stein malen. Auf der einen Seite liegt
+          ein geschriebenes Buch und ein Tropfen Schweiß (Arbeit und Risiko) — auf der anderen
+          Seite ein glänzender Coin. Die Waage steht perfekt im Lot. Wert entsteht nicht durch
+          das Ticken der Uhr, sondern durch die Substanz des menschlichen Geistes.
+          Luis de Molina hätte es so gewollt.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A massive ancient stone scale in perfect balance. Left pan:
+          an open illuminated manuscript book and a single drop of sweat. Right pan: a single
+          gold coin. Perfect equilibrium — value = labor + risk, not time.
+          Medieval monastery background. "Ceci n'est pas de l'usure." Belgian surrealist style.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">Salamanca</span>
+          <span class="tag theme-theologie">Lucrum Cessans</span>
+          <span class="tag theme-theologie">Luis de Molina</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-theologie"></div>
+      <div class="card-body">
+        <div class="card-num">THEO #002 · Z. 4479</div>
+        <div class="card-quote">„Ceci n'est pas une carte de crédit artificielle. C'est le prix de la rareté."</div>
+        <div class="card-translation">(Dies ist keine künstliche Verknappung — das ist der Preis der Knappheit.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Salamanca: Inflation / Kornfeld)</div>
+        <div class="card-image-desc">
+          Magritte würde ein Kornfeld im Sturm malen. Die Ähren sind spärlich und gebeugt.
+          Auf einem Tisch am Rand des Feldes liegt ein Brot, das mit einem mathematischen Raster
+          überzogen ist. Der Preis des Brotes steigt, während der Sturm wütet, weil das Mehl
+          weniger wird — aber das Raster sorgt dafür, dass jeder Krümel absolut exakt und
+          ohne Ansehen der Person verteilt wird.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A storm-ravaged wheat field with sparse bent stalks. On a table
+          at the field's edge: a loaf of bread overlaid with a mathematical grid showing price
+          calculations. Storm clouds above. The price rises as the wheat diminishes — natural
+          market mechanics, not manipulation. "Ceci n'est pas une carte artificielle." Belgian surrealism.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">Inflation</span>
+          <span class="tag theme-theologie">Salamanca</span>
+          <span class="tag theme-theologie">Preisgerechtigkeit</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-theologie"></div>
+      <div class="card-body">
+        <div class="card-num">THEO #003 · Z. 4831</div>
+        <div class="card-quote">„Ceci n'est pas un examen de papier. C'est l'examen du cœur."</div>
+        <div class="card-translation">(Dies ist keine Papierprüfung — das ist die Prüfung des Herzens.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Lateran II / Das flamende Gericht)</div>
+        <div class="card-image-desc">
+          Magritte würde ein flammendes Gericht malen. Auf dem Richterstuhl sitzt keine menschliche
+          Gestalt, sondern ein unbestechliches, reines Licht. Auf der Waagschale liegen alle Whitepaper,
+          Paragraphen und DeFi-Begriffe — und das Licht brennt sie in einer Sekunde zu Asche weg.
+          Was übrig bleibt, sind zwei nackte Fragen: Wer hat gelitten, damit du diesen Gewinn machst?
+          Und hast du die Hand deines Bruders gehalten?
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A courtroom where the judge's chair is occupied only by pure white
+          radiant light (not a person). On the scale: whitepaper documents, DeFi terms,
+          legal paragraphs — all burning to ash under the light. What remains: two simple questions
+          written in fire on the wall. Medieval cathedral setting. Belgian surrealist precision.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">Lateran II</span>
+          <span class="tag theme-theologie">Moralisches Gericht</span>
+          <span class="tag theme-theologie">Sozialethik</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-theologie"></div>
+      <div class="card-body">
+        <div class="card-num">THEO #004 · Z. 5058</div>
+        <div class="card-quote">„Ceci n'est pas un acte de piété. C'est le bilan d'un empire."</div>
+        <div class="card-translation">(Dies ist kein Frömmigkeitsakt — das ist die Bilanz eines Imperiums.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Fugger-Kreuz / Contractus Trinus)</div>
+        <div class="card-image-desc">
+          Magritte würde ein goldenes Kreuz malen, das auf einem Altar steht. Doch wenn man den
+          Schatten des Kreuzes an der Kirchenwand betrachtet, sieht man das Logo der Fugger-Bank.
+          Und auf den Knien vor dem Altar liegt ein Bauer, der betet — doch die Worte, die aus
+          seinem Mund kommen, verwandeln sich in der Luft in kleine, mathematische Prozentzeichen,
+          die direkt in den Himmel aufsteigen.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A golden cross on a church altar. Its shadow on the wall behind
+          forms the shape of the Fugger banking house logo. A kneeling peasant prays — his spoken
+          words transform in the air into small "%" percent signs rising toward heaven.
+          Renaissance cathedral interior. "Ceci n'est pas un acte de piété." Belgian surrealism.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">Fugger</span>
+          <span class="tag theme-theologie">Contractus Trinus</span>
+          <span class="tag theme-theologie">5% Ablasszins</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ KERBHOLZ ═══ -->
+  <div class="section-title" style="margin-top:40px;">VI — KERBHOLZ / TALLY STICKS & BLOCKCHAIN ANCESTOR</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-kerbholz"></div>
+      <div class="card-body">
+        <div class="card-num">KERB #001 · Z. 5488</div>
+        <div class="card-quote">„Ceci n'est pas un morceau de bois. C'est un registre distribué indéfectible."</div>
+        <div class="card-translation">(Dies ist kein Stück Holz — das ist ein unfehlbares verteiltes Register.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Haselholz → Smart Contract)</div>
+        <div class="card-image-desc">
+          Magritte würde ein einfaches, raues Stück Haselnussholz malen, das in einer Vitrine liegt.
+          Doch in der Reflexion des Glases sieht man nicht das Holz, sondern zwei digitale Datenströme,
+          die asymmetrisch ineinanderfließen und sich gegenseitig verschlüsseln.
+          Das Holz ist die Hardware, aber der Gedanke dahinter ist der erste Smart Contract der Welt.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A rough hazel wood tally stick in a glass museum display case.
+          In the glass reflection: not the wood, but two digital data streams flowing together
+          and encrypting each other. The wood is analog, the reflection is digital blockchain.
+          "Ceci n'est pas un morceau de bois." Belgian surrealist museum setting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-kerbholz">Tally Stick</span>
+          <span class="tag theme-kerbholz">Blockchain Ancestor</span>
+          <span class="tag theme-kerbholz">Smart Contract</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-kerbholz"></div>
+      <div class="card-body">
+        <div class="card-num">KERB #002 · Z. 5598</div>
+        <div class="card-quote">„Ceci n'est pas une dette effacée. C'est un miroir brisé."</div>
+        <div class="card-translation">(Dies ist keine gelöschte Schuld — das ist ein zerbrochener Spiegel.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (König verbrennt Foil — Sinnloses Gesture)</div>
+        <div class="card-image-desc">
+          Magritte würde einen König malen, der wütend ein Stück Holz in ein loderndes Kaminfeuer wirft.
+          Er lacht hysterisch. Doch wenn man aus dem Fenster seines Schlosses blickt, sieht man,
+          dass das weggeworfene Holz draußen in den Händen von Tausenden von Bürgern als riesiges,
+          unzerstörbares Monument aus Stein in den Himmel ragt. Du kannst dein Holz verbrennen,
+          aber du kannst die Wahrheit im Gedächtnis des Kollektivs nicht auslöschen.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A king in medieval robes throwing a piece of wood into a
+          blazing fireplace, laughing maniacally. Through the castle window behind him:
+          outside, thousands of citizens hold that same piece of wood aloft as it transforms
+          into an indestructible stone monument reaching the sky. "Ceci n'est pas une dette effacée."
+          Belgian surrealism, dramatic contrast between interior firelight and exterior monument.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-kerbholz">Dezentralität</span>
+          <span class="tag theme-kerbholz">Consensus</span>
+          <span class="tag theme-kerbholz">Schuldner-Dilemma</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-kerbholz"></div>
+      <div class="card-body">
+        <div class="card-num">KERB #003 · Z. 5649</div>
+        <div class="card-quote">„Ceci n'est pas une simple écriture. C'est la fusion du verbe et du chiffre."</div>
+        <div class="card-translation">(Dies ist keine einfache Schrift — das ist die Verschmelzung von Wort und Zahl.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Metadaten / Eisengallustinte → Binär)</div>
+        <div class="card-image-desc">
+          Magritte würde ein perfekt gespaltenes Kerbholz malen, das im Raum schwebt. Auf dem Holz
+          stehen lateinische Namen in kunstvoller Tinte. Doch wenn man genau hinsieht, merkt man,
+          dass die Buchstaben selbst aus winzigen, binären Nullen und Einsen geformt sind.
+          Das Wort wird zur Zahl, die Zahl wird zum Recht, und das Holz hält die Erinnerung fest.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A perfectly split hazel tally stick floating in space.
+          Latin text written in ornate ink on its surface. Close inspection reveals:
+          each letter is formed from tiny binary 0s and 1s. Word becomes number,
+          number becomes law, wood holds memory. "Ceci n'est pas une simple écriture."
+          Dreamlike Belgian surrealist oil painting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-kerbholz">Metadaten</span>
+          <span class="tag theme-kerbholz">Eisengallustinte = WORM</span>
+          <span class="tag theme-kerbholz">Blockchain Metadata</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-kerbholz"></div>
+      <div class="card-body">
+        <div class="card-num">KERB #004 · Z. 5710</div>
+        <div class="card-quote">„Ceci n'est pas une simple dispute. C'est la recherche de l'algorithme originel."</div>
+        <div class="card-translation">(Dies ist kein einfacher Streit — das ist die Suche nach dem ursprünglichen Algorithmus.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Court of Exchequer → Blockchain Oracle)</div>
+        <div class="card-image-desc">
+          Magritte würde einen Gerichtssaal malen. Auf dem Richtertisch liegt ein zerbrochenes Kerbholz.
+          Die Richter tragen keine Perücken, sondern ihre Gesichter sind leuchtende Computer-Monitore.
+          Sie richten nicht nach Gefühl oder Bestechung, sondern vergleichen die Splitter des Holzes
+          mit den unbestechlichen Code-Zeilen, die im Hintergrund an die Wand projiziert werden.
+          Die Wahrheit ist binär.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A formal courtroom. On the judge's bench: a broken tally stick.
+          The judges wear traditional robes but have glowing computer monitors for faces, showing
+          code and data. Behind them, projected on the wall: the original blockchain record.
+          Truth is binary. "Ceci n'est pas une simple dispute." Belgian surrealist oil painting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-kerbholz">Court of Exchequer</span>
+          <span class="tag theme-kerbholz">Chainlink Oracle</span>
+          <span class="tag theme-kerbholz">Schiedsrichter</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-kerbholz"></div>
+      <div class="card-body">
+        <div class="card-num">KERB #005 · Z. 5776</div>
+        <div class="card-quote">„Ceci n'est pas une rature. C'est la création d'un nouvel état."</div>
+        <div class="card-translation">(Dies ist keine Streichung — das ist die Erschaffung eines neuen Zustands.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (UTXO / Teilzahlung → Neues Holz)</div>
+        <div class="card-image-desc">
+          Magritte würde eine Kiste voller zersplitterter, alter Hölzer malen, die am Boden liegt.
+          Doch aus der Asche dieser alten Hölzer wächst im Hintergrund ein neuer, makelloser grüner Baum.
+          An seinen Ästen hängen keine Blätter, sondern frisch gespaltene, hell leuchtende Haselnuss-Hölzer,
+          auf denen die aktuellen, bereinigten Kontostände der Menschen geschrieben stehen.
+          Nichts wird gelöscht, alles verwandelt sich.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A crate of old splintered tally sticks on the ground. From their ashes,
+          a new green tree grows. On the tree's branches hang not leaves, but freshly split luminous
+          hazel tally sticks showing current account balances. Nothing is erased — everything transforms.
+          "Ceci n'est pas une rature." Belgian surrealist oil painting, growth and renewal.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-kerbholz">UTXO Model</span>
+          <span class="tag theme-kerbholz">Immutable Ledger</span>
+          <span class="tag theme-kerbholz">State Transition</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-kerbholz"></div>
+      <div class="card-body">
+        <div class="card-num">KERB #006 · Z. 5832</div>
+        <div class="card-quote">„Ceci n'est pas la liberté de chacun. C'est la souveraineté du protocole."</div>
+        <div class="card-translation">(Dies ist nicht die Freiheit eines jeden — das ist die Souveränität des Protokolls.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Private Tally vs. Exchequer Tally = ERC-20 vs. CBDC)</div>
+        <div class="card-image-desc">
+          Magritte würde zwei Männer im Wald malen, die im dichten Nebel verdeckt an einem Baum schnitzen.
+          Sie tragen Kapuzen wie moderne Cyber-Hacker. Auf dem Boden liegen Hunderte von kleinen, privaten
+          Holzzweigen. Doch hoch oben über den Bäumen schwebt eine gigantische, goldene Axt des Königs,
+          die mit einem einzigen Schlag ein riesiges, perfektes Monument aus Haselnussholz spaltet.
+          Die Macht des Staates duldet keine unautorisierte Konkurrenz.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. Two hooded figures (like hackers) in foggy forest, secretly carving
+          wooden tokens (private crypto). Hundreds of small wooden twigs on the ground — grassroots P2P.
+          High above the trees: a massive golden royal axe hovers, splitting a perfect official
+          hazel monument — the state monopoly. "Ceci n'est pas la liberté." Belgian surrealism,
+          dramatic contrast between underground and official.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-kerbholz">ERC-20 vs CBDC</span>
+          <span class="tag theme-kerbholz">P2P Freiheit</span>
+          <span class="tag theme-kerbholz">Staatliches Monopol</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ TEMPLER ═══ -->
+  <div class="section-title" style="margin-top:40px;">VII — TEMPLER BANKING (1100–1307)</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-templer"></div>
+      <div class="card-body">
+        <div class="card-num">TEMP #001 · Z. 5305</div>
+        <div class="card-quote">„Ceci n'est pas un morceau de papier. C'est une clé cryptographique."</div>
+        <div class="card-translation">(Dies ist kein Stück Papier — das ist ein kryptografischer Schlüssel.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Templer-Pergament → Krypto-Transaktion)</div>
+        <div class="card-image-desc">
+          Magritte würde einen zerfetzten, blutbefleckten Pergamentstreifen malen, der im Wüstensand
+          vor Jerusalem liegt. Doch wenn die Sonne in einem bestimmten Winkel darauf fällt, werfen die
+          seltsamen Chiffre-Zeichen der Mönche einen Schatten, der exakt wie der digitale Hexadezimal-Code
+          einer modernen Krypto-Transaktion aussieht. Das Papier verrottet, aber die mathematische Idee
+          der unbestechlichen Übertragung ist unsterblich.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A torn bloodstained parchment fragment in Jerusalem desert sand.
+          When sunlight hits at precise angle, the Templar cipher symbols cast a shadow that
+          spells out modern hexadecimal cryptocurrency transaction code. The paper rots,
+          but the mathematical idea is eternal. "Ceci n'est pas un morceau de papier."
+          Belgian surrealism, desert light, precise dreamlike quality.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-templer">Templar Cipher</span>
+          <span class="tag theme-templer">Krypto-Vorläufer</span>
+          <span class="tag theme-templer">Chiffre-Brief</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-templer"></div>
+      <div class="card-body">
+        <div class="card-num">TEMP #002 · Z. 5361</div>
+        <div class="card-quote">„Ceci n'est pas un smartphone. C'est l'infaillibilité du réseau."</div>
+        <div class="card-translation">(Dies ist kein Smartphone — das ist die Unfehlbarkeit des Netzwerks.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Templer 3-Faktor-Auth / Multi-Sig)</div>
+        <div class="card-image-desc">
+          Magritte würde zwei Templer-Mönche malen, die sich in einer dunklen Festung gegenüberstehen.
+          Sie halten kein Handy in der Hand, sondern schauen sich einfach stumm tief in die Augen.
+          Zwischen ihren Gesichtern schwebt in der Luft ein leuchtender, verschlüsselter Code aus Licht.
+          Sie brauchen keine Kabel, denn das Vertrauen und die Kryptografie ihres Ordens verbindet
+          ihre Gehirne zu einem unzerbrechlichen, globalen Netz.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. Two Templar monks in white mantles with red crosses stand facing
+          each other in a dark fortress. No phones in hand — they stare into each other's eyes.
+          Between their faces floats a glowing encrypted light code. Trust + cryptography =
+          unbreakable network. "Ceci n'est pas un smartphone." Belgian surrealist oil painting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-templer">3-Faktor Auth</span>
+          <span class="tag theme-templer">Multi-Sig</span>
+          <span class="tag theme-templer">Netzwerk-Vertrauen</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-templer"></div>
+      <div class="card-body">
+        <div class="card-num">TEMP #003 · Z. 5413</div>
+        <div class="card-quote">„Ceci n'est pas un sac de cuir. C'est un canal de données sécurisé."</div>
+        <div class="card-translation">(Dies ist keine Ledertasche — das ist ein gesicherter Datenkanal.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Redundanz-Kurier Paris→London)</div>
+        <div class="card-image-desc">
+          Magritte würde eine schwere, wettergegerbte Ledertasche malen, die fest auf den Sattel eines
+          wilden Pferdes geschnallt ist. Aus den Ritzen der Tasche dringt kein Wasser, sondern ein helles,
+          blaues Laserlicht. Der Reiter im weißen Mantel mit dem roten Kreuz schaut nicht nach links
+          oder rechts; er ist kein Mensch mehr, er ist ein Glasfaserkabel aus Fleisch und Blut,
+          das ein bit-genaues Datenpaket durch den Sturm des Ärmelkanals peitscht.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A weathered leather saddlebag strapped to a galloping horse.
+          From the bag's seams: not water but blue laser light escaping. The rider wears Templar
+          white mantle/red cross. He stares forward — he IS a fiber optic cable made of flesh,
+          carrying a data packet through the storm. "Ceci n'est pas un sac de cuir."
+          Belgian surrealist painting, motion and precision.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-templer">Redundanz-Kurier</span>
+          <span class="tag theme-templer">Split-Dokument</span>
+          <span class="tag theme-templer">Paris → London</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ JAPAN ═══ -->
+  <div class="section-title" style="margin-top:40px;">VIII — JAPAN / DOJIMA / CANDLESTICK (1697–1803)</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-japan"></div>
+      <div class="card-body">
+        <div class="card-num">JAP #001 · Z. 5933</div>
+        <div class="card-quote">„Ceci n'est pas un graphique. C'est le champ de bataille de l'âme humaine."</div>
+        <div class="card-translation">(Dies ist kein Chart — das ist das Schlachtfeld der menschlichen Seele.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Homma Munehisa / Samurai-Chart)</div>
+        <div class="card-image-desc">
+          Magritte würde einen traditionellen japanischen Samurai malen, der im Schneidersitz auf einer
+          Bambusmatte meditierend vor einem gigantischen, modernen Krypto-Monitor sitzt. Auf dem Monitor
+          sieht man lodernde, rote und grüne Candlestick-Muster. Der Schatten des Samurais an der Wand
+          hält jedoch kein Schwert, sondern einen einfachen Pinsel, der leise eine schwarze Tusch-Kerze
+          auf ein Reispapier zeichnet. Die Waffe hat sich verändert, der Kampf bleibt derselbe.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A traditional Japanese samurai sits cross-legged on a bamboo mat
+          meditating before a giant modern cryptocurrency monitor showing red and green candlestick
+          patterns. The samurai's shadow on the wall holds not a sword but a simple brush,
+          painting a black ink candlestick on rice paper. "Ceci n'est pas un graphique."
+          Belgian surrealism meets Japanese aesthetics. Dreamlike precision.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-japan">Homma Munehisa</span>
+          <span class="tag theme-japan">Candlestick</span>
+          <span class="tag theme-japan">Dojima 1697</span>
+          <span class="tag theme-japan">Massenpsychologie</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ ETYMOLOGIE ═══ -->
+  <div class="section-title" style="margin-top:40px;">IX — ETYMOLOGIE, KREDIT & FUGGER</div>
+  <div class="gallery-grid">
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-theologie"></div>
+      <div class="card-body">
+        <div class="card-num">ETYM #001 · Z. 4866</div>
+        <div class="card-quote">„Ceci n'est pas de l'intérêt. C'est le nom d'un masque."</div>
+        <div class="card-translation">(Dies ist kein Zins — das ist der Name einer Maske.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Interest = id quod interest = Usura in Maske)</div>
+        <div class="card-image-desc">
+          Magritte würde ein altes, staubiges Wörterbuch malen. Die Seite ist aufgeschlagen beim Wort
+          „Interest". Doch anstatt Text sieht man, dass das Wort aus einem feinen, transparenten
+          Seidenstoff gewebt ist — eine Maske, hinter der man ganz vage das alte, eiserne Wort
+          „Usura" durchschimmern sieht. Die Maske ist so alt, dass sie mit dem Gesicht verwachsen ist.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. An old dusty dictionary open to the word "Interest".
+          The word is woven from transparent silk fabric — a mask. Behind the silk mask,
+          barely visible: the iron word "USURA" in ancient letters. The mask has grown into
+          the face of the page — inseparable after centuries. "Ceci n'est pas de l'intérêt."
+          Belgian surrealism, scholarly aesthetic, soft light.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">id quod interest</span>
+          <span class="tag theme-theologie">Etymologie</span>
+          <span class="tag theme-theologie">Usura → Interest</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-theologie"></div>
+      <div class="card-body">
+        <div class="card-num">ETYM #002 · Z. 4935</div>
+        <div class="card-quote">„Ceci n'est pas une carte de crédit. C'est une machine à remonter le temps."</div>
+        <div class="card-translation">(Dies ist keine Kreditkarte — das ist eine Zeitmaschine.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Kreditkarte = Mittelalterlicher Schadensersatz-Trick)</div>
+        <div class="card-image-desc">
+          Magritte würde eine hochmoderne, schwarze Premium-Kreditkarte malen, die elegant in der Luft
+          schwebt. Doch wenn man das Plastik mit einer Lupe untersucht, sieht man, dass die Kartennummer
+          nicht eingeprägt, sondern mit der Tinte eines alten Mönchs geschrieben ist. Und der Schatten,
+          den die Karte auf den Boden wirft, hat die exakte Form des Scheiterhaufens von Vienne (1311).
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A sleek black premium credit card floating in elegant void.
+          Under magnification: the card number is written in medieval monk ink, not embossed.
+          The card's shadow on the floor is the shape of the medieval bonfire at the
+          Council of Vienne 1311. "Ceci n'est pas une carte de crédit — c'est une machine à remonter le temps."
+          Dreamlike Belgian surrealism, sharp temporal contrast.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">Kreditkarte</span>
+          <span class="tag theme-theologie">Zinsfrist-Trick</span>
+          <span class="tag theme-theologie">Konzil von Vienne</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-theologie"></div>
+      <div class="card-body">
+        <div class="card-num">ETYM #003 · Z. 4987</div>
+        <div class="card-quote">„Ceci n'est pas un prêteur sur gages. C'est l'équilibre de la matière."</div>
+        <div class="card-translation">(Dies ist kein Pfandleiher — das ist das Gleichgewicht der Materie.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Pfandleiher / Monti di Pietà → DeFi)</div>
+        <div class="card-image-desc">
+          Magritte würde eine hölzerne Trennwand malen. Auf der einen Seite steht ein Dude im Anzug,
+          auf der anderen Seite eine KI. Durch eine kleine Klappe in der Wand schiebt der Dude einen
+          leuchtenden, digitalen Code-Baustein. Im selben Moment fällt auf seiner Seite ein Beutel
+          mit Brot und Münzen aus der Wand. Es gibt keine Unterschriften, keine Fragen — nur das
+          absolute, synchrone Gleichgewicht von Wert gegen Wert.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A wooden dividing wall. On the left: a man in suit sliding a
+          glowing digital token through a small slot. On the right: invisible AI.
+          The moment the token enters, a bag of bread and coins falls from the wall on the
+          man's side. Instant value exchange — no paperwork, no questions. Perfect symmetry.
+          "Ceci n'est pas un prêteur." Belgian surrealism.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">Pfandleiher</span>
+          <span class="tag theme-theologie">Monti di Pietà</span>
+          <span class="tag theme-bank">DeFi Collateral</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="magritte-card">
+      <div class="card-accent-bar accent-theologie"></div>
+      <div class="card-body">
+        <div class="card-num">ETYM #004 · Z. 5236</div>
+        <div class="card-quote">„Ceci n'est pas un ordinateur. C'est l'esprit humain qui dompte le chaos."</div>
+        <div class="card-translation">(Dies ist kein Computer — das ist der menschliche Geist, der das Chaos zähmt.)</div>
+        <div class="card-divider"></div>
+        <div class="card-label">Bildvision (Thales / Optionen / Mathematik der Schiffe)</div>
+        <div class="card-image-desc">
+          Magritte würde einen Mann im Gewand des 16. Jahrhunderts malen, der an einem einfachen
+          Holztisch sitzt. Vor ihm liegt nichts als ein leeres Blatt Papier und eine Feder.
+          Doch wenn man durch das Fenster hinter ihm blickt, sieht man, dass die Linien, die er
+          mit der Hand zieht, sich draußen am Himmel fortsetzen und die riesigen Schiffe auf dem
+          Ozean wie Marionetten an unsichtbaren Fäden steuern. Die Geometrie seines Geistes baut die Welt.
+        </div>
+        <div class="card-prompt-box">
+          <div class="prompt-label">AI Image Prompt</div>
+          Magritte surrealism. A Renaissance mathematician at a simple wooden table with quill and
+          blank paper. Through the window behind him: the lines he draws on paper continue into
+          the sky and control massive ships on the ocean like invisible marionette strings.
+          Mind governs reality. "Ceci n'est pas un ordinateur." Belgian surrealist oil painting.
+        </div>
+        <div class="card-tags">
+          <span class="tag theme-theologie">Thales</span>
+          <span class="tag theme-trading">Optionen Ursprung</span>
+          <span class="tag theme-trading">Mathematik des Marktes</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /#sec-all -->
+
+<!-- Filtered sections (handled by JS) -->
+<div id="sec-trading" class="section"></div>
+<div id="sec-genossenschaft" class="section"></div>
+<div id="sec-bank" class="section"></div>
+<div id="sec-ki" class="section"></div>
+<div id="sec-theologie" class="section"></div>
+<div id="sec-kerbholz" class="section"></div>
+<div id="sec-templer" class="section"></div>
+<div id="sec-japan" class="section"></div>
+
+<!-- FOOTER -->
+<div style="text-align:center; padding:40px; color:#333; font-size:12px; border-top:1px solid #1a1a1a; margin-top:40px;">
+  DUDE BANK eG — Magritte Gallery · Extrahiert aus DUDE-BANK-CONVO.txt (5.942 Zeilen) ·
+  Gemini × René Magritte × Van K. Tharp × Raiffeisen × Blockchain · 2026
+</div>
+
+<script>
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

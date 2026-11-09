@@ -1,0 +1,982 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>NEURAL FIXED-INCOME TERMINAL // GOLDMAN MATRIX v9.5</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #020106;
+            --panel: #090512;
+            --panel-inner: #110822;
+            --border: #3d1269;
+            --accent: #00f0ff;
+            --green: #00ffaa;
+            --red: #ff0055;
+            --gold: #ffb700;
+            --white: #ffffff;
+            --text-main: #ffffff; /* Pures Weiß für exzellente Lesbarkeit */
+            --muted: #dcd1f0;     /* Helles Off-White für sekundäre Infos */
+            
+            --font-cyber: 'Orbitron', -apple-system, sans-serif;
+            --font-data: 'Rajdhani', monospace;
+            --neon-glow: 0 0 10px rgba(0, 240, 255, 0.4), 0 0 20px rgba(0, 240, 255, 0.2);
+            --gold-glow: 0 0 10px rgba(255, 183, 0, 0.3);
+            --red-glow: 0 0 15px rgba(255, 0, 85, 0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            font-family: var(--font-data); 
+            font-size: 16px;
+            padding: 20px; 
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 99999;
+            background-size: 100% 4px, 4px 100%;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        .container {
+            max-width: 1750px;
+            margin: auto;
+            background-color: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            box-shadow: 0 0 40px rgba(162, 0, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.03);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .title-area h1 { 
+            font-family: var(--font-cyber);
+            color: var(--accent); 
+            font-size: 24px; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            font-weight: 900; 
+            text-shadow: var(--neon-glow);
+        }
+
+        .title-area p {
+            font-family: var(--font-cyber);
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .pipeline-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--panel-inner);
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-cyber);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; box-shadow: var(--gold-glow); }
+        .dot.active { background: var(--green); box-shadow: 0 0 10px var(--green); }
+        .dot.error { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+        .btn {
+            font-family: var(--font-cyber);
+            background: transparent; 
+            color: var(--accent); 
+            border: 1px solid var(--accent);
+            padding: 8px 18px; 
+            font-weight: 700; 
+            cursor: pointer;
+            transition: all 0.2s; 
+            text-transform: uppercase; 
+            font-size: 11px;
+            letter-spacing: 1px;
+            border-radius: 2px;
+        }
+        .btn:hover, .btn.active { background: var(--accent); color: var(--bg); box-shadow: var(--neon-glow); }
+        .btn-gold { color: var(--gold); border-color: var(--gold); }
+        .btn-gold:hover { background: var(--gold); color: var(--bg); box-shadow: var(--gold-glow); }
+
+        .terminal-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 1024px) {
+            .terminal-grid { grid-template-columns: 420px 1fr; }
+        }
+
+        .matrix-box {
+            background: var(--panel-inner);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .box-title {
+            font-family: var(--font-cyber);
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(61, 18, 105, 0.5);
+            padding-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--accent);
+            padding: 20px;
+            text-align: center;
+            background: rgba(0, 240, 255, 0.03);
+            color: var(--white);
+            font-family: var(--font-cyber);
+            font-size: 11px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .drop-zone:hover {
+            background: rgba(0, 240, 255, 0.08);
+            box-shadow: var(--neon-glow);
+        }
+
+        .search-wrapper { margin-bottom: 12px; }
+        .search-input {
+            width: 100%;
+            font-family: var(--font-cyber);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 10px 12px;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+        .search-input:focus { outline: none; border-color: var(--accent); box-shadow: var(--neon-glow); }
+
+        .sovereign-list-container {
+            max-height: 650px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .sovereign-cluster {
+            margin-bottom: 14px;
+            border: 1px solid rgba(162, 0, 255, 0.15);
+            background: rgba(0,0,0,0.3);
+            border-radius: 2px;
+        }
+        .cluster-header {
+            background: rgba(61, 18, 105, 0.5);
+            padding: 8px 12px;
+            font-family: var(--font-cyber);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gold);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .bond-row-items { display: flex; flex-direction: column; }
+        .bond-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--white);
+        }
+        .bond-item:hover { background: rgba(0, 240, 255, 0.1); color: var(--accent); }
+        .bond-item.active { background: rgba(0, 240, 255, 0.15); border-left: 4px solid var(--accent); color: var(--accent); font-weight: bold; }
+        
+        .bond-ticker { font-family: var(--font-cyber); font-size: 13px; font-weight: 700; }
+        .bond-maturity { font-size: 13px; font-weight: 600; color: #ffffff; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 2px; }
+
+        .analytics-welcome {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 450px;
+            color: var(--white);
+            font-family: var(--font-cyber);
+            font-size: 13px;
+            text-align: center;
+            letter-spacing: 1px;
+            line-height: 2;
+        }
+
+        .analytics-layout { display: none; flex-direction: column; gap: 20px; }
+
+        .meta-dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .metric-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 14px;
+            border-radius: 2px;
+            position: relative;
+        }
+        .metric-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--border);
+        }
+        .metric-card.accented::before { background: var(--accent); }
+        .metric-card.gold::before { background: var(--gold); }
+        
+        .card-label { font-family: var(--font-cyber); font-size: 11px; color: #c4b5e6; text-transform: uppercase; letter-spacing: 1px; }
+        .card-value { font-size: 28px; font-weight: 800; color: var(--white); margin-top: 4px; display: flex; align-items: baseline; gap: 4px; }
+        .card-subtext { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; }
+
+        /* MACRO INVERSION ALERT SECTION SYSTEM */
+        .inversion-alert-panel {
+            background: rgba(255, 0, 85, 0.03);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--muted);
+            padding: 14px 18px;
+            border-radius: 2px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s ease;
+        }
+        .inversion-alert-panel.triggered {
+            background: rgba(255, 0, 85, 0.08);
+            border-color: var(--red);
+            border-left-4px-solid: var(--red);
+            box-shadow: inset 0 0 15px rgba(255,0,85,0.1);
+            animation: pulseAlert 2.5s infinite;
+        }
+        @keyframes pulseAlert {
+            0% { border-color: rgba(255, 0, 85, 0.5); }
+            50% { border-color: rgba(255, 0, 85, 1); box-shadow: 0 0 10px rgba(255,0,85,0.2), inset 0 0 15px rgba(255,0,85,0.15); }
+            100% { border-color: rgba(255, 0, 85, 0.5); }
+        }
+        .alert-icon-wrap {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .alert-content-wrap {
+            flex: 1;
+        }
+        .alert-title {
+            font-family: var(--font-cyber);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--white);
+        }
+        .alert-desc {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        .quantum-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 1200px) {
+            .quantum-row { grid-template-columns: 1.6fr 1fr; }
+        }
+
+        .chart-container { background: var(--bg); border: 1px solid var(--border); padding: 15px; position: relative; }
+        .chart-nav { display: flex; gap: 4px; margin-bottom: 12px; }
+        .chart-nav .btn { padding: 4px 10px; font-size: 10px; }
+
+        .curve-widget-panel { background: var(--bg); border: 1px solid var(--border); padding: 15px; display: flex; flex-direction: column; }
+        .curve-summary-box {
+            background: rgba(0,0,0,0.4); border: 1px dashed var(--border); padding: 12px; border-radius: 2px; margin-top: auto; font-size: 13px; color: var(--white);
+            line-height: 1.5;
+        }
+
+        .txt-green { color: var(--green) !important; text-shadow: 0 0 6px rgba(0, 255, 170, 0.3); }
+        .txt-red { color: var(--red) !important; text-shadow: 0 0 6px rgba(255, 0, 85, 0.3); }
+        .txt-gold { color: var(--gold) !important; text-shadow: 0 0 6px rgba(255, 183, 0, 0.3); }
+        
+        #globalProgress { font-family: var(--font-cyber); font-size: 12px; color: var(--gold); text-shadow: var(--gold-glow); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="title-area">
+            <h1>🏛️ NEURAL FIXED-INCOME TERMINAL</h1>
+            <p>Institutional Goldman Curve Engine // Global Bond Vector Pipeline</p>
+        </div>
+        <div class="pipeline-controls">
+            <div id="globalProgress">DOMUSAUREA.TECH // BEREIT FÜR DATA INJECTION</div>
+            <div class="status-indicator">
+                <div class="dot" id="statusDot"></div>
+                <span id="statusText" style="color:var(--white);">No Data</span>
+            </div>
+            <input type="file" id="localCsvFile" accept=".csv" style="display: none;" onchange="loadLocalCSV(event)">
+            <button class="btn btn-gold" onclick="document.getElementById('localCsvFile').click()">📂 Inject Local GBOND.csv</button>
+        </div>
+    </header>
+
+    <div class="terminal-grid">
+        <div class="matrix-box">
+            <div class="box-title">
+                <span>Sovereign Vectors</span>
+                <span id="vectorCount" style="color: var(--accent); font-size: 11px; font-weight: bold;">0 Vectors</span>
+            </div>
+            
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('localCsvFile').click()">
+                ⚡ DROP MATRIX_EXPORT_GBOND.csv HERE TO INITIALIZE VECTOR ENGINE
+            </div>
+
+            <div class="search-wrapper">
+                <input type="text" id="bondSearch" class="search-input" placeholder="Nach Land o. Ticker filtern..." oninput="renderSovereignClusters()" disabled>
+            </div>
+            
+            <div class="sovereign-list-container" id="sovereignListContainer">
+                <div class="analytics-welcome">
+                    KEINE DATEN MATRIX GELADEN.<br>Nutze die Drag-Zone oder den "Inject"-Button, um deine CSV einzulesen.
+                </div>
+            </div>
+        </div>
+
+        <div class="matrix-box">
+            <div class="box-title">Quantum Analytics Deck</div>
+            
+            <div id="deckWelcome" class="analytics-welcome">
+                ⚠️ KEIN ASSET GEWÄHLT<br>
+                Wähle einen Sovereign-Laufzeit-Vektor aus der linken Matrix, um Berechnungen zu starten.
+            </div>
+
+            <div id="deckLayout" class="analytics-layout">
+                
+                <div class="inversion-alert-panel" id="macroInversionPanel">
+                    <div class="alert-icon-wrap" id="alertIcon">🛡️</div>
+                    <div class="alert-content-wrap">
+                        <div class="alert-title" id="alertTitle">System Stabilized // Curve Analyzer Active</div>
+                        <div class="alert-desc" id="alertDesc">Wähle ein Sovereign-Asset, um makroökonomische Spread-Inversionen algorithmisch zu prüfen.</div>
+                    </div>
+                </div>
+
+                <div class="meta-dashboard-grid">
+                    <div class="metric-card accented">
+                        <div class="card-label">Yield to Maturity (YTM)</div>
+                        <div class="card-value" id="m-ytm">0.00<span style="font-size:14px; color:var(--accent);">%</span></div>
+                        <div class="card-subtext" id="m-ytm-date" style="color:#ffffff;">Last Historical Point</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="card-label">Sovereign Spread (vs US10Y)</div>
+                        <div class="card-value" id="m-spread">0<span style="font-size:14px; color:var(--muted);"> bps</span></div>
+                        <div class="card-subtext" id="m-spread-label" style="color:#ffffff;">Risikoaufschlag</div>
+                    </div>
+                    <div class="metric-card gold">
+                        <div class="card-label">Modified Duration</div>
+                        <div class="card-value" id="m-duration">0.00</div>
+                        <div class="card-subtext" id="m-duration-risk">Zins-Sensitivität</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="card-label">Volatilität (Ann.)</div>
+                        <div class="card-value" id="m-vol">0.00<span style="font-size:14px; color:var(--muted);">%</span></div>
+                        <div class="card-subtext" style="color:#ffffff;">Historical Window Dev</div>
+                    </div>
+                </div>
+
+                <div class="quantum-row">
+                    <div class="chart-container">
+                        <div class="box-title">
+                            <span id="chartAssetTitle">HISTORISCHER TREND DER ANLEIHENRENDITE</span>
+                            <div class="chart-nav">
+                                <button class="btn" id="tf-30" onclick="changeTimeframe('30')">1M</button>
+                                <button class="btn" id="tf-180" onclick="changeTimeframe('180')">6M</button>
+                                <button class="btn active" id="tf-365" onclick="changeTimeframe('365')">1Y</button>
+                                <button class="btn" id="tf-1825" onclick="changeTimeframe('1825')">5Y</button>
+                            </div>
+                        </div>
+                        <div id="chartLoading" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--gold); font-family:var(--font-cyber); font-size:12px; display:none; font-weight:bold;">STREAMING PROXY VECTOR...</div>
+                        <canvas id="bondMainCanvas" style="width:100%; height:320px; display:block;"></canvas>
+                    </div>
+
+                    <div class="curve-widget-panel">
+                        <div class="box-title">LIVE YIELD CURVE GENERATOR</div>
+                        <canvas id="yieldCurveCanvas" style="width:100%; height:200px; display:block; margin-bottom:10px;"></canvas>
+                        <div class="curve-summary-box">
+                            <div style="font-family:var(--font-cyber); font-size:11px; color:var(--gold); margin-bottom:6px; text-transform:uppercase; font-weight:bold;">Curve Shape Analysis:</div>
+                            <span id="curveStatusText">Warte auf Berechnung...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const PROXY_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+        ? 'http://localhost:5000/api/eod'
+        : 'https://gemini-os.replit.app/api/eod';
+
+    let rawBondDataset = [];
+    let clusteredCountries = {};
+    let selectedTicker = '';
+    let selectedAssetName = '';
+    let activeTimeframeDays = '365';
+    let usTenYearYield = 4.26; 
+
+    const countryMapping = {
+        'US': 'United States', 'DE': 'Germany (Bunds)', 'UK': 'United Kingdom (Gilts)',
+        'CA': 'Canada', 'AU': 'Australia', 'AT': 'Austria', 'CN': 'China',
+        'FR': 'France', 'IT': 'Italy', 'JP': 'Japan', 'CH': 'Switzerland',
+        'SW': 'Switzerland', 'SG': 'Singapore', 'TH': 'Thailand', 'TR': 'Turkey',
+        'BR': 'Brazil', 'IN': 'India', 'MX': 'Mexico', 'ZA': 'South Africa', 'ES': 'Spain',
+        'GR': 'Greece', 'ID': 'Indonesia', 'KR': 'South Korea', 'MY': 'Malaysia',
+        'NG': 'Nigeria', 'NL': 'Netherlands', 'NO': 'Norway', 'NZ': 'New Zealand', 'PT': 'Portugal', 'SE': 'Sweden'
+    };
+
+    function extractMaturityYears(ticker) {
+        const matches = ticker.match(/([0-9]+)([YM])/);
+        if(!matches) return 10;
+        const num = parseInt(matches[1]);
+        const type = matches[2];
+        if(type === 'M') return num / 12;
+        return num;
+    }
+
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); }, false);
+    });
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if(files.length) handleCSVFileParsing(files[0]);
+    });
+
+    function loadLocalCSV(event) {
+        const file = event.target.files[0];
+        if(file) handleCSVFileParsing(file);
+    }
+
+    function handleCSVFileParsing(file) {
+        const progress = document.getElementById('globalProgress');
+        const dot = document.getElementById('statusDot');
+        const statusTxt = document.getElementById('statusText');
+        
+        progress.textContent = "⚙️ PARSING MATRIX DATA VECTOR...";
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const text = e.target.result;
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                if(lines.length <= 1) throw new Error("CSV leer.");
+
+                rawBondDataset = [];
+                const header = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+                const tickerIdx = header.indexOf('Ticker');
+                const nameIdx = header.indexOf('Name');
+
+                if(tickerIdx === -1 || nameIdx === -1) throw new Error("Header-Fehler.");
+
+                for(let i = 1; i < lines.length; i++) {
+                    let row = [];
+                    let inQuotes = false;
+                    let currentWord = '';
+                    for (let char of lines[i]) {
+                        if (char === '"') { inQuotes = !inQuotes; }
+                        else if (char === ',' && !inQuotes) { row.push(currentWord.trim()); currentWord = ''; }
+                        else { currentWord += char; }
+                    }
+                    row.push(currentWord.trim());
+
+                    if(row.length > Math.max(tickerIdx, nameIdx)) {
+                        const code = row[tickerIdx].replace(/^"|"$/g, '').trim();
+                        const name = row[nameIdx].replace(/^"|"$/g, '').trim();
+                        
+                        // FIX: Isolierung des ISO Codes zur Vermeidung falscher doppelter Länder-Splits
+                        const countryIso = code.match(/^[A-Za-z]+/)[0];
+
+                        rawBondDataset.push({
+                            Code: code,
+                            Name: name,
+                            CountryISO: countryIso,
+                            MaturityYears: extractMaturityYears(code)
+                        });
+                    }
+                }
+
+                document.getElementById('bondSearch').disabled = false;
+                dot.className = "dot active";
+                statusTxt.textContent = "Data Active";
+                progress.style.color = "var(--green)";
+                progress.textContent = "🟢 FIXED INCOME VECTOR PIPELINE ONLINE";
+                
+                document.getElementById('vectorCount').textContent = `${rawBondDataset.length} Vectors`;
+                dropZone.style.display = 'none';
+
+                syncUS10YBenchmark();
+                buildSovereignClusters();
+                renderSovereignClusters();
+
+            } catch(err) {
+                dot.className = "dot error";
+                statusTxt.textContent = "Error";
+                progress.style.color = "var(--red)";
+                progress.textContent = `❌ FAILURE: ${err.message.toUpperCase()}`;
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    async function syncUS10YBenchmark() {
+        try {
+            const toDate = new Date().toISOString().split('T')[0];
+            const fromDate = new Date(); fromDate.setDate(fromDate.getDate() - 10);
+            const fromDateStr = fromDate.toISOString().split('T')[0];
+            const checkUs = await fetch(`${PROXY_URL}?endpoint=historical&symbol=US10Y.GBOND&from=${fromDateStr}&to=${toDate}&period=d`);
+            if(checkUs.ok) {
+                const usData = await checkUs.json();
+                if(usData && usData.length > 0) {
+                    usTenYearYield = parseFloat(usData[usData.length - 1].close);
+                }
+            }
+        } catch(e) { console.log("US10Y Fallback base retained."); }
+    }
+
+    function buildSovereignClusters() {
+        clusteredCountries = {};
+        rawBondDataset.forEach(bond => {
+            const iso = bond.CountryISO;
+            if(!clusteredCountries[iso]) {
+                clusteredCountries[iso] = {
+                    CountryName: countryMapping[iso] || `${iso} Sovereign`,
+                    Bonds: []
+                };
+            }
+            if(!clusteredCountries[iso].Bonds.some(b => b.Code === bond.Code)) {
+                clusteredCountries[iso].Bonds.push(bond);
+            }
+        });
+
+        for(let iso in clusteredCountries) {
+            clusteredCountries[iso].Bonds.sort((a,b) => a.MaturityYears - b.MaturityYears);
+        }
+    }
+
+    function renderSovereignClusters() {
+        const query = document.getElementById('bondSearch').value.toLowerCase().trim();
+        const container = document.getElementById('sovereignListContainer');
+        container.innerHTML = '';
+
+        let fragment = document.createDocumentFragment();
+
+        for(let iso in clusteredCountries) {
+            const cluster = clusteredCountries[iso];
+            const filteredBonds = cluster.Bonds.filter(b => {
+                return b.Code.toLowerCase().includes(query) || cluster.CountryName.toLowerCase().includes(query);
+            });
+
+            if(filteredBonds.length === 0) continue;
+
+            const clusterDiv = document.createElement('div');
+            clusterDiv.className = 'sovereign-cluster';
+
+            const header = document.createElement('div');
+            header.className = 'cluster-header';
+            header.innerHTML = `<span>🏛️ ${cluster.CountryName}</span><span style="font-size:11px; color:var(--accent); font-weight:bold;">${filteredBonds.length} Maturities</span>`;
+            
+            const rowItems = document.createElement('div');
+            rowItems.className = 'bond-row-items';
+
+            filteredBonds.forEach(bond => {
+                const item = document.createElement('div');
+                item.className = 'bond-item';
+                if(bond.Code === selectedTicker) item.className += ' active';
+
+                item.innerHTML = `
+                    <span class="bond-ticker">${bond.Code}</span>
+                    <span class="bond-maturity">${bond.MaturityYears >= 1 ? bond.MaturityYears + 'Y' : Math.round(bond.MaturityYears * 12) + 'M'}</span>
+                `;
+
+                item.onclick = function() {
+                    document.querySelectorAll('.bond-item').forEach(el => el.classList.remove('active'));
+                    item.classList.add('active');
+                    triggerBondAnalysis(bond.Code, bond.Name, bond.CountryISO, bond.MaturityYears);
+                };
+
+                rowItems.appendChild(item);
+            });
+
+            clusterDiv.appendChild(header);
+            clusterDiv.appendChild(rowItems);
+            fragment.appendChild(clusterDiv);
+        }
+
+        if(fragment.children.length === 0) {
+            container.innerHTML = '<div class="analytics-welcome">KEINE VECTOR-TREFFER GEFUNDEN.</div>';
+        } else {
+            container.appendChild(fragment);
+        }
+    }
+
+    function triggerBondAnalysis(ticker, name, iso, maturityYears) {
+        selectedTicker = ticker;
+        selectedAssetName = name;
+        
+        document.getElementById('deckWelcome').style.display = 'none';
+        document.getElementById('deckLayout').style.display = 'flex';
+        document.getElementById('chartAssetTitle').textContent = `${ticker} // SOVEREIGN BOND YIELD HISTORICAL PROFILE`;
+        
+        fetchHistoricalBondYields();
+        renderYieldCurveForCountry(iso);
+    }
+
+    function changeTimeframe(days) {
+        activeTimeframeDays = days;
+        document.querySelectorAll('.chart-nav .btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`tf-${days}`).classList.add('active');
+        if(selectedTicker) fetchHistoricalBondYields();
+    }
+
+    async function fetchHistoricalBondYields() {
+        const loader = document.getElementById('chartLoading');
+        loader.style.display = 'block';
+
+        const toDate = new Date();
+        const fromDate = new Date();
+        fromDate.setDate(toDate.getDate() - parseInt(activeTimeframeDays));
+
+        const formatIso = (d) => d.toISOString().split('T')[0];
+        const fullSymbol = `${selectedTicker}.GBOND`;
+
+        try {
+            const res = await fetch(`${PROXY_URL}?endpoint=historical&symbol=${fullSymbol}&from=${formatIso(fromDate)}&to=${formatIso(toDate)}&period=d`);
+            if(!res.ok) throw new Error("Offline");
+            const data = await res.json();
+
+            if(!data || !Array.isArray(data) || data.length === 0) {
+                loader.textContent = "⚠️ KEINE HISTORISCHEN PROXY-RENDITEN GEFUNDEN";
+                return;
+            }
+            loader.style.display = 'none';
+            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            calculateAndInjectFixedIncomeMetrics(sortedData);
+            drawHistoricalYieldChart(sortedData);
+
+        } catch(e) {
+            loader.textContent = "⚠️ PIPELINE TIMEOUT // PROXY VERBINDUNG PRÜFEN";
+        }
+    }
+
+    function calculateAndInjectFixedIncomeMetrics(data) {
+        const currentYield = parseFloat(data[data.length - 1].close);
+        document.getElementById('m-ytm').innerHTML = `${currentYield.toFixed(2)}<span style="font-size:14px; color:var(--accent);">%</span>`;
+        document.getElementById('m-ytm-date').textContent = `As of ${data[data.length - 1].date}`;
+
+        let spreadBps = 0;
+        if(selectedTicker !== 'US10Y') {
+            spreadBps = Math.round((currentYield - usTenYearYield) * 100);
+        }
+        const spreadEl = document.getElementById('m-spread');
+        spreadEl.innerHTML = `${spreadBps > 0 ? '+' : ''}${spreadBps}<span style="font-size:14px; color:var(--muted);"> bps</span>`;
+        document.getElementById('m-spread-label').textContent = selectedTicker === 'US10Y' ? 'Benchmark Base' : 'vs US10Y Benchmark';
+        if(spreadBps > 200) spreadEl.className = 'card-value txt-red';
+        else if(spreadBps < 0) spreadEl.className = 'card-value txt-green';
+        else spreadEl.className = 'card-value';
+
+        const activeItem = rawBondDataset.find(b => b.Code === selectedTicker);
+        const t = activeItem ? activeItem.MaturityYears : 10;
+        
+        const modDuration = (1 - Math.pow(1 + (currentYield/100), -t)) / (currentYield/100 || 0.04);
+        document.getElementById('m-duration').textContent = modDuration.toFixed(2);
+        
+        const riskEl = document.getElementById('m-duration-risk');
+        if(modDuration > 12) { riskEl.textContent = "CRITICAL INTEREST RISK"; riskEl.className = "card-subtext txt-red"; }
+        else if(modDuration > 6) { riskEl.textContent = "MEDIUM VOLATILITY EXPOSURE"; riskEl.className = "card-subtext txt-gold"; }
+        else { riskEl.textContent = "LOW RISK BENIGN VEKTOR"; riskEl.className = "card-subtext txt-green"; }
+
+        let logReturns = [];
+        for(let i = 1; i < data.length; i++) {
+            const prev = parseFloat(data[i-1].close);
+            const curr = parseFloat(data[i].close);
+            if(prev !== 0) logReturns.push(Math.log(curr / prev));
+        }
+        if(logReturns.length > 0) {
+            const mean = logReturns.reduce((a,b)=>a+b,0)/logReturns.length;
+            const variance = logReturns.reduce((a,b)=>a+Math.pow(b-mean,2),0)/logReturns.length;
+            const annVol = Math.sqrt(variance) * Math.sqrt(252) * 100;
+            document.getElementById('m-vol').innerHTML = `${annVol.toFixed(2)}<span style="font-size:14px; color:var(--muted);">%</span>`;
+        } else {
+            document.getElementById('m-vol').innerHTML = `0.00<span style="font-size:14px; color:var(--muted);">%</span>`;
+        }
+    }
+
+    function drawHistoricalYieldChart(data) {
+        const canvas = document.getElementById('bondMainCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.parentElement.clientWidth - 30;
+        const h = 320;
+        const padding = 45;
+
+        canvas.width = w * window.devicePixelRatio;
+        canvas.height = h * window.devicePixelRatio;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        ctx.clearRect(0, 0, w, h);
+
+        const yields = data.map(d => parseFloat(d.close));
+        const max = Math.max(...yields);
+        const min = Math.min(...yields);
+        const range = (max - min) || 1;
+
+        ctx.strokeStyle = '#220e40';
+        ctx.lineWidth = 1;
+        ctx.font = '10px Orbitron';
+        ctx.fillStyle = '#ffffff';
+
+        for(let i=0; i<=4; i++) {
+            const y = padding + (i * (h - 2*padding)/4);
+            const val = max - (i * range / 4);
+            ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(w - padding, y); ctx.stroke();
+            ctx.fillText(val.toFixed(2) + '%', w - padding + 5, y + 3);
+        }
+
+        const getX = (idx) => padding + (idx * (w - 2*padding)/(data.length - 1 || 1));
+        const getY = (val) => h - padding - ((val - min)/range * (h - 2*padding));
+
+        const grad = ctx.createLinearGradient(0, padding, 0, h - padding);
+        grad.addColorStop(0, 'rgba(0, 240, 255, 0.15)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+        ctx.beginPath();
+        ctx.moveTo(getX(0), h - padding);
+        for(let i=0; i<data.length; i++) ctx.lineTo(getX(i), getY(yields[i]));
+        ctx.lineTo(getX(data.length - 1), h - padding);
+        ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(getX(0), getY(yields[0]));
+        for(let i=1; i<data.length; i++) ctx.lineTo(getX(i), getY(yields[i]));
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillText(data[0].date, padding, h - padding + 18);
+        ctx.fillText(data[data.length-1].date, w - padding - 65, h - padding + 18);
+    }
+
+    async function renderYieldCurveForCountry(iso) {
+        const canvas = document.getElementById('yieldCurveCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusText = document.getElementById('curveStatusText');
+        
+        // Target Alert Panel Nodes
+        const alertPanel = document.getElementById('macroInversionPanel');
+        const alertIcon = document.getElementById('alertIcon');
+        const alertTitle = document.getElementById('alertTitle');
+        const alertDesc = document.getElementById('alertDesc');
+        
+        const w = canvas.parentElement.clientWidth - 30;
+        const h = 200;
+        const padding = 35;
+
+        canvas.width = w * window.devicePixelRatio;
+        canvas.height = h * window.devicePixelRatio;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        ctx.clearRect(0, 0, w, h);
+
+        const countryBonds = clusteredCountries[iso].Bonds;
+        statusText.className = "txt-gold";
+        statusText.textContent = "Synchronisiere Zins-Struktur-Vektoren...";
+
+        let curvePoints = [];
+
+        for(let bond of countryBonds) {
+            try {
+                const toDate = new Date().toISOString().split('T')[0];
+                const fromDate = new Date(); fromDate.setDate(fromDate.getDate() - 8);
+                const fromStr = fromDate.toISOString().split('T')[0];
+                
+                const res = await fetch(`${PROXY_URL}?endpoint=historical&symbol=${bond.Code}.GBOND&from=${fromStr}&to=${toDate}&period=d`);
+                if(res.ok) {
+                    const d = await res.json();
+                    if(d && d.length > 0) {
+                        curvePoints.push({
+                            Maturity: bond.MaturityYears,
+                            Ticker: bond.Code,
+                            Yield: parseFloat(d[d.length - 1].close)
+                        });
+                    }
+                }
+            } catch(e) { console.log("Skip node sync: " + bond.Code); }
+        }
+
+        if(curvePoints.length < 2) {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '11px Orbitron';
+            ctx.fillText("INSUFFICIENT CURVE POINTS IN MATRIX", 30, h/2);
+            statusText.textContent = "Nicht genügend Laufzeit-Vektoren für mathematische Kurven-Detektion.";
+            statusText.className = "";
+            
+            // Reset Alert Panel bei unzureichenden Punkten
+            alertPanel.classList.remove('triggered');
+            alertIcon.textContent = "⚙️";
+            alertTitle.textContent = "Insufficent Structural Curve Nodes";
+            alertDesc.textContent = "Es werden mindestens 2 Fristigkeiten des Staates im Proxy benötigt.";
+            return;
+        }
+
+        curvePoints.sort((a,b) => a.Maturity - b.Maturity);
+
+        const yields = curvePoints.map(p => p.Yield);
+        const max = Math.max(...yields) + 0.5;
+        const min = Math.max(0, Math.min(...yields) - 0.5);
+        const range = max - min || 1;
+
+        ctx.strokeStyle = '#1d0c36';
+        ctx.lineWidth = 1;
+        ctx.font = '9px Orbitron';
+        ctx.fillStyle = '#ffffff';
+
+        for(let i=0; i<=3; i++) {
+            const y = padding + (i * (h - 2*padding)/3);
+            const val = max - (i * range / 3);
+            ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(w - padding, y); ctx.stroke();
+            ctx.fillText(val.toFixed(1) + '%', w - padding + 5, y + 3);
+        }
+
+        const getCurveX = (m) => {
+            const minM = 0.25; const maxM = 30;
+            return padding + (Math.log(m / minM) / Math.log(maxM / minM)) * (w - 2 * padding);
+        };
+        const getCurveY = (yVal) => h - padding - ((yVal - min)/range * (h - 2*padding));
+
+        ctx.beginPath();
+        ctx.moveTo(getCurveX(curvePoints[0].Maturity), getCurveY(curvePoints[0].Yield));
+        for(let i=1; i<curvePoints.length; i++) {
+            ctx.lineTo(getCurveX(curvePoints[i].Maturity), getCurveY(curvePoints[i].Yield));
+        }
+        ctx.strokeStyle = '#ffb700';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        curvePoints.forEach(p => {
+            const cx = getCurveX(p.Maturity);
+            const cy = getCurveY(p.Yield);
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, 2*Math.PI);
+            ctx.fillStyle = p.Ticker === selectedTicker ? '#00f0ff' : '#ffb700';
+            ctx.fill();
+            ctx.fillText(p.Ticker, cx - 10, cy - 8);
+        });
+
+        // INSTITUTIONAL MACRO INVERSION ALERT ENGINE CALCULATION
+        const frontNode = curvePoints[0];
+        const backNode = curvePoints[curvePoints.length - 1];
+        const curveSpread = backNode.Yield - frontNode.Yield;
+        const currentCountryName = countryMapping[iso] || `${iso} Region`;
+
+        if(curveSpread < 0) {
+            // RENDITESTRUKTUR INVERTIERT -> ESKALATION TRIGERREN
+            statusText.innerHTML = `⚠️ INVERSE ZINSSTRUKTURKURVE DETEKTIERT (${(curveSpread*100).toFixed(0)} bps Inversion). Erhöhtes systematisches Rezessions-Risiko vorhanden. Kapital flüchtet in das lange Ende.`;
+            statusText.className = "txt-red";
+            
+            alertPanel.classList.add('triggered');
+            alertIcon.textContent = "🚨";
+            alertTitle.textContent = `CRITICAL CURVE INVERSION: ${currentCountryName.toUpperCase()}`;
+            alertTitle.style.color = "var(--red)";
+            alertDesc.innerHTML = `Der Kurzläufer-Knotenpunkt <strong>${frontNode.Ticker} (${frontNode.Yield.toFixed(2)}%)</strong> rentiert signifikant HÖHER als die langfristige Benchmark <strong>${backNode.Ticker} (${backNode.Yield.toFixed(2)}%)</strong>. Ein historisch absolut präziser Frühindikator für eine severe ökonomische Kontraktion innerhalb der kommenden 12-18 Monate. Institutionelle Liquidität flieht aus Equity-Assets.`;
+        } else if(curveSpread < 0.5) {
+            // RENDITESTRUKTUR FLACH
+            statusText.innerHTML = `⚖️ FLAT CURVE (Flache Zinsstruktur). Unsicherheit bezüglich restriktiver geldpoletisierungs-Maßnahmen der Zentralbanken.`;
+            statusText.className = "txt-gold";
+            
+            alertPanel.classList.remove('triggered');
+            alertIcon.textContent = "⚖️";
+            alertTitle.textContent = `FLAT MACRO PROFILE: ${currentCountryName.toUpperCase()}`;
+            alertTitle.style.color = "var(--gold)";
+            alertDesc.innerHTML = `Der Rendite-Spread zwischen kurzen und langen Fälligkeiten liegt bei komprimierten <strong>${(curveSpread*100).toFixed(0)} bps</strong>. Dies reflektiert ein hohes geldpolitisches Straffungs-Szenario der Zentralbanken (Restriktive Geldpolitik) und signalisiert wachsende Wachstums-Skepsis der Smart-Money-Akteure.`;
+        } else {
+            // RENDITESTRUKTUR NORMAL / EXPANSIV
+            statusText.innerHTML = `🟢 NORMALE RENDITESTRUKTUR (Steile Kurve). Gesunde makroökonomische Expansion. Langläufer kompensieren das Laufzeitrisiko adäquat.`;
+            statusText.className = "txt-green";
+            
+            alertPanel.classList.remove('triggered');
+            alertIcon.textContent = "🛡️";
+            alertTitle.textContent = `HEALTHY MONETARY MATRIX: ${currentCountryName.toUpperCase()}`;
+            alertTitle.style.color = "var(--green)";
+            alertDesc.innerHTML = `Die Laufzeitkurve ist intakt. Die Fristen-Spread-Steilung beträgt stabile <strong>${(curveSpread*100).toFixed(0)} bps</strong>. Händler fordern eine adäquate Laufzeitprämie (Term Premium) für langanhaltendes Kreditrisiko. Keine akuten makroökonomischen Inversions-Bedrohungen im Vektor-Raum detektiert.`;
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,832 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>QUANTUM MATRIX // EXCHANGE CORE v4.0</title>
+    <style>
+        :root {
+            --bg: #030108;
+            --panel: #0b0616;
+            --panel-inner: #130a24;
+            --border: #4a157d;
+            --accent: #00f0ff;
+            --green: #00ffaa;
+            --red: #ff0055;
+            --gold: #ffb700;
+            --white: #e9e9f0;
+            --muted: #7c6f94;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--white); 
+            font-family: 'Segoe UI', -apple-system, sans-serif; 
+            padding: 24px; 
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar Optimierung für den Matrix Look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        .container {
+            max-width: 1600px;
+            margin: auto;
+            background-color: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 0 35px rgba(162, 0, 255, 0.25);
+        }
+
+        h1 { 
+            color: var(--accent); 
+            text-align: center; 
+            font-size: 26px; 
+            letter-spacing: 3px; 
+            text-transform: uppercase; 
+            margin-bottom: 4px; 
+            font-weight: 900; 
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        .subtitle { 
+            text-align: center; 
+            color: var(--muted); 
+            font-size: 11px; 
+            letter-spacing: 2px; 
+            margin-bottom: 24px; 
+            text-transform: uppercase;
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-inner); 
+            border: 1px solid var(--border);
+            padding: 16px 20px; 
+            border-radius: 6px; 
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .system-status {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        .btn {
+            background: transparent; 
+            color: var(--accent); 
+            border: 2px solid var(--accent);
+            padding: 10px 24px; 
+            font-weight: bold; 
+            border-radius: 4px; 
+            cursor: pointer;
+            transition: all 0.2s ease; 
+            text-transform: uppercase; 
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover, .btn.active { 
+            background: var(--accent); 
+            color: var(--bg); 
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5); 
+        }
+
+        .btn-sm {
+            padding: 4px 12px;
+            font-size: 11px;
+            border-radius: 3px;
+            border-width: 1px;
+        }
+
+        .btn-gold { color: var(--gold); border-color: var(--gold); }
+        .btn-gold:hover { background: var(--gold); color: var(--bg); box-shadow: 0 0 20px rgba(255, 183, 0, 0.5); }
+
+        #progress { 
+            font-size: 13px; 
+            color: var(--gold); 
+            margin-bottom: 15px; 
+            font-weight: bold; 
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        @media (min-width: 1024px) {
+            .layout-grid { grid-template-columns: 1fr 1.4fr; }
+        }
+
+        .matrix-box {
+            background: var(--panel-inner); 
+            border: 1px solid var(--border); 
+            border-radius: 6px; 
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .box-title {
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-container { 
+            max-height: 650px;
+            overflow-y: auto; 
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: left; 
+        }
+
+        th { 
+            font-size: 11px; 
+            color: var(--muted); 
+            text-transform: uppercase; 
+            border-bottom: 2px solid var(--border); 
+            padding: 12px 10px; 
+            letter-spacing: 1px; 
+            position: sticky;
+            top: 0;
+            background: var(--panel-inner);
+            z-index: 10;
+        }
+
+        td { 
+            padding: 12px 10px; 
+            border-bottom: 1px solid rgba(255,255,255,0.03); 
+            font-size: 13px; 
+        }
+
+        tr:hover { background: rgba(0, 240, 255, 0.03); }
+
+        .badge-code {
+            color: var(--green);
+            background: rgba(0, 255, 170, 0.1);
+            border: 1px solid var(--green);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .text-highlight { color: var(--white); font-weight: bold; }
+
+        /* Suchfeld Style */
+        .search-input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            width: 200px;
+            transition: all 0.3s;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+        }
+
+        /* Unlimitiertes Ticker Grid */
+        .ticker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            max-height: 650px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .ticker-card {
+            background: var(--bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            text-align: center;
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .ticker-card:hover {
+            border-color: var(--accent);
+            background: rgba(0, 240, 255, 0.04);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 240, 255, 0.15);
+        }
+        .ticker-type {
+            font-size: 9px;
+            color: var(--muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* QUANTUM MODAL SYSTEM */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 1, 8, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .modal-content {
+            background: var(--panel);
+            border: 2px solid var(--border);
+            width: 90%;
+            max-width: 850px;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 0 50px rgba(162, 0, 255, 0.4);
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.open .modal-content { transform: scale(1); }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+        .modal-close {
+            background: transparent; color: var(--muted); border: none;
+            font-size: 24px; cursor: pointer; transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--red); }
+
+        .timeframe-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .tf-btn {
+            background: var(--panel-inner);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 3px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .tf-btn:hover, .tf-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .chart-wrapper {
+            background: var(--panel-inner);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 16px;
+            position: relative;
+        }
+        canvas { width: 100%; height: 350px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>QUANTUM ENGINE // VOLUMETRIC EXCHANGE MATRIX</h1>
+    <div class="subtitle">DATA ROUTER STREAM MULTI-TIMEFRAME PIPELINE v4.0</div>
+    
+    <div class="control-panel">
+        <div class="system-status">
+            <div class="status-dot"></div>
+            <span id="healthStatus">Matrix Pipeline Connected // CORS Open</span>
+        </div>
+        <button class="btn" onclick="loadExchangesLive()">⚡ Sync Global Exchanges</button>
+        <span id="dataSourceBadge" style="font-size:10px;font-family:monospace;padding:3px 8px;border-radius:3px;background:#0b0616;border:1px solid #4a157d;color:#7c6f94;"></span>
+    </div>
+    
+    <div id="progress">Bereite Neuralen Matrix-Sync vor...</div>
+    
+    <div class="layout-grid">
+        <div class="matrix-box">
+            <div class="box-title">Verfügbare Globale Handelsplätze</div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Währung</th>
+                            <th>Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exchangeTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--muted); padding: 40px;">
+                                Warte auf Synchronisation...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="matrix-box">
+            <div class="box-title" id="tickerBoxTitle">
+                <span>Börsen Ticker-Vektor</span>
+                <input type="text" id="tickerSearch" class="search-input" placeholder="Filter Ticker..." oninput="filterTickers()" disabled>
+            </div>
+            <div id="tickerContainer" class="ticker-grid">
+                <div style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 40px;">
+                    Wähle links einen Handelsplatz, um die vollständige Ticker-Matrix zu mappen.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="chartModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h2 id="modalTickerTitle" style="color: var(--accent); font-size: 20px; font-family: monospace;">AAPL.US</h2>
+                <p id="modalTickerDesc" style="color: var(--muted); font-size: 11px; margin-top: 2px;">Asset Analyse Segment</p>
+            </div>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div class="timeframe-container">
+            <button class="tf-btn" id="tf-1w" onclick="switchTimeframe('7')">1W</button>
+            <button class="tf-btn" id="tf-1m" onclick="switchTimeframe('30')">1M</button>
+            <button class="tf-btn active" id="tf-6m" onclick="switchTimeframe('180')">6M</button>
+        </div>
+
+        <div class="chart-wrapper">
+            <div id="chartLoading" style="position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); color: var(--gold); font-weight: bold; font-size: 14px;">MATRIX STREAM LOADING...</div>
+            <canvas id="quantumCanvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    const EOD_PROXY = 'https://gemini-os.replit.app/api/eod';
+
+    /* ── Local CSV file mapping — all 72 exchanges ───────────────────── */
+    const LOCAL_CSV_MAP = {
+        'EUFUND':'MATRIX_EXPORT_EUFUND.csv','US':'MATRIX_EXPORT_US.csv',
+        'LSE':'MATRIX_EXPORT_LSE.csv','XETRA':'MATRIX_EXPORT_XETRA.csv',
+        'STU':'MATRIX_EXPORT_STU.csv','SHE':'MATRIX_EXPORT_SHE.csv',
+        'SHG':'MATRIX_EXPORT_SHG.csv','TO':'MATRIX_EXPORT_TO.csv',
+        'NSE':'MATRIX_EXPORT_NSE.csv','KO':'MATRIX_EXPORT_KO.csv',
+        'AU':'MATRIX_EXPORT_AU.csv','SA':'MATRIX_EXPORT_SA.csv',
+        'SW':'MATRIX_EXPORT_SW.csv','MU':'MATRIX_EXPORT_MU.csv',
+        'KQ':'MATRIX_EXPORT_KQ.csv','CC':'MATRIX_EXPORT_CC.csv',
+        'V':'MATRIX_EXPORT_V.csv','TW':'MATRIX_EXPORT_TW.csv',
+        'TWO':'MATRIX_EXPORT_TWO.csv','TA':'MATRIX_EXPORT_TA.csv',
+        'DU':'MATRIX_EXPORT_DU.csv','BK':'MATRIX_EXPORT_BK.csv',
+        'FOREX':'MATRIX_EXPORT_FOREX.csv','KLSE':'MATRIX_EXPORT_KLSE.csv',
+        'JK':'MATRIX_EXPORT_JK.csv','ST':'MATRIX_EXPORT_ST.csv',
+        'PA':'MATRIX_EXPORT_PA.csv','F':'MATRIX_EXPORT_F.csv',
+        'KAR':'MATRIX_EXPORT_KAR.csv','MX':'MATRIX_EXPORT_MX.csv',
+        'CO':'MATRIX_EXPORT_CO.csv','VN':'MATRIX_EXPORT_VN.csv',
+        'AS':'MATRIX_EXPORT_AS.csv','HM':'MATRIX_EXPORT_HM.csv',
+        'WAR':'MATRIX_EXPORT_WAR.csv','JSE':'MATRIX_EXPORT_JSE.csv',
+        'NEO':'MATRIX_EXPORT_NEO.csv','EGX':'MATRIX_EXPORT_EGX.csv',
+        'MC':'MATRIX_EXPORT_MC.csv','OL':'MATRIX_EXPORT_OL.csv',
+        'PSE':'MATRIX_EXPORT_PSE.csv','HA':'MATRIX_EXPORT_HA.csv',
+        'XNSA':'MATRIX_EXPORT_XNSA.csv','BA':'MATRIX_EXPORT_BA.csv',
+        'HE':'MATRIX_EXPORT_HE.csv','AT':'MATRIX_EXPORT_AT.csv',
+        'SN':'MATRIX_EXPORT_SN.csv','RO':'MATRIX_EXPORT_RO.csv',
+        'GBOND':'MATRIX_EXPORT_GBOND.csv','BR':'MATRIX_EXPORT_BR.csv',
+        'SEM':'MATRIX_EXPORT_SEM.csv','VI':'MATRIX_EXPORT_VI.csv',
+        'BC':'MATRIX_EXPORT_BC.csv','IR':'MATRIX_EXPORT_IR.csv',
+        'XNAI':'MATRIX_EXPORT_XNAI.csv','BUD':'MATRIX_EXPORT_BUD.csv',
+        'XZIM':'MATRIX_EXPORT_XZIM.csv','PR':'MATRIX_EXPORT_PR.csv',
+        'LIM':'MATRIX_EXPORT_LIM.csv','XBOT':'MATRIX_EXPORT_XBOT.csv',
+        'GSE':'MATRIX_EXPORT_GSE.csv','LS':'MATRIX_EXPORT_LS.csv',
+        'LUSE':'MATRIX_EXPORT_LUSE.csv','DSE':'MATRIX_EXPORT_DSE.csv',
+        'BE':'MATRIX_EXPORT_BE.csv','ZSE':'MATRIX_EXPORT_ZSE.csv',
+        'USE':'MATRIX_EXPORT_USE.csv','MSE':'MATRIX_EXPORT_MSE.csv',
+        'RSE':'MATRIX_EXPORT_RSE.csv','LU':'MATRIX_EXPORT_LU.csv',
+        'CM':'MATRIX_EXPORT_CM.csv','VX':'MATRIX_EXPORT_VX.csv',
+    };
+
+    /* ── Complete static exchange list (72 entries) ───────────────────── */
+    const STATIC_EXCHANGES = [
+        /* ── Americas ── */
+        { Code:'US',    Name:'US Markets — NYSE / NASDAQ / AMEX',     Currency:'USD' },
+        { Code:'NEO',   Name:'NEO Exchange Canada',                    Currency:'CAD' },
+        { Code:'V',     Name:'TSX Venture Exchange',                   Currency:'CAD' },
+        { Code:'TO',    Name:'Toronto Stock Exchange (TSX)',           Currency:'CAD' },
+        { Code:'BA',    Name:'Buenos Aires Exchange (BCBA)',           Currency:'ARS' },
+        { Code:'SA',    Name:'Sao Paulo Exchange (B3)',                Currency:'BRL' },
+        { Code:'MX',    Name:'Mexican Exchange (BMV)',                 Currency:'MXN' },
+        { Code:'SN',    Name:'Santiago Stock Exchange (BCS)',          Currency:'CLP' },
+        { Code:'LIM',   Name:'Bolsa de Valores de Lima (BVL)',         Currency:'PEN' },
+        /* ── Europe ── */
+        { Code:'XETRA', Name:'XETRA — Deutsche Börse',                Currency:'EUR' },
+        { Code:'F',     Name:'Frankfurt Stock Exchange (FSE)',         Currency:'EUR' },
+        { Code:'STU',   Name:'Stuttgart Stock Exchange (EUWAX)',       Currency:'EUR' },
+        { Code:'MU',    Name:'Munich Stock Exchange (BÖRSE MÜNCHEN)',  Currency:'EUR' },
+        { Code:'DU',    Name:'Düsseldorf Stock Exchange',              Currency:'EUR' },
+        { Code:'HM',    Name:'Hamburg Stock Exchange',                 Currency:'EUR' },
+        { Code:'HA',    Name:'Hanover Stock Exchange',                 Currency:'EUR' },
+        { Code:'BE',    Name:'Berlin Stock Exchange',                  Currency:'EUR' },
+        { Code:'LSE',   Name:'London Stock Exchange',                  Currency:'GBP' },
+        { Code:'SW',    Name:'SIX Swiss Exchange',                     Currency:'CHF' },
+        { Code:'PA',    Name:'Euronext Paris',                         Currency:'EUR' },
+        { Code:'AS',    Name:'Euronext Amsterdam',                     Currency:'EUR' },
+        { Code:'BR',    Name:'Euronext Brussels',                      Currency:'EUR' },
+        { Code:'LS',    Name:'Euronext Lisbon',                        Currency:'EUR' },
+        { Code:'MC',    Name:'Bolsa de Madrid (BME)',                  Currency:'EUR' },
+        { Code:'VI',    Name:'Vienna Stock Exchange (Wiener Börse)',   Currency:'EUR' },
+        { Code:'ST',    Name:'NASDAQ Stockholm (OMX)',                 Currency:'SEK' },
+        { Code:'CO',    Name:'NASDAQ Copenhagen (OMX)',                Currency:'DKK' },
+        { Code:'OL',    Name:'Oslo Stock Exchange (Oslo Børs)',        Currency:'NOK' },
+        { Code:'HE',    Name:'Helsinki Exchange (NASDAQ OMX)',         Currency:'EUR' },
+        { Code:'IR',    Name:'Euronext Dublin (Irish Exchange)',       Currency:'EUR' },
+        { Code:'AT',    Name:'Athens Stock Exchange (ATHEX)',          Currency:'EUR' },
+        { Code:'PR',    Name:'Prague Stock Exchange (PSE)',            Currency:'CZK' },
+        { Code:'WAR',   Name:'Warsaw Stock Exchange (GPW)',            Currency:'PLN' },
+        { Code:'BUD',   Name:'Budapest Stock Exchange (BSE)',          Currency:'HUF' },
+        { Code:'RO',    Name:'Bucharest Stock Exchange (BVB)',         Currency:'RON' },
+        { Code:'ZSE',   Name:'Zagreb Stock Exchange (ZSE)',            Currency:'EUR' },
+        { Code:'LU',    Name:'Luxembourg Stock Exchange',              Currency:'EUR' },
+        { Code:'VX',    Name:'Cboe Europe',                           Currency:'EUR' },
+        /* ── Middle East & Africa ── */
+        { Code:'TA',    Name:'Tel Aviv Stock Exchange (TASE)',         Currency:'ILS' },
+        { Code:'EGX',   Name:'Egyptian Exchange (EGX)',                Currency:'EGP' },
+        { Code:'JSE',   Name:'Johannesburg Stock Exchange (JSE)',      Currency:'ZAR' },
+        { Code:'BC',    Name:'Casablanca Stock Exchange (CSE)',        Currency:'MAD' },
+        { Code:'XNSA',  Name:'Nigerian Stock Exchange (NGX)',          Currency:'NGN' },
+        { Code:'XNAI',  Name:'Nairobi Securities Exchange (NSE)',      Currency:'KES' },
+        { Code:'GSE',   Name:'Ghana Stock Exchange (GSE)',             Currency:'GHS' },
+        { Code:'SEM',   Name:'Stock Exchange of Mauritius (SEM)',      Currency:'MUR' },
+        { Code:'XBOT',  Name:'Botswana Stock Exchange (BSE)',          Currency:'BWP' },
+        { Code:'XZIM',  Name:'Zimbabwe Stock Exchange (ZSE)',          Currency:'ZWL' },
+        { Code:'RSE',   Name:'Rwanda Stock Exchange (RSE)',            Currency:'RWF' },
+        { Code:'DSE',   Name:'Dar es Salaam Stock Exchange (DSE)',     Currency:'TZS' },
+        { Code:'USE',   Name:'Uganda Securities Exchange (USE)',       Currency:'UGX' },
+        { Code:'LUSE',  Name:'Lusaka Stock Exchange (LuSE)',           Currency:'ZMW' },
+        { Code:'MSE',   Name:'Malawi Stock Exchange (MSE)',            Currency:'MWK' },
+        /* ── Asia Pacific ── */
+        { Code:'NSE',   Name:'National Stock Exchange India (NSE)',    Currency:'INR' },
+        { Code:'KO',    Name:'Korea Exchange (KRX)',                   Currency:'KRW' },
+        { Code:'KQ',    Name:'KOSDAQ',                                 Currency:'KRW' },
+        { Code:'AU',    Name:'Australian Securities Exchange (ASX)',   Currency:'AUD' },
+        { Code:'SHE',   Name:'Shenzhen Stock Exchange (SZSE)',         Currency:'CNY' },
+        { Code:'SHG',   Name:'Shanghai Stock Exchange (SSE)',          Currency:'CNY' },
+        { Code:'TW',    Name:'Taiwan Stock Exchange (TWSE)',           Currency:'TWD' },
+        { Code:'TWO',   Name:'Taiwan OTC Exchange (TAIPEI EXCHANGE)',  Currency:'TWD' },
+        { Code:'BK',    Name:'Stock Exchange of Thailand (SET)',       Currency:'THB' },
+        { Code:'JK',    Name:'Indonesia Stock Exchange (IDX)',         Currency:'IDR' },
+        { Code:'KLSE',  Name:'Bursa Malaysia (KLSE)',                  Currency:'MYR' },
+        { Code:'PSE',   Name:'Philippine Stock Exchange (PSE)',        Currency:'PHP' },
+        { Code:'KAR',   Name:'Pakistan Stock Exchange (PSX)',          Currency:'PKR' },
+        { Code:'VN',    Name:'Vietnam Stock Exchange (HOSE)',          Currency:'VND' },
+        { Code:'CM',    Name:'Colombo Stock Exchange (CSE)',           Currency:'LKR' },
+        /* ── Funds / FX / Special ── */
+        { Code:'EUFUND',Name:'EU Fund Exchange (UCITS/Mutual Funds)',  Currency:'EUR' },
+        { Code:'CC',    Name:'Crypto Markets',                        Currency:'USD' },
+        { Code:'FOREX', Name:'Forex / Currency Pairs',                Currency:''    },
+        { Code:'GBOND', Name:'Government Bonds',                      Currency:''    },
+    ];
+
+    let allCurrentTickers = [];
+    let activeExchangeCode = '';
+    let activeTickerSymbol = '';
+    let currentDaysWindow  = '180';
+
+    /* ── CSV parser: handles quoted fields ──────────────────────────── */
+    function parseCSVLine(line) {
+        const result = []; let cur = ''; let inQ = false;
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (c === '"') { inQ = !inQ; continue; }
+            if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; continue; }
+            cur += c;
+        }
+        result.push(cur.trim());
+        return result;
+    }
+
+    function parseCSV(text) {
+        const lines = text.trim().split('\n');
+        if (lines.length < 2) return [];
+        const out = [];
+        for (let i = 1; i < lines.length; i++) {
+            const c = parseCSVLine(lines[i]);
+            if (c.length >= 4 && c[0]) out.push({ Code:c[0], Name:c[1]||'', Type:c[3]||'', Currency:c[4]||'' });
+        }
+        return out;
+    }
+
+    /* ── Try local CSV, fall back to proxy API ──────────────────────── */
+    async function loadTickerData(exchangeCode) {
+        const csvFile = LOCAL_CSV_MAP[exchangeCode];
+        const badge = document.getElementById('dataSourceBadge');
+        if (csvFile) {
+            try {
+                const t0  = performance.now();
+                const res = await fetch(csvFile);
+                if (!res.ok) throw new Error('not found');
+                const txt  = await res.text();
+                const data = parseCSV(txt);
+                const ms   = (performance.now() - t0).toFixed(0);
+                if (badge) badge.textContent = `📂 LOCAL CSV — ${ms}ms`;
+                if (badge) badge.style.color = '#00ffaa';
+                return data;
+            } catch {
+                if (badge) { badge.textContent = '🌐 FALLBACK → API'; badge.style.color = '#ffb700'; }
+            }
+        } else {
+            if (badge) { badge.textContent = '🌐 API'; badge.style.color = '#00f0ff'; }
+        }
+        /* API fallback */
+        const p = new URLSearchParams({ endpoint:'ticker-list', symbol:exchangeCode });
+        const res = await fetch(`${EOD_PROXY}?${p}`);
+        if (!res.ok) throw new Error(`API Error ${res.status}`);
+        return res.json();
+    }
+
+    async function fetchFromMatrix(endpoint, additionalParams = {}) {
+        const p = new URLSearchParams({ endpoint, ...additionalParams });
+        const res = await fetch(`${EOD_PROXY}?${p}`);
+        if (!res.ok) throw new Error(`Server Error: ${res.status}`);
+        return res.json();
+    }
+
+    /* ── 1. Exchange list — instant from static data ─────────────────── */
+    function loadExchangesLive() {
+        const tbody   = document.getElementById('exchangeTableBody');
+        const progress = document.getElementById('progress');
+        progress.style.display = 'block';
+        progress.style.color   = 'var(--green)';
+        progress.textContent   = `🟢 ${STATIC_EXCHANGES.length} Börsen geladen — lokale CSV-Bibliothek aktiv.`;
+
+        let html = '';
+        for (const item of STATIC_EXCHANGES) {
+            const hasLocal = LOCAL_CSV_MAP[item.Code] ? '📂' : '🌐';
+            html += `<tr>
+                <td><span class="badge-code">${item.Code}</span></td>
+                <td class="text-highlight">${item.Name}</td>
+                <td style="color:var(--gold);">${item.Currency || '—'}</td>
+                <td><button class="btn btn-sm btn-gold" onclick="loadTickerList('${item.Code}')">${hasLocal} Tickers</button></td>
+            </tr>`;
+        }
+        tbody.innerHTML = html;
+    }
+
+    /* ── 2. Ticker list — local CSV first, API fallback ─────────────── */
+    async function loadTickerList(exchangeCode) {
+        activeExchangeCode = exchangeCode;
+        const container   = document.getElementById('tickerContainer');
+        const title       = document.getElementById('tickerBoxTitle').querySelector('span');
+        const searchInput = document.getElementById('tickerSearch');
+        const progress    = document.getElementById('progress');
+
+        searchInput.disabled = true;
+        searchInput.value    = '';
+        title.textContent    = `Vektor: [${exchangeCode}] — Lädt...`;
+        container.innerHTML  = '';
+        progress.style.display = 'block';
+        progress.style.color   = 'var(--gold)';
+        progress.textContent   = LOCAL_CSV_MAP[exchangeCode]
+            ? `📂 Lade lokale CSV für [${exchangeCode}]...`
+            : `🌐 API-Abruf für [${exchangeCode}]...`;
+
+        try {
+            const data = await loadTickerData(exchangeCode);
+            if (!data || !data.length) throw new Error('Keine Daten empfangen.');
+
+            allCurrentTickers = data;
+            title.textContent = `Vektor: [${exchangeCode}] — ${data.length.toLocaleString()} Assets`;
+
+            const fragment = document.createDocumentFragment();
+            for (const asset of data) {
+                const code       = asset.Code || 'N/A';
+                const fullSymbol = `${code}.${exchangeCode}`;
+                const card = document.createElement('div');
+                card.className = 'ticker-card';
+                card.setAttribute('data-code', code.toLowerCase());
+                card.onclick = () => openChartModal(fullSymbol, asset.Name || 'Asset Core Data');
+                const strong = document.createElement('strong');
+                strong.textContent = code;
+                const span = document.createElement('span');
+                span.className = 'ticker-type';
+                span.textContent = asset.Type || '';
+                card.appendChild(strong);
+                card.appendChild(span);
+                fragment.appendChild(card);
+            }
+            container.appendChild(fragment);
+            searchInput.disabled = false;
+            progress.style.color = 'var(--green)';
+            progress.textContent = `🟢 [${exchangeCode}] — ${data.length.toLocaleString()} Tickers.`;
+        } catch (e) {
+            progress.style.color = 'var(--red)';
+            progress.textContent = `❌ Fehler: ${e.message}`;
+            container.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--red);padding:40px;">${e.message}</div>`;
+        }
+    }
+
+    /* ── Live filter ────────────────────────────────────────────────── */
+    function filterTickers() {
+        const query = document.getElementById('tickerSearch').value.toLowerCase();
+        for (const card of document.getElementById('tickerContainer').getElementsByClassName('ticker-card')) {
+            card.style.display = card.getAttribute('data-code').includes(query) ? 'flex' : 'none';
+        }
+    }
+
+    /* ── 3. Chart modal ─────────────────────────────────────────────── */
+    function openChartModal(symbol, name) {
+        activeTickerSymbol = symbol;
+        document.getElementById('modalTickerTitle').textContent = symbol;
+        document.getElementById('modalTickerDesc').textContent  = name;
+        document.getElementById('chartModal').classList.add('open');
+        document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tf-6m').classList.add('active');
+        currentDaysWindow = '180';
+        fetchAndRenderChart();
+    }
+
+    function closeModal() {
+        document.getElementById('chartModal').classList.remove('open');
+        const canvas = document.getElementById('quantumCanvas');
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function switchTimeframe(days) {
+        currentDaysWindow = days;
+        document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+        if (days === '7')   document.getElementById('tf-1w').classList.add('active');
+        if (days === '30')  document.getElementById('tf-1m').classList.add('active');
+        if (days === '180') document.getElementById('tf-6m').classList.add('active');
+        fetchAndRenderChart();
+    }
+
+    async function fetchAndRenderChart() {
+        const loading = document.getElementById('chartLoading');
+        loading.style.display = 'block';
+        const toDate   = new Date();
+        const fromDate = new Date();
+        fromDate.setDate(toDate.getDate() - parseInt(currentDaysWindow));
+        const formatIso = d => d.toISOString().split('T')[0];
+        try {
+            const data = await fetchFromMatrix('historical', {
+                symbol: activeTickerSymbol,
+                from:   formatIso(fromDate),
+                to:     formatIso(toDate),
+                period: 'd'
+            });
+            loading.style.display = 'none';
+            if (!data || !data.length) { alert('Keine historischen Daten vorhanden.'); return; }
+            drawQuantumChart([...data].reverse());
+        } catch (e) {
+            loading.textContent = 'STREAM ERROR // NO HISTORICAL MATRIX';
+        }
+    }
+
+    // Native High-Performance HTML5 Canvas Rendering Engine
+    function drawQuantumChart(data) {
+        const canvas = document.getElementById('quantumCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Canvas an Container anpassen (DPI-Korrektur)
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = 350 * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+        const width = rect.width;
+        const height = 350;
+        const padding = 40;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Min/Max Werte ermitteln
+        const closes = data.map(d => parseFloat(d.close));
+        const maxPrice = Math.max(...closes);
+        const minPrice = Math.min(...closes);
+        const priceRange = maxPrice - minPrice || 1;
+
+        // Grid-Lines zeichnen (Quantum Dashboard Look)
+        ctx.strokeStyle = '#230f3e';
+        ctx.lineWidth = 1;
+        ctx.font = '10px monospace';
+        ctx.fillStyle = '#7c6f94';
+
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (i * (height - 2 * padding) / 4);
+            const priceLabel = maxPrice - (i * priceRange / 4);
+            
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(width - padding, y);
+            ctx.stroke();
+            
+            ctx.fillText(priceLabel.toFixed(2), width - padding + 5, y + 4);
+        }
+
+        // Koordinaten-Mapping Funktion
+        const getX = (index) => padding + (index * (width - 2 * padding) / (data.length - 1 || 1));
+        const getY = (price) => height - padding - ((price - minPrice) / priceRange * (height - 2 * padding));
+
+        // Verlauf-Füllung (Area-Glow wie in deinen Screenshots)
+        const gradient = ctx.createLinearGradient(0, padding, 0, height - padding);
+        gradient.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
+        gradient.addColorStop(1, 'rgba(162, 0, 255, 0.0)');
+
+        ctx.beginPath();
+        ctx.moveTo(getX(0), height - padding);
+        for (let i = 0; i < data.length; i++) {
+            ctx.lineTo(getX(i), getY(closes[i]));
+        }
+        ctx.lineTo(getX(data.length - 1), height - padding);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Haupt-Trendlinie zeichnen
+        ctx.beginPath();
+        ctx.moveTo(getX(0), getY(closes[0]));
+        for (let i = 1; i < data.length; i++) {
+            ctx.lineTo(getX(i), getY(closes[i]));
+        }
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00f0ff';
+        ctx.stroke();
+        
+        // Reset Shadow für Performance
+        ctx.shadowBlur = 0;
+
+        // Datum an Start und Ende schreiben
+        ctx.fillStyle = '#7c6f94';
+        ctx.fillText(data[0].date, padding, height - padding + 15);
+        ctx.fillText(data[data.length - 1].date, width - padding - 60, height - padding + 15);
+    }
+
+    // Auto-Trigger beim Laden
+    window.onload = () => {
+        loadExchangesLive();
+    };
+</script>
+
+</body>
+</html>

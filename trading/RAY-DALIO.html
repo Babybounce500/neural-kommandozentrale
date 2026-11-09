@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ray Dalio — The Economic Machine & All Weather</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #0f1629;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #6366f1;
+    --accent2: #818cf8;
+    --blue: #3b82f6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --gold: #f59e0b;
+    --teal: #14b8a6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; line-height:1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #080b1e 50%, #0a0e1a 100%);
+    border-bottom: 1px solid #13153a;
+    padding: 60px 40px; text-align:center; position:relative; overflow:hidden;
+  }
+  .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 70%); }
+  .hero-badge { display:inline-block; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:var(--accent2); padding:4px 16px; border-radius:20px; font-size:11px; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px; }
+  .hero-title { font-size:clamp(2rem,5vw,3.5rem); font-weight:800; letter-spacing:-1px; color:#fff; margin-bottom:8px; }
+  .hero-title span { color:var(--accent2); }
+  .hero-sub { font-size:1.1rem; color:var(--muted); margin-bottom:24px; }
+  .hero-stats { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+  .hero-stat { text-align:center; }
+  .hero-stat-val { font-size:1.8rem; font-weight:800; color:var(--accent2); }
+  .hero-stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  .container { max-width:1200px; margin:0 auto; padding:40px 20px; }
+  .section { margin-bottom:48px; }
+  .section-header { display:flex; align-items:center; gap:12px; margin-bottom:24px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .section-header h2 { font-size:1.3rem; font-weight:700; color:#fff; }
+  .section-icon { font-size:1.4rem; }
+  .section-tag { margin-left:auto; background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.2); color:var(--accent2); padding:2px 10px; border-radius:12px; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+
+  .timeline { position:relative; padding-left:30px; }
+  .timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:linear-gradient(180deg, var(--accent), transparent); }
+  .tl-item { position:relative; margin-bottom:24px; }
+  .tl-item::before { content:''; position:absolute; left:-26px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+  .tl-year { font-size:11px; color:var(--accent2); font-weight:700; letter-spacing:2px; margin-bottom:4px; }
+  .tl-title { font-weight:700; color:#fff; margin-bottom:4px; }
+  .tl-desc { font-size:0.9rem; color:var(--muted); }
+
+  .info-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:16px; }
+  .info-card h3 { color:var(--accent2); margin-bottom:12px; font-size:1rem; }
+
+  .formula-block { background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.2); border-left:4px solid var(--accent); border-radius:8px; padding:20px 24px; margin:16px 0; font-family:monospace; }
+  .formula-block .formula { font-size:1.1rem; color:var(--accent2); font-weight:700; margin-bottom:8px; }
+  .formula-block .formula-desc { font-size:0.85rem; color:var(--muted); }
+
+  .grid-two { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+  .grid-three { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+
+  .lw-table { width:100%; border-collapse:collapse; }
+  .lw-table th { background:rgba(99,102,241,0.1); color:var(--accent2); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); }
+  .lw-table td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; color:var(--text); }
+  .lw-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .lw-table td:first-child { color:#fff; font-weight:600; }
+
+  .quote-block { background:rgba(99,102,241,0.05); border-left:4px solid var(--accent); border-radius:0 8px 8px 0; padding:16px 20px; margin:12px 0; font-style:italic; color:var(--text); }
+  .quote-block cite { display:block; margin-top:8px; font-style:normal; font-size:0.8rem; color:var(--accent2); }
+
+  .rule-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  .rule-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px; display:flex; gap:14px; align-items:flex-start; }
+  .rule-num { font-size:1.5rem; font-weight:800; color:rgba(99,102,241,0.3); flex-shrink:0; line-height:1; }
+  .rule-text strong { color:#fff; display:block; margin-bottom:4px; }
+  .rule-text { font-size:0.9rem; color:var(--text); }
+
+  /* DEBT CYCLE VISUAL */
+  .cycle-track { display:flex; align-items:flex-end; gap:3px; height:80px; padding:0 8px; }
+  .cycle-bar { flex:1; border-radius:3px 3px 0 0; min-width:8px; transition:all 0.3s; }
+  .cycle-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); padding:4px 8px 0; }
+
+  .three-forces { display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .force-cell { padding:20px; border-right:1px solid var(--border); }
+  .force-cell:last-child { border-right:none; }
+  .force-icon { font-size:2rem; margin-bottom:8px; }
+  .force-title { font-weight:700; color:#fff; margin-bottom:4px; font-size:0.9rem; }
+  .force-period { font-size:11px; color:var(--accent2); margin-bottom:8px; letter-spacing:1px; }
+  .force-desc { font-size:0.8rem; color:var(--muted); }
+
+  /* ALL WEATHER */
+  .aw-bar { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+  .aw-label { width:100px; font-size:0.85rem; color:var(--muted); }
+  .aw-track { flex:1; background:rgba(255,255,255,0.06); border-radius:4px; height:24px; overflow:hidden; }
+  .aw-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:10px; font-size:11px; font-weight:700; color:#fff; }
+  .aw-pct { width:40px; text-align:right; font-size:0.85rem; font-weight:700; }
+
+  /* BEAUTIFUL DELEVERAGING */
+  .delev-four { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .delev-card { border-radius:8px; padding:14px; border:1px solid var(--border); }
+  .delev-title { font-weight:700; font-size:0.85rem; margin-bottom:6px; }
+  .delev-desc { font-size:0.78rem; color:var(--muted); }
+  .delev-tag { display:inline-block; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:700; margin-top:6px; }
+
+  /* PRINCIPLES */
+  .principle-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+  .principle-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center; }
+  .principle-num { font-size:2rem; font-weight:800; color:rgba(99,102,241,0.25); }
+  .principle-title { font-weight:700; color:var(--accent2); font-size:0.85rem; margin-bottom:6px; }
+  .principle-desc { font-size:0.75rem; color:var(--muted); }
+
+  /* BRIDGEWATER */
+  .bw-stat-row { display:flex; justify-content:space-around; flex-wrap:wrap; gap:20px; }
+  .bw-stat { text-align:center; }
+  .bw-val { font-size:1.6rem; font-weight:800; color:var(--accent2); }
+  .bw-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  @media (max-width:640px) {
+    .hero { padding:40px 20px; }
+    .three-forces { grid-template-columns:1fr; }
+    .force-cell { border-right:none; border-bottom:1px solid var(--border); }
+    .delev-four { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">Macro Systematiker · Bridgewater Associates</div>
+  <h1 class="hero-title">Ray <span>Dalio</span></h1>
+  <p class="hero-sub">The Economic Machine · All Weather Portfolio · Radical Transparency · Principles</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val">$150 Mrd.</div><div class="hero-stat-label">Bridgewater AUM — größter Hedgefonds</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">1.700</div><div class="hero-stat-label">Mitarbeiter · 1975 gegründet</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">3 Kräfte</div><div class="hero-stat-label">Produktivität · kurze Zyklen · lange Zyklen</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">500M+</div><div class="hero-stat-label">Views "How Economic Machine Works"</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- BIOGRAFIE -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">📜</span><h2>Biografie · Vom Tellerwäscher zum Makro-König</h2><span class="section-tag">1949 – Heute</span></div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-year">1949</div>
+        <div class="tl-title">Queens, New York City</div>
+        <div class="tl-desc">Raymond Thomas Dalio wächst in Einfachheit auf. Vater: Jazz-Musiker. Erste Aktien-Investment mit 12 Jahren — Northeast Airlines, weil der Name bekannt war. Macht 3× Gewinn durch Zufall. Infiziert fürs Leben.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1966–1971</div>
+        <div class="tl-title">Harvard Business School · MBA</div>
+        <div class="tl-desc">Caddie im Golf-Club mit 12 — lernt von Börsenmenschen. Dann Harvard MBA. Dort entwickelt er sein erstes systematisches Framework für Marktentscheidungen. Begegnet Dean Witter.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1974</div>
+        <div class="tl-title">Erster großer Fehler · Fast pleite</div>
+        <div class="tl-desc">Handelt Rohstoffe, geht Long Aktien vor dem Nixon-Schock. Fast pleite. Wichtigste Lektion: Sein Modell hatte Fehler die er nicht sah. → Baut seitdem alle Modelle so, dass sie falsifizierbar sind.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1975</div>
+        <div class="tl-title">Bridgewater Associates · 2 Zimmer Appartement</div>
+        <div class="tl-desc">Gründet Bridgewater aus seiner 2-Zimmer-Wohnung heraus. Anfangs: Rohstoff-Research für Agrar-Unternehmen. "Daily Observations" — tägliche Markt-Analyse-Briefe — gewinnen institutionelle Kunden.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1981–1982</div>
+        <div class="tl-title">Zweiter großer Fehler · Fast ruiniert</div>
+        <div class="tl-desc">Prognostiziert Depression falsch — verliert fast alles, muss Mitarbeiter entlassen, borgt $4.000 von seinem Vater. Zweite prägende Lektion: Diversifikation auf nicht-korrelierte Assets. → Entstehung des All Weather Denkens.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1991</div>
+        <div class="tl-title">Pure Alpha Fund · Systematisches Macro</div>
+        <div class="tl-desc">Lanciert Pure Alpha — vollständig systematischer Global-Macro-Fonds. Algorithmen treffen alle Handelsentscheidungen basierend auf bewährten Regeln. Transparenz über den Denkprozess ist Kernprinzip.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">1996</div>
+        <div class="tl-title">All Weather Portfolio · Risk Parity Erfindung</div>
+        <div class="tl-desc">Dalio überlegt: "Was soll mit meinem Vermögen passieren wenn ich sterbe und niemand es aktiv managt?" → Erfindet Risk Parity: Portfolio gewichtet nach Risikoanteil, nicht nach Dollar-Anteil. Revolutionäre Idee.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2008</div>
+        <div class="tl-title">Finanzkrisen-Prognose · Pure Alpha +9,5%</div>
+        <div class="tl-desc">Warnt vor Kreditkrise schon 2007. Pure Alpha macht +9,5% während S&P −38% verliert. Bridgewater wird weltberühmt. Dalio beginnt sein Debt Cycle Framework öffentlich zu erklären.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2017</div>
+        <div class="tl-title">Principles · Das Buch & der Rückzug</div>
+        <div class="tl-desc">Veröffentlicht "Principles" — einer der meistgelesenen Management-Bücher aller Zeiten. 2022: Übergibt CEO-Position. Widmet sich Bildung und wirtschaftlichen Analysen über Big Debt Crises und Weltordnung.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIE 3 KRÄFTE DER WIRTSCHAFT -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">⚙️</span><h2>How the Economic Machine Works · Die 3 Kräfte</h2><span class="section-tag">Dalios universelles Framework</span></div>
+    <div class="info-card" style="border-color:rgba(99,102,241,0.2);">
+      <p style="color:var(--muted);margin-bottom:20px;">"Die Wirtschaft ist eine Maschine." Wenn du verstehst wie sie funktioniert, kannst du verstehen WAS passiert — und WAS als nächstes kommen wird. Dalio identifiziert 3 Hauptkräfte, die sich überlagern.</p>
+      <div class="three-forces">
+        <div class="force-cell" style="background:rgba(99,102,241,0.03);">
+          <div class="force-icon">📈</div>
+          <div class="force-title">Produktivitätswachstum</div>
+          <div class="force-period">LANGFRISTIG · 0–2% p.a.</div>
+          <div class="force-desc">Das Fundamentale: Technologie, Bildung, Innovation. Wächst stetig, langsam. Basis jedes nachhaltigen Wohlstands. Kaum zyklisch. Nicht handelbar — aber der Anker.</div>
+        </div>
+        <div class="force-cell" style="background:rgba(59,130,246,0.03);">
+          <div class="force-icon">🔄</div>
+          <div class="force-title">Kurzfristiger Schulden-Zyklus</div>
+          <div class="force-period">5–8 JAHRE · Boom-Bust</div>
+          <div class="force-desc">Kreditexpansion → Wirtschaftsboom → Inflation → Zinserhöhung → Kreditkontraktion → Rezession → Zinssenkung → Start von vorne. Fed-gesteuert.</div>
+        </div>
+        <div class="force-cell" style="background:rgba(239,68,68,0.03);">
+          <div class="force-icon">🌊</div>
+          <div class="force-title">Langfristiger Schulden-Zyklus</div>
+          <div class="force-period">75–100 JAHRE · Generational</div>
+          <div class="force-desc">Schulden akkumulieren über Generationen. Irgendwann übersteigt der Schuldenstand die Tilgungsfähigkeit → Big Debt Crisis → Deleveraging. Selten, aber existenziell. 1929, 1945, 2008.</div>
+        </div>
+      </div>
+    </div>
+    <div class="formula-block">
+      <div class="formula">Wirtschaft = Σ Transaktionen | BIP = Produktivität × Kredit-Faktor | Kredit = Schulden + Zinsen (morgen)</div>
+      <div class="formula-desc">Kredit ist die Macht-Kraft: Ermöglicht heute mehr auszugeben als man verdient → schafft zukünftige Verpflichtungen → Zyklus entsteht zwingend</div>
+    </div>
+
+    <!-- ZYKLUS VISUALISIERUNG -->
+    <div class="grid-two" style="margin-top:16px;">
+      <div class="info-card">
+        <h3>Kurzfristiger Zyklus (5–8 Jahre)</h3>
+        <div style="padding:8px 0;">
+          <div class="cycle-track">
+            <div class="cycle-bar" style="height:30%;background:#6366f1;"></div>
+            <div class="cycle-bar" style="height:50%;background:#818cf8;"></div>
+            <div class="cycle-bar" style="height:70%;background:#a5b4fc;"></div>
+            <div class="cycle-bar" style="height:90%;background:#c7d2fe;"></div>
+            <div class="cycle-bar" style="height:100%;background:#e0e7ff;"></div>
+            <div class="cycle-bar" style="height:80%;background:#a5b4fc;"></div>
+            <div class="cycle-bar" style="height:60%;background:#818cf8;"></div>
+            <div class="cycle-bar" style="height:40%;background:#6366f1;"></div>
+            <div class="cycle-bar" style="height:20%;background:#4f46e5;"></div>
+            <div class="cycle-bar" style="height:30%;background:#6366f1;"></div>
+          </div>
+          <div class="cycle-labels"><span>Expansion</span><span>Peak</span><span>Rezession</span><span>Erholung</span></div>
+        </div>
+        <table class="lw-table" style="margin-top:8px;">
+          <thead><tr><th>Phase</th><th>Kredit</th><th>Signal</th><th>Fed</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--green)">Expansion</td><td style="font-size:0.8rem;">Kredit ↑</td><td style="font-size:0.8rem;color:var(--muted);">Konsum ↑, Beschäftigung ↑</td><td style="font-size:0.8rem;">Neutral</td></tr>
+            <tr><td style="color:var(--gold)">Überhitzung</td><td style="font-size:0.8rem;">Kredit max</td><td style="font-size:0.8rem;color:var(--muted);">Inflation ↑↑</td><td style="font-size:0.8rem;">Zinsen ↑</td></tr>
+            <tr><td style="color:var(--red)">Rezession</td><td style="font-size:0.8rem;">Kredit ↓</td><td style="font-size:0.8rem;color:var(--muted);">Pleiten ↑, Arbeitslosigkeit ↑</td><td style="font-size:0.8rem;">Zinsen ↓</td></tr>
+            <tr><td style="color:var(--blue)">Erholung</td><td style="font-size:0.8rem;">Kredit ↑</td><td style="font-size:0.8rem;color:var(--muted);">Konsum kehrt zurück</td><td style="font-size:0.8rem;">Neutral</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card">
+        <h3>Langfristiger Schulden-Zyklus (75–100 Jahre)</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px;">Über Jahrzehnte bauen sich mehr Schulden auf als das Wirtschaftswachstum. Irgendwann: Big Debt Crisis. Dalio unterscheidet:</p>
+        <div class="delev-four">
+          <div class="delev-card" style="background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.2);">
+            <div class="delev-title" style="color:var(--red)">Deflationäre Depression</div>
+            <div class="delev-desc">Schulden → Defaults → Kreditkontraktion → Deflation. 1929-Typ.</div>
+            <span class="delev-tag" style="background:rgba(239,68,68,0.1);color:var(--red);">Schmerzhaft</span>
+          </div>
+          <div class="delev-card" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.2);">
+            <div class="delev-title" style="color:var(--gold)">Inflationary Depression</div>
+            <div class="delev-desc">Geld drucken zu sehr → Hyperinflation. Weimar 1923-Typ.</div>
+            <span class="delev-tag" style="background:rgba(245,158,11,0.1);color:var(--gold);">Geldwert-Zerfall</span>
+          </div>
+          <div class="delev-card" style="background:rgba(34,197,94,0.05);border-color:rgba(34,197,94,0.2);" style="grid-column:span 2;">
+            <div class="delev-title" style="color:var(--green)">✓ Beautiful Deleveraging</div>
+            <div class="delev-desc">Balance zwischen Austerität, Schuldenrestrukturierung, Vermögenstransfer UND Gelddrucken. 1932–1937 (Roosevelt), 2009–2012 (Fed).</div>
+            <span class="delev-tag" style="background:rgba(34,197,94,0.1);color:var(--green);">Das Ziel</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEAUTIFUL DELEVERAGING -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">⚖️</span><h2>Beautiful Deleveraging · Das Gleichgewicht der 4 Kräfte</h2><span class="section-tag">Die seltene Balance</span></div>
+    <div class="info-card">
+      <p style="color:var(--muted);margin-bottom:20px;">Ein "schönes" Deleveraging tritt auf, wenn die 4 Maßnahmen in der richtigen Balance angewendet werden — so dass Schulden relativ sinken, ohne eine Depression zu verursachen.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:16px;">
+          <div style="color:var(--red);font-weight:700;margin-bottom:8px;">💔 Austerität (Sparen)</div>
+          <div style="font-size:0.8rem;color:var(--muted);">Ausgaben schneiden, Schulden tilgen. Deflationär. Schmerzhaft. Notwendig aber alleine reicht es nicht — vertieft Depression.</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--red);">Deflationärer Druck</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:16px;">
+          <div style="color:var(--gold);font-weight:700;margin-bottom:8px;">🗑️ Schulden-Restrukturierung</div>
+          <div style="font-size:0.8rem;color:var(--muted);">Defaults, Haircuts, Stundungen. Schmerzhaft für Gläubiger. Notwendig um Schulden wirtschaftlich auf tragbares Niveau zu senken.</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--gold);">Deflationärer Druck</div>
+        </div>
+        <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:8px;padding:16px;">
+          <div style="color:var(--accent2);font-weight:700;margin-bottom:8px;">⚖️ Vermögenstransfer</div>
+          <div style="font-size:0.8rem;color:var(--muted);">Steuern auf Reiche, Umverteilung. Politisch schwer. Reduziert Schulden/Einkommens-Ratio durch Umverteilung ohne Inflation.</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--accent2);">Neutral</div>
+        </div>
+        <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:16px;">
+          <div style="color:var(--green);font-weight:700;margin-bottom:8px;">🖨️ Geld drucken (QE)</div>
+          <div style="font-size:0.8rem;color:var(--muted);">Zentralbank kauft Assets, Staatsanleihen. Inflationär. Füllt die Nachfrage-Lücke. Gefährlich wenn zu viel — Hyperinflation.</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--green);">Inflationärer Druck</div>
+        </div>
+      </div>
+      <div class="formula-block" style="margin-top:16px;">
+        <div class="formula">Beautiful Deleveraging: Deflationäre Kräfte ≈ Inflationäre Kräfte → Nominales Wachstum &gt; Schulden-Zinssatz</div>
+        <div class="formula-desc">Wenn Gelddrucken die Deflation der anderen 3 Kräfte gerade ausgleicht → Schulden/Einkommen-Ratio sinkt ohne Depression → "schönes" Deleveraging</div>
+      </div>
+    </div>
+    <div class="info-card" style="margin-top:12px;">
+      <h3>Diagnose-Protokoll · Bin ich gerade in einem Deleveraging?</h3>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;font-size:0.82rem;margin-top:12px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:rgba(99,102,241,0.08);border-radius:6px;border-left:3px solid var(--accent2);">
+          <span style="font-weight:700;color:var(--accent2);min-width:60px;">Schritt 1</span>
+          <div><strong style="color:var(--text);">Schulden/Einkommen-Ratio prüfen</strong><br><span style="color:var(--muted);">USA historisch kritisch: >350% → Deleveraging wahrscheinlich. &lt;200% → normaler Zyklus. Signal: Kreditwachstum kollabiert trotz 0%-Zinsen.</span></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:rgba(239,68,68,0.06);border-radius:6px;border-left:3px solid var(--red);">
+          <span style="font-weight:700;color:var(--red);min-width:60px;">Schritt 2</span>
+          <div><strong style="color:var(--text);">Deflations-Test: 3 Fragen</strong><br><span style="color:var(--muted);">① Fallen Vermögenspreise YoY trotz Gelddrucken? ② Ist Cash knapp und teuer? ③ Ist kurzfristiger Zins nahe 0%? → Alle 3 Ja = Depression-Risiko.</span></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:rgba(245,158,11,0.06);border-radius:6px;border-left:3px solid var(--gold);">
+          <span style="font-weight:700;color:var(--gold);min-width:60px;">Schritt 3</span>
+          <div><strong style="color:var(--text);">Zentralbank-Reaktion messen</strong><br><span style="color:var(--muted);">QE-Volumen muss Kreditausfall-Rate übertreffen. Faustregel: 10% Nominalwachstum ziel für Schulden-Ratio-Stabilisierung. Zu wenig QE → Depression. Zu viel → Weimar.</span></div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:rgba(34,197,94,0.06);border-radius:6px;border-left:3px solid var(--green);">
+          <span style="font-weight:700;color:var(--green);min-width:60px;">Signal</span>
+          <div><strong style="color:var(--green);">Beautiful Deleveraging erkannt wenn:</strong><br><span style="color:var(--muted);">Reales BIP wächst wieder (+) // Schulden/Einkommen-Ratio sinkt // Inflation &lt;3% // Kreditmarkt funktioniert. → Früh-Zykluseinstieg in Aktien &amp; Gold.</span></div>
+        </div>
+      </div>
+      <table class="lw-table" style="font-size:0.78rem;margin-top:14px;">
+        <thead><tr><th>Historisches Beispiel</th><th>Deflation (1–2)</th><th>QE-Balance</th><th>Ergebnis</th></tr></thead>
+        <tbody>
+          <tr><td>USA 1930–1933 (Hoover)</td><td style="color:var(--red);">Extrem</td><td style="color:var(--red);">Kein QE (Goldstandard)</td><td style="color:var(--red);">Depression: −30% BIP</td></tr>
+          <tr><td>USA 1933–1937 (Roosevelt)</td><td style="color:var(--gold);">Hoch</td><td style="color:var(--gold);">FDR: Gold aufgegeben, QE</td><td style="color:var(--green);">Beautiful: +10% p.a.</td></tr>
+          <tr><td>USA 2009–2012 (Bernanke)</td><td style="color:var(--gold);">Mittel</td><td style="color:var(--accent2);">QE1-3: $3.9T</td><td style="color:var(--green);">Beautiful: Langsam aber stabil</td></tr>
+          <tr><td>Japan 1990–2020</td><td style="color:var(--red);">Chronisch</td><td style="color:var(--red);">QE zu spät, zu zögerlich</td><td style="color:var(--red);">Ugly: 30 Jahre Stagnation</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ALL WEATHER PORTFOLIO -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🌤️</span><h2>All Weather Portfolio · Risk Parity Revolution</h2><span class="section-tag">4 Wirtschaftsjahreszeiten</span></div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>Die 4 Wirtschafts-Jahreszeiten</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-bottom:16px;">Jedes Asset performt gut in bestimmten Makro-Umgebungen. Dalio fragt: Welche Portfolio-Allokation überlebt alle 4 Szenarien ohne große Verluste?</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:14px;">
+            <div style="font-weight:700;color:var(--green);margin-bottom:6px;">☀️ Wachstum ↑</div>
+            <div style="font-size:0.78rem;color:var(--muted);">Aktien · Corporate Bonds · Rohstoffe (zyklisch)</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:14px;">
+            <div style="font-weight:700;color:var(--red);margin-bottom:6px;">❄️ Wachstum ↓</div>
+            <div style="font-size:0.78rem;color:var(--muted);">Staatsanleihen (lang) · TIPS · Cash</div>
+          </div>
+          <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:14px;">
+            <div style="font-weight:700;color:var(--gold);margin-bottom:6px;">🔥 Inflation ↑</div>
+            <div style="font-size:0.78rem;color:var(--muted);">Gold · Rohstoffe · TIPS · Real Assets</div>
+          </div>
+          <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:8px;padding:14px;">
+            <div style="font-weight:700;color:var(--accent2);margin-bottom:6px;">🌬️ Inflation ↓</div>
+            <div style="font-size:0.78rem;color:var(--muted);">Nominal Bonds · Aktien (Wachstum)</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-card">
+        <h3>All Weather Allokation · Risk Parity</h3>
+        <p style="color:var(--muted);font-size:0.85rem;margin-bottom:16px;">Nicht Dollar-gleichgewichtet, sondern <strong style="color:#fff">Risiko-gleichgewichtet</strong>. Anleihen haben weniger Volatilität als Aktien → brauchen mehr Kapital für gleichen Risikoanteil.</p>
+        <div class="aw-bar">
+          <div class="aw-label">Anleihen lang</div>
+          <div class="aw-track"><div class="aw-fill" style="width:40%;background:linear-gradient(90deg,#6366f1,#818cf8)">US Treasury 20+</div></div>
+          <div class="aw-pct" style="color:var(--accent2)">40%</div>
+        </div>
+        <div class="aw-bar">
+          <div class="aw-label">Aktien</div>
+          <div class="aw-track"><div class="aw-fill" style="width:30%;background:linear-gradient(90deg,#3b82f6,#60a5fa)">S&P 500 etc.</div></div>
+          <div class="aw-pct" style="color:var(--blue)">30%</div>
+        </div>
+        <div class="aw-bar">
+          <div class="aw-label">Anleihen mittel</div>
+          <div class="aw-track"><div class="aw-fill" style="width:15%;background:linear-gradient(90deg,#818cf8,#a5b4fc)">US Treasury 7–10y</div></div>
+          <div class="aw-pct" style="color:var(--accent2)">15%</div>
+        </div>
+        <div class="aw-bar">
+          <div class="aw-label">Gold</div>
+          <div class="aw-track"><div class="aw-fill" style="width:7.5%;background:linear-gradient(90deg,#f59e0b,#fcd34d)">GLD</div></div>
+          <div class="aw-pct" style="color:var(--gold)">7.5%</div>
+        </div>
+        <div class="aw-bar">
+          <div class="aw-label">Rohstoffe</div>
+          <div class="aw-track"><div class="aw-fill" style="width:7.5%;background:linear-gradient(90deg,#f97316,#fb923c)">DJP/PDBC</div></div>
+          <div class="aw-pct" style="color:#fb923c">7.5%</div>
+        </div>
+        <div style="margin-top:12px;padding:10px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.15);border-radius:6px;font-size:0.8rem;color:var(--muted);">
+          <strong style="color:var(--green)">Historische Performance:</strong> Seit 1984 kein einziges Jahr über −4%. Max Drawdown: −12% (2008) vs. S&P −38%.
+        </div>
+      </div>
+    </div>
+    <div class="formula-block">
+      <div class="formula">Risk Parity ≠ Dollar Parity | Target: Gleicher Risiko-Beitrag jeder Asset-Klasse</div>
+      <div class="formula-desc">Gewichtung = 1/Volatilität(i) × Korrelations-Faktor | Anleihen: niedriger Vol → höheres Gewicht | Aktien: hoher Vol → niedrigeres Gewicht</div>
+    </div>
+  </div>
+
+  <!-- PRINCIPLES -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🏛️</span><h2>Bridgewater Principles · Radical Transparency</h2><span class="section-tag">650 Prinzipien · Ein System</span></div>
+    <div class="info-card">
+      <p style="color:var(--muted);margin-bottom:20px;">Bridgewater ist berüchtigt für seine radikale Transparenz-Kultur. Jedes Meeting wird aufgezeichnet. Jeder kann jeden kritisieren — auch den CEO. Entscheidungen basieren auf evidenzbasierten Algorithmen, nicht auf Hierarchie.</p>
+      <div class="principle-grid">
+        <div class="principle-card">
+          <div class="principle-num">01</div>
+          <div class="principle-title">Wahrheit über Komfort</div>
+          <div class="principle-desc">Radikale Ehrlichkeit. Unbequeme Wahrheiten besser als angenehme Lügen.</div>
+        </div>
+        <div class="principle-card">
+          <div class="principle-num">02</div>
+          <div class="principle-title">Fehler = Lernchance</div>
+          <div class="principle-desc">Probleme transparent machen. Wer Fehler versteckt, bestraft den Fortschritt.</div>
+        </div>
+        <div class="principle-card">
+          <div class="principle-num">03</div>
+          <div class="principle-title">Ideen-Meritokratie</div>
+          <div class="principle-desc">Bestes Argument gewinnt, nicht höchster Rang. Gewichtetes Voting nach Track Record.</div>
+        </div>
+        <div class="principle-card">
+          <div class="principle-num">04</div>
+          <div class="principle-title">Pain + Reflection = Progress</div>
+          <div class="principle-desc">Schmerz ist der Trigger für Wachstum. Nicht vermeiden — navigieren und lernen.</div>
+        </div>
+        <div class="principle-card">
+          <div class="principle-num">05</div>
+          <div class="principle-title">5-Step Process</div>
+          <div class="principle-desc">Ziele → Probleme erkennen → Diagnose → Design → Ausführung. Iterativ.</div>
+        </div>
+        <div class="principle-card">
+          <div class="principle-num">06</div>
+          <div class="principle-title">Believability-Weighted</div>
+          <div class="principle-desc">Stimme von Experten zählt mehr. Track Record bestimmt Gewicht bei Entscheidungen.</div>
+        </div>
+      </div>
+    </div>
+    <div class="quote-block">"Pain + Reflection = Progress. Der größte Fehler den die meisten Menschen machen: Sie versuchen Schmerz zu vermeiden statt aus ihm zu lernen."<cite>— Ray Dalio, Principles</cite></div>
+  </div>
+
+  <!-- BRIDGEWATER STATS -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">🏢</span><h2>Bridgewater Associates · Das Imperium der Daten</h2><span class="section-tag">Größter Hedgefonds der Welt</span></div>
+    <div class="info-card">
+      <div class="bw-stat-row" style="margin-bottom:24px;">
+        <div class="bw-stat"><div class="bw-val">$150B+</div><div class="bw-label">Assets under Management</div></div>
+        <div class="bw-stat"><div class="bw-val">1.700</div><div class="bw-label">Mitarbeiter (Westport, CT)</div></div>
+        <div class="bw-stat"><div class="bw-val">1975</div><div class="bw-label">Gegründet</div></div>
+        <div class="bw-stat"><div class="bw-val">3</div><div class="bw-label">Haupt-Fonds (Pure Alpha, All Weather, Optimal)</div></div>
+      </div>
+      <table class="lw-table">
+        <thead><tr><th>Fonds</th><th>Strategie</th><th>Zielgruppe</th><th>Charakteristik</th></tr></thead>
+        <tbody>
+          <tr><td>Pure Alpha</td><td>Global Macro, systematisch</td><td>Institutionelle, Sovereign Funds</td><td>Ziel: Alpha unabhängig von Marktumgebung</td></tr>
+          <tr><td>All Weather</td><td>Risk Parity</td><td>Family Offices, langfristig</td><td>Designed für alle Marktphasen ohne aktive Mgmt</td></tr>
+          <tr><td>All Weather China</td><td>Risk Parity (China)</td><td>Chinesische Institutionen</td><td>Lokale Anpassung · RMB Assets</td></tr>
+          <tr><td>Optimal Portfolio</td><td>Hybrid Alpha + Parity</td><td>Pensionsfonds</td><td>Aktiv + passiv kombiniert</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 10 REGELN -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">📋</span><h2>Dalios Anlage-Regeln · Systematisches Macro</h2><span class="section-tag">Zeitlose Prinzipien</span></div>
+    <div class="rule-grid">
+      <div class="rule-card"><div class="rule-num">01</div><div class="rule-text"><strong>Diversifikation ist der Heilige Gral</strong>15 nicht-korrelierte Return-Streams reduzieren Risiko um ~80% ohne Rendite-Einbuße. Das ist das einzige Free Lunch in der Finanzwelt.</div></div>
+      <div class="rule-card"><div class="rule-num">02</div><div class="rule-text"><strong>Verstehe Schulden-Zyklen</strong>Wer kurzfristige (5–8J) und langfristige (75–100J) Zyklen versteht, versteht fast alles über Makroökonomie. Lerne sie auswendig.</div></div>
+      <div class="rule-card"><div class="rule-num">03</div><div class="rule-text"><strong>Risk Parity, nicht Dollar Parity</strong>Gleiche Risikoexponierung, nicht gleiche Dollar-Beträge. Anleihen brauchen mehr Kapital als Aktien um gleich viel Risiko beizusteuern.</div></div>
+      <div class="rule-card"><div class="rule-num">04</div><div class="rule-text"><strong>Algorithmisch denken, nicht intuitiv</strong>Baue Entscheidungsregeln wenn du klar denkst. Halte sie im Stress. Menschliche Intuition ist im Markt-Stress katastrophal.</div></div>
+      <div class="rule-card"><div class="rule-num">05</div><div class="rule-text"><strong>Schmerz + Reflexion = Fortschritt</strong>Deine größten Trading-Fehler sind deine wertvollsten Lehrer. Dokumentiere, analysiere, verändere das System — nicht dich.</div></div>
+      <div class="rule-card"><div class="rule-num">06</div><div class="rule-text"><strong>Cash ist Müll (im Überfluss)</strong>"Cash is trash" — Geld verliert in Niedrigzins-Inflation permanent Kaufkraft. Sei immer investiert in Real Assets.</div></div>
+      <div class="rule-card"><div class="rule-num">07</div><div class="rule-text"><strong>Beobachte Templates, nicht Novitäten</strong>Geschichte wiederholt sich. Jede "neue" Krise hat ein historisches Template. Kenne 2008 → verstehe 2025.</div></div>
+      <div class="rule-card"><div class="rule-num">08</div><div class="rule-text"><strong>Radical Transparency intern</strong>Im Team: Fehler sofort kommunizieren, Annahmen challengen, Hierarchie ignorieren wenn Argumente besser sind.</div></div>
+    </div>
+  </div>
+
+  <!-- BÜCHER -->
+  <div class="section">
+    <div class="section-header"><span class="section-icon">📚</span><h2>Dalio's Werke · Pflichtlektüre für jeden Macro-Investor</h2><span class="section-tag">Das Gesamtwerk</span></div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3>Bücher</h3>
+        <table class="lw-table">
+          <thead><tr><th>Titel</th><th>Jahr</th><th>Kernbotschaft</th></tr></thead>
+          <tbody>
+            <tr><td>Principles: Life & Work</td><td>2017</td><td>650 Prinzipien · Bridgewater-Kultur · Ideen-Meritokratie</td></tr>
+            <tr><td>Big Debt Crises</td><td>2018</td><td>Templates für Schuldenkrisen 1920–2008 · Playbooks</td></tr>
+            <tr><td>The Changing World Order</td><td>2021</td><td>Aufstieg & Fall von Imperien · USA vs. China · Zyklus</td></tr>
+            <tr><td>How Countries Go Broke</td><td>2024</td><td>Staatsschulden-Krisen und wie man sie erkennt</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="info-card">
+        <h3>Zitate</h3>
+        <div class="quote-block">"Diversification is the holy grail of investing. The only free lunch in finance."</div>
+        <div class="quote-block">"I've come to think that our greatest challenge is an idea problem, not a resource problem."</div>
+        <div class="quote-block">"He who lives by the crystal ball will eat shattered glass." — Über Prognosen.</div>
+        <div class="quote-block">"If you're not failing, you're not pushing your limits, and if you're not pushing your limits, you're not maximizing your potential."</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 0;border-top:1px solid var(--border);margin-top:20px;">
+    <div style="font-size:0.85rem;color:var(--muted)">DUDE BANK · Trading Legends Series · Modul 16</div>
+    <div style="font-size:0.75rem;color:#334155;margin-top:4px;">Ray Dalio · Bridgewater · Economic Machine · All Weather · Principles · 1949 – Queens NY</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VOLUMINA // LIQUIDITY COMPRESSION ENGINE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #020406;
+      --panel: #060a12;
+      --panel-inner: #09101d;
+      --border: rgba(0, 212, 255, 0.1);
+      --border-bright: rgba(0, 212, 255, 0.3);
+      --txt-muted: #4e6173;
+      --white: #e1e9f0;
+      --green: #00ff88;
+      --red: #ff003c;
+      --accent: #00d4ff;
+      --gold: #ffdd00;
+      --purple: #9d4edd;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html, body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    body { padding: 24px; padding-bottom: 60px; }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 24px;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--purple), transparent);
+    }
+
+    .title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.2rem;
+      color: #fff;
+      font-weight: 900;
+      letter-spacing: 5px;
+      text-shadow: 0 0 20px rgba(157, 78, 221, 0.25);
+    }
+
+    .subtitle {
+      color: var(--purple);
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      margin-top: 8px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .controls {
+      display: flex;
+      gap: 16px;
+      margin: 24px 0;
+      align-items: center;
+      flex-wrap: wrap;
+      background: rgba(6, 10, 18, 0.7);
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 6px;
+      backdrop-filter: blur(10px);
+    }
+
+    .control-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label {
+      font-size: 0.75rem;
+      color: var(--txt-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
+
+    select, input {
+      background: var(--panel-inner);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--white);
+      padding: 12px 16px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+    }
+
+    select:focus, input:focus { outline: none; border-color: var(--purple); }
+
+    .btn {
+      background: transparent;
+      color: var(--purple);
+      border: 1px solid var(--purple);
+      padding: 12px 28px;
+      border-radius: 4px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      height: 48px;
+    }
+
+    .btn:hover { 
+      background: var(--purple); 
+      color: #020406; 
+      box-shadow: 0 0 20px rgba(157, 78, 221, 0.4);
+    }
+
+    .btn-export { border-color: var(--green); color: var(--green); }
+    .btn-export:hover { background: var(--green); color: #020406; box-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
+
+    #progressSection {
+      display: none;
+      margin: 24px 0;
+      padding: 20px;
+      background: var(--panel);
+      border: 1px solid var(--purple);
+      border-radius: 6px;
+    }
+
+    #progressSection.active { display: block; }
+
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: #010204;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    #progressFill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--purple), var(--accent));
+      width: 0%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #000;
+    }
+
+    .results-container {
+      margin-top: 32px;
+    }
+
+    .results-section-header {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 14px 16px;
+      border-radius: 4px;
+      text-align: center;
+      margin-bottom: 20px;
+      border: 1px solid var(--purple); 
+      color: var(--purple); 
+      background: rgba(157, 78, 221, 0.03);
+    }
+
+    .results-grid { 
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+
+    .result-card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 6px;
+      padding: 16px;
+      display: flex;
+      gap: 18px;
+      border-left: 4px solid var(--purple);
+      box-shadow: 0 4px 12px rgba(157, 78, 221, 0.02);
+    }
+
+    .result-volume-matrix {
+      flex-shrink: 0;
+      width: 110px;
+      height: 110px;
+      background: #010204;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+    }
+
+    .result-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .result-header { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 6px; }
+    
+    .result-symbol { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.1rem; color: #fff; }
+    .result-timestamp { font-size: 0.65rem; color: var(--txt-muted); margin-left: 6px; }
+    
+    .sig-badge { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 700; padding: 2px 10px; border-radius: 3px; letter-spacing: 1px; }
+    .badge-go { background: rgba(157, 78, 221, 0.15); color: var(--purple); border: 1px solid var(--purple); }
+
+    .results-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 12px; font-size: 0.78rem; margin-top: 6px; }
+    .result-metric { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.02); padding-bottom: 2px; }
+    .result-label { color: var(--txt-muted); }
+    .val-white { color: #fff; font-weight: 500; }
+    .val-gold { color: var(--gold); font-weight: bold; }
+    .text-up { color: var(--green); font-weight: bold; }
+    .text-down { color: var(--red); font-weight: bold; }
+
+    .confidence-container { grid-column: span 2; margin-top: 6px; }
+    .confidence-mini-bar { background: rgba(255, 255, 255, 0.04); height: 4px; border-radius: 2px; width: 100%; margin-top: 2px;}
+    .confidence-mini-fill { background: linear-gradient(90deg, var(--purple), var(--accent)); height: 100%; width: 0%; transition: width 0.4s ease; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title">VOLUMINA_BULK_AI</div>
+    <div class="subtitle">LIQUIDITY POCKET DETECTOR // ADVANCED VOLUME COMPRESSION</div>
+  </div>
+
+  <div class="controls">
+    <div class="control-grid" style="flex: 1.5; min-width: 200px;">
+      <span class="control-label">Asset-Cluster auswählen</span>
+      <select id="categorySelect"></select>
+    </div>
+    <div class="control-grid" style="flex: 1; min-width: 120px;">
+      <span class="control-label">Account Balance ($)</span>
+      <input type="number" id="balanceInput" value="10000">
+    </div>
+    <div class="control-grid" style="flex: 0.6; min-width: 90px;">
+      <span class="control-label">Delay (ms)</span>
+      <input type="number" id="delayInput" value="2000" min="500">
+    </div>
+    <button class="btn" onclick="startBulkScan()">EXECUTE VOLUME FILTER</button>
+    <button class="btn btn-export" onclick="downloadReport()">📊 EXPORT VOLUME DATA</button>
+  </div>
+
+  <div id="progressSection">
+    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+      <div id="progressText">Analyzing Liquidity Structures...</div>
+      <div style="color: var(--txt-muted);">Scanned: <span id="statusMsg" style="color: var(--accent);">0 / 0</span></div>
+    </div>
+    <div class="progress-bar"><div id="progressFill">0%</div></div>
+  </div>
+
+  <div class="results-container">
+    <div class="results-section-header">▲ VALIDATED VOLUME COMPRESSION SEGMENTS (GO SIGNALS ONLY)</div>
+    <div class="results-grid" id="goGrid"></div>
+  </div>
+
+  <script>
+    const API_URL = "https://gemini-os.replit.app/api/eod";
+    let validatedSignals = [];
+    let isScanning = false;
+
+    const marketUniverse = {
+      "categories": [
+        { "id": "dow30", "label": "🇺🇸 DOW JONES 30", "symbols": ["AAPL.US", "MSFT.US", "JPM.US", "GS.US", "JNJ.US", "NKE.US", "V.US", "HD.US", "MCD.US", "KO.US", "IBM.US", "CVX.US", "DIS.US", "CAT.US", "BA.US", "AXP.US", "WMT.US", "TRV.US", "UNH.US", "MMM.US", "BRK-B.US", "PG.US", "MA.US", "XOM.US", "ABBV.US", "AVGO.US", "VZ.US", "MRK.US", "CSCO.US"] },
+        { "id": "nasdaq", "label": "🇺🇸 NASDAQ TECH", "symbols": ["AAPL.US", "MSFT.US", "NVDA.US", "AMZN.US", "GOOGL.US", "META.US", "TSLA.US", "NFLX.US", "ADBE.US", "CRM.US", "QCOM.US", "INTC.US", "AMD.US", "PYPL.US", "AMAT.US", "MU.US"] },
+        { "id": "dax", "label": "🇩🇪 DAX 40", "symbols": ["ALV.XETRA", "SAP.XETRA", "SIE.XETRA", "BMW.XETRA", "MBG.XETRA", "VOW3.XETRA", "MUV2.XETRA", "DTE.XETRA", "DBK.XETRA", "BAYN.XETRA", "BAS.XETRA", "ADS.XETRA", "RWE.XETRA", "RHM.XETRA", "MRK.XETRA", "HNR1.XETRA", "ENR.XETRA", "FRE.XETRA", "HEI.XETRA", "MTX.XETRA", "DB1.XETRA", "DPW.XETRA", "EOAN.XETRA", "IFX.XETRA", "LIN.XETRA", "BEI.XETRA", "HEN3.XETRA", "CON.XETRA", "DHER.XETRA", "ZAL.XETRA"] },
+        { "id": "ftse", "label": "🇬🇧 FTSE 100", "symbols": ["SHEL.LSE", "AZN.LSE", "HSBA.LSE", "ULVR.LSE", "BP.LSE", "GSK.LSE", "RIO.LSE", "DGE.LSE", "LSEG.LSE", "REL.LSE", "NG.LSE", "CPG.LSE", "LLOY.LSE", "BT-A.LSE", "VOD.LSE", "AAL.LSE", "BARC.LSE", "NWG.LSE", "STAN.LSE", "BHP.LSE", "PRU.LSE", "AV.LSE", "LGEN.LSE", "TSCO.LSE", "SBRY.LSE", "BATS.LSE", "IMB.LSE", "RKT.LSE", "WPP.LSE", "BA.LSE", "SSE.LSE", "SGE.LSE"] },
+        { "id": "cac40", "label": "🇫🇷 CAC 40", "symbols": ["MC.PA", "TTE.PA", "SAN.PA", "AI.PA", "OR.PA", "BNP.PA", "DG.PA", "RI.PA", "CA.PA", "ACA.PA", "ORA.PA", "DSY.PA", "KER.PA", "HO.PA", "AIR.PA", "ALO.PA", "BN.PA", "CAP.PA", "CS.PA", "EL.PA", "EN.PA", "GLE.PA", "LR.PA", "ML.PA", "SU.PA"] },
+        { "id": "smi", "label": "🇨🇭 SMI SWITZERLAND", "symbols": ["NESN.SW", "ROG.SW", "NOVN.SW", "ABBN.SW", "UBSG.SW", "ZURN.SW", "SREN.SW", "SIKA.SW", "GIVN.SW", "LONN.SW", "SRENH.SW", "SLHN.SW", "ADEN.SW", "BARN.SW", "BALN.SW", "BSKP.SW", "FHZN.SW", "GEBN.SW", "BAER.SW", "PGHN.SW", "SCHN.SW", "SGSN.SW", "SOON.SW", "UHR.SW", "SCMN.SW"] },
+        { "id": "atx", "label": "🇦🇹 ATX VIENNA", "symbols": ["EBS.VI", "OMV.VI", "VER.VI", "RBI.VI", "VOE.VI", "ANDR.VI", "BG.VI", "EVN.VI", "IIA.VI", "POST.VI", "ABIN.VI", "ADKO.VI", "AGR.VI", "AMAG.VI", "ATS.VI", "BHD.VI", "BKS.VI", "CAI.VI", "DOC.VI", "FACC.VI", "FLU.VI", "LNZ.VI", "MMK.VI"] },
+        { "id": "aex", "label": "🇳🇱 AEX AMSTERDAM", "symbols": ["ASML.AS", "INGA.AS", "PHIA.AS", "HEIA.AS", "ABN.AS", "AD.AS", "NN.AS", "AKZA.AS", "WKL.AS", "URW.AS", "AALB.AS", "ACOMO.AS", "ADYEN.AS", "AGN.AS", "ASMI.AS", "ASRNL.AS", "BESI.AS", "IMCD.AS", "KPN.AS", "RAND.AS", "TKWY.AS", "VPK.AS"] },
+        { "id": "ibex", "label": "🇪🇸 IBEX 35 SPAIN", "symbols": ["SAN.MC", "BBVA.MC", "ITX.MC", "IBE.MC", "REP.MC", "TEF.MC", "ACS.MC", "FER.MC", "CABK.MC", "ENG.MC", "A3M.MC", "ACX.MC", "AENA.MC", "AMS.MC", "ANA.MC", "BKT.MC", "CLNX.MC", "EBRO.MC", "ELE.MC", "GRF.MC", "IAG.MC", "MAP.MC"] },
+        { "id": "omx_stockholm", "label": "🇸🇪 OMXS30 STOCKHOLM", "symbols": ["VOLV-B.ST", "ERIC-B.ST", "HM-B.ST", "SEB-A.ST", "SWED-A.ST", "INVE-B.ST", "ABB.ST", "ATCO-A.ST", "ALFA.ST", "SSAB-A.ST", "ASSA-B.ST", "ATCO-B.ST", "BOL.ST", "ELUX-A.ST", "ELUX-B.ST", "ERIC-A.ST", "HEXA-B.ST", "INVE-A.ST", "NDA-SE.ST", "SEB-C.ST", "SHB-A.ST", "SHB-B.ST", "SCA-B.ST"] },
+        { "id": "omx_copenhagen", "label": "🇩🇰 OMXC25 COPENHAGEN", "symbols": ["NOVO-B.CO", "MAERSK-B.CO", "COLOB.CO", "ORSTED.CO", "GN.CO", "DEMANT.CO", "VWS.CO", "CARL-B.CO", "CHR.CO", "DSV.CO"] },
+        { "id": "bel20", "label": "🇧🇪 BEL 20 BRUSSELS", "symbols": ["UCB.BR", "KBC.BR", "INGA.BR", "COLR.BR", "PROX.BR", "SOLB.BR", "ACKB.BR", "ABI.BR", "AED.BR", "AGS.BR", "ARGX.BR", "BPOST.BR", "COFB.BR", "ELI.BR", "GBLB.BR", "KBCA.BR", "MELE.BR", "ONTEX.BR", "SOF.BR", "TITC.BR", "UMI.BR"] },
+        { "id": "psi", "label": "🇵🇹 PSI LISBON", "symbols": ["EDP.LS", "EDPR.LS", "GALP.LS", "BCP.LS", "JMT.LS", "NOS.LS", "SON.LS", "ALTR.LS", "COR.LS", "CTT.LS", "GVOLT.LS", "IBS.LS", "IPR.LS", "NBA.LS", "NVG.LS", "PHR.LS", "RENE.LS", "SEM.LS", "SNC.LS", "TDSA.LS"] },
+        { "id": "tsx", "label": "🇨🇦 TSX CANADA", "symbols": ["RY.TO", "TD.TO", "BNS.TO", "CNR.TO", "CP.TO", "SHOP.TO", "ENB.TO", "TRI.TO", "MFC.TO", "SU.TO", "BAM.A.TO", "BMO.TO", "BCE.TO", "CNQ.TO", "TRP.TO", "WCN.TO", "CSU.TO", "NTR.TO", "SLF.TO", "MG.TO", "FTS.TO"] },
+        { "id": "asx", "label": "🇦🇺 ASX AUSTRALIA", "symbols": ["BHP.AX", "CBA.AX", "CSL.AX", "ANZ.AX", "WBC.AX", "NAB.AX", "RIO.AX", "WDS.AX", "MQG.AX", "WES.AX", "WOW.AX", "FMG.AX", "GMG.AX", "TCL.AX", "REA.AX", "ALL.AX", "COH.AX", "S32.AX", "STO.AX", "ORG.AX", "MIN.AX", "NCM.AX", "QAN.AX", "SHL.AX", "ASX.AX", "CPU.AX", "AMP.AX", "QBE.AX", "IAG.AX", "AGL.AX"] },
+        { "id": "bovespa", "label": "🇧🇷 BOVESPA BRAZIL", "symbols": ["PETR4.SA", "VALE3.SA", "ITUB4.SA", "BBDC4.SA", "ABEV3.SA", "B3SA3.SA", "WEGE3.SA", "BBAS3.SA", "SUZB3.SA", "JBSS3.SA", "BBDC3.SA", "BBSE3.SA", "BRFS3.SA", "CSAN3.SA", "ELET3.SA", "ELET6.SA", "GGBR4.SA", "KLBN11.SA", "PETR3.SA", "SBSP3.SA", "VIVT3.SA"] },
+        { "id": "nse_direct", "label": "🇮🇳 NSE INDIA (NIFTY)", "symbols": ["RELIANCE.NSE", "TCS.NSE", "HDFCBANK.NSE", "INFY.NSE", "ICICIBANK.NSE", "HINDUNILVR.NSE", "KOTAKBANK.NSE", "SBIN.NSE", "BHARTIARTL.NSE", "BAJFINANCE.NSE", "WIPRO.NSE", "HCLTECH.NSE", "TECHM.NSE", "LT.NSE", "MARUTI.NSE", "SUNPHARMA.NSE", "TITAN.NSE", "ASIANPAINT.NSE", "NTPC.NSE", "POWERGRID.NSE", "NESTLEIND.NSE", "ULTRACEMCO.NSE", "TATASTEEL.NSE", "TATAMOTORS.NSE", "ONGC.NSE", "AXISBANK.NSE", "DRREDDY.NSE", "CIPLA.NSE", "PERSISTENT.NSE", "COFORGE.NSE"] },
+        { "id": "zse", "label": "🇭🇷 ZSE ZAGREB", "symbols": ["HT.ZSE", "INA.ZSE", "KOEI.ZSE", "ATGR.ZSE", "PODR.ZSE", "ADRS.ZSE", "ERNT.ZSE", "HPB.ZSE", "JNAF.ZSE", "KRAS.ZSE", "MAIS.ZSE", "ARNT.ZSE", "ATPL.ZSE", "DLKV.ZSE", "ADPL.ZSE", "JDPL.ZSE", "IGH.ZSE", "INGR.ZSE", "ADRS2.ZSE", "DDJH.ZSE", "RIVP.ZSE", "ZABA.ZSE"] },
+        { "id": "krx", "label": "🇰🇷 KRX SOUTH KOREA", "symbols": ["005930.KO", "000660.KO", "005380.KO", "000270.KO", "051910.KO", "035420.KO", "068270.KO", "373220.KO", "207940.KO", "006400.KO", "003550.KO", "012330.KO", "028260.KO", "009150.KO", "000810.KO", "055550.KO", "105560.KO", "086790.KO", "096770.KO", "017670.KO", "030200.KO", "003670.KO", "011200.KO", "066570.KO", "034730.KO"] },
+        { "id": "crypto", "label": "₿ CRYPTO TOP 10", "symbols": ["BTC-USD.cc", "ETH-USD.cc", "BNB-USD.cc", "SOL-USD.cc", "XRP-USD.cc", "DOGE-USD.cc", "ADA-USD.cc", "DOT-USD.cc", "LINK-USD.cc", "LTC-USD.cc"] }
+      ]
+    };
+
+    function init() {
+      const select = document.getElementById('categorySelect');
+      marketUniverse.categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id; opt.textContent = cat.label;
+        select.appendChild(opt);
+      });
+    }
+    document.addEventListener('DOMContentLoaded', init);
+
+    async function startBulkScan() {
+      if (isScanning) return;
+      const category = document.getElementById('categorySelect').value;
+      const delay = parseInt(document.getElementById('delayInput').value) || 2000;
+      
+      isScanning = true;
+      validatedSignals = [];
+      
+      document.getElementById('goGrid').innerHTML = '';
+      document.getElementById('progressSection').classList.add('active');
+
+      const targetCategory = marketUniverse.categories.find(c => c.id === category);
+      const targetSymbols = targetCategory.symbols;
+      
+      for (let i = 0; i < targetSymbols.length; i++) {
+        const symbol = targetSymbols[i];
+        const percent = Math.round((i / targetSymbols.length) * 100);
+        
+        document.getElementById('progressText').textContent = `CALCULATING VOLUMETRIC RATIOS // ${symbol}...`;
+        document.getElementById('progressFill').style.width = percent + '%';
+        document.getElementById('progressFill').textContent = percent + '%';
+        document.getElementById('statusMsg').textContent = `${i} / ${targetSymbols.length}`;
+        
+        await fetchAndAnalyzeVolume(symbol);
+        await new Promise(r => setTimeout(r, delay));
+      }
+
+      document.getElementById('progressSection').classList.remove('active');
+      isScanning = false;
+      renderSignals();
+    }
+
+    async function fetchAndAnalyzeVolume(symbol) {
+      try {
+        const res = await fetch(`${API_URL}?symbol=${symbol}&endpoint=historical&period=d`);
+        if (!res.ok) return;
+        let data = await res.json();
+        
+        if (data && data.length >= 7) {
+          // Chronologisch absteigend sortieren (Neueste zuerst)
+          data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          const t0 = data[0]; // Heute (B)
+          const t1 = data[1]; // Gestern (A)
+
+          const volB = parseFloat(t0.volume);
+          const volA = parseFloat(t1.volume);
+          const closeB = parseFloat(t0.close);
+
+          // 1. BEWÄHRTE MATHE-BASIS: Volumen-Schrumpfung (Ruhe vor dem Sturm)
+          if (volB < volA && volB > 0) {
+            
+            // 2. SOPHISTICATED EXTENSION: Relative Volume (RVOL) gegen den 5-Tage-Schnitt
+            const avgVol5 = data.slice(1, 6).reduce((acc, d) => acc + parseFloat(d.volume || 0), 0) / 5;
+            const rVol = avgVol5 > 0 ? (volB / avgVol5) : 1.0;
+
+            // 3. BREAKOUT-LEVELS NACH DEINEM BEWÄHRTEN GEOMETRISCHEN SCHEMA
+            const longBreakout = closeB * 1.01;
+            const longPyramid = closeB * 1.02;
+            const shortBreakout = closeB * 0.99;
+            const shortPyramid = closeB * 0.98;
+
+            // Kursrisiko & Positionsgrößenbestimmung (1% Rule)
+            const kursrisiko = longBreakout - shortBreakout;
+            const accountBalance = parseFloat(document.getElementById('balanceInput').value) || 10000;
+            const riskAmount = accountBalance * 0.01;
+            const quantity = kursrisiko > 0 ? Math.floor(riskAmount / kursrisiko) : 0;
+
+            const volDropPct = ((volA - volB) / volA) * 100;
+            const priceRangePct = ((parseFloat(t0.high) - parseFloat(t0.low)) / parseFloat(t0.low)) * 100;
+
+            // 4. ADVANCED CONFIDENCE SCORE
+            // Basis-Score für erfülltes Kriterium
+            let confidence = 65; 
+
+            // Je stärker der Volumeneinbruch bei gleichzeitig enger Handelsspanne, desto höher die Qualität
+            if (volDropPct > 20) confidence += 10;
+            if (priceRangePct < 2) confidence += 10;
+            if (rVol < 0.8) confidence += 10; // Deutlich unterdurchschnittliches Volumen bestätigt die Akkumulation
+
+            confidence = Math.min(Math.max(Math.round(confidence), 20), 95);
+
+            validatedSignals.push({
+              symbol,
+              date: t0.date,
+              volA, volB,
+              rVol,
+              longBreakout, longPyramid,
+              shortBreakout, shortPyramid,
+              volDropPct,
+              range: priceRangePct,
+              risk: kursrisiko,
+              quantity,
+              confidence,
+              decimals: closeB < 2 ? 4 : 2,
+              volumes: [
+                parseFloat(data[4].volume || 0),
+                parseFloat(data[3].volume || 0),
+                parseFloat(data[2].volume || 0),
+                volA,
+                volB
+              ]
+            });
+          }
+        }
+      } catch (e) { console.error("Volume Filter Engine Error for: " + symbol, e); }
+    }
+
+    function renderSignals() {
+      const goGrid = document.getElementById('goGrid');
+
+      if (validatedSignals.length === 0) {
+        goGrid.innerHTML = '<div style="color: var(--txt-muted); text-align:center; padding: 40px; grid-column: 1/-1;">Keine Volumen-Kompressionen im gewählten Cluster identifiziert.</div>';
+        return;
+      }
+
+      // Sortierung nach höchster Confidence
+      validatedSignals.sort((a, b) => b.confidence - a.confidence);
+
+      validatedSignals.forEach(sig => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        const formattedDate = new Date(sig.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+
+        card.innerHTML = `
+          <canvas class="result-volume-matrix" width="110" height="110"></canvas>
+          <div class="result-info">
+            <div class="result-header">
+              <div>
+                <span class="result-symbol">${sig.symbol}</span>
+                <span class="result-timestamp">EOD: ${formattedDate}</span>
+              </div>
+              <span class="sig-badge badge-go">GO</span>
+            </div>
+            <div class="results-metrics">
+              <div class="result-metric"><span class="result-label">LONG Breakout:</span><span class="text-up">$${sig.longBreakout.toFixed(sig.decimals)}</span></div>
+              <div class="result-metric"><span class="result-label">LONG Pyramid:</span><span class="val-white">$${sig.longPyramid.toFixed(sig.decimals)}</span></div>
+              <div class="result-metric"><span class="result-label">SHORT Breakout:</span><span class="text-down">$${sig.shortBreakout.toFixed(sig.decimals)}</span></div>
+              <div class="result-metric"><span class="result-label">SHORT Pyramid:</span><span class="val-white">$${sig.shortPyramid.toFixed(sig.decimals)}</span></div>
+              
+              <div class="result-metric"><span class="result-label">Vol Gestern (A):</span><span class="val-white">${formatVolNumber(sig.volA)}</span></div>
+              <div class="result-metric"><span class="result-label">Vol Heute (B):</span><span class="val-gold">${formatVolNumber(sig.volB)}</span></div>
+              
+              <div class="result-metric"><span class="result-label">Vol Einbruch:</span><span class="text-down">▼ ${sig.volDropPct.toFixed(1)}%</span></div>
+              <div class="result-metric"><span class="result-label">Relative Vol (RVOL):</span><span class="val-white">${sig.rVol.toFixed(2)}x</span></div>
+              
+              <div class="result-metric"><span class="result-label">Intraday Range:</span><span class="val-white">${sig.range.toFixed(2)}%</span></div>
+              <div class="result-metric"><span class="result-label">Stückzahl (1%):</span><span class="val-gold">${sig.quantity} Pcs</span></div>
+
+              <div class="confidence-container">
+                <div style="display:flex; justify-content:space-between; font-size:0.7rem;">
+                  <span class="result-label">Volumetric Confidence:</span><span style="color:var(--purple); font-weight:bold;">${sig.confidence}%</span>
+                </div>
+                <div class="confidence-mini-bar"><div class="confidence-mini-fill" style="width: ${sig.confidence}%"></div></div>
+              </div>
+            </div>
+          </div>
+        `;
+        goGrid.appendChild(card);
+        drawVolumeHistogram(card.querySelector('canvas'), sig.volumes);
+      });
+    }
+
+    function drawVolumeHistogram(canvas, volumes) {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#010204';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const maxVol = Math.max(...volumes) || 1;
+      const padding = 10;
+      const usableHeight = canvas.height - (padding * 2);
+      const barWidth = 14;
+      const spacing = 6;
+      const startX = 8;
+
+      volumes.forEach((vol, i) => {
+        const x = startX + i * (barWidth + spacing);
+        const barHeight = (vol / maxVol) * usableHeight;
+        const y = canvas.height - padding - barHeight;
+
+        // Der letzte Balken (Heute) kriegt das Highlight-Design, die vorherigen sind gedeckt
+        if (i === volumes.length - 1) {
+          ctx.fillStyle = '#9d4edd';
+        } else {
+          ctx.fillStyle = '#223242';
+        }
+        
+        ctx.fillRect(x, y, barWidth, barHeight);
+      });
+    }
+
+    function formatVolNumber(num) {
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+      return num.toFixed(0);
+    }
+
+    function downloadReport() {
+      if(validatedSignals.length === 0) {
+        alert("Keine aktiven Volumen-Kompressionstracks für den Export vorhanden.");
+        return;
+      }
+      let reportLines = ["=== VOLUMINA LIQUIDITY COMPRESSION REPORT ==="];
+      validatedSignals.forEach(s => {
+        reportLines.push(`Symbol: ${s.symbol} | STATUS: GO | Volumetric Confidence: ${s.confidence}%`);
+        reportLines.push(`Vol Drop: -${s.volDropPct.toFixed(1)}% | RVOL vs 5-Day: ${s.rVol.toFixed(2)}x`);
+        reportLines.push(`Vol Gestern: ${s.volA.toFixed(0)} | Vol Heute: ${s.volB.toFixed(0)}`);
+        reportLines.push(`LONG Breakout: $${s.longBreakout.toFixed(4)} | SHORT Breakout: $${s.shortBreakout.toFixed(4)}`);
+        reportLines.push(`Allocation Quantity (1%): ${s.quantity} Units`);
+        reportLines.push("--------------------------------------------------");
+      });
+      
+      const blob = new Blob([reportLines.join('\n')], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `volumina_compression_report.txt`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

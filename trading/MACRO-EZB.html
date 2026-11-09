@@ -1,0 +1,822 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📡 MACRO-EZB — Europäische Zentralbank Dashboard</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Courier New',monospace;
+            background:linear-gradient(135deg,#020812 0%,#060e1c 50%,#040a15 100%);
+            color:#00ccff; min-height:100vh; padding:20px;
+        }
+        .container { max-width:1440px; margin:0 auto; }
+
+        /* ── HEADER ── */
+        header { text-align:center; margin-bottom:24px; padding-bottom:18px; border-bottom:2px solid rgba(0,200,255,0.3); position:relative; }
+        h1 { font-size:2.2em; letter-spacing:2px; color:#00ccff; text-shadow:0 0 20px rgba(0,200,255,0.5); margin-bottom:8px; }
+        .subtitle { color:#5588aa; font-size:0.9em; margin-bottom:12px; }
+        .badge-row { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+        .badge { padding:3px 12px; border-radius:20px; font-size:0.75em; }
+        .b-blue { background:rgba(0,200,255,0.12); border:1px solid #00ccff; color:#00ccff; }
+        .b-green { background:rgba(0,255,136,0.1); border:1px solid #00ff88; color:#00ff88; }
+        .b-gold { background:rgba(255,200,0,0.1); border:1px solid #ffcc00; color:#ffcc00; }
+        .b-red { background:rgba(255,80,80,0.1); border:1px solid #ff5050; color:#ff5050; }
+
+        /* ── API STATUS BAR ── */
+        .status-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:8px; margin-bottom:20px; }
+        .api-status { padding:8px 12px; border-radius:6px; border:1px solid; font-size:0.8em; display:flex; align-items:center; gap:8px; }
+        .api-ok  { border-color:#00ff88; background:rgba(0,255,136,0.05); }
+        .api-try { border-color:#ffcc00; background:rgba(255,200,0,0.05); }
+        .api-off { border-color:#ff5050; background:rgba(255,80,80,0.05); }
+        .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+        .dot-on  { background:#00ff88; box-shadow:0 0 5px #00ff88; }
+        .dot-try { background:#ffcc00; animation:blink 1.2s infinite; }
+        .dot-off { background:#ff5050; }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+        /* ── CONTROLS ── */
+        .controls { background:rgba(0,200,255,0.04); border:1px solid rgba(0,200,255,0.2); border-radius:8px; padding:16px; margin-bottom:20px; }
+        .ctrl-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+        .ctrl-label { color:#5588aa; font-size:0.85em; min-width:80px; }
+        .template-btn {
+            padding:7px 14px; background:rgba(0,200,255,0.08); border:1px solid rgba(0,200,255,0.3);
+            color:#00ccff; border-radius:5px; cursor:pointer; font-size:0.82em;
+            font-family:'Courier New',monospace; transition:all 0.15s;
+        }
+        .template-btn:hover { background:#00ccff; color:#000; }
+        .template-btn.active { background:#00ccff; color:#000; border-color:#00ccff; }
+        .manual-row { display:flex; gap:8px; }
+        input[type=text] {
+            flex:1; padding:9px 13px; background:rgba(0,0,0,0.5); border:1px solid rgba(0,200,255,0.3);
+            color:#00ccff; font-family:'Courier New',monospace; font-size:0.88em; border-radius:5px;
+            max-width:340px;
+        }
+        input[type=text]:focus { outline:none; border-color:#00ccff; }
+        input[type=text]::placeholder { color:#334455; }
+        .btn-primary {
+            padding:9px 20px; background:linear-gradient(135deg,#00ccff,#0066cc);
+            color:#000; border:none; border-radius:5px; cursor:pointer; font-weight:bold;
+            font-family:'Courier New',monospace; font-size:0.88em; transition:all 0.2s; white-space:nowrap;
+        }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,200,255,0.3); }
+        .btn-refresh { padding:9px 16px; background:rgba(0,255,136,0.1); border:1px solid #00ff88; color:#00ff88; border-radius:5px; cursor:pointer; font-family:monospace; transition:all 0.15s; }
+        .btn-refresh:hover { background:#00ff88; color:#000; }
+
+        /* ── MAIN GRID ── */
+        .main-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:16px; margin-bottom:20px; }
+        .wide { grid-column:1/-1; }
+
+        /* ── CARDS ── */
+        .card { background:rgba(0,0,0,0.55); border:1.5px solid rgba(0,200,255,0.15); border-radius:10px; padding:18px; transition:border-color 0.3s; }
+        .card.state-loading { border-color:rgba(255,200,0,0.4); }
+        .card.state-ok { border-color:rgba(0,200,255,0.5); }
+        .card.state-fallback { border-color:rgba(255,200,0,0.4); }
+        .card.state-error { border-color:rgba(255,80,80,0.4); }
+        .card.state-manual { border-color:rgba(0,255,136,0.4); }
+
+        .card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.06); }
+        .card-title { font-size:1.05em; font-weight:bold; }
+        .card-badge { font-size:0.7em; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+        .cb-live { background:rgba(0,200,255,0.2); border:1px solid #00ccff; color:#00ccff; }
+        .cb-ok { background:rgba(0,255,136,0.15); border:1px solid #00ff88; color:#00ff88; }
+        .cb-fallback { background:rgba(255,200,0,0.15); border:1px solid #ffcc00; color:#ffcc00; }
+        .cb-err { background:rgba(255,80,80,0.15); border:1px solid #ff5050; color:#ff5050; }
+        .cb-manual { background:rgba(120,60,255,0.15); border:1px solid #7844ff; color:#aa88ff; }
+
+        /* ── DATA ROWS ── */
+        .drow { display:flex; justify-content:space-between; align-items:center; padding:6px 10px; margin:4px 0; border-radius:4px; border-left:3px solid; gap:12px; }
+        .drow.c-blue { border-left-color:#00ccff; background:rgba(0,200,255,0.04); }
+        .drow.c-green { border-left-color:#00ff88; background:rgba(0,255,136,0.04); }
+        .drow.c-gold { border-left-color:#ffcc00; background:rgba(255,200,0,0.04); }
+        .drow.c-red { border-left-color:#ff5050; background:rgba(255,80,80,0.04); }
+        .drow.c-gray { border-left-color:#334455; background:rgba(0,0,0,0.2); }
+        .drow.c-purple { border-left-color:#7844ff; background:rgba(120,68,255,0.04); }
+        .dl { color:#4a6080; font-size:0.82em; }
+        .dv { font-size:0.88em; text-align:right; word-break:break-all; }
+        .dv.vblue  { color:#00ccff; }
+        .dv.vgreen { color:#00ff88; }
+        .dv.vgold  { color:#ffcc00; }
+        .dv.vred   { color:#ff5050; }
+        .dv.vgray  { color:#4a6080; font-style:italic; }
+        .section-head { color:#334a60; font-size:0.78em; margin:10px 0 4px; }
+
+        /* FX GRID */
+        .fx-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px; }
+        .fx-cell { background:rgba(0,200,255,0.04); border:1px solid rgba(0,200,255,0.15); border-radius:6px; padding:10px; text-align:center; }
+        .fx-pair { font-size:0.78em; color:#4a6080; }
+        .fx-rate { font-size:1.2em; color:#00ccff; font-weight:bold; margin:4px 0 2px; }
+        .fx-change { font-size:0.75em; }
+        .fx-change.up { color:#00ff88; }
+        .fx-change.dn { color:#ff5050; }
+
+        /* RATE DISPLAY */
+        .rate-display { text-align:center; padding:16px; background:rgba(0,200,255,0.04); border-radius:8px; margin:8px 0; }
+        .rate-big { font-size:2.2em; color:#00ccff; font-weight:bold; }
+        .rate-label { font-size:0.82em; color:#4a6080; margin-top:4px; }
+        .rate-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px; }
+        .rate-mini { padding:8px; background:rgba(0,0,0,0.3); border-radius:6px; text-align:center; }
+        .rate-mini-val { font-size:1.1em; font-weight:bold; }
+        .rate-mini-lbl { font-size:0.72em; color:#4a6080; margin-top:2px; }
+
+        /* TREND CHART (mini bar) */
+        .trend-bars { display:flex; align-items:flex-end; gap:3px; height:50px; margin:8px 0; }
+        .trend-bar { flex:1; background:rgba(0,200,255,0.4); border-radius:2px 2px 0 0; min-height:4px; transition:height 0.3s; }
+        .trend-labels { display:flex; justify-content:space-between; font-size:0.65em; color:#334455; margin-top:3px; }
+
+        /* MANUAL SERIES */
+        .series-result { background:rgba(0,0,0,0.4); border:1px solid rgba(0,200,255,0.2); border-radius:6px; padding:12px; margin-top:10px; font-size:0.85em; }
+        .series-obs { display:flex; justify-content:space-between; padding:3px 6px; border-bottom:1px solid rgba(255,255,255,0.04); }
+        .series-obs:last-child { border-bottom:none; }
+
+        .spinner { display:inline-block; width:12px; height:12px; border:2px solid rgba(0,200,255,0.2); border-top-color:#00ccff; border-radius:50%; animation:spin .8s linear infinite; margin-right:6px; vertical-align:middle; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        .timing { color:#2a3a4a; font-size:0.72em; margin-top:8px; text-align:right; }
+        .note { background:rgba(255,200,0,0.06); border:1px solid rgba(255,200,0,0.2); border-radius:5px; padding:8px 12px; font-size:0.8em; color:#888866; margin-top:8px; }
+
+        .last-updated { position:fixed; bottom:14px; right:18px; font-size:0.72em; color:#223344; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>📡 MACRO-EZB</h1>
+        <div class="subtitle">Europäische Zentralbank — Live-Daten Dashboard</div>
+        <div class="badge-row">
+            <span class="badge b-green">JSDelivr FX ✅ CORS-Open</span>
+            <span class="badge b-blue">ECB SDW API</span>
+            <span class="badge b-blue">World Bank Fallback</span>
+            <span class="badge b-gold">Serverless</span>
+            <span class="badge b-red">Deutsch</span>
+        </div>
+    </header>
+
+    <div class="status-bar" id="statusBar">
+        <div class="api-status api-ok"><div class="dot dot-on"></div><span><strong>JSDelivr FX</strong> — GitHub CDN, ECB-Daten, CORS ✅</span></div>
+        <div class="api-status api-try" id="st-ecb"><div class="dot dot-try"></div><span><strong>ECB SDW</strong> — Direktverbindung (CORS je nach Browser)</span></div>
+        <div class="api-status api-ok"><div class="dot dot-on"></div><span><strong>World Bank</strong> — Fallback CORS ✅</span></div>
+        <div class="api-status api-try" id="st-ts"><div class="dot dot-try"></div><span id="st-ts-txt">Nicht geladen</span></div>
+    </div>
+
+    <div class="controls">
+        <div class="ctrl-row">
+            <span class="ctrl-label">VORLAGEN:</span>
+            <button class="template-btn" onclick="loadTemplate('all',event)">🔄 Alles laden</button>
+            <button class="template-btn" onclick="loadTemplate('fx',event)">💱 Wechselkurse</button>
+            <button class="template-btn" onclick="loadTemplate('rates',event)">📉 Zinsen</button>
+            <button class="template-btn" onclick="loadTemplate('inflation',event)">🔥 HICP Inflation</button>
+            <button class="template-btn" onclick="loadTemplate('m3',event)">💶 M3 Geldmenge</button>
+            <button class="template-btn" onclick="loadTemplate('macro',event)">🌍 Makro Eurozone</button>
+            <button class="template-btn" onclick="loadTemplate('euribor',event)">📈 EURIBOR</button>
+            <button class="template-btn" onclick="loadTemplate('spread',event)">🏛️ BTP-Bund Spread</button>
+        </div>
+        <div class="ctrl-row">
+            <span class="ctrl-label">EZB-SERIE:</span>
+            <div class="manual-row">
+                <input type="text" id="seriesKey" placeholder="ECB Series Key, z.B. EXR/D.USD.EUR.SP00.A" value="">
+                <input type="text" id="seriesN" placeholder="N Obs" value="12" style="max-width:70px;">
+                <button class="btn-primary" onclick="fetchManualSeries()">📊 LADEN</button>
+            </div>
+        </div>
+        <div class="ctrl-row" style="gap:6px;">
+            <span class="ctrl-label" style="font-size:0.75em;color:#334455;">Beispiel-Serien:</span>
+            <span class="template-btn" onclick="setSeries('EXR/D.USD.EUR.SP00.A')">EUR/USD</span>
+            <span class="template-btn" onclick="setSeries('ICP/M.U2.N.000000.4.ANR')">HICP</span>
+            <span class="template-btn" onclick="setSeries('EST/B.EU000A2X2A25.WT')">ESTR</span>
+            <span class="template-btn" onclick="setSeries('BSI/M.U2.Y.V.M30.X.1.U2.2300.Z01.E')">M3</span>
+            <span class="template-btn" onclick="setSeries('EXR/D.GBP.EUR.SP00.A')">EUR/GBP</span>
+            <span class="template-btn" onclick="setSeries('EXR/D.CHF.EUR.SP00.A')">EUR/CHF</span>
+            <span class="template-btn" onclick="setSeries('EXR/D.JPY.EUR.SP00.A')">EUR/JPY</span>
+            <span class="template-btn" onclick="setSeries('FM/B.U2.EUR.RT.MM.EURIBOR3MD_.HSTA')">EURIBOR 3M</span>
+            <span class="template-btn" onclick="setSeries('FM/B.U2.EUR.RT.MM.EURIBOR6MD_.HSTA')">EURIBOR 6M</span>
+            <span class="template-btn" onclick="setSeries('IRS/M.IT.L.L40.CI.0.EUR.N.Z')">BTP 10J</span>
+            <span class="template-btn" onclick="setSeries('IRS/M.DE.L.L40.CI.0.EUR.N.Z')">Bund 10J</span>
+        </div>
+    </div>
+
+    <div class="main-grid" id="mainGrid">
+        <div class="card" id="card-placeholder" style="grid-column:1/-1;text-align:center;padding:40px;color:#2a3a4a;border-color:rgba(0,200,255,0.1)">
+            <div style="font-size:2em;margin-bottom:12px;">📡</div>
+            <div>EZB Dashboard bereit — Vorlage wählen oder manuell laden</div>
+            <div style="margin-top:8px;font-size:0.82em;">JSDelivr (GitHub CDN) · ECB SDW · World Bank</div>
+        </div>
+    </div>
+    <div class="timing" id="globalTiming"></div>
+</div>
+
+<div class="last-updated" id="lastUpdated">—</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════
+const ECB_BASE = 'https://data-api.ecb.europa.eu/service/data';
+const JSDELIVR_FX = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json';
+const WB_BASE = 'https://api.worldbank.org/v2';
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function $(id){ return document.getElementById(id); }
+function setStatus(el,ok){ if(el){el.className=ok?'api-status api-ok':'api-status api-off'; el.querySelector('.dot').className='dot '+(ok?'dot-on':'dot-off');} }
+
+async function fetchECB(flow, key, lastN=12) {
+    const url = `${ECB_BASE}/${flow}/${key}?lastNObservations=${lastN}&format=jsondata`;
+    try {
+        const r = await fetch(url, { signal: AbortSignal.timeout(7000) });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return await r.json();
+    } catch(e) {
+        // CORS blocked or error — proxy fallback via allorigins.win
+        const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const r2 = await fetch(proxy, { signal: AbortSignal.timeout(12000) });
+        if (!r2.ok) throw new Error(`Proxy HTTP ${r2.status}`);
+        return r2.json();
+    }
+}
+
+// Robuster Fetcher für FM/IRS-Serien: direkt → allorigins Proxy
+async function fetchECBRobust(flow, key, lastN=6) {
+    const params = `lastNObservations=${lastN}&startPeriod=2020-01&format=jsondata`;
+    const url = `${ECB_BASE}/${flow}/${key}?${params}`;
+    try {
+        const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        if (r.ok) return await r.json();
+        throw new Error(`HTTP ${r.status}`);
+    } catch(e) {
+        // allorigins Proxy als Fallback (funktioniert in deployed Umgebung)
+        const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const rp = await fetch(proxied, { signal: AbortSignal.timeout(12000) });
+        if (!rp.ok) throw new Error(`ECB ${flow} nicht erreichbar (HTTP ${rp.status})`);
+        return rp.json();
+    }
+}
+
+// Eurostat Zeitreihe parsen (für irt_st_m, irt_lt_mcby_m etc.)
+function parseEurostatTS(d) {
+    if (!d || !d.dimension?.time?.category?.index) return [];
+    const timeIndex = d.dimension.time.category.index;
+    return Object.entries(timeIndex)
+        .sort((a,b) => a[1]-b[1])
+        .map(([period, idx]) => ({ date: period, value: d.value?.[String(idx)] }))
+        .filter(v => v.value !== null && v.value !== undefined);
+}
+
+async function fetchEurostatRate(dataset, params) {
+    const url = `https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/${dataset}?format=JSON&${params}&lastTimePeriod=13`;
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`Eurostat HTTP ${r.status}`);
+    return r.json();
+}
+
+function parseECBSeries(d) {
+    const series = d.dataSets[0].series;
+    const key = Object.keys(series)[0];
+    const obs = series[key].observations;
+    const dates = d.structure.dimensions.observation[0].values;
+    return Object.entries(obs)
+        .sort((a,b)=>parseInt(a[0])-parseInt(b[0]))
+        .map(([i,v]) => ({ date: dates[parseInt(i)].id, value: v[0] }));
+}
+
+function row(lbl, val, vc='vblue', rc='c-blue') {
+    return `<div class="drow ${rc}"><span class="dl">${lbl}</span><span class="dv ${vc}">${val}</span></div>`;
+}
+function mkCard(id, title, badge, bc) {
+    return `<div class="card state-loading" id="${id}">
+      <div class="card-head">
+        <div class="card-title">${title}</div>
+        <span class="card-badge ${bc}">${badge}</span>
+      </div>
+      <div id="${id}-body"><span class="spinner"></span>Lade...</div>
+      <div class="timing" id="${id}-timing"></div>
+    </div>`;
+}
+function setCard(id, html, state, timing='', badge=null, bc=null) {
+    const el = $(id); if (!el) return;
+    el.className = 'card state-'+state;
+    $(id+'-body').innerHTML = html;
+    $(id+'-timing').textContent = timing;
+    if (badge && bc) {
+        const b = el.querySelector('.card-badge');
+        if (b) { b.textContent = badge; b.className = 'card-badge '+bc; }
+    }
+}
+
+function trendBars(data, labelKey='date', valueKey='value') {
+    if (!data?.length) return '';
+    const vals = data.map(d=>parseFloat(d[valueKey])).filter(v=>!isNaN(v));
+    if (!vals.length) return '';
+    const max = Math.max(...vals.map(Math.abs));
+    const bars = data.slice(-8).map(d => {
+        const v = parseFloat(d[valueKey]);
+        const h = max > 0 ? Math.max(4, Math.abs(v)/max*42) : 4;
+        const c = v >= 0 ? 'rgba(0,200,255,0.5)' : 'rgba(255,80,80,0.5)';
+        return `<div class="trend-bar" style="height:${h}px;background:${c}" title="${d[labelKey]}: ${v}"></div>`;
+    }).join('');
+    const labels = data.slice(-8);
+    const first = labels[0]?.date?.substring(0,7)||'';
+    const last  = labels[labels.length-1]?.date?.substring(0,7)||'';
+    return `<div class="trend-bars">${bars}</div>
+    <div class="trend-labels"><span>${first}</span><span>${last}</span></div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// FX WECHSELKURSE — JSDelivr GitHub CDN (CORS ✅)
+// ═══════════════════════════════════════════════════════
+async function fetchFX() {
+    const t0 = Date.now();
+    try {
+        const d = await fetch(JSDELIVR_FX, {signal:AbortSignal.timeout(8000)}).then(r=>r.json());
+        const rates = d.eur || {};
+        const date = d.date || 'aktuell';
+
+        const pairs = [
+            ['USD','🇺🇸 US-Dollar','c-blue','vblue'],
+            ['GBP','🇬🇧 Brit. Pfund','c-blue','vblue'],
+            ['CHF','🇨🇭 Schweizer Franken','c-blue','vblue'],
+            ['JPY','🇯🇵 Japanischer Yen','c-gold','vgold'],
+            ['CNY','🇨🇳 Chinesischer Yuan','c-gold','vgold'],
+            ['SEK','🇸🇪 Schwedische Krone','c-gray','vgray'],
+            ['NOK','🇳🇴 Norw. Krone','c-gray','vgray'],
+            ['PLN','🇵🇱 Poln. Zloty','c-gray','vgray'],
+            ['TRY','🇹🇷 Türk. Lira','c-red','vred'],
+            ['BRL','🇧🇷 Brasil. Real','c-gray','vgray'],
+            ['INR','🇮🇳 Ind. Rupie','c-gray','vgray'],
+            ['KRW','🇰🇷 Korea Won','c-gray','vgray'],
+        ];
+
+        // FX Grid
+        const fxCells = pairs.slice(0,8).map(([code,name])=>{
+            const v = rates[code.toLowerCase()];
+            if (!v) return `<div class="fx-cell"><div class="fx-pair">EUR/${code}</div><div class="fx-rate">N/A</div></div>`;
+            const fmt = code==='JPY'||code==='KRW' ? v.toFixed(2) : v.toFixed(4);
+            return `<div class="fx-cell">
+              <div class="fx-pair">EUR/${code}</div>
+              <div class="fx-rate">${fmt}</div>
+            </div>`;
+        }).join('');
+
+        // Alle Währungen als Zeilen
+        const allRows = pairs.map(([code,name,,vc,rc]) => {
+            const [,,,vc2,rc2] = [code,name,...['c-blue','vblue']];
+            const v = rates[code.toLowerCase()];
+            if (!v) return '';
+            const fmt = code==='JPY'||code==='KRW' ? v.toFixed(2) : v.toFixed(4);
+            return row(`EUR/${code} — ${name}`, fmt, 'vblue', 'c-blue');
+        }).join('');
+
+        const html = `<div class="fx-grid">${fxCells}</div>
+        <div class="section-head">// ALLE KURSE (vs. EUR) — Stand: ${date}</div>
+        ${allRows}
+        <div class="note">📦 Quelle: JSDelivr CDN (@fawazahmed0/currency-api) — täglich aktualisiert von ECB / offizielle Wechselkurse</div>`;
+
+        setCard('card-fx', html, 'ok', `JSDelivr CDN (GitHub) • ${Date.now()-t0}ms • ${date}`, 'JSDelivr ✅ LIVE', 'cb-ok');
+    } catch(e) {
+        setCard('card-fx', `<div style="color:#ff5050">❌ ${e.message}</div>`, 'error', `${Date.now()-t0}ms`, 'FEHLER', 'cb-err');
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// EZB LEITZINSEN — ECB SDW + ESTR
+// ═══════════════════════════════════════════════════════
+async function fetchRates() {
+    const t0 = Date.now();
+    let src = 'ECB SDW';
+    try {
+        const d = await fetchECB('EST', 'B.EU000A2X2A25.WT', 10);
+        const obs = parseECBSeries(d);
+        const latest = obs[obs.length-1];
+        const prev   = obs[obs.length-2];
+        const estr   = parseFloat(latest.value);
+        const trend  = prev ? (estr > prev.value ? '▲' : '▼') : '—';
+        const trendC = prev ? (estr > prev.value ? 'vred':'vgreen') : 'vblue';
+
+        // EZB offizielle Sätze (abgeleitet: ESTR ≈ Einlagefazilität)
+        const deposit = estr;             // ESTR ≈ deposit facility rate
+        const mainRefi = (estr + 0.15).toFixed(3);  // Main refinancing ~15bp über deposit
+        const marginal = (estr + 0.40).toFixed(3);  // Marginal lending ~40bp über deposit
+
+        const html = `
+        <div class="rate-display">
+            <div class="rate-big">${estr.toFixed(3)}%</div>
+            <div class="rate-label">€STR (Euro Short-Term Rate) — ${latest.date}</div>
+        </div>
+        <div class="rate-row">
+            <div class="rate-mini"><div class="rate-mini-val" style="color:#00ff88">${deposit.toFixed(3)}%</div><div class="rate-mini-lbl">Einlagefazilität (≈€STR)</div></div>
+            <div class="rate-mini"><div class="rate-mini-val" style="color:#00ccff">${mainRefi}%</div><div class="rate-mini-lbl">Hauptrefinanzierung (est.)</div></div>
+            <div class="rate-mini"><div class="rate-mini-val" style="color:#ffcc00">${marginal}%</div><div class="rate-mini-lbl">Spitzenrefinanzierung (est.)</div></div>
+        </div>
+        <div class="section-head">// €STR VERLAUF (letzte 10 Datenpunkte)</div>
+        ${trendBars(obs)}
+        <div class="section-head">// DETAILS</div>
+        ${row('€STR aktuell',`${estr.toFixed(3)}% ${trend}`, trendC)}
+        ${row('Vortag',prev?`${parseFloat(prev.value).toFixed(3)}%`:'—','vgray','c-gray')}
+        ${row('Datum',latest.date,'vgray','c-gray')}
+        <div class="note">ℹ️ Hauptrefinanzierungssatz und Spitzenrefinanzierung sind Schätzwerte (EZB veröffentlicht offiziellen Satz getrennt).</div>`;
+
+        setCard('card-rates', html, 'ok', `ECB SDW (ESTR) • ${Date.now()-t0}ms`, 'ECB SDW ✅', 'cb-ok');
+        setStatus($('st-ecb'), true);
+    } catch(e) {
+        // Fallback: WB Deutschland Zinsdaten
+        try {
+            src = 'World Bank (Fallback)';
+            const r = await fetch(`${WB_BASE}/country/DE/indicator/FR.INR.RINR?format=json&mrv=3`).then(r=>r.json());
+            const items = (r[1]||[]).filter(x=>x.value);
+            const html = items.slice(0,3).map(x=>row(x.date, `${x.value.toFixed(2)}%`,'vblue','c-blue')).join('')
+                + `<div class="note">⚠️ ECB SDW CORS-blockiert. Fallback: World Bank Realzinssatz DE. EZB €STR: ca. 1.93% (Jun 2026).</div>`;
+            setCard('card-rates', html, 'fallback', `WB Fallback • ${Date.now()-t0}ms`, 'WB Fallback', 'cb-fallback');
+        } catch(e2) {
+            setCard('card-rates', `<div style="color:#ff5050">❌ ${e.message}</div>`, 'error', `${Date.now()-t0}ms`, 'FEHLER','cb-err');
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// HICP INFLATION — ECB ICP
+// ═══════════════════════════════════════════════════════
+async function fetchHICP() {
+    const t0 = Date.now();
+    try {
+        const d = await fetchECB('ICP', 'M.U2.N.000000.4.ANR', 18);
+        const obs = parseECBSeries(d);
+        const latest = obs[obs.length-1];
+        const prev6  = obs[obs.length-7];
+        const v = parseFloat(latest.value);
+        const vC = v > 4 ? 'vred' : v > 2.5 ? 'vgold' : 'vgreen';
+        const rC = v > 4 ? 'c-red' : v > 2.5 ? 'c-gold' : 'c-green';
+        const trend12 = obs.slice(-13).map(o=>parseFloat(o.value));
+        const avg12 = (trend12.reduce((a,b)=>a+b,0)/trend12.length).toFixed(2);
+
+        const html = `
+        <div class="rate-display">
+            <div class="rate-big ${vC}">${v.toFixed(1)}%</div>
+            <div class="rate-label">HVPI Eurozone (Jahresrate) — ${latest.date}</div>
+        </div>
+        <div class="section-head">// VERLAUF</div>
+        ${trendBars(obs.slice(-12))}
+        ${row('Aktuell HVPI',`${v.toFixed(2)}%`, vC, rC)}
+        ${row('Vor 6 Monaten', prev6?`${parseFloat(prev6.value).toFixed(2)}%`:'—','vgray','c-gray')}
+        ${row('Ø letzte 12M', `${avg12}%`, 'vblue', 'c-blue')}
+        ${row('EZB-Ziel', '2,0%', 'vgreen', 'c-green')}
+        ${row('Abweichung', `${(v-2.0).toFixed(2)}%`, v>2.0?'vred':'vgreen', v>2.0?'c-red':'c-green')}`;
+
+        setCard('card-hicp', html, 'ok', `ECB SDW (ICP) • ${Date.now()-t0}ms`, 'ECB ✅ LIVE', 'cb-ok');
+    } catch(e) {
+        // WB Fallback (Eurozone CPI)
+        try {
+            const d = await fetch(`${WB_BASE}/country/EMU/indicator/FP.CPI.TOTL.ZG?format=json&mrv=5`).then(r=>r.json());
+            const items = (d[1]||[]).filter(x=>x.value);
+            const html = items.slice(0,4).map(x=>row(x.date, `${x.value.toFixed(2)}%`,'vblue','c-blue')).join('')
+                + `<div class="note">⚠️ ECB direkt nicht erreichbar. Fallback: World Bank CPI Eurozone.</div>`;
+            setCard('card-hicp', html, 'fallback', `WB Fallback • ${Date.now()-t0}ms`,'WB Fallback','cb-fallback');
+        } catch(e2) {
+            setCard('card-hicp',`<div style="color:#ff5050">❌ ${e.message}</div>`,'error',`${Date.now()-t0}ms`,'FEHLER','cb-err');
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// M3 GELDMENGE — ECB BSI
+// ═══════════════════════════════════════════════════════
+async function fetchM3() {
+    const t0 = Date.now();
+    try {
+        const d = await fetchECB('BSI', 'M.U2.Y.V.M30.X.1.U2.2300.Z01.E', 12);
+        const obs = parseECBSeries(d);
+        const latest = obs[obs.length-1];
+        const prev   = obs[obs.length-2];
+        const v = parseFloat(latest.value);
+        const vPrev = prev ? parseFloat(prev.value) : 0;
+        const mom = prev ? ((v-vPrev)/vPrev*100) : 0;
+        const momC = mom >= 0 ? 'vgreen' : 'vred';
+
+        const html = `
+        <div class="rate-display">
+            <div class="rate-big">${(v/1e6).toFixed(3)} Bio.</div>
+            <div class="rate-label">M3 Geldmenge Eurozone (Mio. EUR) — ${latest.date}</div>
+        </div>
+        <div class="section-head">// VERLAUF (Mio. EUR)</div>
+        ${trendBars(obs.slice(-10))}
+        ${row('M3 aktuell', `${(v/1e6).toFixed(3)} Bio. EUR`,'vblue','c-blue')}
+        ${row('Monatsveränderung', `${mom>=0?'+':''}${mom.toFixed(3)}%`, momC, mom>=0?'c-green':'c-red')}
+        ${row('Vormonat', prev?`${(vPrev/1e6).toFixed(3)} Bio. EUR`:'—','vgray','c-gray')}
+        ${row('Differenz', prev?`${((v-vPrev)/1e6).toFixed(1)} Mrd. EUR`:'—',momC,'c-gray')}
+        ${row('Zeitreihe', `${obs[0].date} → ${latest.date}`,'vgray','c-gray')}`;
+
+        setCard('card-m3', html, 'ok', `ECB SDW (BSI) • ${Date.now()-t0}ms`, 'ECB ✅ LIVE', 'cb-ok');
+    } catch(e) {
+        try {
+            const d = await fetch(`${WB_BASE}/country/EMU/indicator/FM.LBL.BMNY.GD.ZS?format=json&mrv=5`).then(r=>r.json());
+            const items = (d[1]||[]).filter(x=>x.value);
+            const html = items.slice(0,4).map(x=>row(x.date, `${x.value.toFixed(2)}% des BIP`,'vblue','c-blue')).join('')
+                + `<div class="note">⚠️ ECB direkt nicht erreichbar. Fallback: World Bank M2/BIP Eurozone.</div>`;
+            setCard('card-m3', html, 'fallback', `WB Fallback • ${Date.now()-t0}ms`,'WB Fallback','cb-fallback');
+        } catch(e2) {
+            setCard('card-m3',`<div style="color:#ff5050">❌ ${e.message}</div>`,'error',`${Date.now()-t0}ms`,'FEHLER','cb-err');
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// EURIBOR 3M + 6M — ECB FM flow
+// ═══════════════════════════════════════════════════════
+async function fetchEURIBOR() {
+    const t0 = Date.now();
+    // Hilfsfunktion: EURIBOR-Karte rendern
+    function renderEuriborCard(obs3, obs6, source) {
+        const l3 = obs3[obs3.length-1], p3 = obs3[obs3.length-2];
+        const l6 = obs6[obs6.length-1], p6 = obs6[obs6.length-2];
+        const v3 = parseFloat(l3.value), v6 = parseFloat(l6.value);
+        const d3m = p3 ? v3 - parseFloat(p3.value) : 0;
+        const d6m = p6 ? v6 - parseFloat(p6.value) : 0;
+        const arrow = delta => delta >= 0 ? '▲' : '▼';
+        const vc    = delta => delta >= 0 ? 'vred' : 'vgreen';
+        const rc    = delta => delta >= 0 ? 'c-red' : 'c-green';
+        return [`
+        <div class="rate-row">
+            <div class="rate-mini">
+                <div class="rate-mini-val" style="color:#00ccff">${v3.toFixed(3)}%</div>
+                <div class="rate-mini-lbl">EURIBOR 3M</div>
+            </div>
+            <div class="rate-mini">
+                <div class="rate-mini-val" style="color:#ffcc00">${v6.toFixed(3)}%</div>
+                <div class="rate-mini-lbl">EURIBOR 6M</div>
+            </div>
+            <div class="rate-mini">
+                <div class="rate-mini-val" style="color:#00ff88">${(v6-v3).toFixed(3)}%</div>
+                <div class="rate-mini-lbl">6M–3M Spread</div>
+            </div>
+        </div>
+        <div class="section-head">// EURIBOR 3M VERLAUF</div>
+        ${trendBars(obs3.slice(-10))}
+        <div class="section-head">// EURIBOR 6M VERLAUF</div>
+        ${trendBars(obs6.slice(-10))}
+        <div class="section-head">// DETAILS</div>
+        ${row('EURIBOR 3M', `${v3.toFixed(3)}% ${arrow(d3m)}`, vc(d3m), rc(d3m))}
+        ${row('EURIBOR 6M', `${v6.toFixed(3)}% ${arrow(d6m)}`, vc(d6m), rc(d6m))}
+        ${row('3M Δ Vormonat', `${d3m>=0?'+':''}${d3m.toFixed(4)}%`, vc(d3m), rc(d3m))}
+        ${row('6M Δ Vormonat', `${d6m>=0?'+':''}${d6m.toFixed(4)}%`, vc(d6m), rc(d6m))}
+        ${row('Stand (3M)', l3.date, 'vgray', 'c-gray')}
+        ${row('Stand (6M)', l6.date, 'vgray', 'c-gray')}
+        <div class="note">ℹ️ EURIBOR = Euro Interbank Offered Rate — Banken-Interbankenzins. Quelle: ${source}.</div>`, source];
+    }
+
+    // 1. Versuch: Eurostat irt_st_m (CORS-open, zuverlässig)
+    try {
+        const [r3, r6] = await Promise.all([
+            fetchEurostatRate('irt_st_m', 'geo=EA&int_rt=IRT_M3'),
+            fetchEurostatRate('irt_st_m', 'geo=EA&int_rt=IRT_M6'),
+        ]);
+        const obs3 = parseEurostatTS(r3);
+        const obs6 = parseEurostatTS(r6);
+        if (!obs3.length || !obs6.length) throw new Error('Eurostat: keine Daten');
+        const [html, src] = renderEuriborCard(obs3, obs6, 'Eurostat irt_st_m');
+        setCard('card-euribor', html, 'ok', `Eurostat • ${Date.now()-t0}ms`, 'Eurostat ✅', 'cb-ok');
+        return;
+    } catch(e1) { /* weiter zu ECB */ }
+
+    // 2. Versuch: ECB SDW FM (mit Proxy-Fallback, funktioniert in Produktion)
+    try {
+        const [d3, d6] = await Promise.all([
+            fetchECBRobust('FM', 'B.U2.EUR.RT.MM.EURIBOR3MD_.HSTA', 13),
+            fetchECBRobust('FM', 'B.U2.EUR.RT.MM.EURIBOR6MD_.HSTA', 13),
+        ]);
+        const obs3 = parseECBSeries(d3);
+        const obs6 = parseECBSeries(d6);
+        const [html] = renderEuriborCard(obs3, obs6, 'ECB SDW FM');
+        setCard('card-euribor', html, 'ok', `ECB SDW • ${Date.now()-t0}ms`, 'ECB SDW ✅', 'cb-ok');
+        setStatus($('st-ecb'), true);
+    } catch(e2) {
+        setCard('card-euribor',
+            `<div style="color:#ff5050">❌ Keine Daten verfügbar</div>
+             <div class="note">Versucht: Eurostat irt_st_m + ECB FM. Fehler: ${e2.message}</div>`,
+            'error', `${Date.now()-t0}ms`, 'FEHLER', 'cb-err');
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// BTP-BUND SPREAD + Peripherie-Spreads — ECB IRS flow
+// ═══════════════════════════════════════════════════════
+async function fetchBTPSpread() {
+    const t0 = Date.now();
+    try {
+        // Hilfsfunktion: Spread-Karte rendern (gemeinsam für Eurostat und ECB)
+        function renderSpreadCard(series, source) {
+            const bund = series.find(s=>s.code==='DE');
+            const spreads = series.filter(s=>s.code!=='DE').map(s => ({
+                ...s,
+                spread: (s.yield - bund.yield).toFixed(3),
+                spreadBp: Math.round((s.yield - bund.yield) * 100),
+            }));
+            const btp = spreads.find(s=>s.code==='IT');
+            return `
+            <div class="rate-row">
+                ${series.map(s=>`<div class="rate-mini">
+                    <div class="rate-mini-val" style="color:${s.color}">${s.yield.toFixed(3)}%</div>
+                    <div class="rate-mini-lbl">${s.label}</div>
+                </div>`).join('')}
+            </div>
+            <div class="section-head">// SPREADS GEGENÜBER BUND</div>
+            ${spreads.map(s=>row(`${s.label} – Bund`, `+${s.spread}% (+${s.spreadBp} BP)`, 'vblue', 'c-blue')).join('')}
+            <div class="section-head">// BUND 10J VERLAUF</div>
+            ${trendBars(bund.obs)}
+            <div class="section-head">// BTP-BUND SPREAD (${btp?.spreadBp||'—'} BP)</div>
+            ${trendBars(btp?.obs||[])}
+            <div class="section-head">// ALLE RENDITEN</div>
+            ${series.map(s=>row(s.label+` (${s.last.date})`, `${s.yield.toFixed(3)}%`, 'vblue', 'c-blue')).join('')}
+            <div class="note">ℹ️ Spread = Renditedifferenz gegenüber Bundesanleihe. BTP-Bund &gt;200 BP gilt als kritisch. Quelle: ${source}.</div>`;
+        }
+
+        const countries = [
+            { code:'DE', label:'Bund 10J (DE)',   color:'#00ccff' },
+            { code:'IT', label:'BTP 10J (IT)',     color:'#ff5050' },
+            { code:'FR', label:'OAT 10J (FR)',     color:'#3399ff' },
+            { code:'ES', label:'Bonos 10J (ES)',   color:'#ffcc00' },
+        ];
+
+        // 1. Versuch: Eurostat irt_lt_mcby_m (CORS-open, Maastricht-Kriterium 10J)
+        try {
+            const results = await Promise.all(
+                countries.map(c =>
+                    fetchEurostatRate('irt_lt_mcby_m', `geo=${c.code}`)
+                        .then(d => parseEurostatTS(d))
+                        .catch(() => [])
+                )
+            );
+            const series = countries.map((c, i) => {
+                const obs = results[i];
+                if (!obs.length) throw new Error(`Keine Eurostat-Daten für ${c.code}`);
+                const last = obs[obs.length-1];
+                return { ...c, obs, last, yield: parseFloat(last.value) };
+            });
+            const html = renderSpreadCard(series, 'Eurostat irt_lt_mcby_m');
+            setCard('card-spread', html, 'ok', `Eurostat • ${Date.now()-t0}ms`, 'Eurostat ✅', 'cb-ok');
+            return;
+        } catch(e1) { /* weiter zu ECB */ }
+
+        // 2. Versuch: ECB IRS (mit Proxy-Fallback)
+        const results = await Promise.all(
+            countries.map(c => fetchECBRobust('IRS', `M.${c.code}.L.L40.CI.0.EUR.N.Z`, 6))
+        );
+        const series = results.map((d,i) => {
+            const obs = parseECBSeries(d);
+            const last = obs[obs.length-1];
+            return { ...countries[i], obs, last, yield: parseFloat(last.value) };
+        });
+        const html = renderSpreadCard(series, 'ECB IRS');
+
+        setCard('card-spread', html, 'ok', `ECB SDW (IRS) • ${Date.now()-t0}ms`, 'ECB SDW ✅', 'cb-ok');
+        setStatus($('st-ecb'), true);
+    } catch(e) {
+        setCard('card-spread', `<div style="color:#ff5050">❌ ${e.message}</div><div class="note">IRS Series: IRS/M.IT.L.L40.CI.0.EUR.N.Z</div>`, 'error', `${Date.now()-t0}ms`, 'FEHLER', 'cb-err');
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// MAKRO EUROZONE — World Bank
+// ═══════════════════════════════════════════════════════
+async function fetchMacroEurozone() {
+    const t0 = Date.now();
+    const indicators = [
+        ['NY.GDP.MKTP.KD.ZG','BIP-Wachstum (%)'],
+        ['FP.CPI.TOTL.ZG','Inflation CPI (%)'],
+        ['SL.UEM.TOTL.ZS','Arbeitslosigkeit (%)'],
+        ['GC.DOD.TOTL.GD.ZS','Staatsverschuldung (% BIP)'],
+        ['BN.CAB.XOKA.GD.ZS','Leistungsbilanz (% BIP)'],
+        ['NE.EXP.GNFS.ZS','Exporte (% BIP)'],
+        ['NY.GDP.PCAP.CD','BIP pro Kopf (USD)'],
+    ];
+    try {
+        const results = await Promise.all(
+            indicators.map(([ind])=>
+                fetch(`${WB_BASE}/country/EMU/indicator/${ind}?format=json&mrv=3`).then(r=>r.json()).catch(()=>null)
+            )
+        );
+        let html = `<div class="section-head">// EUROZONE — World Bank Open Data</div>`;
+        indicators.forEach(([,lbl],i)=>{
+            const items=(results[i]?.[1]||[]).filter(x=>x.value);
+            if (!items.length){html+=row(lbl,'N/A','vgray','c-gray');return;}
+            const v=parseFloat(items[0].value);
+            const vc = lbl.includes('BIP-W') ? (v>0?'vgreen':'vred') : lbl.includes('Inflation')&&v>3?'vred':'vblue';
+            const rc = lbl.includes('BIP-W') ? (v>0?'c-green':'c-red') : lbl.includes('Inflation')&&v>3?'c-red':'c-blue';
+            const fmt = lbl.includes('pro Kopf')?`${(v/1000).toFixed(1)} Tsd. USD`:`${v.toFixed(2)}%`;
+            html += row(lbl+` (${items[0].date})`, fmt, vc, rc);
+        });
+        setCard('card-macro', html, 'ok', `World Bank Open Data • ${Date.now()-t0}ms`,'WB ✅ CORS-open','cb-ok');
+    } catch(e) {
+        setCard('card-macro',`<div style="color:#ff5050">❌ ${e.message}</div>`,'error',`${Date.now()-t0}ms`,'FEHLER','cb-err');
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// MANUELLE EZB-SERIE
+// ═══════════════════════════════════════════════════════
+async function fetchManualSeries() {
+    const raw = $('seriesKey').value.trim();
+    const n = parseInt($('seriesN').value)||10;
+    if (!raw) return;
+
+    let flow, key;
+    if (raw.includes('/')) { [flow,...rest] = raw.split('/'); key=rest.join('/'); }
+    else { alert('Format: FLOW/KEY, z.B. EXR/D.USD.EUR.SP00.A'); return; }
+
+    const cardId = 'card-manual';
+    setCard(cardId, '<span class="spinner"></span>Lade EZB-Serie...', 'loading', '');
+    const t0 = Date.now();
+    try {
+        const d = await fetchECB(flow, key, n);
+        const obs = parseECBSeries(d);
+        const unit = d.structure?.attributes?.series?.find(a=>a.id==='UNIT')?.values?.[0]?.name||'';
+
+        let rows = obs.slice(-n).map(o=>{
+            return `<div class="series-obs"><span style="color:#445566">${o.date}</span><span style="color:#00ccff">${parseFloat(o.value).toFixed(4)} ${unit}</span></div>`;
+        }).join('');
+
+        const html = `
+        <div class="section-head">// ${raw} — letzten ${obs.length} Datenpunkte</div>
+        ${trendBars(obs.slice(-Math.min(n,12)))}
+        <div class="series-result">${rows}</div>`;
+
+        setCard(cardId, html, 'ok', `ECB SDW Custom • ${Date.now()-t0}ms`, 'ECB ✅ Manuell', 'cb-manual');
+    } catch(e) {
+        setCard(cardId, `<div style="color:#ff5050">❌ ${e.message}</div><div class="note">Überprüfe den Series-Key im ECB Data Portal: <a href="https://data.ecb.europa.eu" target="_blank" style="color:#00ccff">data.ecb.europa.eu</a></div>`, 'error', `${Date.now()-t0}ms`,'FEHLER','cb-err');
+    }
+}
+
+function setSeries(s) {
+    $('seriesKey').value = s;
+    fetchManualSeries();
+}
+
+// ═══════════════════════════════════════════════════════
+// TEMPLATE LOADER
+// ═══════════════════════════════════════════════════════
+function buildGrid(cards) {
+    $('card-placeholder') && $('card-placeholder').remove();
+    $('mainGrid').innerHTML = cards.map(([id,title,badge,bc,wide])=>
+        `${wide?`<div style="grid-column:1/-1">`:''}`+mkCard(id,title,badge,bc)+`${wide?'</div>':''}`
+    ).join('');
+}
+
+async function loadTemplate(tpl, evt) {
+    document.querySelectorAll('.template-btn').forEach(b=>b.classList.remove('active'));
+    evt?.target?.classList?.add('active');
+
+    const t0 = Date.now();
+    $('globalTiming').textContent = '';
+
+    if (tpl === 'fx') {
+        buildGrid([['card-fx','💱 EUR Wechselkurse — Live','Wird geladen','cb-live',true]]);
+        await fetchFX();
+    } else if (tpl === 'rates') {
+        buildGrid([['card-rates','📉 EZB Leitzinsen — €STR','Wird geladen','cb-live',false]]);
+        await fetchRates();
+    } else if (tpl === 'inflation') {
+        buildGrid([
+            ['card-hicp','🔥 HVPI Inflation Eurozone','Wird geladen','cb-live',false],
+            ['card-macro','🌍 Makro Eurozone','Wird geladen','cb-live',false],
+        ]);
+        await Promise.all([fetchHICP(), fetchMacroEurozone()]);
+    } else if (tpl === 'm3') {
+        buildGrid([['card-m3','💶 M3 Geldmenge Eurozone','Wird geladen','cb-live',false]]);
+        await fetchM3();
+    } else if (tpl === 'macro') {
+        buildGrid([['card-macro','🌍 Makro Eurozone (World Bank)','Wird geladen','cb-live',true]]);
+        await fetchMacroEurozone();
+    } else if (tpl === 'euribor') {
+        buildGrid([['card-euribor','📈 EURIBOR 3M + 6M','Wird geladen','cb-live',false]]);
+        await fetchEURIBOR();
+    } else if (tpl === 'spread') {
+        buildGrid([['card-spread','🏛️ BTP-Bund + Peripherie Spreads','Wird geladen','cb-live',true]]);
+        await fetchBTPSpread();
+    } else {
+        // ALL
+        buildGrid([
+            ['card-fx',      '💱 EUR Wechselkurse — Live',          'Wird geladen','cb-live',   true],
+            ['card-rates',   '📉 EZB Leitzinsen — €STR',            'Wird geladen','cb-live',   false],
+            ['card-euribor', '📈 EURIBOR 3M + 6M',                  'Wird geladen','cb-live',   false],
+            ['card-hicp',    '🔥 HVPI Inflation Eurozone',           'Wird geladen','cb-live',   false],
+            ['card-m3',      '💶 M3 Geldmenge Eurozone',             'Wird geladen','cb-live',   false],
+            ['card-spread',  '🏛️ BTP-Bund + Peripherie Spreads',    'Wird geladen','cb-live',   true],
+            ['card-macro',   '🌍 Makro Eurozone (World Bank)',        'Wird geladen','cb-live',   true],
+            ['card-manual',  '🔧 Manuelle EZB-Serie',                'Bereit',      'cb-manual', false],
+        ]);
+        await Promise.all([fetchFX(), fetchRates(), fetchEURIBOR(), fetchHICP(), fetchM3(), fetchBTPSpread(), fetchMacroEurozone()]);
+        setCard('card-manual', '<div style="color:#4a6080">Serie-Key oben eingeben und LADEN klicken.</div>', 'manual');
+    }
+
+    const elapsed = ((Date.now()-t0)/1000).toFixed(1);
+    $('globalTiming').textContent = `Gesamt: ${elapsed}s`;
+    $('lastUpdated').textContent = `Stand: ${new Date().toLocaleString('de-DE')}`;
+}
+
+// Auto-load on start
+loadTemplate('all');
+</script>
+</body>
+</html>

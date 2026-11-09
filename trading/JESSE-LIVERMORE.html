@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jesse Livermore — The Great Bear of Wall Street</title>
+<style>
+  :root {
+    --bg: #0a0608;
+    --surface: #110a0d;
+    --card: #180d11;
+    --border: #2d1520;
+    --red: #dc2626;
+    --red2: #ef4444;
+    --red3: #fca5a5;
+    --crimson: #991b1b;
+    --gold: #c9a84c;
+    --gold2: #f5d47a;
+    --green: #22c55e;
+    --green2: #86efac;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --text: #e2e8f0;
+    --muted: #3d1a22;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .header {
+    background: linear-gradient(135deg, #0a0203 0%, #1a0509 40%, #0a0203 100%);
+    border-bottom: 1px solid #2d0a0f;
+    padding: 56px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(220,38,38,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 30%, rgba(153,27,27,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 90%, rgba(201,168,76,0.03) 0%, transparent 40%);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: var(--red); margin-bottom: 14px; opacity: 0.8; }
+  .header-name { font-size: clamp(36px, 7vw, 72px); font-weight: 900; letter-spacing: -2px; line-height: 0.95; margin-bottom: 10px; }
+  .header-name .first { color: #64748b; }
+  .header-name .last { color: var(--red3); text-shadow: 0 0 60px rgba(220,38,38,0.3); }
+  .header-subtitle { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--red2); margin-bottom: 16px; }
+  .header-tagline { font-size: 15px; color: #475569; max-width: 700px; margin: 0 auto 20px; line-height: 1.7; }
+  .header-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge { padding: 5px 14px; border-radius: 20px; font-size: 11px; letter-spacing: 1px; font-weight: 600; }
+  .badge-red { background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.3); color: var(--red3); }
+  .badge-gold { background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3); color: var(--gold2); }
+  .badge-green { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green2); }
+
+  .stats-bar { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+  .stat-item { background: var(--surface); padding: 20px; text-align: center; }
+  .stat-num { font-size: 26px; font-weight: 900; font-family: monospace; }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+  .s-red .stat-num { color: var(--red3); }
+  .s-gold .stat-num { color: var(--gold2); }
+  .s-green .stat-num { color: var(--green2); }
+  .s-blue .stat-num { color: var(--blue); }
+
+  .content { max-width: 1060px; margin: 0 auto; padding: 56px 24px; }
+  .section-header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin-bottom: 4px; }
+  .section-title { font-size: 22px; font-weight: 800; color: var(--text); }
+  .section-desc { font-size: 13px; color: #475569; margin-top: 6px; line-height: 1.6; }
+  .section-gap { margin-top: 60px; }
+
+  .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px 26px; margin-bottom: 20px; }
+  .info-card-body { font-size: 13px; color: #8b949e; line-height: 1.75; }
+  .info-card-body strong { color: var(--text); }
+  .info-card-body em { color: var(--red3); font-style: normal; }
+
+  .formula-block { background: #060203; border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin: 16px 0; font-family: monospace; }
+  .formula-main { font-size: clamp(13px, 2vw, 17px); font-weight: 700; color: var(--red3); line-height: 1.8; }
+  .formula-sub { font-size: 12px; color: #475569; margin-top: 8px; line-height: 1.6; }
+
+  .lw-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .lw-table th { background: rgba(220,38,38,0.08); color: var(--red); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 11px 14px; border: 1px solid var(--border); text-align: left; }
+  .lw-table td { padding: 11px 14px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .lw-table tr:nth-child(even) td { background: rgba(220,38,38,0.02); }
+  .lw-table td:first-child { color: var(--text); font-weight: 600; }
+  .val-green { color: var(--green2); font-weight: 700; }
+  .val-red { color: var(--red3); font-weight: 700; }
+  .val-gold { color: var(--gold2); font-weight: 700; }
+
+  /* TIMELINE */
+  .timeline { position: relative; margin-bottom: 40px; }
+  .timeline::before { content: ''; position: absolute; left: 28px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--red), var(--crimson), var(--border)); }
+  .tl-item { display: flex; gap: 24px; padding-bottom: 28px; position: relative; }
+  .tl-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; margin-left: 22px; z-index: 1; border: 2px solid var(--bg); }
+  .dot-red { background: var(--red); }
+  .dot-gold { background: var(--gold); }
+  .dot-green { background: var(--green); }
+  .dot-dark { background: #3d1a22; }
+  .tl-content { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; flex: 1; }
+  .tl-year { font-size: 11px; letter-spacing: 3px; font-family: monospace; color: var(--red); margin-bottom: 6px; }
+  .tl-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .tl-body { font-size: 12px; color: #64748b; line-height: 1.65; }
+  .tl-body strong { color: var(--text); }
+
+  /* PYRAMID VISUAL */
+  .pyramid-visual { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; margin: 16px 0; }
+  .pyr-row { display: flex; align-items: center; gap: 14px; width: 100%; }
+  .pyr-bar { height: 36px; border-radius: 4px; display: flex; align-items: center; padding: 0 14px; font-size: 12px; font-weight: 700; font-family: monospace; color: white; transition: width 0.3s; }
+  .pyr-label { font-size: 11px; color: #64748b; white-space: nowrap; }
+  .pyr-note { font-size: 11px; color: var(--red3); }
+
+  /* QUOTE BLOCKS */
+  .quote-block {
+    background: linear-gradient(135deg, rgba(220,38,38,0.04) 0%, rgba(153,27,27,0.03) 100%);
+    border: 1px solid rgba(220,38,38,0.15);
+    border-left: 4px solid var(--red);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .quote-text { font-size: 15px; font-style: italic; color: var(--red3); line-height: 1.7; margin-bottom: 8px; }
+  .quote-attr { font-size: 11px; color: #475569; letter-spacing: 1px; }
+
+  /* RULES */
+  .rules-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+  .rule-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; display: flex; gap: 16px; align-items: flex-start; }
+  .rule-num { font-size: 22px; font-weight: 900; font-family: monospace; color: rgba(220,38,38,0.2); min-width: 40px; line-height: 1; }
+  .rule-title { font-size: 14px; font-weight: 700; color: var(--red3); margin-bottom: 6px; }
+  .rule-body { font-size: 12px; color: #64748b; line-height: 1.6; }
+  .rule-body strong { color: var(--text); }
+
+  .highlight-box { background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.15); border-left: 4px solid var(--red); border-radius: 8px; padding: 18px 22px; margin-bottom: 20px; }
+  .hl-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .hl-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .hl-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .hl-body strong { color: var(--text); }
+  .hl-body em { color: var(--red3); font-style: normal; }
+
+  .magritte-quote { font-style: italic; font-size: 12px; color: rgba(220,38,38,0.3); padding-left: 14px; border-left: 2px solid rgba(220,38,38,0.2); margin-top: 14px; line-height: 1.6; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 10px; background: rgba(220,38,38,0.08); color: var(--red); border: 1px solid rgba(220,38,38,0.2); }
+  .tag-gold { background: rgba(201,168,76,0.08); color: var(--gold2); border-color: rgba(201,168,76,0.2); }
+  .tag-green { background: rgba(34,197,94,0.08); color: var(--green2); border-color: rgba(34,197,94,0.2); }
+
+  @media (max-width: 700px) { .content { padding: 28px 14px; } .header { padding: 40px 16px; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK — Trading Legends Series</div>
+  <div class="header-name">
+    <span class="first">JESSE </span><span class="last">LIVERMORE</span>
+  </div>
+  <div class="header-subtitle">The Great Bear of Wall Street · The Boy Plunger</div>
+  <p class="header-tagline">
+    Der größte Spekulant aller Zeiten. Machte und verlor mehrfach Millionen-Vermögen.
+    Shortetete den Crash von 1907 und 1929. Verdiente $100 Millionen in einem Jahr.
+    Starb mittellos. Seine Regeln leben weiter — und sie sind zeitlos.
+  </p>
+  <div class="header-badges">
+    <span class="badge badge-red">1877–1940 · Legende</span>
+    <span class="badge badge-gold">$100M in einem Jahr (1929)</span>
+    <span class="badge badge-green">Pivotal Points · Line of Least Resistance</span>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item s-gold"><div class="stat-num">$100M</div><div class="stat-label">1929 Crash Short</div></div>
+  <div class="stat-item s-red"><div class="stat-num">4×</div><div class="stat-label">Vermögen gemacht/verloren</div></div>
+  <div class="stat-item s-green"><div class="stat-num">14</div><div class="stat-label">Alter beim ersten Trade</div></div>
+  <div class="stat-item s-blue"><div class="stat-num">1907</div><div class="stat-label">Erster Mega-Short</div></div>
+  <div class="stat-item s-red"><div class="stat-num">1929</div><div class="stat-label">Größter Triumph</div></div>
+  <div class="stat-item s-gold"><div class="stat-num">1940</div><div class="stat-label">Tragisches Ende</div></div>
+</div>
+
+<div class="content">
+
+  <!-- BIOGRAPHIE TIMELINE -->
+  <div class="section-header">
+    <div class="section-label">Das Leben</div>
+    <div class="section-title">Jesse Livermore — Eine amerikanische Tragödie</div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot dot-gold"></div>
+      <div class="tl-content">
+        <div class="tl-year">1877 · Geburt</div>
+        <div class="tl-title">Shrewsbury, Massachusetts — Armut als Antrieb</div>
+        <div class="tl-body">Geboren in ärmlichen Verhältnissen. Vater wollte ihn in der Landwirtschaft halten. Livermore lief mit 14 Jahren von zu Hause weg mit $5 in der Tasche — um in Boston Börsenkurse zu posten. Erster Job: Paine Webber, Kreideafel, Tickerband. Er <strong>liebte die Zahlen instinktiv.</strong></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot dot-green"></div>
+      <div class="tl-content">
+        <div class="tl-year">1891 · Erster Trade</div>
+        <div class="tl-title">$5 Gewinn in Burlington Northern — Das Feuer ist entzündet</div>
+        <div class="tl-body">Erster Trade mit geliehenen $5 in einem Bucket Shop (illegale Wettbüros auf Aktienkurse). Gewinn: $3,12. <strong>„Ich wusste dass ich recht hatte. Die Zahlen sagten es mir."</strong> In den nächsten Jahren gewann er in Bucket Shops so viel Geld, dass sie ihn hinauswarfen und sein Betreten verboten.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot dot-red"></div>
+      <div class="tl-content">
+        <div class="tl-year">1901–1906 · Erste Verluste</div>
+        <div class="tl-title">Von Bucket Shops zu Wall Street — und der erste Ruin</div>
+        <div class="tl-body">In echten Märkten mit echter Execution verlor er sein Bucket-Shop-Vermögen. Wichtige Erkenntnis: <strong>In echten Märkten gibt es Slippage, Fills verzögern sich, und Emotionen kosten Geld.</strong> Er musste sein System völlig neu denken. Erste große Lektion über den Unterschied zwischen Theorie und Praxis.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot dot-gold"></div>
+      <div class="tl-content">
+        <div class="tl-year">1907 · Der erste Mega-Short</div>
+        <div class="tl-title">$3 Millionen — Livermore shortet die Panik von 1907</div>
+        <div class="tl-body">JP Morgan persönlich bat Livermore, seine Short-Positionen zu schließen, um den Markt zu stabilisieren. Livermore tat es — machte $3 Millionen. Wichtige Lektion: <strong>„Wenn der reichste Mann der Welt dich bittet aufzuhören, hör auf und nimm die Gewinne mit."</strong> Später bereute er, nicht länger gehalten zu haben.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot dot-red"></div>
+      <div class="tl-content">
+        <div class="tl-year">1908–1915 · Zweiter Ruin</div>
+        <div class="tl-title">Baumwolle und Ego — Verlust aller $3 Millionen plus Schulden</div>
+        <div class="tl-body">Auf Tipp eines anderen Traders kaufte er Baumwolle — gegen seinen eigenen Marktinstinkt. <strong>Einer seiner tiefsten Fehler: einem fremden Rat gefolgt gegen seine eigene Analyse.</strong> Er verlor alles und häufte Schulden an. Musste Gläubiger bitten, ihn mit $500k zu refinanzieren um neu zu starten. Zahlte alles zurück. Charakter.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot dot-gold"></div>
+      <div class="tl-content">
+        <div class="tl-year">1924–1929 · Die goldenen Jahre</div>
+        <div class="tl-title">Aufbau des größten Handels-Imperiums — Vorbereitung auf 1929</div>
+        <div class="tl-body">Livermore verfeinerte sein System: Pivotal Points, Sonden-Positionen, Pyramidierung. Er beobachtete die wilde Spekulation der 1920er mit wachsendem Unbehagen. <strong>1928 begann er, Short-Positionen aufzubauen — zu früh. Er verlor kurzfristig, hielt aber seine Analyse.</strong> Geduld als aktive Strategie.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot dot-gold"></div>
+      <div class="tl-content">
+        <div class="tl-year">Oktober 1929 · Der größte Trade der Geschichte</div>
+        <div class="tl-title">$100 Millionen — Short auf den Schwarzen Dienstag</div>
+        <div class="tl-body"><strong>Livermore war massiv short als der Markt kollabierte.</strong> Er verdiente in einem Jahr schätzungsweise $100 Millionen — die größte Einzelspekulation bis dahin. Die New York Times meldete: „Livermore ist der Mann der die Börse zum Fallen brachte." Bedroht von aufgebrachten Ruinierten, musste er seinen Wohnsitz geheim halten. Sein Leben war in Gefahr.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot dot-red"></div>
+      <div class="tl-content">
+        <div class="tl-year">1930–1934 · Dritter und vierter Ruin</div>
+        <div class="tl-title">Bankrott trotz $100M — Das Paradox des perfekten Traders</div>
+        <div class="tl-body">Trotz des größten Gewinns seiner Karriere war Livermore 1934 bankrott. Gründe: <strong>Scheidungen, exzessiver Lebensstil, Verluste durch Abweichung von seinen eigenen Regeln</strong>, und eine Depressionsperiode die seine Urteilsfähigkeit beeinträchtigte. <em>Wissen und Disziplin sind verschiedene Dinge.</em></div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot dot-gold"></div>
+      <div class="tl-content">
+        <div class="tl-year">1940 · Das Buch und das Ende</div>
+        <div class="tl-title">„How to Trade in Stocks" — und der Abschied</div>
+        <div class="tl-body">Livermore schrieb und veröffentlichte sein einziges Buch: <em>„How to Trade in Stocks"</em> (1940). Vier Monate später erschoss er sich in der Garderobe des Sherry-Netherland Hotels in New York. In seinem Abschiedsbrief schrieb er: <strong>„Mein Leben war ein Versagen."</strong> Die Märkte dachten anders über sein Erbe.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIE METHODIK -->
+  <div class="section-header section-gap">
+    <div class="section-label">Das System</div>
+    <div class="section-title">Livermore's Marktmethodik — Vollständig rekonstruiert</div>
+  </div>
+
+  <!-- PIVOTAL POINTS -->
+  <div class="section-header" style="margin-top:32px;">
+    <div class="section-label">Konzept 1</div>
+    <div class="section-title">Pivotal Points — Schlüsselzonen wo Aktien die Richtung wechseln</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Was ein Pivotal Point ist:</strong> Eine Preisniveau, das der Markt nach einer
+      Konsolidierungsphase verlässt. Keine willkürliche technische Linie — sondern ein Preis
+      an dem sich <em>die Entscheidung von Tausenden Händlern gleichzeitig zeigt</em>.
+      Wenn eine Aktie nach wochenlanger Konsolidierung bei 50 plötzlich auf 52 ausbricht —
+      und Volumen das bestätigt — hat der Markt geurteilt: diese Aktie gehört höher.
+      <br><br>
+      <strong>Wie man darauf handelt:</strong> Livermore kaufte nie auf Antizipation — nur auf
+      den Ausbruch selbst. Nicht: „ich denke es wird ausbrechen." Sondern: <em>„Es ist ausgebrochen — jetzt kaufe ich."</em>
+      Der Preis war sein einziger Beweis.
+    </div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Pivotal Point Typ</th><th>Beschreibung</th><th>Signal</th><th>Livermore's Vorgehen</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Primärer Pivotal Point</td>
+        <td>Ausbruch aus mehrwöchiger/mehrmonatiger Konsolidierung auf neuem Hoch</td>
+        <td class="val-green">Starkes Kauf-Signal</td>
+        <td>Erste Sonden-Position (1/5 der geplanten Größe). Warten auf Bestätigung durch weitere Kursgewinne.</td>
+      </tr>
+      <tr>
+        <td>Sekundärer Pivotal Point</td>
+        <td>Kleiner Rücksetzer nach dem Ausbruch — normaler Test des Ausbruchsniveaus</td>
+        <td class="val-gold">Bestätigungspunkt</td>
+        <td>Wenn Aktie zum Ausbruchsniveau zurückkommt aber nicht darunter fällt: zweite Position hinzufügen.</td>
+      </tr>
+      <tr>
+        <td>Continuation Pivot</td>
+        <td>Kurze Konsolidierung nach der ersten Bewegung — Verschnaufpause im Trend</td>
+        <td class="val-green">Zukauf-Punkt</td>
+        <td>Wenn Aktie nach kurzer Pause wieder das alte Hoch übersteigt: volle Restposition aufbauen.</td>
+      </tr>
+      <tr>
+        <td>Reversal Pivot (Warnung)</td>
+        <td>Aktie fällt zurück unter den Ausbruchspunkt mit steigendem Volumen</td>
+        <td class="val-red">Sofortiger Exit</td>
+        <td>„The stock told me I was wrong." Sofort raus. Kein Warten, kein Hoffen. Stop unter Pivotal Point ist gesetzt.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- PROBE STRATEGIE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Konzept 2</div>
+    <div class="section-title">Die Probe-Strategie — Niemals volles Kapital beim ersten Einstieg</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Livermore's Kernprinzip des Einstiegs:</strong>
+      Wer sofort mit voller Positionsgröße einsteigt, hat keine Möglichkeit zu unterscheiden ob er
+      recht hat oder nicht. Die Sonden-Strategie löst das Problem.
+    </div>
+  </div>
+
+  <div class="pyramid-visual">
+    <div class="pyr-row">
+      <div class="pyr-bar" style="width:20%;background:#991b1b;">1/5 Position</div>
+      <div class="pyr-label">Einstieg: Sonde beim Pivotal Point Ausbruch</div>
+      <div class="pyr-note">Wenn sofort gegen uns: kleiner Verlust, Hypothese geprüft</div>
+    </div>
+    <div class="pyr-row">
+      <div class="pyr-bar" style="width:40%;background:#b91c1c;">+ 1/5 Position</div>
+      <div class="pyr-label">Kurs steigt bestätigend: zweite Tranche (gesamt 2/5)</div>
+      <div class="pyr-note">Markt bestätigt: wir haben recht. Mehr Kapital verdient seinen Platz.</div>
+    </div>
+    <div class="pyr-row">
+      <div class="pyr-bar" style="width:60%;background:#dc2626;">+ 1/5 Position</div>
+      <div class="pyr-label">Zweite Bestätigung: dritte Tranche (gesamt 3/5)</div>
+      <div class="pyr-note">Trend ist klar. Pyramidierung beschleunigt.</div>
+    </div>
+    <div class="pyr-row">
+      <div class="pyr-bar" style="width:80%;background:#ef4444;">+ 1/5 Position</div>
+      <div class="pyr-label">Drittes Bestätigungslevel: vierte Tranche (gesamt 4/5)</div>
+      <div class="pyr-note">Nur wer uns Recht gibt, bekommt mehr Kapital.</div>
+    </div>
+    <div class="pyr-row">
+      <div class="pyr-bar" style="width:100%;background:#f87171;">+ 1/5 Position</div>
+      <div class="pyr-label">Volle Bestätigung: fünfte und letzte Tranche (gesamt 5/5)</div>
+      <div class="pyr-note" style="color:var(--green2);">Maximale Position nur wenn Markt uns 4× bestätigt hat.</div>
+    </div>
+  </div>
+
+  <div class="highlight-box" style="margin-top:16px;">
+    <div class="hl-label">Das Paradox des Pyramidierens</div>
+    <div class="hl-title">Man kauft teurer — und ist trotzdem sicherer</div>
+    <div class="hl-body">
+      Jede zusätzliche Tranche wird zu einem höheren Preis gekauft.
+      Das klingt falsch — ist aber mathematisch korrekt.
+      <strong>Wer beim Ausbruch bei 50 kauft, bei 55 zukauft, bei 60 zukauft — hat eine Position
+      die nur dann existiert, wenn der Markt bei jedem Schritt bestätigt hat.</strong>
+      Das Gegenteil — auf jede Schwäche zuzukaufen (Averaging Down) — bedeutet das Kapital in eine
+      Position zu investieren die uns widerspricht. <em>Das Kapital folgt dem Beweis — nicht der Hoffnung.</em>
+    </div>
+  </div>
+
+  <!-- LINE OF LEAST RESISTANCE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Konzept 3</div>
+    <div class="section-title">Line of Least Resistance — Richtung des geringsten Widerstands</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Die Physik des Markts:</strong> Wasser fließt bergab. Aktien bewegen sich in die Richtung
+      wo der geringste Widerstand herrscht. Sind mehr Käufer als Verkäufer aktiv, ist die Richtung bergauf.
+      Umgekehrt: bergab. <em>Livermore suchte nie nach dem „warum"</em> — er suchte nach der Richtung.
+      <br><br>
+      <strong>Praktisch:</strong> Eine Aktie die trotz schlechter Nachrichten nicht fällt — hat eine starke
+      Richtung. Eine Aktie die trotz guter Nachrichten nicht steigt — ebenfalls ein klares Signal.
+      Der Markt sagt immer die Wahrheit. Man muss nur zuhören.
+    </div>
+  </div>
+
+  <!-- GRUPPEN THEORIE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Konzept 4</div>
+    <div class="section-title">Die Gruppen-Theorie — Starke Aktien in starken Sektoren</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Gruppen-Signal</th><th>Observation</th><th>Schlussfolgerung</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Alle Stahlaktien steigen</td>
+        <td>US Steel ↑, Bethlehem ↑, Republic Steel ↑</td>
+        <td class="val-green">Branche in Stärke. Kaufe die stärkste Aktie der Gruppe.</td>
+      </tr>
+      <tr>
+        <td>Markt steigt, Stahlaktien fallen</td>
+        <td>S&P ↑, US Steel ↓, Bethlehem ↓</td>
+        <td class="val-red">Negative Divergenz. Stahl signalisiert kommende Marktschwäche. Vorsicht.</td>
+      </tr>
+      <tr>
+        <td>US Steel steigt, Bethlehem fällt</td>
+        <td>Sektorkollegen divergieren</td>
+        <td class="val-gold">US Steel könnte manipulation sein. Kein echter Branchen-Aufschwung. Nicht kaufen.</td>
+      </tr>
+      <tr>
+        <td>„Leading stocks" fallen zuerst</td>
+        <td>Die stärksten Aktien des Bullenmarkts beginnen zu konsolidieren</td>
+        <td class="val-red">Livermore's Warnsignal für Markt-Top. Die Generals fallen als erste.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- DAS ELEMENT DER ZEIT -->
+  <div class="section-header section-gap">
+    <div class="section-label">Konzept 5</div>
+    <div class="section-title">Das Zeitfenster — „There Is a Time to Be Long, a Time to Be Short, and a Time to Go Fishing"</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Livermore's am meisten übersehener Grundsatz:</strong>
+      Nicht jeder Tag ist ein Handelstag. Nicht jede Bewegung ist ein Signal.
+      Die meisten Verluste — seine eigenen eingeschlossen — entstanden durch Handeln
+      wenn keine klaren Bedingungen herrschten.
+      <br><br>
+      <em>„Es kostet nichts zu sitzen."</em> Bargeld ist auch eine Position.
+      Wer auf die richtige Gelegenheit wartet und sie dann mit vollen Segeln reitet,
+      schlägt jemanden der täglich handelt um ein Vielfaches.
+      <br><br>
+      <strong>Die drei Phasen nach Livermore:</strong>
+    </div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Phase</th><th>Markt-Charakter</th><th>Livermore's Aktion</th><th>Position</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Klar bullisch</td><td>Pivotal Points brechen aus, Volumen bestätigt, Gruppen kongruent</td><td class="val-green">Aggressiv long, pyramidieren</td><td>Voll investiert bis zu 5/5 der geplanten Größe</td></tr>
+      <tr><td>Klar bearisch</td><td>Supports brechen, Gruppen kongruent schwach, Panik sichtbar</td><td class="val-red">Short, Panik ausnutzen</td><td>Voll short wie 1907 und 1929</td></tr>
+      <tr><td>Unklar / Seitwärts</td><td>Kein klares Muster, widersprüchliche Signale</td><td class="val-gold">NICHTS TUN · Angeln gehen</td><td>Cash. 100% Bargeld ist eine legale Position.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- PSYCHOLOGIE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Psychologie</div>
+    <div class="section-title">Hoffnung und Angst — Die emotionalen Feinde des Traders</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Livermore's tiefste Einsicht zur Tradingpsychologie:</strong>
+      Die zwei Emotionen die jeden Händler ruinieren — Hoffnung und Angst — wirken
+      im Trading in der verkehrten Richtung.
+      <br><br>
+      <strong>Das natürliche, falsche Verhalten:</strong><br>
+      Verlusttrade: <em>Hoffnung</em> dass er zurückkommt → Position halten → Verlust wächst<br>
+      Gewinntrade: <em>Angst</em> den Gewinn zu verlieren → zu früh verkaufen → kleiner Gewinn
+      <br><br>
+      <strong>Das korrekte, unnatürliche Verhalten:</strong><br>
+      Verlusttrade: <em>Angst</em> vor weiterem Verlust → sofort raus → kleiner Verlust<br>
+      Gewinntrade: <em>Hoffnung</em> auf mehr → halten, laufen lassen → großer Gewinn
+    </div>
+  </div>
+
+  <div class="quote-block">
+    <div class="quote-text">„All through time, people have basically acted and reacted the same way in the market as a result of: greed, fear, ignorance, and hope. That is why the numerical formations and patterns recur on a constant basis."</div>
+    <div class="quote-attr">— Jesse Livermore, How to Trade in Stocks, 1940</div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">„It never was my thinking that made the big money for me. It always was my sitting. Men who can both be right and sit tight are uncommon. I found it one of the hardest things to learn."</div>
+    <div class="quote-attr">— Jesse Livermore</div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">„The stock market is never obvious. It is designed to fool most of the people, most of the time."</div>
+    <div class="quote-attr">— Jesse Livermore</div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">„There is a time to go long, a time to go short and a time to go fishing."</div>
+    <div class="quote-attr">— Jesse Livermore</div>
+  </div>
+
+  <!-- 12 REGELN -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die Regeln</div>
+    <div class="section-title">Livermore's 12 Eiserne Gesetze — Das Destillat aus 40 Jahren</div>
+  </div>
+
+  <div class="rules-list">
+    <div class="rule-card">
+      <div class="rule-num">01</div>
+      <div class="rule-content">
+        <div class="rule-title">Kaufe nur steigende Aktien. Verkaufe nur fallende Aktien.</div>
+        <div class="rule-body">Die Line of Least Resistance ist das einzige Kriterium.
+        <strong>„I would buy only when the stock proved itself by going up, not when it was going down."</strong>
+        Kein Kauf auf Erwartung. Kein Kauf auf Tiefstand-Hoffnung. Nur der Beweis zählt.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">02</div>
+      <div class="rule-content">
+        <div class="rule-title">Niemals Verluste mitteln (Averaging Down) — NIEMALS.</div>
+        <div class="rule-body">Wer auf eine fallende Position zukauft, wirft gutes Geld dem schlechten nach.
+        <strong>Eine fallende Aktie teilt dir mit: Du liegst falsch.</strong>
+        Die einzige korrekte Antwort ist: raus. Nicht: mehr rein. Livermore: „Never meet a margin call — get out."</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">03</div>
+      <div class="rule-content">
+        <div class="rule-title">Probe zuerst. Volle Größe nur nach Bestätigung.</div>
+        <div class="rule-body">1/5 der Position beim Einstieg. Rest nur wenn Markt uns sofort bestätigt.
+        <strong>„The market must prove to me that I am right before I risk full capital."</strong>
+        Wenn die Position sofort gegen uns läuft: kleiner Verlust, Hypothese falsifiziert.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">04</div>
+      <div class="rule-content">
+        <div class="rule-title">Verluste schließen — sofort, nicht irgendwann.</div>
+        <div class="rule-body">Stop knapp unter dem Pivotal Point ist gesetzt BEVOR der Trade begonnen hat.
+        Wenn der Stop getriggert wird: kein Zögern, kein „noch einen Tag warten".
+        <strong>Livermore's berühmteste Verluste kamen alle vom Ignorieren dieses Prinzips.</strong></div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">05</div>
+      <div class="rule-content">
+        <div class="rule-title">Gewinne laufen lassen — „Sitting Tight" als aktive Strategie.</div>
+        <div class="rule-body">Der häufigste Fehler: profitable Positionen zu früh verkaufen.
+        <strong>„It was never my thinking that made me the big money. It always was my sitting."</strong>
+        Gewinne brauchen Zeit. Ungeduld und kleine Gewinne korrellieren perfekt.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">06</div>
+      <div class="rule-content">
+        <div class="rule-title">Keine Tipps. Keine fremden Meinungen. Nur eigene Analyse.</div>
+        <div class="rule-body">Seinen größten Verlust in Baumwolle hatte Livermore durch einen fremden Tipp — gegen seinen eigenen Instinkt.
+        <strong>„Wer auf Tipps hört, verliert. Wer auf den Markt hört, gewinnt."</strong>
+        Kein anderer kann dein Stop-Level, dein Risikoprofil, und deine Position kennen.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">07</div>
+      <div class="rule-content">
+        <div class="rule-title">Starke Aktien in starken Gruppen — Gruppen bestätigen sich gegenseitig.</div>
+        <div class="rule-body">Wenn US Steel steigt aber Bethlehem und Republic Steel fallen: kein echter Trend.
+        <strong>Echter Sektorkraft zeigt sich wenn ALLE Leader der Gruppe sich gleich verhalten.</strong>
+        Die Gruppe bestätigt die Einzelaktie. Die Einzelaktie bestätigt die Gruppe. Kongruenz.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">08</div>
+      <div class="rule-content">
+        <div class="rule-title">Das Zeitfenster respektieren — Geduld ist eine Trading-Kompetenz.</div>
+        <div class="rule-body">Nicht jeder Tag ist ein Handelstag. Nicht jede Bewegung ist ein Signal.
+        <strong>„There is a time to be long, a time to be short, and a time to go fishing."</strong>
+        Cash ist eine Position. Warten kostet nichts. Falsches Handeln kostet alles.</div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">09</div>
+      <div class="rule-content">
+        <div class="rule-title">Kurze Korrekturen in starken Trends sind Kaufgelegenheiten — keine Warnungen.</div>
+        <div class="rule-body">Ein starker Trend pausiert. Das ist normal. Wenn eine Aktie 3 Wochen konsolidiert
+        und dann wieder ausbricht — das ist ein sekundärer Pivotal Point.
+        <strong>Livermore zahlte den höheren Preis gerne, wenn er Bestätigung kaufte.</strong></div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">10</div>
+      <div class="rule-content">
+        <div class="rule-title">Die Generals beobachten — Wenn Leaders fallen, ist der Trend in Gefahr.</div>
+        <div class="rule-body">Die stärksten Aktien eines Bullenmarkts fallen als erste.
+        Wenn der Gesamtmarkt steigt aber die bisherigen Marktführer nicht mehr mithalten:
+        <strong>Achtung. Das war Livermore's Frühwarnsystem für 1929 — er begann 1928 Short-Positionen aufzubauen.</strong></div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">11</div>
+      <div class="rule-content">
+        <div class="rule-title">Nie gegen die übergeordnete Richtung traden.</div>
+        <div class="rule-body">Individual-Stocks und Sektoren können kurzfristig gegen den Gesamtmarkt laufen.
+        Aber in einer klaren Baisse werden die meisten Longs verlieren.
+        <strong>Livermore: erst prüfen ob Markt Long- oder Short-Bias hat. Dann erst Einzeltiteln wählen.</strong></div>
+      </div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-num">12</div>
+      <div class="rule-content">
+        <div class="rule-title">Kapitalerhalt ist wichtiger als jeder Gewinn.</div>
+        <div class="rule-body">Livermore lernte das durch eigene Ruinen. Wer sein Kapital verliert, verliert seine Fähigkeit zu handeln.
+        <strong>„The game taught me the game."</strong> Kein Handel ist es wert, das gesamte Kapital zu riskieren.
+        Kleine, kontrollierte Verluste halten die Spielmöglichkeit offen.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEHLER & TRAGÖDIE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die Lektion der Tragödie</div>
+    <div class="section-title">Warum Livermore trotzdem bankrott starb — Das Paradox</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Regel die er kannte</th><th>Was er stattdessen tat</th><th>Konsequenz</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Niemals fremden Tipps folgen</td><td>Baumwolle auf Empfehlung von Partlow (1908)</td><td class="val-red">Verlust aller $3M plus Schulden</td></tr>
+      <tr><td>Emotionen aus dem Trading halten</td><td>Depressionen → Alkohol → schlechte Entscheidungen (1930–34)</td><td class="val-red">Verlust der $100M trotz perfektem Trade</td></tr>
+      <tr><td>Kapital schützen</td><td>Exzessiver Lebensstil, Scheidungen kosteten Millionen</td><td class="val-red">Strukturelle Ausgaben > Tradinggewinne</td></tr>
+      <tr><td>Losing positions sofort schließen</td><td>Nach 1929: versuchte den Markt erneut zu shorten — zu früh</td><td class="val-red">Falsche Seite, zu groß, falsche Zeit</td></tr>
+      <tr><td>Geistige Klarheit als Voraussetzung</td><td>Persönliche Krisen → gestörte Urteilsfähigkeit</td><td class="val-red">Wissen hilft nichts ohne mentale Stabilität</td></tr>
+    </tbody>
+  </table>
+
+  <div class="highlight-box">
+    <div class="hl-label">Das Livermore Paradox</div>
+    <div class="hl-title">Der beste Trader seiner Zeit starb mittellos — und das ist die wichtigste Lektion</div>
+    <div class="hl-body">
+      Livermore <em>wusste</em> alle Regeln. Er hatte sie selbst entwickelt und dokumentiert.
+      Er hatte bewiesen, dass sie funktionieren — mehrfach.
+      <strong>Aber Wissen und Disziplin sind zwei verschiedene Dinge.</strong>
+      Persönliche Krisen, emotionale Instabilität, Sucht — sie alle unterminierten die Disziplin
+      die nötig gewesen wäre, das Wissen umzusetzen.
+      <br><br>
+      Van Tharp nennt das die „Parts Psychology" — verschiedene Teile der Persönlichkeit
+      die in Konflikt stehen. Livermore's Tragödie ist die reinste Illustration:
+      <em>Wer kein Risikomanagement für sein gesamtes Leben hat, nicht nur für seine Trades,
+      wird von seinen Gewinnen nicht profitieren.</em>
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas un marché — c'est le miroir de qui vous êtes."<br>
+    (Das ist kein Markt — es ist der Spiegel dessen, was du bist.)</div>
+  </div>
+
+  <!-- DUDE BANK VERBINDUNG -->
+  <div class="section-header section-gap">
+    <div class="section-label">DUDE BANK × Livermore</div>
+    <div class="section-title">Was die Dude Bank aus Livermore lernt</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Livermore Prinzip</th><th>DUDE BANK Anwendung</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Probe-Position (1/5 zuerst)</td><td>KI-Trading-Agent beginnt jede neue Strategie mit 20% der maximalen Allokation. Nur nach 3× Bestätigung volle Größe.</td></tr>
+      <tr><td>Pyramidierung auf Stärke</td><td>Position Sizing-Modul: Zukauf nur wenn letzter Einstieg im Plus. Nie auf Schwäche zukaufen.</td></tr>
+      <tr><td>Gruppen-Bestätigung</td><td>KI-Scan: bevor Position aufgebaut wird, müssen ≥3 führende Aktien des Sektors dieselbe Richtung zeigen.</td></tr>
+      <tr><td>Stop unter Pivotal Point — gesetzt VOR dem Trade</td><td>Kein Trade ohne definierten Stop. Stop wird beim Signal-Eintrag automatisch platziert. Menschliches Eingreifen danach verboten.</td></tr>
+      <tr><td>Kein Averaging Down</td><td>Hardregel im Rulebook: Nachinvestition in fallende Positionen erfordert CRO-Veto und Community-Abstimmung. Nie automatisch.</td></tr>
+      <tr><td>Zeit zu fischen (Cash als Position)</td><td>DUDE BANK KI-Agent darf max. 70% des Kapitals investiert halten. 30% bleibt immer als Cash-Reserve für echte Gelegenheiten.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-card" style="border-top:3px solid var(--red);">
+    <div class="info-card-body">
+      <strong>Das Livermore Vermächtnis für Dude Bank Trader:</strong>
+      <br><br>
+      Livermore bewies was möglich ist — und zeigte was es kostet wenn die Disziplin fehlt.
+      Sein System funktioniert: Pivotal Points, Probe-Positionen, Gruppen-Analyse, Pyramidierung —
+      all das ist heute in professionellen Momentum-Strategien dokumentiert und nachgewiesen.
+      <br><br>
+      <em>Sein Scheitern war kein System-Versagen. Es war ein Mensch-Versagen.</em>
+      Und genau deshalb ist das DUDE BANK Prinzip des Human-in-Loop-CRO, des 10–15% Buchgewinn-Stops,
+      und der Community-Kontrolle so wichtig: Systeme versagen nicht. Menschen tun es.
+      Die Genossenschaft schützt den Einzelnen vor sich selbst.
+    </div>
+    <div class="tags">
+      <span class="tag">Pivotal Points</span>
+      <span class="tag">Probe Strategy</span>
+      <span class="tag tag-green">Pyramidierung</span>
+      <span class="tag tag-gold">Line of Least Resistance</span>
+      <span class="tag">1877–1940</span>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;padding:32px;color:#2d1520;font-size:12px;border-top:1px solid #2d1520;">
+  DUDE BANK — Jesse Livermore · The Great Bear of Wall Street · Pivotal Points · Pyramidierung · 1877–1940 · 2026
+</div>
+</body>
+</html>

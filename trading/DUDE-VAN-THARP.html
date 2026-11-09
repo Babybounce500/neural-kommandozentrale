@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUDE BANK — Van K. Tharp Trading Framework</title>
+<style>
+  :root {
+    --bg: #080d10;
+    --surface: #0d1520;
+    --card: #111e2a;
+    --border: #1c2d3f;
+    --blue: #58a6ff;
+    --blue2: #a5d6ff;
+    --gold: #c9a84c;
+    --gold2: #f5d47a;
+    --green: #3fb950;
+    --red: #f85149;
+    --orange: #d29922;
+    --purple: #bc8cff;
+    --text: #c9d1d9;
+    --muted: #2d4a5c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .header {
+    background: linear-gradient(135deg, #060e18 0%, #0d1f30 50%, #060e18 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px;
+    text-align: center;
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; }
+  .header h1 { font-size: clamp(28px, 5vw, 48px); font-weight: 900; color: var(--text); }
+  .header h1 span { color: var(--blue2); }
+  .header-sub { margin-top: 12px; font-size: 14px; color: #555; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+  .content { max-width: 1000px; margin: 0 auto; padding: 48px 24px; }
+
+  .section-header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--blue); margin-bottom: 4px; }
+  .section-title { font-size: 22px; font-weight: 700; color: var(--text); }
+  .section-gap { margin-top: 56px; }
+
+  /* R-MULTIPLE HERO */
+  .r-hero {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 32px;
+    border-top: 3px solid var(--blue);
+  }
+  .r-formula {
+    background: #070d14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .r-formula-text { font-family: monospace; font-size: clamp(14px, 3vw, 22px); color: var(--gold2); font-weight: 700; }
+  .r-formula-sub { font-size: 12px; color: #555; margin-top: 8px; }
+  .r-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .r-body strong { color: var(--text); }
+
+  /* POSITION SIZING TABLE */
+  .ps-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .ps-table th { background: rgba(88,166,255,0.08); color: var(--blue); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+  .ps-table td { padding: 10px 14px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .ps-table tr:nth-child(even) td { background: rgba(88,166,255,0.02); }
+  .ps-table td:first-child { color: var(--text); font-weight: 600; }
+  .val-green { color: var(--green); font-weight: 700; }
+  .val-red { color: var(--red); font-weight: 700; }
+  .val-gold { color: var(--gold); font-weight: 700; }
+  .val-blue { color: var(--blue2); font-weight: 700; }
+
+  /* DRAWDOWN VISUAL */
+  .drawdown-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px; }
+  .dd-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    border-top: 2px solid;
+  }
+  .dd-card.mild { border-color: var(--gold); }
+  .dd-card.bad { border-color: var(--orange); }
+  .dd-card.severe { border-color: var(--red); }
+  .dd-card.fatal { border-color: #7c1515; }
+  .dd-loss { font-size: 28px; font-weight: 900; font-family: monospace; }
+  .dd-card.mild .dd-loss { color: var(--gold); }
+  .dd-card.bad .dd-loss { color: var(--orange); }
+  .dd-card.severe .dd-loss { color: var(--red); }
+  .dd-card.fatal .dd-loss { color: #f44; }
+  .dd-arrow { font-size: 20px; color: var(--muted); margin: 6px 0; }
+  .dd-recovery { font-size: 18px; font-weight: 700; font-family: monospace; }
+  .dd-card.mild .dd-recovery { color: var(--green); }
+  .dd-card.bad .dd-recovery { color: var(--orange); }
+  .dd-card.severe .dd-recovery { color: var(--red); }
+  .dd-card.fatal .dd-recovery { color: #f44; }
+  .dd-desc { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* EXTENDED DRAWDOWN TABLES */
+  .dd-full-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .dd-full-table th { background: rgba(248,81,73,0.08); color: var(--red); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+  .dd-full-table td { padding: 9px 14px; border: 1px solid var(--border); font-size: 13px; font-family: monospace; vertical-align: middle; }
+  .dd-full-table .z-mild td { background: rgba(63,185,80,0.04); }
+  .dd-full-table .z-mod td { background: rgba(201,168,76,0.05); }
+  .dd-full-table .z-hard td { background: rgba(210,153,34,0.06); }
+  .dd-full-table .z-crit td { background: rgba(248,81,73,0.06); }
+  .dd-full-table .z-fatal td { background: rgba(248,81,73,0.1); }
+  .z-mild .loss { color: var(--green); font-weight: 700; }
+  .z-mod .loss { color: var(--gold2); font-weight: 700; }
+  .z-hard .loss { color: var(--orange); font-weight: 700; }
+  .z-crit .loss { color: var(--red); font-weight: 700; }
+  .z-fatal .loss { color: #ff3333; font-weight: 900; }
+  .z-mild .rec { color: var(--green); }
+  .z-mod .rec { color: var(--gold2); }
+  .z-hard .rec { color: var(--orange); }
+  .z-crit .rec { color: var(--red); }
+  .z-fatal .rec { color: #ff3333; font-weight: 900; }
+  .pain-mult { font-size: 11px; }
+  .z-mild .pain-mult { color: #3fb95066; }
+  .z-mod .pain-mult { color: var(--gold); }
+  .z-hard .pain-mult { color: var(--orange); }
+  .z-crit .pain-mult { color: var(--red); }
+  .z-fatal .pain-mult { color: #ff3333; }
+
+  /* MIRROR TABLE */
+  .mirror-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .mirror-table th { background: rgba(63,185,80,0.08); color: var(--green); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+  .mirror-table td { padding: 9px 14px; border: 1px solid var(--border); font-size: 13px; font-family: monospace; vertical-align: middle; }
+  .mirror-table tr:nth-child(even) td { background: rgba(63,185,80,0.02); }
+  .m-gain { color: var(--green); font-weight: 700; }
+  .m-price { color: var(--blue2); }
+  .m-fall { color: var(--red); font-weight: 700; }
+  .m-note { font-size: 11px; color: #8b949e; font-family: 'Segoe UI', sans-serif; }
+
+  /* INFLECTION ZONE */
+  .inflect-visual {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .inflect-bar {
+    display: flex;
+    height: 36px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 16px 0 8px;
+    gap: 1px;
+  }
+  .ib-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: rgba(0,0,0,0.7);
+    flex: 1;
+  }
+  .ib-mild { background: #3fb950; }
+  .ib-mod { background: #d29922; }
+  .ib-hard { background: #e05c16; }
+  .ib-crit { background: #c0392b; }
+  .ib-fatal { background: #7c1515; color: rgba(255,255,255,0.5); }
+  .inflect-labels { display: flex; font-size: 10px; color: var(--muted); justify-content: space-between; margin-top: 4px; }
+
+  /* SEQUENCE / ARITHMETIC TRAP */
+  .seq-demo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .seq-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .seq-title { font-size: 12px; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; }
+  .seq-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-family: monospace; font-size: 13px; }
+  .seq-step:last-child { border-bottom: none; }
+  .seq-arrow-up { color: var(--green); }
+  .seq-arrow-dn { color: var(--red); }
+  .seq-start { color: var(--muted); }
+  .seq-end-bad { color: var(--red); font-weight: 700; font-size: 16px; }
+  .seq-end-ok { color: var(--green); font-weight: 700; font-size: 16px; }
+  .seq-conclusion { font-size: 11px; color: #8b949e; margin-top: 10px; line-height: 1.5; }
+
+  /* DECISION CARDS */
+  .decision-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .decision-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    border-left: 3px solid;
+  }
+  .dc-green { border-color: var(--green); }
+  .dc-gold { border-color: var(--gold); }
+  .dc-orange { border-color: var(--orange); }
+  .dc-red { border-color: var(--red); }
+  .dc-purple { border-color: var(--purple); }
+  .dc-blue { border-color: var(--blue); }
+  .decision-scenario { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .decision-title { font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+  .dc-green .decision-title { color: var(--green); }
+  .dc-gold .decision-title { color: var(--gold2); }
+  .dc-orange .decision-title { color: var(--orange); }
+  .dc-red .decision-title { color: var(--red); }
+  .dc-purple .decision-title { color: var(--purple); }
+  .dc-blue .decision-title { color: var(--blue2); }
+  .decision-body { font-size: 12px; color: #8b949e; line-height: 1.6; }
+  .decision-body strong { color: var(--text); }
+  .decision-rule {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: monospace;
+  }
+  .dc-green .decision-rule { background: rgba(63,185,80,0.1); color: var(--green); }
+  .dc-gold .decision-rule { background: rgba(201,168,76,0.1); color: var(--gold2); }
+  .dc-orange .decision-rule { background: rgba(210,153,34,0.1); color: var(--orange); }
+  .dc-red .decision-rule { background: rgba(248,81,73,0.1); color: var(--red); }
+  .dc-purple .decision-rule { background: rgba(188,140,255,0.1); color: var(--purple); }
+  .dc-blue .decision-rule { background: rgba(88,166,255,0.1); color: var(--blue2); }
+
+  /* TRAILING STOP TABLE */
+  .trail-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .trail-table th { background: rgba(88,166,255,0.08); color: var(--blue); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+  .trail-table td { padding: 10px 14px; border: 1px solid var(--border); font-size: 13px; vertical-align: top; line-height: 1.5; }
+  .trail-table tr:nth-child(even) td { background: rgba(88,166,255,0.02); }
+  .trail-table td:first-child { font-family: monospace; font-weight: 700; color: var(--green); }
+  .trail-table td:nth-child(2) { color: var(--blue2); font-family: monospace; }
+  .trail-table td:nth-child(3) { color: #8b949e; }
+
+  /* TRADER PROFILES */
+  .trader-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .trader-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .trader-card:hover { border-color: var(--blue); }
+  .trader-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .trader-style { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .r-values { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .r-chip {
+    font-family: monospace;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .r-chip.pos { background: rgba(63,185,80,0.1); color: var(--green); }
+  .r-chip.neg { background: rgba(248,81,73,0.1); color: var(--red); }
+  .trader-ev { font-size: 13px; }
+  .trader-ev .label { color: var(--muted); font-size: 11px; }
+  .trader-body { font-size: 12px; color: #8b949e; line-height: 1.6; margin-top: 10px; }
+
+  /* MARKET TYPES */
+  .mt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px; }
+  .mt-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    border-left: 3px solid;
+  }
+  .mt-card.bull { border-color: var(--green); }
+  .mt-card.bear { border-color: var(--red); }
+  .mt-card.side { border-color: var(--gold); }
+  .mt-card.vol { border-color: var(--orange); }
+  .mt-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .mt-card.bull .mt-title { color: var(--green); }
+  .mt-card.bear .mt-title { color: var(--red); }
+  .mt-card.side .mt-title { color: var(--gold2); }
+  .mt-card.vol .mt-title { color: var(--orange); }
+  .mt-body { font-size: 12px; color: #8b949e; line-height: 1.5; }
+
+  /* PSYCHOLOGY */
+  .psych-cards { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+  .psych-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+  .psych-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--purple); margin-bottom: 8px; }
+  .psych-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .psych-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .psych-body strong { color: var(--text); }
+
+  .magritte-quote {
+    font-style: italic;
+    font-size: 12px;
+    color: #58a6ff44;
+    padding-left: 12px;
+    border-left: 2px solid rgba(88,166,255,0.2);
+    margin-top: 12px;
+  }
+
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .info-card-year { font-size: 11px; font-family: monospace; color: var(--blue); letter-spacing: 2px; margin-bottom: 8px; }
+  .info-card-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .info-card-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .info-card-body strong { color: var(--text); }
+
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 10px; background: rgba(88,166,255,0.1); color: var(--blue); border: 1px solid rgba(88,166,255,0.2); }
+  .tag-gold { background: rgba(201,168,76,0.1); color: var(--gold); border-color: rgba(201,168,76,0.2); }
+  .tag-green { background: rgba(63,185,80,0.1); color: var(--green); border-color: rgba(63,185,80,0.2); }
+  .tag-red { background: rgba(248,81,73,0.1); color: var(--red); border-color: rgba(248,81,73,0.2); }
+
+  @media (max-width: 600px) {
+    .content { padding: 24px 12px; }
+    .trader-grid, .mt-grid, .drawdown-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK eG — Trading Psychologie & Methodik</div>
+  <h1>Van K. <span>Tharp</span> Framework</h1>
+  <p class="header-sub">
+    R-Multiples, Position Sizing, Markttypen, Drawdown-Mathematik und Handelspsychologie —
+    vollständig aus „Clever Traden mit System 2.0" und der DUDE-BANK-CONVO.txt extrahiert.
+    Magritte-Philosophie angewendet auf Märkte.
+  </p>
+</div>
+
+<div class="content">
+
+  <!-- R-MULTIPLES -->
+  <div class="section-header">
+    <div class="section-label">Kernkonzept</div>
+    <div class="section-title">R-Multiples — Die universelle Währung des Risikos</div>
+  </div>
+
+  <div class="r-hero">
+    <div class="r-formula">
+      <div class="r-formula-text">1R = Einstiegspreis − Stop-Loss-Preis</div>
+      <div class="r-formula-sub">Das initiale Risiko pro Trade. Die Einheit, nach der alle anderen Größen bemessen werden.</div>
+    </div>
+    <div class="r-formula" style="margin-top:12px;">
+      <div class="r-formula-text">Erwartungswert (EV) = Σ(Wahrscheinlichkeit × R-Multiple)</div>
+      <div class="r-formula-sub">Positiver EV &gt; 0 = System mit positivem Erwartungswert. Negatives EV = langfristiger Ruin.</div>
+    </div>
+    <div class="r-body" style="margin-top:20px;">
+      <strong>Was sind R-Multiples?</strong> Van Tharp normiert alle Trades auf ihre anfängliche Risikoeinheit (1R).
+      Wenn du einen Trade mit 1.000 € Risiko (Einstieg minus Stop) eingegangen bist und am Ende 3.000 € gewinnst,
+      ist das ein <strong>3R-Trade</strong>. Wenn du 500 € verlierst: <strong>−0.5R</strong>.
+      <br><br>
+      <strong>Warum ist das genial?</strong> Du kannst Trades vergleichen, die völlig verschiedene absolute
+      Dollargrößen haben. Ein 3R-Trade auf einem 1.000-€-Konto ist wertmäßig besser als ein 1.5R-Trade auf einem 100.000-€-Konto.
+      Die Waffe ist die <strong>Normierung</strong>.
+      <br><br>
+      <strong>Magritte-Verbindung:</strong> Ein Chart ist nicht der Markt. Eine Zahl auf dem Screen ist nicht Geld.
+      Und ein Trade ist nicht ein „Gewinn von 5.000 €" — er ist ein „+5R Trade". Die Repräsentation
+      (Zahl in Euro) verdeckt die eigentliche Information (Risiko-Relation).
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas un cours — c'est ta avidité convertie en chiffre."</div>
+    <div class="tags">
+      <span class="tag">R-Multiples</span>
+      <span class="tag">Risiko-Normierung</span>
+      <span class="tag-gold tag">Van K. Tharp</span>
+      <span class="tag">Clever Traden 2.0</span>
+    </div>
+  </div>
+
+  <!-- POSITION SIZING -->
+  <div class="section-header section-gap">
+    <div class="section-label">Position Sizing</div>
+    <div class="section-title">Die 4 Modelle — Das „Wie viel?" ist wichtiger als das „Was?"</div>
+  </div>
+
+  <table class="ps-table">
+    <thead>
+      <tr>
+        <th>Modell</th>
+        <th>Funktionsweise</th>
+        <th>Vorteil</th>
+        <th>Risiko</th>
+        <th>Empfehlung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Einheiten je feste Geldmenge</td>
+        <td>Kapital wird in feste Blöcke eingeteilt (z.B. 10.000 € / Block). Pro Block 1 Lot oder 1 Aktie.</td>
+        <td>Simpel, leicht verständlich</td>
+        <td class="val-red">Ignoriert Volatilität. Bei Kleinkonto: Überhebelung. Ungleiche Assets werden gleich behandelt.</td>
+        <td class="val-red">Nicht empfohlen</td>
+      </tr>
+      <tr>
+        <td>Gleichwertige Einheiten</td>
+        <td>Jedes Asset bekommt gleiche Kapital-Allokation (z.B. immer 10% vom Portfolio)</td>
+        <td>Gleiche Diversifikation, einfach</td>
+        <td class="val-red">Ignoriert tatsächliches Risiko. 10% in BTC und 10% in Bundesanleihe ist nicht gleichwertiges Risiko.</td>
+        <td class="val-gold">Nur für diversifizierte Portfolios ohne Hebelprodukte</td>
+      </tr>
+      <tr>
+        <td>Prozent-Risiko-Modell</td>
+        <td>Maximal 1–2% des Kontokapitals als 1R riskieren. Stop-Loss-Abstand bestimmt Positionsgröße.</td>
+        <td>Dynamisch, compounding, passt sich Kontostand an</td>
+        <td class="val-gold">Weiter Stop = kleinere Position. Volatile Trades werden automatisch kleiner.</td>
+        <td class="val-green">★ VAN THARP EMPFEHLUNG — Standard für aktive Trader</td>
+      </tr>
+      <tr>
+        <td>Prozent-Volatilitäts-Modell</td>
+        <td>ATR (Average True Range) bestimmt Positionsgröße. Mehr Volatilität → kleinere Position.</td>
+        <td>Schützt vor Klumpenrisiken in hoch-volatilen Phasen</td>
+        <td class="val-gold">Kann profitable Trades in volatilen Aufwärtstrends zu früh reduzieren.</td>
+        <td class="val-gold">Ergänzend, besonders für Futures und Krypto</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- DRAWDOWN MATHEMATIK -->
+  <div class="section-header section-gap">
+    <div class="section-label">Mathematik des Ruins</div>
+    <div class="section-title">Drawdown-Asymmetrie — Das unterschätzte Gesetz</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Die Schneeball-Metapher (Tharp):</strong> Zehn schwarze Schneebälle (Verluste), die zusammen
+      größer sind als die Mauer (Aktienkapital), zerstören die Mauer — <em>unabhängig davon,
+      wie günstig die theoretische Trefferquote ist.</em>
+      <br><br>
+      Verluste verhalten sich <strong>nicht linear</strong>. Die Formel für den notwendigen Gegenwinn:
+    </div>
+    <div class="r-formula" style="margin:16px 0; text-align:center;">
+      <div class="r-formula-text">G = (1 / (1 − D) − 1) × 100</div>
+      <div class="r-formula-sub">G = notwendiger Gewinn-Prozentsatz | D = Drawdown als Dezimalzahl (0.5 = 50%)</div>
+    </div>
+    <div class="info-card-body">
+      <strong>Dude Bank Ziel:</strong> Maximaler akzeptabler Drawdown in irgendeiner Strategie: <strong>15%.</strong>
+      Bei 15% Drawdown sind nur 17,6% Gewinn nötig um Breakeven zu erreichen. Bei 50% Drawdown:
+      100% Gewinn nötig. Bei 75%: 300%.
+    </div>
+  </div>
+
+  <div class="drawdown-grid">
+    <div class="dd-card mild">
+      <div class="dd-loss">−10%</div>
+      <div class="dd-arrow">↓</div>
+      <div class="dd-recovery">+11,1%</div>
+      <div class="dd-desc">nötig zum Breakeven</div>
+    </div>
+    <div class="dd-card mild">
+      <div class="dd-loss">−15%</div>
+      <div class="dd-arrow">↓</div>
+      <div class="dd-recovery">+17,6%</div>
+      <div class="dd-desc">Dude Bank Limit</div>
+    </div>
+    <div class="dd-card bad">
+      <div class="dd-loss">−25%</div>
+      <div class="dd-arrow">↓</div>
+      <div class="dd-recovery">+33,3%</div>
+      <div class="dd-desc">Schmerzhafter Bereich</div>
+    </div>
+    <div class="dd-card severe">
+      <div class="dd-loss">−50%</div>
+      <div class="dd-arrow">↓</div>
+      <div class="dd-recovery">+100%</div>
+      <div class="dd-desc">Verdoppelung nötig</div>
+    </div>
+    <div class="dd-card fatal">
+      <div class="dd-loss">−75%</div>
+      <div class="dd-arrow">↓</div>
+      <div class="dd-recovery">+300%</div>
+      <div class="dd-desc">Praktisch utopisch</div>
+    </div>
+    <div class="dd-card fatal">
+      <div class="dd-loss">−90%</div>
+      <div class="dd-arrow">↓</div>
+      <div class="dd-recovery">+900%</div>
+      <div class="dd-desc">Kontovernichtung</div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- ERWEITERTER DRAWDOWN-BLOCK: TABELLE + SPIEGEL + LOGIK    -->
+  <!-- ========================================================= -->
+
+  <!-- VOLLSTÄNDIGE RECOVERY-TABELLE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Komplettübersicht · Alle Zonen</div>
+    <div class="section-title">Verlust → Notwendige Recovery: Die vollständige Wahrheit</div>
+  </div>
+
+  <div class="info-card" style="margin-bottom:20px;">
+    <div class="info-card-body">
+      <strong>Der Schmerzmultiplikator</strong> zeigt, wie viel <em>überproportional</em> ein Recovery-Gewinn ist verglichen
+      mit dem ursprünglichen Verlust. Bei −10% ist der Mehraufwand nur 11% (Multiplikator 1,11×). Ab −50% muss man
+      <strong>doppelt so viel</strong> gewinnen wie man verloren hat (Multiplikator 2,0×). Ab −70% braucht man mehr als
+      dreimal so viel. <em>Die Asymmetrie ist keine lineare Funktion — sie ist eine Hyperbel.</em>
+    </div>
+  </div>
+
+  <table class="dd-full-table">
+    <thead>
+      <tr>
+        <th>Zone</th>
+        <th>Verlust</th>
+        <th>Kapital übrig</th>
+        <th>Recovery nötig</th>
+        <th>Schmerz-Multiplikator</th>
+        <th>Realitätscheck</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="z-mild"><td>🟢 Grün</td><td class="loss">−5%</td><td>95</td><td class="rec">+5,3%</td><td class="pain-mult">1,05×</td><td style="color:#8b949e;font-size:12px">Normaler Rücksetzer</td></tr>
+      <tr class="z-mild"><td>🟢 Grün</td><td class="loss">−10%</td><td>90</td><td class="rec">+11,1%</td><td class="pain-mult">1,11×</td><td style="color:#8b949e;font-size:12px">Gut handhabbar · Dude Bank bevorzugt ≤10%</td></tr>
+      <tr class="z-mild"><td>🟢 Grün</td><td class="loss">−15%</td><td>85</td><td class="rec">+17,6%</td><td class="pain-mult">1,18×</td><td style="color:#8b949e;font-size:12px">★ DUDE BANK MAX-DRAWDOWN</td></tr>
+      <tr class="z-mod"><td>🟡 Gelb</td><td class="loss">−20%</td><td>80</td><td class="rec">+25,0%</td><td class="pain-mult">1,25×</td><td style="color:#8b949e;font-size:12px">Schmerzhaft aber üblich</td></tr>
+      <tr class="z-mod"><td>🟡 Gelb</td><td class="loss">−25%</td><td>75</td><td class="rec">+33,3%</td><td class="pain-mult">1,33×</td><td style="color:#8b949e;font-size:12px">Klassischer Bärenmarkt-Rücksetzer</td></tr>
+      <tr class="z-mod"><td>🟡 Gelb</td><td class="loss">−30%</td><td>70</td><td class="rec">+42,9%</td><td class="pain-mult">1,43×</td><td style="color:#8b949e;font-size:12px">Entscheidungszone: Cut oder Hold?</td></tr>
+      <tr class="z-hard"><td>🟠 Orange</td><td class="loss">−35%</td><td>65</td><td class="rec">+53,8%</td><td class="pain-mult">1,54×</td><td style="color:#8b949e;font-size:12px">⚠ Vorkurve des Inflektionspunkts</td></tr>
+      <tr class="z-hard"><td>🟠 Orange</td><td class="loss">−40%</td><td>60</td><td class="rec">+66,7%</td><td class="pain-mult">1,67×</td><td style="color:#8b949e;font-size:12px">Starker Bullenmarkt-Run nötig</td></tr>
+      <tr class="z-hard"><td>🟠 Orange</td><td class="loss">−45%</td><td>55</td><td class="rec">+81,8%</td><td class="pain-mult">1,82×</td><td style="color:#8b949e;font-size:12px">Momentum-Bruch · Überdenken ob Position haltbar</td></tr>
+      <tr class="z-crit"><td>🔴 Rot</td><td class="loss">−50%</td><td>50</td><td class="rec">+100,0%</td><td class="pain-mult">2,00×</td><td style="color:#8b949e;font-size:12px">★★ KRITISCHE SCHWELLE: Verdoppelung nötig</td></tr>
+      <tr class="z-crit"><td>🔴 Rot</td><td class="loss">−55%</td><td>45</td><td class="rec">+122,2%</td><td class="pain-mult">2,22×</td><td style="color:#8b949e;font-size:12px">Mehr als Verdoppelung · Seltenheit</td></tr>
+      <tr class="z-crit"><td>🔴 Rot</td><td class="loss">−60%</td><td>40</td><td class="rec">+150,0%</td><td class="pain-mult">2,50×</td><td style="color:#8b949e;font-size:12px">2,5-facher Gewinn auf Rest nötig</td></tr>
+      <tr class="z-crit"><td>🔴 Rot</td><td class="loss">−65%</td><td>35</td><td class="rec">+185,7%</td><td class="pain-mult">2,86×</td><td style="color:#8b949e;font-size:12px">Fast eine Verdrei-fachung des Rests</td></tr>
+      <tr class="z-fatal"><td>⛔ Fatal</td><td class="loss">−70%</td><td>30</td><td class="rec">+233,3%</td><td class="pain-mult">3,33×</td><td style="color:#8b949e;font-size:12px">Praktisch nur noch Restrukturierung</td></tr>
+      <tr class="z-fatal"><td>⛔ Fatal</td><td class="loss">−75%</td><td>25</td><td class="rec">+300,0%</td><td class="pain-mult">4,00×</td><td style="color:#8b949e;font-size:12px">4× Gewinn nötig · Turnaround-Wette</td></tr>
+      <tr class="z-fatal"><td>⛔ Fatal</td><td class="loss">−80%</td><td>20</td><td class="rec">+400,0%</td><td class="pain-mult">5,00×</td><td style="color:#8b949e;font-size:12px">Kontovernichtung für Normalen</td></tr>
+      <tr class="z-fatal"><td>⛔ Fatal</td><td class="loss">−85%</td><td>15</td><td class="rec">+566,7%</td><td class="pain-mult">6,67×</td><td style="color:#8b949e;font-size:12px">Faktisch unmöglich ohne Kapitalerhöhung</td></tr>
+      <tr class="z-fatal"><td>⛔ Fatal</td><td class="loss">−90%</td><td>10</td><td class="rec">+900,0%</td><td class="pain-mult">10,00×</td><td style="color:#8b949e;font-size:12px">10-Bagger auf dem Rest nötig = Game Over</td></tr>
+      <tr class="z-fatal"><td>⛔ Fatal</td><td class="loss">−95%</td><td>5</td><td class="rec">+1.900,0%</td><td class="pain-mult">20,00×</td><td style="color:#8b949e;font-size:12px">Kapital ist effektiv verloren</td></tr>
+      <tr class="z-fatal"><td>⛔ Fatal</td><td class="loss">−99%</td><td>1</td><td class="rec">+9.900,0%</td><td class="pain-mult">100,00×</td><td style="color:#8b949e;font-size:12px">Mathematisch tot</td></tr>
+    </tbody>
+  </table>
+
+  <!-- INFLEKTIONSPUNKT VISUALISIERUNG -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die Hyperbel-Kurve</div>
+    <div class="section-title">Wo kippt Schmerz in Hoffnungslosigkeit? — Der Inflektionspunkt</div>
+  </div>
+
+  <div class="inflect-visual">
+    <div style="font-size:12px;color:#8b949e;margin-bottom:8px;">Verlust-Zonen auf dem Spektrum 0% → 99%</div>
+    <div class="inflect-bar">
+      <div class="ib-seg ib-mild" style="flex:15">0–15%</div>
+      <div class="ib-seg ib-mod" style="flex:20">15–35%</div>
+      <div class="ib-seg ib-hard" style="flex:15">35–50%</div>
+      <div class="ib-seg ib-crit" style="flex:20">50–70%</div>
+      <div class="ib-seg ib-fatal" style="flex:30">70–99%</div>
+    </div>
+    <div class="inflect-labels">
+      <span>Grün · leicht</span>
+      <span>Gelb · machbar</span>
+      <span style="color:var(--orange)">⚡ INFLEKTIONS-ZONE −35%</span>
+      <span style="color:var(--red)">Rot · schwer</span>
+      <span style="color:#f44">Fatal · unmöglich</span>
+    </div>
+    <div style="font-size:12px;color:#8b949e;margin-top:16px;line-height:1.7;">
+      <strong style="color:var(--text)">Der mathematische Knick liegt bei −35% bis −45%.</strong>
+      Bis −35% wächst der Mehraufwand linear (54% Recovery auf 35% Verlust = 1,54×).
+      Danach <em>beschleunigt die Ableitung</em>: jedes weitere Prozent Verlust kostet
+      nicht 1 sondern 1,5–2× mehr Recovery. Die Formel G = D/(1−D) nähert sich asymptotisch ∞.
+      <br><br>
+      <strong style="color:var(--orange)">Praktische Schlussregel:</strong>
+      Über −35% sollte jeder Trade fundamental neu bewertet werden.
+      Über −50% ist ein vollständiger Recovery ohne externe Mittel
+      (Kapitalerhöhung, Zukauf) für die meisten Anleger <em>faktisch unrealistisch</em> — nicht weil es unmöglich ist,
+      sondern weil die Zeit- und Opportunitätskosten das Kapital besser anderswo einsetzen.
+    </div>
+  </div>
+
+  <!-- DAS SPIEGEL-PHÄNOMEN -->
+  <div class="section-header section-gap">
+    <div class="section-label">Das Spiegel-Phänomen</div>
+    <div class="section-title">Gewinne × Verlustresistenz — Die andere Seite der Asymmetrie</div>
+  </div>
+
+  <div class="info-card" style="border-top:3px solid var(--green);margin-bottom:20px;">
+    <div class="info-card-body">
+      <strong>Die verblüffende Kehrseite:</strong> Wer einen Trade bereits auf +100% geführt hat,
+      könnte −50% des aktuellen Preises hinnehmen und wäre <em>exakt wieder auf Break-Even</em>.
+      Wer auf +300% steht, übersteht sogar einen −75%-Crash ohne Verlust. Die Position
+      schützt sich mit wachsendem Gewinn <strong>selbst exponentiell</strong>.
+      <br><br>
+      Und das Pendant zur Recovery-Frage: <em>Ein Gewinner-Trade braucht nach einem Rückfall
+      von X% zum Break-Even nur Y% weniger Steigerung als ein frisch eröffneter Trade</em>.
+    </div>
+  </div>
+
+  <table class="mirror-table">
+    <thead>
+      <tr>
+        <th>Position im Plus</th>
+        <th>Aktueller Preis (Basis 100)</th>
+        <th>Maximaler Fall bis Break-Even</th>
+        <th>Neue Verdoppelung der Original-Investition erfordert</th>
+        <th>Anmerkung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="m-gain">+25%</td>
+        <td class="m-price">125</td>
+        <td class="m-fall">−20,0%</td>
+        <td style="color:var(--gold2)">+60% (→ 200) um zu verdoppeln</td>
+        <td class="m-note">Stop bei Einstieg reicht noch knapp</td>
+      </tr>
+      <tr>
+        <td class="m-gain">+50%</td>
+        <td class="m-price">150</td>
+        <td class="m-fall">−33,3%</td>
+        <td style="color:var(--gold2)">+33% (→ 200) um zu verdoppeln</td>
+        <td class="m-note">Trailing Stop auf Einstieg sinnvoll</td>
+      </tr>
+      <tr>
+        <td class="m-gain">+75%</td>
+        <td class="m-price">175</td>
+        <td class="m-fall">−42,9%</td>
+        <td style="color:var(--gold2)">+14% (→ 200) um zu verdoppeln</td>
+        <td class="m-note">Position schützt sich fast schon selbst</td>
+      </tr>
+      <tr>
+        <td class="m-gain" style="color:#a7e8a7">+100%</td>
+        <td class="m-price">200</td>
+        <td class="m-fall" style="font-weight:900">−50,0% → Break-Even</td>
+        <td style="color:var(--green);font-weight:700">+50% (→ 300) um zu VERDREIfachen</td>
+        <td class="m-note">★ KEY LEVEL: −50% bringt zurück zu 0. Nur +50% nötig für nächste Verdopplung.</td>
+      </tr>
+      <tr>
+        <td class="m-gain">+150%</td>
+        <td class="m-price">250</td>
+        <td class="m-fall">−60,0%</td>
+        <td style="color:var(--green)">+60% (→ 400) um auf 4× zu steigen</td>
+        <td class="m-note">Position toleriert jetzt Normal-Bärenmarkt</td>
+      </tr>
+      <tr>
+        <td class="m-gain">+200%</td>
+        <td class="m-price">300</td>
+        <td class="m-fall">−66,7%</td>
+        <td style="color:var(--green)">+33% (→ 400) für die nächste Stufe</td>
+        <td class="m-note">Übersteht starken Bärenmarkt −60% ohne Verlust</td>
+      </tr>
+      <tr>
+        <td class="m-gain">+300%</td>
+        <td class="m-price">400</td>
+        <td class="m-fall">−75,0%</td>
+        <td style="color:var(--green)">+25% (→ 500) für nächste 100%</td>
+        <td class="m-note">Extremer Crash nötig um auf Verlustgebiet zu kommen</td>
+      </tr>
+      <tr>
+        <td class="m-gain">+400%</td>
+        <td class="m-price">500</td>
+        <td class="m-fall">−80,0%</td>
+        <td style="color:var(--green)">+20% für nächste 100% der Original-Investition</td>
+        <td class="m-note">Position ist im Prinzip „Haus-Geld"</td>
+      </tr>
+      <tr>
+        <td class="m-gain">+1000%</td>
+        <td class="m-price">1100</td>
+        <td class="m-fall">−90,9%</td>
+        <td style="color:#10b981;font-weight:700">+9% (→ 1200) für nächste 100% der Investition</td>
+        <td class="m-note">10-Bagger: Position ist faktisch unverwundbar</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="info-card" style="border-left:4px solid var(--green);margin-bottom:0;">
+    <div class="info-card-body">
+      <strong>Die zentrale Erkenntnis des Spiegel-Phänomens:</strong>
+      <br><br>
+      Ab +100% Gewinn braucht die Position nur noch <strong>halb so viel Steigerungs-Prozent</strong>
+      vom aktuellen Kurs um eine weitere vollständige Verdopplung des Original-Kapitals zu erreichen.
+      Ab +300% reicht ein +25%-Move. Ab +1000% ein +9%-Move.
+      <br><br>
+      <em>Das ist der mathematische Grund, warum Trendfolger — Mary-Typ — ihre Gewinner laufen lassen:
+      Mit jedem Gewinn-Prozent sinkt der prozentuale Aufwand für die nächste Gewinneinheit,
+      während die Fallhöhe bis zum Break-Even steigt.</em>
+      <br><br>
+      <strong>Aber:</strong> Der absolute Betrag, der bei einem Einbruch vernichtet wird, wächst parallel —
+      weshalb ein mechanischer Trailing Stop unabdingbar ist. Die Asymmetrie schützt die Rendite-Rechnung,
+      nicht das Ego.
+    </div>
+  </div>
+
+  <!-- SEQUENZ-EFFEKT / ARITHMETISCHE FALLE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die Arithmetische Falle</div>
+    <div class="section-title">+50% dann −50% ≠ 0 — Der Sequenzeffekt vernichtet Kapital</div>
+  </div>
+
+  <div class="seq-demo">
+    <div class="seq-box">
+      <div class="seq-title" style="color:var(--red)">Szenario A: Erst Gewinn, dann Verlust</div>
+      <div class="seq-step"><span class="seq-start">100 €</span></div>
+      <div class="seq-step"><span class="seq-arrow-up">↑ +50%</span> <span style="color:var(--green)">→ 150 €</span></div>
+      <div class="seq-step"><span class="seq-arrow-dn">↓ −50%</span> <span style="color:var(--red)">→ 75 €</span></div>
+      <div class="seq-step"><span class="seq-end-bad">= −25% VERLUST</span></div>
+      <div class="seq-conclusion">Arithmetisches Mittel: (+50 −50)/2 = 0%. Realität: −25%. Der Unterschied zwischen arithmetischem und geometrischem Mittel.</div>
+    </div>
+    <div class="seq-box">
+      <div class="seq-title" style="color:var(--red)">Szenario B: Erst Verlust, dann Gewinn</div>
+      <div class="seq-step"><span class="seq-start">100 €</span></div>
+      <div class="seq-step"><span class="seq-arrow-dn">↓ −50%</span> <span style="color:var(--red)">→ 50 €</span></div>
+      <div class="seq-step"><span class="seq-arrow-up">↑ +50%</span> <span style="color:var(--green)">→ 75 €</span></div>
+      <div class="seq-step"><span class="seq-end-bad">= −25% VERLUST</span></div>
+      <div class="seq-conclusion">Identisches Ergebnis egal ob Verlust vor oder nach Gewinn. Die Reihenfolge ändert das Ergebnis nicht — die Asymmetrie ist immer da.</div>
+    </div>
+  </div>
+
+  <div class="seq-demo">
+    <div class="seq-box">
+      <div class="seq-title" style="color:var(--green)">Das korrekte Gegenstück zu +50%</div>
+      <div class="seq-step"><span class="seq-start">100 €</span></div>
+      <div class="seq-step"><span class="seq-arrow-up">↑ +50%</span> <span style="color:var(--green)">→ 150 €</span></div>
+      <div class="seq-step"><span class="seq-arrow-dn">↓ −33,3%</span> <span style="color:var(--gold)">→ 100 €</span></div>
+      <div class="seq-step"><span class="seq-end-ok">= ±0% Break-Even</span></div>
+      <div class="seq-conclusion">Wer +50% gewonnen hat, verliert bei −33,3% nur seinen Gewinn, aber <em>kein ursprüngliches Kapital</em>. Nicht −50%!</div>
+    </div>
+    <div class="seq-box">
+      <div class="seq-title" style="color:var(--green)">Das korrekte Gegenstück zu −50%</div>
+      <div class="seq-step"><span class="seq-start">100 €</span></div>
+      <div class="seq-step"><span class="seq-arrow-dn">↓ −50%</span> <span style="color:var(--red)">→ 50 €</span></div>
+      <div class="seq-step"><span class="seq-arrow-up">↑ +100%</span> <span style="color:var(--green)">→ 100 €</span></div>
+      <div class="seq-step"><span class="seq-end-ok">= ±0% Break-Even</span></div>
+      <div class="seq-conclusion">Nach einem −50% Verlust muss die Position sich <em>verdoppeln</em> — nicht um +50% steigen. Das unterschätzen 9 von 10 Anlegern.</div>
+    </div>
+  </div>
+
+  <div class="info-card" style="border-left:4px solid var(--orange);margin-bottom:0;">
+    <div class="info-card-body">
+      <strong>Logarithmische vs. Arithmetische Rendite:</strong>
+      Die arithmetische Durchschnitts-Rendite (+50% und −50% = ∅ 0%) ist eine
+      <em>statistisch korrekte aber finanziell gefährliche Lüge</em>.
+      Die geometrische (korrekte) Rendite:
+      √(1,50 × 0,50) − 1 = √0,75 − 1 = <strong style="color:var(--red)">−13,4% pro Periode</strong>.
+      <br><br>
+      Das ist der Grund warum Van Tharp logarithmische Returns und die Kelly-Formel verwendet —
+      und warum Volatilität an sich bereits Kapital vernichtet, auch bei einem ∅ 0%-Outcome.
+      <em>„Volatilität ist Rendite-Killer"</em> ist keine Meinung. Es ist Mathematik.
+    </div>
+  </div>
+
+  <!-- TRAILING STOP TABELLE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Angewandte Asymmetrie</div>
+    <div class="section-title">Trailing Stop Matrix — Wann laufen lassen, wann sichern?</div>
+  </div>
+
+  <table class="trail-table">
+    <thead>
+      <tr>
+        <th>Position im Gewinn</th>
+        <th>Trailing Stop Empfehlung</th>
+        <th>Logik dahinter</th>
+        <th>Max. Verlust auf Original bei Auslösung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>+10% bis +25%</td>
+        <td>Stop bei Break-Even (Einstieg)</td>
+        <td>Position schützt sich selbst noch nicht ausreichend. Mindestens kein Verlust.</td>
+        <td style="color:var(--green);font-size:12px">0% (Break-Even geschützt)</td>
+      </tr>
+      <tr>
+        <td>+25% bis +50%</td>
+        <td>Stop bei +10% bis +15%</td>
+        <td>Kleiner Gewinn ist besser als Rückkehr zu 0. Stichhaltige Gewinne sichern.</td>
+        <td style="color:var(--green);font-size:12px">+10–15% gesichert</td>
+      </tr>
+      <tr>
+        <td>+50% bis +100%</td>
+        <td>Stop bei +20% bis +33%</td>
+        <td>Position übersteht jetzt eine −33% Korrektur bis BE. Stop bei Hälfte des Gewinns.</td>
+        <td style="color:var(--green);font-size:12px">+20–33% Mindestgewinn</td>
+      </tr>
+      <tr>
+        <td style="color:var(--green);font-weight:900">+100%</td>
+        <td style="color:var(--blue2)">Stop bei +50% (Halbgewinn)</td>
+        <td><strong>Kernszenario:</strong> Verdopplung gesichert. Stop bei 150 wenn Position bei 200.
+        Original-Kapital plus 50% ist in jedem Fall gerettet. Läuft weiter ohne Druck.</td>
+        <td style="color:var(--green);font-weight:700">+50% gesichert · Niemals Verlust</td>
+      </tr>
+      <tr>
+        <td>+100% bis +200%</td>
+        <td>Stop bei 50% des aktuellen Gains</td>
+        <td>Bei +150% = Stop bei +75%. Jeder Gewinnanstieg schiebt den Stop proportional hoch.</td>
+        <td style="color:var(--green);font-size:12px">Immer ≥ hälfte des Gewinns gesichert</td>
+      </tr>
+      <tr>
+        <td>+200% bis +500%</td>
+        <td>Stop bei 66% des Gewinns behalten</td>
+        <td>Haus-Geld-Modus. Position übersteht jetzt −66% bis Break-Even. Aggressiverer Stop.</td>
+        <td style="color:var(--green);font-size:12px">≥ 2/3 aller Gewinne gesichert</td>
+      </tr>
+      <tr>
+        <td style="color:#10b981;font-weight:900">+1000% (10-Bagger)</td>
+        <td style="color:var(--gold2)">Stop bei +900% (nur 10% Puffer)</td>
+        <td>Legende: Peter Lynch lässt 10-Bagger so lange laufen wie die Fundamental-Story intakt ist.
+        −10% vom Hoch reicht als Stop weil −90% nötig wäre um auf Break-Even zu fallen.</td>
+        <td style="color:#10b981;font-weight:700">+900% Mindest-Gewinn · Faktisch unverwundbar</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- DUDE BANK TRAILING STOP REGEL -->
+  <div class="info-card" style="border:1px solid rgba(63,185,80,0.3);border-left:4px solid var(--green);background:rgba(63,185,80,0.04);margin-top:28px;">
+    <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:10px;">★ DUDE BANK HOUSE RULE — Buchgewinn-Schutz</div>
+    <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:12px;">Die 10–15% Buchgewinn-Trailing-Stop Regel</div>
+    <div style="font-size:13px;color:#8b949e;line-height:1.75;">
+      <strong style="color:var(--text)">Die Regel:</strong>
+      Sobald eine Position unrealisierte Buchgewinne aufgebaut hat, wird der Trailing Stop so gesetzt,
+      dass maximal <strong style="color:var(--green)">10–15% des Buchgewinns</strong> wieder abgegeben werden.
+      Nicht 10–15% des aktuellen Kurses — sondern 10–15% des <em>aufgelaufenen Gewinns</em>.
+      <br><br>
+      <strong style="color:var(--text)">Formel:</strong>
+    </div>
+    <div class="r-formula" style="margin:14px 0;padding:16px 20px;">
+      <div class="r-formula-text" style="font-size:15px;">
+        Stop-Preis = Aktueller Kurs − (Buchgewinn × 0,10 bis 0,15)
+      </div>
+      <div class="r-formula-sub">
+        Buchgewinn = Aktueller Kurs − Einstiegspreis · Stop gibt max. 10–15% davon wieder ab
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="trail-table" style="margin-bottom:0;">
+      <thead>
+        <tr>
+          <th>Einstieg</th>
+          <th>Aktueller Kurs</th>
+          <th>Buchgewinn</th>
+          <th>10% Abgabe → Stop bei</th>
+          <th>15% Abgabe → Stop bei</th>
+          <th>Gesicherter Mindestgewinn</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>100</td>
+          <td style="color:var(--green)">110</td>
+          <td>10</td>
+          <td style="color:var(--blue2)">109 (−1 vom Kurs)</td>
+          <td style="color:var(--blue2)">108,5</td>
+          <td style="color:var(--green)">+8,5 bis +9% gesichert</td>
+        </tr>
+        <tr>
+          <td>100</td>
+          <td style="color:var(--green)">150</td>
+          <td>50</td>
+          <td style="color:var(--blue2)">145 (−5 vom Kurs)</td>
+          <td style="color:var(--blue2)">142,5</td>
+          <td style="color:var(--green)">+42,5 bis +45% gesichert</td>
+        </tr>
+        <tr>
+          <td>100</td>
+          <td style="color:var(--green)">200</td>
+          <td>100</td>
+          <td style="color:var(--blue2)">190 (−10 vom Kurs)</td>
+          <td style="color:var(--blue2)">185</td>
+          <td style="color:var(--green)">+85 bis +90% gesichert</td>
+        </tr>
+        <tr>
+          <td>100</td>
+          <td style="color:var(--green)">300</td>
+          <td>200</td>
+          <td style="color:var(--blue2)">280 (−20 vom Kurs)</td>
+          <td style="color:var(--blue2)">270</td>
+          <td style="color:var(--green)">+170 bis +180% gesichert</td>
+        </tr>
+        <tr>
+          <td>100</td>
+          <td style="color:#10b981;font-weight:700">1.000</td>
+          <td style="color:#10b981;font-weight:700">900</td>
+          <td style="color:var(--blue2)">910 (−90 vom Kurs)</td>
+          <td style="color:var(--blue2)">865</td>
+          <td style="color:#10b981;font-weight:700">+765 bis +810% gesichert</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div style="font-size:13px;color:#8b949e;line-height:1.75;margin-top:14px;">
+      <strong style="color:var(--text)">Warum diese Regel überlegen ist:</strong>
+      Ein klassischer 10%-Trailing-Stop auf den <em>Kurs</em> bei einer 200-Position würde bei 180 triggern
+      und <strong>nur 80 von 100 Buchgewinn sichern</strong> (80%). Die DUDE-BANK-Regel gibt nur 10 ab → sichert 90.
+      <br>
+      Bei einem 1000%-Winner wäre ein klassischer 10%-Kurs-Stop bei 900 → Sicherung von 800.
+      Die Buchgewinn-Regel (10% von 900 = 90) stoppt bei 910 → sichert 810.
+      <br><br>
+      <strong style="color:var(--green)">Fazit: Je größer der Buchgewinn, desto enger und präziser schützt die Regel — automatisch und skalierend.</strong>
+    </div>
+  </div>
+
+  <!-- ENTSCHEIDUNGSREGELN PRAXIS -->
+  <div class="section-header section-gap">
+    <div class="section-label">Entscheidungsmatrix</div>
+    <div class="section-title">5 Praxisfälle — Was tue ich jetzt konkret?</div>
+  </div>
+
+  <div class="decision-grid">
+
+    <div class="decision-card dc-green">
+      <div class="decision-scenario">Szenario 1</div>
+      <div class="decision-title">Position +100% im Plus</div>
+      <div class="decision-body">
+        Du hast eine Position die sich verdoppelt hat. Jetzt pullback von −20% auf +80%.
+        <br><br>
+        <strong>Was passiert mathematisch:</strong> Du stehst noch bei +80% Gewinn.
+        Der Einbruch bis Break-Even wäre jetzt noch −44,4% vom aktuellen Kurs.
+        Du hast 44% Puffer. Für eine nochmalige Verdopplung braucht der Kurs
+        nur noch +11% vom aktuellen Niveau (→ 222 = +122% vom Einstieg).
+        <br><br>
+        <strong>Regel:</strong> Kein Panic-Selling. Trailing Stop setzen bei +50%.
+        Fundamentals prüfen ob die Story noch intakt. Laufen lassen.
+      </div>
+      <div class="decision-rule">HALTEN — Trailing Stop bei +50% · Niet-verkaufen bei Rücksetzern</div>
+    </div>
+
+    <div class="decision-card dc-gold">
+      <div class="decision-scenario">Szenario 2</div>
+      <div class="decision-title">Aktie +100% run — Kaufen oder warten?</div>
+      <div class="decision-body">
+        Eine Aktie ist von 50 auf 100 gestiegen (+100%). Du hast verpasst.
+        Jetzt zieht sie 20% zurück auf 80. Einstieg lohnenswert?
+        <br><br>
+        <strong>Neuer Käufer bei 80:</strong> Vorheriges Hoch war 100 → nur +25% nötig.
+        Aber: Wenn der +100%-Run eine komplette Überbewertung war,
+        könnte sie auf 40–50 zurückfallen (−37,5% bis −50% vom Einstieg bei 80).
+        <br><br>
+        <strong>R-Ratio:</strong> +25% Potenzial vs. −37,5% Risk = 0,67R. Schlechtes Setup.
+        Nur lohnend wenn der Trend eindeutig intakt ist UND es sich um einen technischen Rücksetzer handelt.
+      </div>
+      <div class="decision-rule">VORSICHT — R-Ratio ≥ 1:2 prüfen · Trend-Kontext entscheidend</div>
+    </div>
+
+    <div class="decision-card dc-orange">
+      <div class="decision-scenario">Szenario 3</div>
+      <div class="decision-title">Position −35% im Minus</div>
+      <div class="decision-body">
+        Du sitzt auf einem Verlust von −35%. Du brauchst +54% nur um auf Break-Even zu kommen.
+        <br><br>
+        <strong>Die kritische Frage:</strong> Würdest du diese Position <em>heute neu kaufen</em>?
+        Mit dem Wissen über Fundamentals, Trend, und Marktlage — würdest du frisches Geld in diese Aktie stecken?
+        <br><br>
+        Wenn <strong>Nein</strong>: Sofort verkaufen. Das Kapital hat bessere Verwendung.
+        Wenn <strong>Ja</strong>: Warum hast du dann keinen Stop gehabt? Setze jetzt einen bei −45%.
+        <br><br>
+        Van Tharp: <em>„Hold until stop is triggered. Never hold because of hope."</em>
+      </div>
+      <div class="decision-rule">DECISION POINT — Würde ich heute kaufen? Ja → Stop bei −45%. Nein → Sofort raus.</div>
+    </div>
+
+    <div class="decision-card dc-red">
+      <div class="decision-scenario">Szenario 4</div>
+      <div class="decision-title">Position −50% oder mehr</div>
+      <div class="decision-body">
+        Du brauchst +100% auf dein verbleibendes Kapital. Das bedeutet:
+        die Aktie muss sich von ihrem aktuellen Tiefpunkt <em>verdoppeln</em> — ohne dass du weißt,
+        wie tief das Tief noch wird.
+        <br><br>
+        <strong>Opportunitätskosten-Rechnung:</strong> Könnte dein verbleibendes Kapital woanders
+        in 3 Jahren +100% machen? Wenn ja — warum läßt du es in der verlierenden Position liegen?
+        <br><br>
+        <strong>Ausnahme:</strong> Blue-Chip in Panik-Sell-Off (2008/2020 Typ) mit intakter Fundamental-Story.
+        Dann kann Zukauf (Averaging Down) die Recovery-Zeit halbieren.
+      </div>
+      <div class="decision-rule">KRITISCH — Verkauf stark erwägen · Nur halten bei fundamentalem Turnaround-Case</div>
+    </div>
+
+    <div class="decision-card dc-purple">
+      <div class="decision-scenario">Szenario 5 · Das "Doppel-wieder"-Phänomen</div>
+      <div class="decision-title">Aktie +100% — wann verdoppelt sie sich nochmal?</div>
+      <div class="decision-body">
+        Du hast 100€ investiert, Aktie bei 200€ (+100%). Für eine <em>weitere</em> Verdopplung
+        muss die Aktie von 200 auf 400 steigen — also nochmal +100% vom aktuellen Kurs.
+        <br><br>
+        Aber: Dein Break-Even liegt bei 100. Du brauchst nur +50% des aktuellen Kurses um
+        dein Investment zu <em>verdreifachen</em>. Die „nächste Verdopplung" von dir
+        (200→400) erfordert aber dieselbe Anstrengung wie vorher (100→200).
+        <br><br>
+        <strong>Die logarithmische Einsicht:</strong> Jede weitere Verdopplung
+        des Aktienkurses bringt dir dieselbe prozentuale Rendite auf dein Original-Investment.
+        Aber jede Verdopplung wird <em>absolut gesehen schwerer</em> (Kurs muss von größerer Basis aus steigen).
+        Momentum-Aktien und Wachstums-Stories durchbrechen das — bis sie es nicht mehr tun.
+      </div>
+      <div class="decision-rule">MATHEMATIK: Jede Verdopplung = gleiche % auf Einstieg · Aber steigendes absolutes Risiko</div>
+    </div>
+
+    <div class="decision-card dc-blue">
+      <div class="decision-scenario">Szenario 6 · Van Tharp Synthese</div>
+      <div class="decision-title">Das einzige Gesetz das zählt</div>
+      <div class="decision-body">
+        Alle oben genannten Phänomene führen zu einer einzigen Konsequenz:
+        <br><br>
+        <strong>1. Verluste begrenzen ist wichtiger als Gewinne maximieren.</strong>
+        Ein −50%-Verlust erfordert einen +100%-Gewinn. Ein vermiedener −50%-Verlust
+        erspart dir diesen unmöglichen Aufholprozess komplett.
+        <br><br>
+        <strong>2. Gewinne laufen lassen ist wichtiger als „Gewinne mitnehmen".</strong>
+        Ein +100% Trade der auf +200% läuft, braucht nur −33% um auf +100% zurückzufallen.
+        Das ist kein Risiko — das ist Sicherheitspuffer.
+        <br><br>
+        <strong>3. Position Sizing schlägt alles.</strong>
+        Ein −50%-Verlust auf 2% Portfolioallokation = −1% Gesamt-Drawdown. Leicht recover-bar.
+      </div>
+      <div class="decision-rule">GESETZ: Kleine Verluste · Große Gewinne · Korrekte Positionsgröße = alles andere ist Lärm</div>
+    </div>
+
+  </div>
+
+  <!-- TRADER PROFILE TABELLE -->
+  <div class="section-header section-gap">
+    <div class="section-label">7 Trader-Profile</div>
+    <div class="section-title">Mary, Dick, Victor, Ellen, Ken, Nancy, Eric — Tharps Fallstudien</div>
+  </div>
+
+  <div class="trader-grid">
+    <div class="trader-card" style="border-top:2px solid var(--green)">
+      <div class="trader-name" style="color:var(--green)">Mary</div>
+      <div class="trader-style">Trendfolge-Traderin</div>
+      <div class="r-values">
+        <span class="r-chip pos">+5.5R</span>
+        <span class="r-chip neg">−1R</span>
+        <span class="r-chip neg">−0.5R</span>
+        <span class="r-chip pos">+2R</span>
+      </div>
+      <div class="trader-ev"><span class="label">EV:</span> <span class="val-green">+1.5R</span> pro Trade</div>
+      <div class="trader-body">
+        Geduldig. Wartet auf echte Trends. Hält Gewinne laufen.
+        Stop läuft dem Kurs nach (Trailing Stop). Verluste konsequent begrenzt.
+        <strong>Bestes Profil.</strong>
+      </div>
+    </div>
+
+    <div class="trader-card" style="border-top:2px solid var(--blue)">
+      <div class="trader-name" style="color:var(--blue)">Dick</div>
+      <div class="trader-style">Swing-Trader</div>
+      <div class="r-values">
+        <span class="r-chip pos">+4R</span>
+        <span class="r-chip neg">−1R</span>
+        <span class="r-chip pos">+2R</span>
+        <span class="r-chip neg">−1R</span>
+      </div>
+      <div class="trader-ev"><span class="label">EV:</span> <span class="val-green">+1R</span> pro Trade</div>
+      <div class="trader-body">
+        Diszipliniert, schnelle Reaktionen. Verkauft früher als Mary aber mit gutem System.
+        Positiver EV, reproduzierbares Ergebnis.
+      </div>
+    </div>
+
+    <div class="trader-card" style="border-top:2px solid var(--gold)">
+      <div class="trader-name" style="color:var(--gold2)">Victor</div>
+      <div class="trader-style">Wert-Investor</div>
+      <div class="r-values">
+        <span class="r-chip pos">+3R</span>
+        <span class="r-chip pos">+1.5R</span>
+        <span class="r-chip neg">−1R</span>
+        <span class="r-chip neg">−0.5R</span>
+      </div>
+      <div class="trader-ev"><span class="label">EV:</span> <span class="val-green">+0.75R</span></div>
+      <div class="trader-body">
+        Sorgfältige Analyse, niedrige Fehlerquote. Leicht positiver EV.
+        Beständig, langweilig, profitabel.
+      </div>
+    </div>
+
+    <div class="trader-card" style="border-top:2px solid var(--purple)">
+      <div class="trader-name" style="color:var(--purple)">Ellen</div>
+      <div class="trader-style">Daytrader</div>
+      <div class="r-values">
+        <span class="r-chip pos">+1R</span>
+        <span class="r-chip pos">+0.5R</span>
+        <span class="r-chip neg">−1R</span>
+        <span class="r-chip neg">−1R</span>
+      </div>
+      <div class="trader-ev"><span class="label">EV:</span> <span class="val-gold">≈ 0R</span></div>
+      <div class="trader-body">
+        Viele Trades, niedrige R-Multiples. Gebühren fressen Gewinne. Kein Edge.
+        Warnung: Ohne klaren EV ist jede Strategie Glücksspiel.
+      </div>
+    </div>
+
+    <div class="trader-card" style="border-top:2px solid var(--orange)">
+      <div class="trader-name" style="color:var(--orange)">Ken</div>
+      <div class="trader-style">Konträr-Trader</div>
+      <div class="r-values">
+        <span class="r-chip pos">+2R</span>
+        <span class="r-chip neg">−2R</span>
+        <span class="r-chip pos">+1.5R</span>
+        <span class="r-chip neg">−1.5R</span>
+      </div>
+      <div class="trader-ev"><span class="label">EV:</span> <span class="val-gold">≈ 0R</span></div>
+      <div class="trader-body">
+        Ausgeglichen aber kein positiver EV. Verlässt sich auf Gütigkeit des Markts
+        statt auf Systemkante. Langfristig: Breakeven minus Gebühren = Verlust.
+      </div>
+    </div>
+
+    <div class="trader-card" style="border-top:2px solid var(--teal, #26c6da)">
+      <div class="trader-name" style="color:#26c6da">Nancy</div>
+      <div class="trader-style">Ängstliche Traderin</div>
+      <div class="r-values">
+        <span class="r-chip pos">+0.5R</span>
+        <span class="r-chip pos">+0.3R</span>
+        <span class="r-chip neg">−3R</span>
+        <span class="r-chip neg">−2R</span>
+      </div>
+      <div class="trader-ev"><span class="label">EV:</span> <span class="val-red">−1R</span></div>
+      <div class="trader-body">
+        Verkauft Gewinner zu früh, hält Verlierer zu lang (Loss Aversion).
+        Klassische Verlust-Falle. Verluste durch Hoffnung größer als Gewinne durch Angst.
+      </div>
+    </div>
+
+    <div class="trader-card" style="border-top:2px solid var(--red)">
+      <div class="trader-name" style="color:var(--red)">Eric</div>
+      <div class="trader-style">Impuls-Trader (KEIN System)</div>
+      <div class="r-values">
+        <span class="r-chip pos">+6.5R</span>
+        <span class="r-chip pos">+3R</span>
+        <span class="r-chip neg">−5R</span>
+        <span class="r-chip neg">−10R</span>
+      </div>
+      <div class="trader-ev"><span class="label">EV:</span> <span class="val-red">−2.5R</span></div>
+      <div class="trader-body">
+        Spektakuläre Gewinne, katastrophale Verluste. Kein Stop-Loss-Disziplin.
+        Kann 35.000 € an einem Tag verlieren. <strong>Das Negativbeispiel schlechthin.</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MARKTTYPEN -->
+  <div class="section-header section-gap">
+    <div class="section-label">Markt-Verständnis</div>
+    <div class="section-title">Tharps 6 Markttypen — Verschiedene Spiele brauchen verschiedene Strategien</div>
+  </div>
+
+  <div class="mt-grid">
+    <div class="mt-card bull">
+      <div class="mt-title">Bull Quiet</div>
+      <div class="mt-body">Aufwärtstrend mit niedriger Volatilität. Kaufe und halte. Trailing Stop genug. Einfachstes Geld.</div>
+    </div>
+    <div class="mt-card bull">
+      <div class="mt-title">Bull Volatile</div>
+      <div class="mt-body">Aufwärtstrend mit hoher Volatilität. Trend da aber rauer. Größere Stops nötig, kleinere Positionen.</div>
+    </div>
+    <div class="mt-card bear">
+      <div class="mt-title">Bear Quiet</div>
+      <div class="mt-body">Abwärtstrend ruhig. Shorts oder Cash. Longs verboten.</div>
+    </div>
+    <div class="mt-card bear">
+      <div class="mt-title">Bear Volatile</div>
+      <div class="mt-body">Abwärtstrend + Chaos. Schwierigster Markttyp. Extremer Vorsicht. Minimale Positionsgrößen.</div>
+    </div>
+    <div class="mt-card side">
+      <div class="mt-title">Sideways Quiet</div>
+      <div class="mt-body">Seitwärtsbewegung, ruhig. Range-Trading. Buy Support, Sell Resistance. Kein Trendfolge-System.</div>
+    </div>
+    <div class="mt-card vol">
+      <div class="mt-title">Sideways Volatile</div>
+      <div class="mt-body">Seitwärtsbewegung + hohe Volatilität. Schlechtester Markt für die meisten Systeme. Aussitzen.</div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-year">DUDE BANK KI-ANWENDUNG</div>
+    <div class="info-card-title">Homma Munehisas Erbe trifft Tharps Markttypen</div>
+    <div class="info-card-body">
+      Die Dude Bank KI klassifiziert Märkte automatisch nach Tharps 6-Typ-Modell (erweitert mit
+      Homma's OHLC-Psychologie-Analyse). Für jeden Markttyp wird eine andere Handelsstrategie
+      aktiviert — und bei "Sideways Volatile" wird der Trading-Agent vollständig eingestellt:
+      <strong>Cash ist eine Position.</strong>
+      <br><br>
+      Kaufmans Effizienz-Ratio und Wilders ADX werden als Markttyp-Filter eingesetzt:
+      ADX über 25 = Trending Market (Trendfolge aktiv). ADX unter 25 = Ranging Market
+      (Range-System aktiv oder Pause). ER nahe 1 = sauberer Trend, ER nahe 0 = Rauschen/Seitwärts.
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas un graphique. C'est le champ de bataille de l'âme humaine." — Homma × Magritte</div>
+    <div class="tags">
+      <span class="tag">Markttyp-Klassifikation</span>
+      <span class="tag">Kaufman ER</span>
+      <span class="tag">Wilder ADX</span>
+      <span class="tag-gold tag">Homma Candlesticks</span>
+    </div>
+  </div>
+
+  <!-- PSYCHOLOGIE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Psychologie</div>
+    <div class="section-title">Handelspsychologie & Parts Psychology</div>
+  </div>
+
+  <div class="psych-cards">
+
+    <div class="psych-card">
+      <div class="psych-label">Verlust-Falle (Loss Trap)</div>
+      <div class="psych-title">Warum Trader ihr Konto zerstören ohne es zu wollen</div>
+      <div class="psych-body">
+        Tharp identifiziert die <strong>Loss Trap</strong> als den häufigsten Fehler:
+        Trader verkaufen Gewinner zu früh (Angst, Gewinn zu verlieren = Regret Aversion) und
+        halten Verlierer zu lang (Hoffnung auf Erholung = Loss Aversion).
+        <br><br>
+        Das Ergebnis: <strong>Viele kleine Gewinne + wenige große Verluste = negatives EV.</strong>
+        Obwohl die Trefferquote hoch ist, ist der Erwartungswert negativ.
+        Nancy aus Tharps Fallstudien ist das Paradebeispiel: 70% Trefferquote, aber negatives EV
+        weil Gewinner bei +0.5R und Verlierer bei −3R abgeschnitten werden.
+        <br><br>
+        <strong>Magritte-Verbindung:</strong> Der Verlust auf dem Screen ist nicht das echte Problem.
+        Das Problem ist dein Ich, das sich mit dem Trade identifiziert. „Mein Trade ist rot" → „Ich bin ein Versager."
+        Diese Gleichsetzung ist die Quelle aller emotionalen Handelsfehler.
+      </div>
+      <div class="magritte-quote">„Ceci n'est pas une perte. C'est ton identité qui brûle."</div>
+    </div>
+
+    <div class="psych-card">
+      <div class="psych-label">Parts Psychology</div>
+      <div class="psych-title">Das innere Parlament des Traders</div>
+      <div class="psych-body">
+        Tharp unterscheidet verschiedene <strong>„Teile"</strong> der Persönlichkeit, die beim Trading
+        in Konflikt stehen:
+        <br><br>
+        • <strong>Der Angst-Teil:</strong> „Verkauf sofort! Ich kann den Verlust nicht ertragen!"<br>
+        • <strong>Der Gier-Teil:</strong> „Verdopple die Position! Der Markt muss drehen!"<br>
+        • <strong>Der Analysen-Teil:</strong> „Laut System ist die Signalstärke 7/10..."<br>
+        • <strong>Der Selbstbestrafungs-Teil:</strong> „Du hast wieder versagt. Du bist kein echter Trader."<br>
+        • <strong>Der Rulebook-Teil:</strong> „Was sagt mein Trading-Plan?"
+        <br><br>
+        Profitables Trading bedeutet: <strong>Der Rulebook-Teil muss das Parlament dominieren.</strong>
+        Das erfordert systematische Arbeit an der eigenen Psychologie — nicht nur Chartanalyse.
+      </div>
+    </div>
+
+    <div class="psych-card">
+      <div class="psych-label">System-Disziplin</div>
+      <div class="psych-title">Das System ausführen, nicht sein Glück suchen</div>
+      <div class="psych-body">
+        Tharps Kernthese: <strong>Die meisten Trader haben kein System-Problem, sondern ein Ausführungs-Problem.</strong>
+        Sie haben ein gutes System, aber sie führen es nicht aus weil ihre Psychologie eingreift.
+        <br><br>
+        Eric (das Negativbeispiel) hatte Tage mit +6.5R Gewinnen — sein Chart-Lesen war nicht schlecht.
+        Aber an einem anderen Tag verlor er −10R weil er keinen Stop hatte und „hoffte".
+        <strong>Kein System + gelegentliches Talent = langfristiger Verlust.</strong>
+        <br><br>
+        <strong>Dude Bank KI-Lösung:</strong> Der Trading-Agent handelt ohne Emotion.
+        Kein Angst-Teil, kein Gier-Teil. Nur das Rulebook und der aktuelle Markttyp.
+        Das ist der einzige Vorteil einer KI gegenüber menschlichen Tradern: <strong>perfekte Disziplin.</strong>
+      </div>
+      <div class="magritte-quote">„Ceci n'est pas un pari. C'est l'exécution d'un protocole."</div>
+    </div>
+
+    <div class="psych-card">
+      <div class="psych-label">Magritte × Tharp</div>
+      <div class="psych-title">Die philosophische Brücke: Repräsentation vs. Realität</div>
+      <div class="psych-body">
+        Magrittes „Ceci n'est pas une pipe" (1929) und Tharps Trading-Psychologie kreisen um
+        dieselbe Kernfrage: <strong>Verwechslung von Repräsentation und Realität.</strong>
+        <br><br>
+        Magritte sagt: Das Bild einer Pfeife ist nicht die Pfeife. Du kannst keine Pfeife
+        aus dem Gemälde stopfen.
+        <br><br>
+        Tharp sagt: Der Chart ist nicht der Markt. Der RSI ist nicht die Zukunft.
+        Der Backtest ist nicht die Realität. Das Konto-Statement von gestern ist nicht das Konto von morgen.
+        <br><br>
+        <strong>Beide brechen dieselbe epistemische Illusion auf:</strong>
+        Wir verwechseln Symbol (Chart, Indikator, Backtest) mit Substanz (dem echten, zukünftigen Markt).
+        Professionelles Trading bedeutet: Diese Illusion täglich neu brechen.
+      </div>
+      <div class="magritte-quote">
+        „Ceci n'est pas une pipe." — René Magritte, 1929<br>
+        „Ceci n'est pas un marché." — Van K. Tharp, angewandt
+      </div>
+      <div class="tags">
+        <span class="tag">Magritte × Tharp</span>
+        <span class="tag">Repräsentation ≠ Realität</span>
+        <span class="tag-gold tag">Landkarte ≠ Gelände</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ERWARTUNGSWERT BERECHNUNG -->
+  <div class="section-header section-gap">
+    <div class="section-label">System-Bewertung</div>
+    <div class="section-title">Erwartungswert (EV) — Das einzige Maß das zählt</div>
+  </div>
+
+  <div class="r-hero">
+    <div class="r-formula">
+      <div class="r-formula-text">EV = (Trefferquote × Avg. Gewinn R) − ((1 − Trefferquote) × Avg. Verlust R)</div>
+    </div>
+    <table class="ps-table" style="margin-top:16px;">
+      <thead><tr><th>EV Beispiel</th><th>Trefferquote</th><th>Avg Gewinn</th><th>Avg Verlust</th><th>EV</th><th>System</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Mary (Trendfolge)</td>
+          <td>40%</td>
+          <td class="val-green">+5.5R</td>
+          <td class="val-red">−1R</td>
+          <td class="val-green">+1.6R</td>
+          <td class="val-green">★ Exzellent</td>
+        </tr>
+        <tr>
+          <td>Dick (Swing)</td>
+          <td>55%</td>
+          <td class="val-green">+3R</td>
+          <td class="val-red">−1R</td>
+          <td class="val-green">+1.2R</td>
+          <td class="val-green">★ Gut</td>
+        </tr>
+        <tr>
+          <td>Nancy (Loss Trap)</td>
+          <td>70%</td>
+          <td class="val-gold">+0.5R</td>
+          <td class="val-red">−3R</td>
+          <td class="val-red">−0.55R</td>
+          <td class="val-red">✗ Ruin</td>
+        </tr>
+        <tr>
+          <td>Eric (No System)</td>
+          <td>50%</td>
+          <td class="val-green">+5R</td>
+          <td class="val-red">−7R</td>
+          <td class="val-red">−1R</td>
+          <td class="val-red">✗ Zerstörend</td>
+        </tr>
+        <tr>
+          <td>Münzwurf (Kein Edge)</td>
+          <td>50%</td>
+          <td class="val-gold">+1R</td>
+          <td class="val-red">−1R</td>
+          <td class="val-gold">0R</td>
+          <td class="val-gold">— Breakeven (Gebühren = Verlust)</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="r-body" style="margin-top:16px;">
+      <strong>Die Erkenntnis:</strong> Du kannst eine hohe Trefferquote (70%!) haben und trotzdem
+      Geld verlieren. Es kommt nicht auf Trefferquote an — es kommt auf den <strong>Erwartungswert</strong> an.
+      Nancy verliert mit 70% Trefferquote weil ihre Gewinne 6× kleiner sind als ihre Verluste.
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div style="text-align:center;padding:32px;color:#2d4a5c;font-size:12px;border-top:1px solid #1c2d3f;">
+  DUDE BANK eG — Van K. Tharp Framework · R-Multiples · Position Sizing · 7 Trader Profile · Magritte × Trading · 2026
+</div>
+
+</body>
+</html>

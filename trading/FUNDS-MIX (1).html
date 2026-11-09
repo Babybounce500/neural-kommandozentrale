@@ -1,0 +1,2071 @@
+
+
+<!DOCTYPE html>
+<html lang="de" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEURAL FUNDS GLOBAL - Multi-Company Terminal v1.0</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        @keyframes neonGlow {
+            0%, 100% { text-shadow: 0 0 10px rgba(255, 184, 0, 0.8), 0 0 20px rgba(255, 184, 0, 0.6); }
+            50% { text-shadow: 0 0 20px rgba(255, 184, 0, 1), 0 0 30px rgba(255, 184, 0, 0.8); }
+        }
+        .animate-neon-amber { animation: neonGlow 2s ease-in-out infinite alternate; }
+        .glass-card { background: rgba(22, 33, 62, 0.4); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.4); }
+        .glass-card-cyan { background: rgba(22, 33, 62, 0.4); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        body { font-family: 'Inter', sans-serif; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Roboto Mono', monospace; }
+        .chart-container { position: relative; min-height: 440px; height: 60vh; }
+        select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#0a0a0a] via-[#1a1a2e] to-[#16213e] min-h-screen text-white overflow-y-auto">
+
+    <nav class="fixed top-0 left-0 right-0 z-50 border-b border-white/20 bg-[#0a0a0a]/95 backdrop-blur-lg">
+        <div class="px-4 sm:px-6 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-6 flex-1">
+                    <span class="text-lg sm:text-xl font-orbitron font-black text-[#FFB800] animate-neon-amber tracking-wider">
+                        NEURAL FUNDS GLOBAL
+                    </span>
+                    <div class="hidden md:block text-xs text-white font-mono font-bold">
+                        <span id="terminal-time"></span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 bg-[#0a0a0a]/60 border border-[#00ff00]/60 rounded-lg px-3 py-1 shadow-[0_0_10px_rgba(0,255,0,0.2)]">
+                        <input id="bloomberg-cmd" type="text" placeholder="DBXD.XETRA <GO>" class="bg-transparent border-none outline-none text-[#00ff00] font-mono text-sm w-36 placeholder-green-700 uppercase" />
+                        <button id="bloomberg-go-btn" class="bg-[#00ff00] text-black font-mono font-bold text-xs px-3 py-1 rounded hover:bg-[#00ff00]/80 transition-all duration-300">GO</button>
+                    </div>
+
+                    <!-- FUND COMPANY TABS -->
+                    <div class="hidden md:flex items-center space-x-1 bg-[#0a0a0a]/40 rounded-lg p-1">
+                        <button class="fund-tab active tab-dws px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-[#FFB800]" data-company="DWS">DWS (783)</button>
+                        <button class="fund-tab tab-allianz px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="ALLIANZ">ALLIANZ (1.2k)</button>
+                        <button class="fund-tab tab-generali px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="GENERALI">GENERALI (133)</button>
+                        <button class="fund-tab tab-blackrock px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="BLACKROCK">BLACKROCK (2.3k)</button>
+                        <button class="fund-tab tab-amundi px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="AMUNDI">AMUNDI (1.8k)</button>
+                    </div>
+
+                    <!-- MORE TABS (scrollable on mobile) -->
+                    <div class="hidden md:flex items-center space-x-1 bg-[#0a0a0a]/40 rounded-lg p-1">
+                        <button class="fund-tab tab-fidelity px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="FIDELITY">FIDELITY (1.6k)</button>
+                        <button class="fund-tab tab-bnp px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="BNP">BNP (1.1k)</button>
+                        <button class="fund-tab tab-jpmorgan px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="JPMORGAN">JPMORGAN (870)</button>
+                        <button class="fund-tab tab-ubs px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="UBS">UBS (839)</button>
+                        <button class="fund-tab tab-goldman px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="GOLDMAN">GOLDMAN (771)</button>
+                        <button class="fund-tab tab-vanguard px-3 py-2 text-xs font-mono font-bold rounded hover:bg-[#00ff00]/20 transition-all duration-300 text-white" data-company="VANGUARD">VANGUARD (351)</button>
+                    </div>
+
+                    <select id="symbol-selector" class="hidden md:block px-4 py-2 bg-[#16213e] border border-white/70 rounded-lg text-white text-sm font-mono font-bold focus:outline-none appearance-none cursor-pointer">
+                        <option value="">-- DWS SYMBOLS LOADING... --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 max-w-7xl mx-auto p-4 space-y-6">
+
+        <div class="glass-card-cyan rounded-2xl p-6">
+            <div id="price-header">
+                <div class="text-center text-white font-mono font-bold animate-pulse">Initialisiere Quant-Handelsmatrix...</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-[#0b132b]/80 border border-white/40 rounded-xl p-4">
+                <div class="text-xs text-white font-mono uppercase tracking-wider font-bold">Performance (Sichtbar)</div>
+                <div id="perf-period" class="text-xl font-orbitron font-black mt-1 text-white">--</div>
+            </div>
+            <div class="bg-[#0b132b]/80 border border-white/40 rounded-xl p-4">
+                <div class="text-xs text-white font-mono uppercase tracking-wider font-bold">Period High / Low</div>
+                <div id="perf-highlow" class="text-sm font-mono mt-2 text-white font-bold">H: --<br>L: --</div>
+            </div>
+            <div class="bg-[#0b132b]/80 border border-white/40 rounded-xl p-4">
+                <div class="text-xs text-white font-mono uppercase tracking-wider font-bold">Volatilität (StdDev)</div>
+                <div id="perf-volatility" class="text-xl font-orbitron font-black mt-1 text-white">--</div>
+            </div>
+            <div class="bg-[#0b132b]/80 border border-white/40 rounded-xl p-4">
+                <div class="text-xs text-white font-mono uppercase tracking-wider font-bold">RSI (14 Tage)</div>
+                <div id="perf-rsi" class="text-xl font-orbitron font-black mt-1 text-white">--</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-[#0f172a]/90 border-2 border-white/50 rounded-2xl p-5 shadow-2xl">
+                <h3 class="font-orbitron font-black text-white text-md tracking-wider uppercase mb-3 flex items-center gap-2">
+                    <span>⚡</span> Fast Cross-Analysis (SMA 20/50)
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-[#1e293b] border border-white/20 p-3 rounded-lg">
+                        <div class="text-xs text-white/70 font-mono uppercase">Signal / Datum</div>
+                        <div id="strategy-cross-signal" class="text-sm font-bold font-mono text-white mt-1">Prüfe Achsen...</div>
+                    </div>
+                    <div class="bg-[#1e293b] border border-white/20 p-3 rounded-lg">
+                        <div class="text-xs text-white/70 font-mono uppercase">Signal P&L (Live)</div>
+                        <div id="strategy-cross-pnl" class="text-sm font-orbitron font-black text-white mt-1">--</div>
+                    </div>
+                </div>
+                <p class="text-xs text-white mt-3 font-mono leading-relaxed bg-[#020617] p-2.5 rounded border border-white/10">
+                    <strong class="text-white">Fast-P&L Tracker:</strong> Prozentuale Rendite des aktuellen Live-Kurses bezogen auf das letzte generierte <span class="text-green-400">FAST L</span> oder <span class="text-red-400">FAST S</span> Signal.
+                </p>
+            </div>
+
+            <div class="bg-[#0f172a]/90 border-2 border-white/50 rounded-2xl p-5 shadow-2xl">
+                <h3 class="font-orbitron font-black text-white text-md tracking-wider uppercase mb-3 flex items-center gap-2">
+                    <span>🔄</span> Long-Term Macro Trend (Price vs. SMA 200)
+                </h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-[#1e293b] border border-white/20 p-3 rounded-lg">
+                        <div class="text-xs text-white/70 font-mono uppercase">Signal / Datum</div>
+                        <div id="strategy-macro-signal" class="text-sm font-bold font-mono text-white mt-1">Abgleichen...</div>
+                    </div>
+                    <div class="bg-[#1e293b] border border-white/20 p-3 rounded-lg">
+                        <div class="text-xs text-white/70 font-mono uppercase">Macro P&L (Live)</div>
+                        <div id="strategy-macro-pnl" class="text-sm font-orbitron font-black text-white mt-1">--</div>
+                    </div>
+                </div>
+                <p class="text-xs text-white mt-3 font-mono leading-relaxed bg-[#020617] p-2.5 rounded border border-white/10">
+                    <strong class="text-white">Macro-P&L Tracker:</strong> Ermittelt das aktuelle Anlageergebnis seit dem Tag des letzten signifikanten Ausbruchs über/unter den institutionellen Trendfilter <span class="text-amber-400">SMA 200</span>.
+                </p>
+            </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-4 sm:p-6">
+
+            <div class="block md:hidden mb-4">
+                <select id="symbol-selector-mobile" class="w-full px-3 py-2 bg-[#16213e] border border-white/50 rounded-lg text-white text-sm font-mono font-bold appearance-none cursor-pointer">
+                    <option value="">-- SYMBOL --</option>
+                        <option value="AH50.XETRA">AH50.XETRA - Xtrackers Harvest FTSE China A-H 50 UCITS ETF 1D EUR</option>
+                        <option value="ALLW.XETRA">ALLW.XETRA - Xtrackers FTSE All-World UCITS ETF 1C</option>
+                        <option value="ASHR.US">ASHR.US - Xtrackers Harvest CSI 300 China A-Shares ETF</option>
+                        <option value="ASHS.US">ASHS.US - Xtrackers Harvest CSI 500 China-A Shares Small Cap ETF</option>
+                        <option value="AWEX.XETRA">AWEX.XETRA - Xtrackers FTSE All-World ex US UCITS ETF 1C</option>
+                        <option value="BHYB.US">BHYB.US - Xtrackers USD High Yield BB-B ex Financials ETF</option>
+                        <option value="CA.US">CA.US - Xtrackers California Municipal Bonds ETF</option>
+                        <option value="CHPS.US">CHPS.US - Xtrackers Semiconductor Select Equity ETF</option>
+                        <option value="CPTFF.US">CPTFF.US - Xtrackers (IE) Public Limited Company - Xtrackers S&P 500 Equal Weight</option>
+                        <option value="CRTC.US">CRTC.US - Xtrackers US National Critical Technologies ETF</option>
+                        <option value="D5BB.XETRA">D5BB.XETRA - Xtrackers II - Germany Government Bond UCITS ETF</option>
+                        <option value="D5BC.XETRA">D5BC.XETRA - Xtrackers II Germany Government Bond 1-3 UCITS ETF</option>
+                        <option value="D5BG.XETRA">D5BG.XETRA - Xtrackers II - EUR Corporate Bond UCITS ETF</option>
+                        <option value="D5BH.XETRA">D5BH.XETRA - Xtrackers MSCI Canada ESG Screened UCITS ETF 1C</option>
+                        <option value="D5BI.XETRA">D5BI.XETRA - Xtrackers MSCI Mexico UCITS ETF 1C</option>
+                        <option value="D5BK.XETRA">D5BK.XETRA - Xtrackers FTSE Developed Europe Real Estate UCITS ETF 1C</option>
+                        <option value="D5BM.XETRA">D5BM.XETRA - Xtrackers S&P 500 Swap UCITS ETF 1C EUR</option>
+                        <option value="DBAW.US">DBAW.US - Xtrackers MSCI All World ex U.S. Hedged Equity ETF</option>
+                        <option value="DBEF.US">DBEF.US - Xtrackers MSCI EAFE Hedged Equity ETF</option>
+                        <option value="DBEM.US">DBEM.US - Xtrackers MSCI Emerging Markets Hedged Equity ETF</option>
+                        <option value="DBEU.US">DBEU.US - Xtrackers MSCI Europe Hedged Equity ETF</option>
+                        <option value="DBEZ.US">DBEZ.US - Xtrackers MSCI Eurozone Hedged Equity ETF</option>
+                        <option value="DBJP.US">DBJP.US - Xtrackers MSCI Japan Hedged Equity ETF</option>
+                        <option value="DBPD.XETRA">DBPD.XETRA - Xtrackers ShortDAX x2 Daily Swap UCITS ETF 1C</option>
+                        <option value="DBPE.XETRA">DBPE.XETRA - Xtrackers LevDAX Daily Swap UCITS ETF 1C</option>
+                        <option value="DBPG.XETRA">DBPG.XETRA - Xtrackers S&P 500 2x Leveraged Daily Swap UCITS ETF 1C EUR</option>
+                        <option value="DBX0.XETRA">DBX0.XETRA - Xtrackers - Portfolio UCITS ETF</option>
+                        <option value="DBX1.XETRA">DBX1.XETRA - Xtrackers - MSCI Emerging Markets Swap UCITS ETF</option>
+                        <option value="DBX2.XETRA">DBX2.XETRA - Xtrackers MSCI EM Asia Swap UCITS ETF 1C</option>
+                        <option value="DBX3.XETRA">DBX3.XETRA - Xtrackers - MSCI EM Latin America Swap UCITS ETF</option>
+                        <option value="DBX4.XETRA">DBX4.XETRA - Xtrackers - MSCI EM Europe Middle East & Africa Swap UCITS ETF</option>
+                        <option value="DBX5.XETRA">DBX5.XETRA - Xtrackers - MSCI Taiwan UCITS ETF</option>
+                        <option value="DBX6.XETRA">DBX6.XETRA - Xtrackers - MSCI Brazil UCITS ETF</option>
+                        <option value="DBX7.XETRA">DBX7.XETRA - Xtrackers - Nifty 50 Swap UCITS ETF</option>
+                        <option value="DBX8.XETRA">DBX8.XETRA - Xtrackers - MSCI Korea UCITS ETF</option>
+                        <option value="DBX9.XETRA">DBX9.XETRA - Xtrackers - FTSE China 50 UCITS ETF</option>
+                        <option value="DBXA.XETRA">DBXA.XETRA - Xtrackers MSCI Europe UCITS ETF 1C</option>
+                        <option value="DBXD.XETRA">DBXD.XETRA - Xtrackers DAX UCITS ETF 1C</option>
+                        <option value="DBXE.XETRA">DBXE.XETRA - Xtrackers - Euro Stoxx 50 UCITS ETF</option>
+                        <option value="DBXF.XETRA">DBXF.XETRA - Xtrackers II - Eurozone Government Bond 15-30 UCITS ETF</option>
+                        <option value="DBXG.XETRA">DBXG.XETRA - Xtrackers II Eurozone Government Bond 25+ UCITS ETF 1C</option>
+                        <option value="DBXH.XETRA">DBXH.XETRA - Xtrackers II Global Inflation-Linked Bond UCITS ETF</option>
+                        <option value="DBXI.XETRA">DBXI.XETRA - Xtrackers FTSE MIB UCITS ETF 1D</option>
+                        <option value="DBXJ.XETRA">DBXJ.XETRA - Xtrackers - MSCI Japan UCITS ETF</option>
+                        <option value="DBXK.XETRA">DBXK.XETRA - Xtrackers II Eurozone Inflation-Linked Bond UCITS ETF 1C</option>
+                        <option value="DBXN.XETRA">DBXN.XETRA - Xtrackers II Eurozone Government Bond UCITS ETF 1C EUR</option>
+                        <option value="DBXP.XETRA">DBXP.XETRA - Xtrackers II - Eurozone Government Bond 1-3 UCITS ETF</option>
+                        <option value="DBXQ.XETRA">DBXQ.XETRA - Xtrackers II Eurozone Government Bond 3-5 UCITS ETF 1C</option>
+                        <option value="DBXR.XETRA">DBXR.XETRA - Xtrackers II - Eurozone Government Bond 5-7 UCITS ETF</option>
+                        <option value="DBXS.XETRA">DBXS.XETRA - Xtrackers - Switzerland UCITS ETF</option>
+                        <option value="DBXU.XETRA">DBXU.XETRA - Xtrackers MSCI USA Swap UCITS ETF 1C EUR</option>
+                        <option value="DBXW.XETRA">DBXW.XETRA - Xtrackers - MSCI World Swap UCITS ETF</option>
+                        <option value="DBXX.XETRA">DBXX.XETRA - Xtrackers - FTSE 100 Income UCITS ETF</option>
+                        <option value="DBXY.XETRA">DBXY.XETRA - Xtrackers - FTSE 250 UCITS ETF</option>
+                        <option value="DBXZ.XETRA">DBXZ.XETRA - Xtrackers - Xtrackers MSCI UK ESG UCITS ETF 1D</option>
+                        <option value="DBZB.XETRA">DBZB.XETRA - Xtrackers II - Global Government Bond UCITS ETF</option>
+                        <option value="DBZN.XETRA">DBZN.XETRA - Xtrackers - DB Bloomberg Commodity Optimum Yield Swap UCITS ETF</option>
+                        <option value="DEEF.US">DEEF.US - Xtrackers FTSE Developed ex US Multifactor ETF</option>
+                        <option value="DEUS.US">DEUS.US - Xtrackers Russell US Multifactor ETF</option>
+                        <option value="DX2D.XETRA">DX2D.XETRA - Xtrackers - LPX Private Equity Swap UCITS ETF</option>
+                        <option value="DX2E.XETRA">DX2E.XETRA - Xtrackers - S&P Global Infrastructure Swap UCITS ETF</option>
+                        <option value="DX2G.XETRA">DX2G.XETRA - Xtrackers - CAC 40 UCITS ETF</option>
+                        <option value="DX2I.XETRA">DX2I.XETRA - Xtrackers - MSCI Europe Mid Cap UCITS ETF</option>
+                        <option value="DX2J.XETRA">DX2J.XETRA - Xtrackers MSCI Europe Small Cap UCITS ETF</option>
+                        <option value="DX2S.XETRA">DX2S.XETRA - Xtrackers - S&P ASX 200 UCITS ETF</option>
+                        <option value="DX2X.XETRA">DX2X.XETRA - Xtrackers - Stoxx Europe 600 UCITS ETF</option>
+                        <option value="DX2Z.XETRA">DX2Z.XETRA - Xtrackers - S&P Select Frontier Swap UCITS ETF</option>
+                        <option value="DXMEF.US">DXMEF.US - Xtrackers - MSCI Europe UCITS ETF</option>
+                        <option value="DXPJ.XETRA">DXPJ.XETRA - Xtrackers MSCI Pacific ex Japan Screened UCITS ETF</option>
+                        <option value="DXS0.XETRA">DXS0.XETRA - Xtrackers SLI UCITS ETF 1D EUR</option>
+                        <option value="DXS1.XETRA">DXS1.XETRA - Xtrackers II - GBP Cash Swap UCITS ETF</option>
+                        <option value="DXS3.XETRA">DXS3.XETRA - Xtrackers - S&P 500 Inverse Daily Swap UCITS ETF</option>
+                        <option value="DXS5.XETRA">DXS5.XETRA - Xtrackers - MSCI AC Asia ex Japan Swap UCITS ETF</option>
+                        <option value="DXS6.XETRA">DXS6.XETRA - Xtrackers MSCI Pacific ex Japan UCITS ETF 1C</option>
+                        <option value="DXS7.XETRA">DXS7.XETRA - Xtrackers FTSE Vietnam Swap UCITS ETF 1C</option>
+                        <option value="DXSA.XETRA">DXSA.XETRA - Xtrackers - Euro Stoxx Select Dividend 30 UCITS ETF</option>
+                        <option value="DXSB.XETRA">DXSB.XETRA - Xtrackers - Stoxx Global Select Dividend 100 Swap UCITS ETF</option>
+                        <option value="DXSC.XETRA">DXSC.XETRA - Xtrackers - Stoxx Europe 600 Basic Resources Swap UCITS ETF</option>
+                        <option value="DXSE.XETRA">DXSE.XETRA - Xtrackers - Stoxx Europe 600 Health Care Swap UCITS ETF</option>
+                        <option value="DXSF.XETRA">DXSF.XETRA - Xtrackers - Stoxx Europe 600 Banks Swap UCITS ETF</option>
+                        <option value="DXSG.XETRA">DXSG.XETRA - Xtrackers - Stoxx Europe 600 Telecommunications Swap UCITS ETF</option>
+                        <option value="DXSH.XETRA">DXSH.XETRA - Xtrackers - Stoxx Europe 600 Technology Swap UCITS ETF</option>
+                        <option value="DXSI.XETRA">DXSI.XETRA - Xtrackers - Stoxx Europe 600 Utilities Swap UCITS ETF</option>
+                        <option value="DXSK.XETRA">DXSK.XETRA - Xtrackers - Stoxx Europe 600 Food & Beverage Swap UCITS ETF</option>
+                        <option value="DXSL.XETRA">DXSL.XETRA - Xtrackers - Stoxx Europe 600 Industrial Goods Swap UCITS ETF</option>
+                        <option value="DXSM.XETRA">DXSM.XETRA - Xtrackers Bloomberg Commodity ex-Agriculture & Livestock Swap UCITS ET</option>
+                        <option value="DXSN.XETRA">DXSN.XETRA - Xtrackers ShortDAX Daily Swap UCITS ETF 1C</option>
+                        <option value="DXSP.XETRA">DXSP.XETRA - Xtrackers - Euro Stoxx 50 Short Daily Swap UCITS ETF</option>
+                        <option value="DXST.XETRA">DXST.XETRA - Xtrackers II - iTraxx Crossover Short Daily Swap UCITS ETF</option>
+                        <option value="DXSU.XETRA">DXSU.XETRA - Xtrackers II USD Emerging Markets Bond UCITS ETF 1C - EUR Hedged</option>
+                        <option value="DXSV.XETRA">DXSV.XETRA - Xtrackers II - Eurozone Government Bond Short Daily Swap UCITS ETF</option>
+                        <option value="DXSZ.XETRA">DXSZ.XETRA - Xtrackers II - USD Overnight Rate Swap UCITS ETF</option>
+                        <option value="EASG.US">EASG.US - Xtrackers MSCI EAFE ESG Leaders Equity ETF</option>
+                        <option value="EMCR.US">EMCR.US - Xtrackers Emerging Markets Carbon Reduction and Climate Improvers ETF</option>
+                        <option value="EMCS.US">EMCS.US - Xtrackers MSCI Emerging Markets Climate Selection ETF</option>
+                        <option value="EXU1.XETRA">EXU1.XETRA - Xtrackers MSCI World ex USA UCITS ETF</option>
+                        <option value="EXUS.XETRA">EXUS.XETRA - Xtrackers MSCI World ex USA UCITS ETF 1C USD EUR</option>
+                        <option value="GTIL.XETRA">GTIL.XETRA - Xtrackers World Green Tech Innovators UCITS ETF</option>
+                        <option value="GTIS.XETRA">GTIS.XETRA - Xtrackers World Small Cap Green Tech Innovators UCITS ETF</option>
+                        <option value="HAUZ.US">HAUZ.US - Xtrackers International Real Estate ETF</option>
+                        <option value="HDEF.US">HDEF.US - Xtrackers MSCI EAFE High Dividend Yield Equity ETF</option>
+                        <option value="HYDW.US">HYDW.US - Xtrackers Low Beta High Yield Bond ETF</option>
+                        <option value="HYLB.US">HYLB.US - Xtrackers USD High Yield Corporate Bond ETF</option>
+                        <option value="HYUP.US">HYUP.US - Xtrackers High Beta High Yield Bond ETF</option>
+                        <option value="IND.US">IND.US - Xtrackers Nifty 500 India ETF</option>
+                        <option value="KOKU.US">KOKU.US - Xtrackers MSCI Kokusai Equity ETF</option>
+                        <option value="MIDE.US">MIDE.US - DBX ETF Trust - Xtrackers S&P MidCap 400 ESG ETF</option>
+                        <option value="NRES.US">NRES.US - Xtrackers RREEF Global Natural Resources ETF</option>
+                        <option value="PSWD.US">PSWD.US - Xtrackers Cybersecurity Select Equity ETF</option>
+                        <option value="QARP.US">QARP.US - DBX ETF Trust - Xtrackers Russell 1000 US Quality at a Reasonable Pric</option>
+                        <option value="RQFI.XETRA">RQFI.XETRA - Xtrackers Harvest CSI300 UCITS ETF 1D</option>
+                        <option value="RVNU.US">RVNU.US - Xtrackers Municipal Infrastructure Revenue Bond ETF</option>
+                        <option value="SCWX.XETRA">SCWX.XETRA - Xtrackers Scalable MSCI AC World Xtrackers UCITS ETF 1C</option>
+                        <option value="SDG9.XETRA">SDG9.XETRA - Xtrackers MSCI Global SDG 9 Industry, Innovation & Infrastructure UCIT</option>
+                        <option value="SHYL.US">SHYL.US - Xtrackers Short Duration High Yield Bond ETF</option>
+                        <option value="SNPD.US">SNPD.US - DBX ETF Trust - Xtrackers S&P ESG Dividend Aristocrats ETF</option>
+                        <option value="SNPE.US">SNPE.US - Xtrackers S&P 500 ESG ETF</option>
+                        <option value="SNPG.US">SNPG.US - Xtrackers S&P 500 Growth ESG ETF</option>
+                        <option value="SNPV.US">SNPV.US - DBX ETF Trust - Xtrackers S&P 500 Value ESG ETF</option>
+                        <option value="SPXD.US">SPXD.US - Xtrackers S&P 500 Diversified Sector Weight ETF</option>
+                        <option value="TRSY.US">TRSY.US - Xtrackers US 0-1 Year Treasury ETF</option>
+                        <option value="UPGR.US">UPGR.US - Xtrackers US Green Infrastructure Select Equity ETF</option>
+                        <option value="USCA.US">USCA.US - Xtrackers MSCI USA Climate Action Equity ETF</option>
+                        <option value="USNZ.US">USNZ.US - DBX ETF Trust - Xtrackers Net Zero Pathway Paris Aligned US Equity ETF</option>
+                        <option value="USOA.XETRA">USOA.XETRA - Xtrackers MSCI USA Swap II UCITS ETF 1D</option>
+                        <option value="USSG.US">USSG.US - Xtrackers MSCI USA ESG Leaders Equity ETF</option>
+                        <option value="WIMI.XETRA">WIMI.XETRA - Xtrackers MSCI World IMI UCITS ETF 1C</option>
+                        <option value="WIRE.XETRA">WIRE.XETRA - Xtrackers Electrification Technologies & Smart Grid UCITS ETF 1C</option>
+                        <option value="X03B.XETRA">X03B.XETRA - Xtrackers II Eurozone Government Bond 1-3 UCITS ETF 1D</option>
+                        <option value="X03C.XETRA">X03C.XETRA - Xtrackers II Eurozone Government Bond 3-5 UCITS ETF 1D</option>
+                        <option value="X03G.XETRA">X03G.XETRA - Xtrackers II Germany Government Bond UCITS ETF 1C</option>
+                        <option value="X50U.XETRA">X50U.XETRA - Xtrackers S&P 500 Swap II UCITS ETF 1C</option>
+                        <option value="X57E.XETRA">X57E.XETRA - Xtrackers II Eurozone Government Bond 5-7 UCITS ETF 1C</option>
+                        <option value="X5SP.XETRA">X5SP.XETRA - Xtrackers S&P 500 UCITS ETF 4D</option>
+                        <option value="X710.XETRA">X710.XETRA - Xtrackers II Eurozone Government Bond 7-10 UCITS ETF 1C</option>
+                        <option value="XAD1.XETRA">XAD1.XETRA - Xtrackers Physical Gold EUR Hedged ETC</option>
+                        <option value="XAD2.XETRA">XAD2.XETRA - Xtrackers Physical Silver EUR Hedged ETC</option>
+                        <option value="XAD3.XETRA">XAD3.XETRA - Xtrackers Physical Platinum EUR Hedged ETC</option>
+                        <option value="XAD5.XETRA">XAD5.XETRA - Xtrackers Physical Gold ETC (EUR) EUR</option>
+                        <option value="XAD6.XETRA">XAD6.XETRA - Xtrackers Physical Silver ETC (EUR) EUR</option>
+                        <option value="XAIN.XETRA">XAIN.XETRA - Xtrackers - MSCI Indonesia Swap UCITS ETF</option>
+                        <option value="XAIX.US">XAIX.US - Xtrackers Artificial Intelligence and Big Data ETF</option>
+                        <option value="XAIX.XETRA">XAIX.XETRA - Xtrackers Artificial Intelligence &Big Data UCITS ETF 1C EUR</option>
+                        <option value="XASB.XETRA">XASB.XETRA - Xtrackers II Salam USD Global Aggregate Sukuk UCITS ETF 1D</option>
+                        <option value="XASX.XETRA">XASX.XETRA - Xtrackers - Xtrackers MSCI UK ESG UCITS ETF 1D</option>
+                        <option value="XAU2.XETRA">XAU2.XETRA - Xtrackers II Australia Government Bond UCITS ETF 2C EUR Hedged</option>
+                        <option value="XAXJ.XETRA">XAXJ.XETRA - Xtrackers MSCI AC Asia ex Japan ESG Swap UCITS ETF 1C</option>
+                        <option value="XB13.XETRA">XB13.XETRA - Xtrackers II Germany Government Bond 1-3 UCITS ETF 1D</option>
+                        <option value="XB27.XETRA">XB27.XETRA - Xtrackers II Target Maturity Sept 2027 EUR Corporate Bond UCITS ETF 1D</option>
+                        <option value="XB28.XETRA">XB28.XETRA - Xtrackers II Target Maturity Sept 2028 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XB29.XETRA">XB29.XETRA - Xtrackers II Target Maturity Sept 2029 EUR Corporate Bond UCITS ETF 1D</option>
+                        <option value="XB30.XETRA">XB30.XETRA - Xtrackers II Target Maturity Sept 2030 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XB31.XETRA">XB31.XETRA - Xtrackers II Target Maturity Sept 2031 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XB32.XETRA">XB32.XETRA - Xtrackers II Target Maturity Sept 2032 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XB33.XETRA">XB33.XETRA - Xtrackers II Target Maturity Sept 2033 EUR Corporate Bond UCITS ETF 1D</option>
+                        <option value="XB34.XETRA">XB34.XETRA - Xtrackers II Target Maturity Sept 2034 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XB35.XETRA">XB35.XETRA - Xtrackers II Target Maturity Sept 2035 EUR Corporate Bond UCITS ETF 1D</option>
+                        <option value="XB36.XETRA">XB36.XETRA - Xtrackers II Target Maturity Sept 2036 EUR Corporate Bond UCITS ETF 1D</option>
+                        <option value="XB4A.XETRA">XB4A.XETRA - Xtrackers ATX UCITS ETF 1C</option>
+                        <option value="XB4D.XETRA">XB4D.XETRA - Xtrackers II ESG EUR Corporate Bond UCITS ETF 1C</option>
+                        <option value="XBAE.XETRA">XBAE.XETRA - Xtrackers II - Global Aggregate Bond Swap UCITS ETF</option>
+                        <option value="XBAG.XETRA">XBAG.XETRA - Xtrackers II ESG Global Aggregate Bond ETF 5C - EUR Hedged</option>
+                        <option value="XBAK.XETRA">XBAK.XETRA - Xtrackers MSCI Pakistan Swap UCITS ETF 1C</option>
+                        <option value="XBAS.XETRA">XBAS.XETRA - Xtrackers MSCI Singapore UCITS ETF 1C</option>
+                        <option value="XBEE.XETRA">XBEE.XETRA - Xtrackers Europe Biodiversity Focus SRI UCITS ETF 1C</option>
+                        <option value="XBI0.XETRA">XBI0.XETRA - Xtrackers World Biodiversity Focus SRI UCITS ETF 1C</option>
+                        <option value="XBLC.XETRA">XBLC.XETRA - Xtrackers II EUR Corporate Bond UCITS ETF 1C</option>
+                        <option value="XBO2.XETRA">XBO2.XETRA - Xtrackers II Italy Government Bond 0-1 Swap UCITS ETF 1C</option>
+                        <option value="XBTR.XETRA">XBTR.XETRA - Xtrackers II Germany Government Bond UCITS ETF 1D</option>
+                        <option value="XBUZ.XETRA">XBUZ.XETRA - Xtrackers USA Biodiversity Focus SRI UCITS ETF 1C</option>
+                        <option value="XCBE.XETRA">XCBE.XETRA - Xtrackers Bloomberg Commodity Swap UCITS ETF 2C - EUR Hedged</option>
+                        <option value="XCEU.XETRA">XCEU.XETRA - Xtrackers MSCI EMU Climate Transition UCITS ETF 1C EUR</option>
+                        <option value="XCHA.XETRA">XCHA.XETRA - Xtrackers CSI300 Swap UCITS ETF 1C</option>
+                        <option value="XCJD.XETRA">XCJD.XETRA - Xtrackers MSCI Japan Climate Transition UCITS ETF 1D USD EUR</option>
+                        <option value="XCMC.XETRA">XCMC.XETRA - Xtrackers Bloomberg Commodity Swap UCITS ETF 1C - USD</option>
+                        <option value="XCS3.XETRA">XCS3.XETRA - Xtrackers MSCI Malaysia UCITS ETF 1C</option>
+                        <option value="XCS4.XETRA">XCS4.XETRA - Xtrackers MSCI Thailand UCITS ETF 1C</option>
+                        <option value="XCS5.XETRA">XCS5.XETRA - Xtrackers MSCI India Swap UCITS ETF 1C</option>
+                        <option value="XCS6.XETRA">XCS6.XETRA - Xtrackers MSCI China UCITS ETF 1C</option>
+                        <option value="XCS7.XETRA">XCS7.XETRA - Xtrackers MSCI China UCITS ETF 1D EUR</option>
+                        <option value="XCSI.XETRA">XCSI.XETRA - Xtrackers CSI500 Swap ETF 1C USD EUR</option>
+                        <option value="XCTE.XETRA">XCTE.XETRA - Xtrackers Harvest MSCI China Tech 100 UCITS ETF</option>
+                        <option value="XCTW.XETRA">XCTW.XETRA - Xtrackers MSCI World Climate Transition UCITS ETF 1C USD EUR</option>
+                        <option value="XCUD.XETRA">XCUD.XETRA - Xtrackers MSCI USA Climate Transition UCITS ETF 1D USD EUR</option>
+                        <option value="XD5E.XETRA">XD5E.XETRA - Xtrackers MSCI EMU UCITS ETF 1D</option>
+                        <option value="XD9D.XETRA">XD9D.XETRA - Xtrackers MSCI USA UCITS ETF 1D</option>
+                        <option value="XD9E.XETRA">XD9E.XETRA - Xtrackers MSCI USA UCITS ETF 2C - EUR Hedged</option>
+                        <option value="XD9U.XETRA">XD9U.XETRA - Xtrackers MSCI USA UCITS ETF 1C</option>
+                        <option value="XDBC.XETRA">XDBC.XETRA - Xtrackers Bloomberg Commodity ex-Agriculture & Livestock Swap UCITS ET</option>
+                        <option value="XDCC.XETRA">XDCC.XETRA - Xtrackers USD Corporate Bond UCITS ETF 1C</option>
+                        <option value="XDDA.XETRA">XDDA.XETRA - Xtrackers DAX UCITS ETF 1D EUR</option>
+                        <option value="XDDX.XETRA">XDDX.XETRA - Xtrackers DAX ESG Screened UCITS ETF 1D</option>
+                        <option value="XDED.XETRA">XDED.XETRA - Xtrackers S&P 500 Equal Weight UCITS ETF 2D EUR</option>
+                        <option value="XDEE.XETRA">XDEE.XETRA - Xtrackers S&P 500 Equal Weight UCITS ETF 2C EUR Hedged</option>
+                        <option value="XDEF.US">XDEF.US - Xtrackers Europe Defense Technologies ETF</option>
+                        <option value="XDEF.XETRA">XDEF.XETRA - Xtrackers Europe Defence Technologies UCITS ETF</option>
+                        <option value="XDEM.XETRA">XDEM.XETRA - Xtrackers MSCI World Momentum UCITS ETF</option>
+                        <option value="XDEQ.XETRA">XDEQ.XETRA - Xtrackers MSCI World Quality UCITS ETF 1C EUR</option>
+                        <option value="XDEV.XETRA">XDEV.XETRA - Xtrackers MSCI World Value UCITS ETF 1C EUR</option>
+                        <option value="XDEW.XETRA">XDEW.XETRA - Xtrackers S&P 500 Equal Weight UCITS ETF 1C EUR</option>
+                        <option value="XDEX.XETRA">XDEX.XETRA - Xtrackers MSCI Emerging Markets ex China UCITS ETF 1C</option>
+                        <option value="XDG3.XETRA">XDG3.XETRA - Xtrackers MSCI Global SDG 3 Good Health UCITS ETF 1C USD EUR</option>
+                        <option value="XDG6.XETRA">XDG6.XETRA - Xtrackers MSCI Global SDG 6 Clean Water & Sanitation UCITS ETF 1C USD </option>
+                        <option value="XDG7.XETRA">XDG7.XETRA - Xtrackers MSCI Global SDG 7 Affordable and Clean Energy UCITS ETF 1C U</option>
+                        <option value="XDGI.XETRA">XDGI.XETRA - Xtrackers MSCI Global SDGs UCITS ETF 1C USD EUR</option>
+                        <option value="XDGS.XETRA">XDGS.XETRA - Xtrackers MSCI Global Social Fairness Contributors UCITS ETF</option>
+                        <option value="XDJE.XETRA">XDJE.XETRA - Xtrackers Nikkei 225 UCITS ETF 2D EUR Hedged</option>
+                        <option value="XDJP.XETRA">XDJP.XETRA - Xtrackers Nikkei 225 UCITS ETF 1D</option>
+                        <option value="XDJU.XETRA">XDJU.XETRA - Xtrackers DJE US Equity Research UCITS ETF - 1C</option>
+                        <option value="XDJX.XETRA">XDJX.XETRA - Xtrackers DJE Europe Equity Research UCITS ETF 1C EUR</option>
+                        <option value="XDND.XETRA">XDND.XETRA - Xtrackers MSCI North America High Dividend Yield UCITS ETF 1C</option>
+                        <option value="XDNY.XETRA">XDNY.XETRA - Xtrackers MSCI Japan ESG Screened UCITS ETF 1D</option>
+                        <option value="XDPD.XETRA">XDPD.XETRA - Xtrackers S&P 500 UCITS ETF 1D - EUR Hedged</option>
+                        <option value="XDPE.XETRA">XDPE.XETRA - Xtrackers S&P 500 UCITS ETF 1C - EUR Hedged</option>
+                        <option value="XDPU.XETRA">XDPU.XETRA - Xtrackers S&P 500 UCITS ETF 4C - USD EUR</option>
+                        <option value="XDRE.XETRA">XDRE.XETRA - Xtrackers Developed Green Real Estate ESG UCITS ETF 1C</option>
+                        <option value="XDUK.XETRA">XDUK.XETRA - Xtrackers FTSE 100 UCITS ETF 1C</option>
+                        <option value="XDWC.XETRA">XDWC.XETRA - Xtrackers MSCI World Consumer Discretionary UCITS ETF 1C</option>
+                        <option value="XDWF.XETRA">XDWF.XETRA - Xtrackers MSCI World Financials UCITS ETF 1C EUR</option>
+                        <option value="XDWH.XETRA">XDWH.XETRA - Xtrackers MSCI World Health Care UCITS ETF 1C</option>
+                        <option value="XDWI.XETRA">XDWI.XETRA - Xtrackers MSCI World Industrials UCITS ETF 1C</option>
+                        <option value="XDWS.XETRA">XDWS.XETRA - Xtrackers MSCI World Consumer Staples UCITS ETF 1C</option>
+                        <option value="XDWT.XETRA">XDWT.XETRA - Xtrackers MSCI World Information Technology UCITS ETF 1C</option>
+                        <option value="XDWY.XETRA">XDWY.XETRA - Xtrackers MSCI World ESG Screened UCITS ETF 1D</option>
+                        <option value="XE01.XETRA">XE01.XETRA - Xtrackers II Eurozone Government Bond 0-1 UCITS ETF</option>
+                        <option value="XEAL.XETRA">XEAL.XETRA - Xtrackers Physical Carbon EUA ETC Security</option>
+                        <option value="XEC1.XETRA">XEC1.XETRA - Xtrackers II EUR Corporate Bond UCITS ETF (DR) 1D</option>
+                        <option value="XECT.XETRA">XECT.XETRA - Xtrackers MSCI Europe Climate Transition UCITS ETF 1C EUR</option>
+                        <option value="XEEE.XETRA">XEEE.XETRA - Xtrackers Europe Equity Enhanced Active UCITS ETF</option>
+                        <option value="XEEU.XETRA">XEEU.XETRA - Xtrackers US Equity Enhanced Active UCITS ETF</option>
+                        <option value="XEEW.XETRA">XEEW.XETRA - Xtrackers World Equity Enhanced Active UCITS ETF</option>
+                        <option value="XEIN.XETRA">XEIN.XETRA - Xtrackers II Eurozone Inflation-Linked Bond UCITS ETF 1C</option>
+                        <option value="XEMB.XETRA">XEMB.XETRA - Xtrackers II USD Emerging Markets Bond UCITS ETF 1C - EUR Hedged</option>
+                        <option value="XEMC.XETRA">XEMC.XETRA - Xtrackers MSCI Emerging Markets Climate Transition UCITS ETF</option>
+                        <option value="XEMD.XETRA">XEMD.XETRA - Xtrackers MSCI Emerging Markets UCITS ETF 1D</option>
+                        <option value="XEML.US">XEML.US - Xtrackers Europe Market Leaders ETF</option>
+                        <option value="XEML.XETRA">XEML.XETRA - Xtrackers II J.P. Morgan EM Local Government Bond UCITS ETF 1D USD EUR</option>
+                        <option value="XEMN.XETRA">XEMN.XETRA - Xtrackers Emerging Markets Net Zero Pathway Paris Aligned UCITS ETF 1C</option>
+                        <option value="XEMU.XETRA">XEMU.XETRA - Xtrackers MSCI EMU UCITS ETF</option>
+                        <option value="XEOD.XETRA">XEOD.XETRA - Xtrackers II - EUR Cash Swap UCITS ETF</option>
+                        <option value="XEON.XETRA">XEON.XETRA - Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C</option>
+                        <option value="XEPA.XETRA">XEPA.XETRA - Xtrackers Europe Net Zero Pathway Paris Aligned UCITS ETF EUR Acc</option>
+                        <option value="XEQ2.XETRA">XEQ2.XETRA - Xtrackers Diversified Portfolio 20% Equity UCITS ETF 1C</option>
+                        <option value="XEQ4.XETRA">XEQ4.XETRA - Xtrackers Diversified Portfolio 40% Equity UCITS ETF 1C</option>
+                        <option value="XEQ6.XETRA">XEQ6.XETRA - Xtrackers Diversified Portfolio 60% Equity UCITS ETF 1C</option>
+                        <option value="XEQ8.XETRA">XEQ8.XETRA - Xtrackers Diversified Portfolio 80% Equity UCITS ETF 1C</option>
+                        <option value="XEQL.XETRA">XEQL.XETRA - Xtrackers S&P 500 Equal Weight Swap UCITS ETF 1D</option>
+                        <option value="XEQW.XETRA">XEQW.XETRA - Xtrackers S&P 500 Equal Weight Swap UCITS ETF 1C</option>
+                        <option value="XESC.XETRA">XESC.XETRA - Xtrackers EURO STOXX 50 UCITS ETF 1C</option>
+                        <option value="XESD.XETRA">XESD.XETRA - Xtrackers Spain UCITS ETF 1D</option>
+                        <option value="XESP.XETRA">XESP.XETRA - Xtrackers Spain UCITS 1C</option>
+                        <option value="XESX.XETRA">XESX.XETRA - Xtrackers Euro Stoxx 50 UCITS ETF 1D</option>
+                        <option value="XETH.XETRA">XETH.XETRA - Xtrackers Galaxy Physical Ethereum ETC</option>
+                        <option value="XEWE.XETRA">XEWE.XETRA - Xtrackers S&P 500 Equal Weight ESG UCITS ETF 2C- EUR Hedged</option>
+                        <option value="XEZ1.XETRA">XEZ1.XETRA - Xtrackers II Eurozone Government Bond 1-3 ESG Tilted UCITS ETF 1C</option>
+                        <option value="XEZ3.XETRA">XEZ3.XETRA - Xtrackers II Eurozone Government Bond 3-5 ESG Tilted UCITS ETF 1C</option>
+                        <option value="XEZ5.XETRA">XEZ5.XETRA - Xtrackers II Eurozone Government Bond 5-7 ESG Tilted UCITS ETF 1C</option>
+                        <option value="XEZ7.XETRA">XEZ7.XETRA - Xtrackers II Eurozone Government Bond 7-10 ESG Tilted UCITS ETF 1C</option>
+                        <option value="XEZB.XETRA">XEZB.XETRA - Xtrackers II Eurozone Government Bond ESG Tilted UCITS ETF 1D</option>
+                        <option value="XFFE.XETRA">XFFE.XETRA - Xtrackers II USD Overnight Rate Swap UCITS ETF 1C</option>
+                        <option value="XFLN.XETRA">XFLN.XETRA - Xtrackers Floating Rate Notes Active UCITS ETF 1C</option>
+                        <option value="XFNT.XETRA">XFNT.XETRA - Xtrackers MSCI Fintech Innovation UCITS ETF 1C USD Acc</option>
+                        <option value="XFVT.XETRA">XFVT.XETRA - Xtrackers - FTSE Vietnam Swap UCITS ETF</option>
+                        <option value="XG01.XETRA">XG01.XETRA - Xtrackers II Germany Government Bond 0-1 UCITS ETF</option>
+                        <option value="XG11.XETRA">XG11.XETRA - Xtrackers MSCI Global SDG 11 Sustainable Cities UCITS ETF 1C EUR</option>
+                        <option value="XG12.XETRA">XG12.XETRA - Xtrackers MSCI Global SDG 12 Circular Economy UCITS ETF 1C EUR</option>
+                        <option value="XG7S.XETRA">XG7S.XETRA - Xtrackers II Global Government Bond UCITS ETF 5C</option>
+                        <option value="XGB4.XETRA">XGB4.XETRA - Xtrackers II Global Government Bond UCITS ETF 4D</option>
+                        <option value="XGBE.XETRA">XGBE.XETRA - Xtrackers EUR Corporate Green Bond UCITS ETF 1C</option>
+                        <option value="XGBU.XETRA">XGBU.XETRA - Xtrackers (IE) Plc - Xtrackers USD Corporate Green Bond UCITS ETF 2C U</option>
+                        <option value="XGDE.XETRA">XGDE.XETRA - Xtrackers IE Physical Gold EUR Hedged ETC Securities 5</option>
+                        <option value="XGDU.XETRA">XGDU.XETRA - Xtrackers IE Physical Gold ETC</option>
+                        <option value="XGEN.XETRA">XGEN.XETRA - Xtrackers MSCI Genomic Healthcare Innovation UCITS ETF 1C USD Acc</option>
+                        <option value="XGEZ.XETRA">XGEZ.XETRA - Xtrackers II Eurozone Government Green Bond UCITS ETF 1D EUR</option>
+                        <option value="XGII.XETRA">XGII.XETRA - Xtrackers II Global Inflation-Linked Bond UCITS ETF 1D - EUR Hedged</option>
+                        <option value="XGIN.XETRA">XGIN.XETRA - Xtrackers II Global Inflation-Linked Bond UCITS ETF 1C - EUR Hedged</option>
+                        <option value="XGIU.XETRA">XGIU.XETRA - Xtrackers II Global Inflation-Linked Bond UCITS ETF 5C</option>
+                        <option value="XGLA.XETRA">XGLA.XETRA - Xtrackers Global Growth Leaders Active UCITS ETF</option>
+                        <option value="XGLE.XETRA">XGLE.XETRA - Xtrackers Eurz Govt Bd ETF 1C</option>
+                        <option value="XGLF.XETRA">XGLF.XETRA - Xtrackers MSCI GCC Select Swap UCITS ETF 1C EUR</option>
+                        <option value="XGLU.XETRA">XGLU.XETRA - Xtrackers II Eurozone Government Bond UCITS ETF 2C USD Hedged</option>
+                        <option value="XGSD.XETRA">XGSD.XETRA - Xtrackers Stoxx Global Select Dividend 100 Swap UCITS ETF 1D</option>
+                        <option value="XGUE.XETRA">XGUE.XETRA - Xtrackers USD Corporate Green Bond UCITS ETF 1C EUR Hedged Acc</option>
+                        <option value="XGVC.XETRA">XGVC.XETRA - Xtrackers II ESG Global Government Bond UCITS ETF 1C EUR Accumulation</option>
+                        <option value="XGVD.XETRA">XGVD.XETRA - Xtrackers II Global Government Bond UCITS ETF 1D - EUR Hedged</option>
+                        <option value="XHY1.XETRA">XHY1.XETRA - Xtrackers II EUR High Yield Corporate Bond 1-3 Swap UCITS ETF 1D</option>
+                        <option value="XHYG.XETRA">XHYG.XETRA - Xtrackers II EUR High Yield Corporate Bond UCITS ETF 1D</option>
+                        <option value="XIFE.XETRA">XIFE.XETRA - Xtrackers Global Infrastructure ESG UCITS ETF 1C</option>
+                        <option value="XIGB.XETRA">XIGB.XETRA - Xtrackers India Government Bond UCITS ETF 1C USD Acc</option>
+                        <option value="XISP.XETRA">XISP.XETRA - Xtrackers S&P 500 Swap II UCITS ETF - 1D</option>
+                        <option value="XIUS.XETRA">XIUS.XETRA - Xtrackers MSCI USA Swap II UCITS ETF 1C</option>
+                        <option value="XJ2C.XETRA">XJ2C.XETRA - Xtrackers II Japan Government Bond UCITS ETF 2C EUR Hedged</option>
+                        <option value="XJSE.XETRA">XJSE.XETRA - Xtrackers II Japan Government Bond UCITS ETF 1C</option>
+                        <option value="XM1D.XETRA">XM1D.XETRA - Xtrackers MSCI Japan UCITS ETF 1D EUR</option>
+                        <option value="XM27.XETRA">XM27.XETRA - Xtrackers II Target Maturity Sept 2027 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XM29.XETRA">XM29.XETRA - Xtrackers II Target Maturity Sept 2029 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XM31.XETRA">XM31.XETRA - Xtrackers II Target Maturity Sept 2031 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XM33.XETRA">XM33.XETRA - Xtrackers II Target Maturity Sept 2033 EUR Corporate Bond UCITS ETF</option>
+                        <option value="XMA1.XETRA">XMA1.XETRA - Xtrackers MSCI EM Asia ESG Screened Swap UCITS ETF 1D USD</option>
+                        <option value="XMAE.XETRA">XMAE.XETRA - Xtrackers MSCI AC World ESG Screened UCITS ETF 2C - EUR Hedged</option>
+                        <option value="XMAS.XETRA">XMAS.XETRA - Xtrackers MSCI EM Asia Screened Swap UCITS ETF</option>
+                        <option value="XMAW.XETRA">XMAW.XETRA - Xtrackers MSCI AC World ESG Screened UCITS ETF 1C EUR</option>
+                        <option value="XMBR.XETRA">XMBR.XETRA - Xtrackers MSCI Brazil UCITS ETF 1C</option>
+                        <option value="XMCM.XETRA">XMCM.XETRA - Xtrackers MSCI Emerging Markets Swap UCITS ETF 1D</option>
+                        <option value="XMCX.XETRA">XMCX.XETRA - Xtrackers FTSE 250 UCITS ETF 1D</option>
+                        <option value="XMEA.XETRA">XMEA.XETRA - Xtrackers MSCI EM Europe, Middle East & Africa ESG Swap UCITS ETF 1C</option>
+                        <option value="XMEM.XETRA">XMEM.XETRA - Xtrackers MSCI Emerging Markets Swap UCITS ETF 1C</option>
+                        <option value="XMEU.XETRA">XMEU.XETRA - Xtrackers MSCI Europe UCITS ETF 1C</option>
+                        <option value="XMK9.XETRA">XMK9.XETRA - Xtrackers MSCI Japan UCITS ETF 4C EUR Hedged</option>
+                        <option value="XMKA.XETRA">XMKA.XETRA - Xtrackers MSCI Africa Top 50 Swap UCITS ETF 1C</option>
+                        <option value="XMME.XETRA">XMME.XETRA - Xtrackers MSCI Emerging Markets UCITS ETF 1C</option>
+                        <option value="XMN1.XETRA">XMN1.XETRA - Xtrackers MSCI Nordic UCITS ETF</option>
+                        <option value="XMOV.XETRA">XMOV.XETRA - Xtrackers Future Mobility UCITS ETF 1C EUR</option>
+                        <option value="XMUS.XETRA">XMUS.XETRA - Xtrackers MSCI USA Swap UCITS ETF 1C</option>
+                        <option value="XNAS.XETRA">XNAS.XETRA - Xtrackers NASDAQ 100 UCITS ETF 1C</option>
+                        <option value="XNDQ.XETRA">XNDQ.XETRA - Xtrackers Nasdaq 100 Swap UCITS ETF 1C</option>
+                        <option value="XNDX.XETRA">XNDX.XETRA - Xtrackers Nasdaq 100 Swap UCITS ETF 1D</option>
+                        <option value="XNGI.XETRA">XNGI.XETRA - Xtrackers MSCI Next Generation Internet Innovation UCITS ETF 1C USD Ac</option>
+                        <option value="XNJP.XETRA">XNJP.XETRA - Xtrackers Japan Net Zero Pathway Paris Aligned UCITS ETF 1C EUR Acc EU</option>
+                        <option value="XNKY.XETRA">XNKY.XETRA - Xtrackers Nikkei 225 UCITS ETF 1C EUR</option>
+                        <option value="XNNV.XETRA">XNNV.XETRA - Xtrackers MSCI Innovation UCITS ETF 1C USD Acc</option>
+                        <option value="XNUS.XETRA">XNUS.XETRA - Xtrackers USA Net Zero Pathway Paris Aligned UCITS ETF 1C EUR Acc EUR</option>
+                        <option value="XNZE.XETRA">XNZE.XETRA - Xtrackers EMU Net Zero Pathway Paris Aligned UCITS ETF</option>
+                        <option value="XNZN.XETRA">XNZN.XETRA - Xtrackers Nordic Net Zero Pathway Paris Aligned UCITS ETF 1C</option>
+                        <option value="XNZW.XETRA">XNZW.XETRA - Xtrackers World Net Zero Pathway Paris Aligned UCITS ETF</option>
+                        <option value="XOEX.US">XOEX.US - DBX ETF Trust - Xtrackers S&P 100 Ex Top 20 ETF</option>
+                        <option value="XPPE.XETRA">XPPE.XETRA - Xtrackers IE Physical Platinum EUR Hedged ETC Securities</option>
+                        <option value="XPPT.XETRA">XPPT.XETRA - Xtrackers ETC plc - Xtrackers IE Physical Platinum ETC 1</option>
+                        <option value="XPQP.XETRA">XPQP.XETRA - Xtrackers MSCI Philippines UCITS ETF 1C</option>
+                        <option value="XQUD.XETRA">XQUD.XETRA - Xtrackers ESG USD Emerging Markets Bond Quality Weighted UCITS ETF 1C </option>
+                        <option value="XQUI.XETRA">XQUI.XETRA - Xtrackers Portfolio UCITS ETF 1C</option>
+                        <option value="XRME.XETRA">XRME.XETRA - Xtrackers MSCI USA ESG Screened UCITS ETF 2C EUR Hedged</option>
+                        <option value="XRS2.XETRA">XRS2.XETRA - Xtrackers Russell 2000 UCITS ETF 1C</option>
+                        <option value="XRSM.XETRA">XRSM.XETRA - Xtrackers MSCI USA ESG Screened UCITS ETF 1C</option>
+                        <option value="XRTM.XETRA">XRTM.XETRA - Xtrackers II Rolling Target Maturity Sept 2027 EUR High Yield UCITS ET</option>
+                        <option value="XS5E.XETRA">XS5E.XETRA - Xtrackers S&P 500 Swap UCITS ETF 5C - EUR Hedged</option>
+                        <option value="XS6R.XETRA">XS6R.XETRA - Xtrackers MSCI Europe Utilities ESG Screened UCITS ETF 1C</option>
+                        <option value="XS7R.XETRA">XS7R.XETRA - Xtrackers MSCI Europe Financials ESG Screened UCITS ETF 1C</option>
+                        <option value="XS7W.XETRA">XS7W.XETRA - Xtrackers Portfolio Income UCITS ETF 1D</option>
+                        <option value="XS8R.XETRA">XS8R.XETRA - Xtrackers MSCI Europe Information Technology ESG Screened UCITS ETF 1C</option>
+                        <option value="XSLE.XETRA">XSLE.XETRA - Xtrackers IE Physical Silver EUR Hedged ETC 4</option>
+                        <option value="XSLR.XETRA">XSLR.XETRA - Xtrackers IE Physical Silver ETC</option>
+                        <option value="XSMI.XETRA">XSMI.XETRA - Xtrackers Switzerland UCITS ETF 1D</option>
+                        <option value="XSVT.XETRA">XSVT.XETRA - Xtrackers Bloomberg Commodity ex-Agriculture & Livestock Swap UCITS ET</option>
+                        <option value="XSWC.XETRA">XSWC.XETRA - Xtrackers MSCI World Small Cap UCITS ETF 1C</option>
+                        <option value="XSWD.XETRA">XSWD.XETRA - Xtrackers MSCI World Small Cap UCITS ETF 1D</option>
+                        <option value="XSX6.XETRA">XSX6.XETRA - Xtrackers Stoxx Europe 600 UCITS ETF</option>
+                        <option value="XSX7.XETRA">XSX7.XETRA - Xtrackers Stoxx Europe 600 UCITS ETF 1D</option>
+                        <option value="XSXD.XETRA">XSXD.XETRA - Xtrackers S&P 500 Swap UCITS ETF 1D EUR</option>
+                        <option value="XSXE.XETRA">XSXE.XETRA - Xtrackers Stoxx Europe 600 UCITS ETF 2C - EUR Hedged</option>
+                        <option value="XT01.XETRA">XT01.XETRA - Xtrackers US Treasuries Ultrashort Bond UCITS ETF 1C</option>
+                        <option value="XTAX.XETRA">XTAX.XETRA - Xtrackers Global Equity Top Active UCITS ETF</option>
+                        <option value="XTC5.XETRA">XTC5.XETRA - Xtrackers II iTraxx Crossover Short Daily Swap UCITS ETF 1C</option>
+                        <option value="XTIP.XETRA">XTIP.XETRA - Xtrackers II TIPS US Inflation-Linked Bond UCITS ETF 1C EUR</option>
+                        <option value="XTMT.XETRA">XTMT.XETRA - Xtrackers MSCI Taiwan UCITS ETF</option>
+                        <option value="XTRKF.US">XTRKF.US - Xtrackers Russell 2000 UCITS ETF</option>
+                        <option value="XTRXF.US">XTRXF.US - Xtrackers Global Government Bond UCITS ETF</option>
+                        <option value="XU10.XETRA">XU10.XETRA - Xtrackers II US Treasuries 7-10 UCITS ETF</option>
+                        <option value="XUCA.XETRA">XUCA.XETRA - Xtrackers MSCI USA Positioning Screened UCITS ETF 1D USD</option>
+                        <option value="XUCD.XETRA">XUCD.XETRA - Xtrackers MSCI USA Consumer Discretionary UCITS ETF 1D</option>
+                        <option value="XUCM.XETRA">XUCM.XETRA - Xtrackers MSCI USA Communication Services UCITS ETF 1D</option>
+                        <option value="XUCS.XETRA">XUCS.XETRA - Xtrackers MSCI USA Consumer Staples UCITS</option>
+                        <option value="XUDY.XETRA">XUDY.XETRA - Xtrackers S&P 500 Defensive Shareholder Yield UCITS ETF 1C</option>
+                        <option value="XUEB.XETRA">XUEB.XETRA - Xtrackers II USD Emerging Markets Bond UCITS ETF 2C - USD</option>
+                        <option value="XUEE.XETRA">XUEE.XETRA - Xtrackers II USD Emerging Markets Bond UCITS ETF 1D - EUR Hedged</option>
+                        <option value="XUEK.XETRA">XUEK.XETRA - Xtrackers S&P Europe ex UK UCITS ETF 1D</option>
+                        <option value="XUEM.XETRA">XUEM.XETRA - Xtrackers II USD Emerging Markets Bond UCITS 2D</option>
+                        <option value="XUGA.XETRA">XUGA.XETRA - Xtrackers S&P 500 GARP UCITS ETF 1C</option>
+                        <option value="XUHC.XETRA">XUHC.XETRA - Xtrackers MSCI USA Health Care UCITS ETF 1D EUR</option>
+                        <option value="XUHE.XETRA">XUHE.XETRA - Xtrackers USD High Yield Corporate Bond UCITS ETF 2C EUR Hedged</option>
+                        <option value="XUHY.XETRA">XUHY.XETRA - Xtrackers USD High Yield Corporate Bond UCITS</option>
+                        <option value="XUIN.XETRA">XUIN.XETRA - Xtrackers MSCI USA Industrials UCITS ETF 1D</option>
+                        <option value="XUKS.XETRA">XUKS.XETRA - Xtrackers FTSE 100 Short Daily Swap UCITS ETF 1C</option>
+                        <option value="XUKX.XETRA">XUKX.XETRA - Xtrackers FTSE 100 Income UCITS ETF 1D</option>
+                        <option value="XUML.XETRA">XUML.XETRA - Xtrackers S&P 500 Market Leaders UCITS ETF 1C</option>
+                        <option value="XUSW.XETRA">XUSW.XETRA - Xtrackers MSCI USA Swap UCITS ETF 1D</option>
+                        <option value="XUT7.XETRA">XUT7.XETRA - Xtrackers II US Treasuries 3-7 UCITS ETF</option>
+                        <option value="XUTC.XETRA">XUTC.XETRA - Xtrackers MSCI USA Information Technology UCITS ETF 1D EUR</option>
+                        <option value="XUTD.XETRA">XUTD.XETRA - Xtrackers II US Treasuries UCITS ETF 1D</option>
+                        <option value="XUTL.XETRA">XUTL.XETRA - Xtrackers II US Treasuries 10+ UCITS ETF</option>
+                        <option value="XWD1.XETRA">XWD1.XETRA - Xtrackers MSCI World Swap UCITS ETF 1D USD</option>
+                        <option value="XWEB.XETRA">XWEB.XETRA - Xtrackers MSCI World Minimum Volatility ESG UCITS ETF 1C EUR</option>
+                        <option value="XWEM.XETRA">XWEM.XETRA - Xtrackers MSCI World Momentum ESG UCITS ETF</option>
+                        <option value="XWEQ.XETRA">XWEQ.XETRA - Xtrackers MSCI World Quality ESG UCITS ETF 1C EUR</option>
+                        <option value="XWEU.XETRA">XWEU.XETRA - Xtrackers MSCI World UCITS ETF 2C - EUR Hedged</option>
+                        <option value="XWEV.XETRA">XWEV.XETRA - Xtrackers MSCI World Value ESG UCITS ETF</option>
+                        <option value="XWSC.XETRA">XWSC.XETRA - Xtrackers MSCI World Screened UCITS ETF</option>
+                        <option value="XXBT.XETRA">XXBT.XETRA - Xtrackers Galaxy Physical Bitcoin ETC Securities EUR</option>
+                        <option value="XXSC.XETRA">XXSC.XETRA - Xtrackers MSCI Europe Small Cap UCITS ETF 1C</option>
+                        <option value="XY2D.XETRA">XY2D.XETRA - Xtrackers II iBoxx Eurozone Government Bond Yield Plus 1-3 UCITS ETF 2</option>
+                        <option value="XY4P.XETRA">XY4P.XETRA - Xtrackers II iBoxx Eurozone Government Bond Yield Plus UCITS ETF 1C</option>
+                        <option value="XYLD.XETRA">XYLD.XETRA - Xtrackers ESG USD Corporate Bond Short Duration ETF UCITS ETF 1D</option>
+                        <option value="XYLE.XETRA">XYLE.XETRA - Xtrackers ESG USD Corporate Bond Short Duration UCITS ETF 2C - EUR Hed</option>
+                        <option value="XYP1.XETRA">XYP1.XETRA - Xtrackers II iBoxx Eurozone Government Bond Yield Plus 1-3 UCITS ETF 1</option>
+                        <option value="XYPL.XETRA">XYPL.XETRA - Xtrackers iBoxx EUR Corporate Bond Yield Plus UCITS ETF 1C</option>
+                        <option value="XZ10.XETRA">XZ10.XETRA - Xtrackers II Eurozone Government Bond 10+ ESG Tilted UCITS ETF 1C</option>
+                        <option value="XZBE.XETRA">XZBE.XETRA - Xtrackers ESG USD Corporate Bond UCITS ETF 2C - EUR hedged</option>
+                        <option value="XZBU.XETRA">XZBU.XETRA - Xtrackers ESG USD Corporate Bond UCITS ETF 1C</option>
+                        <option value="XZDE.XETRA">XZDE.XETRA - Xtrackers MSCI Europe High Dividend Yield ESG UCITS ETF 1D</option>
+                        <option value="XZDU.XETRA">XZDU.XETRA - Xtrackers MSCI USA High Dividend Yield ESG UCITS ETF 1D USD Income EUR</option>
+                        <option value="XZDW.XETRA">XZDW.XETRA - Xtrackers MSCI World High Dividend Yield ESG UCITS ETF</option>
+                        <option value="XZDZ.XETRA">XZDZ.XETRA - Xtrackers MSCI EMU High Dividend Yield ESG UCITS ETF</option>
+                        <option value="XZE5.XETRA">XZE5.XETRA - Xtrackers II ESG EUR Corporate Bond Short Duration UCITS ETF 1 EUR Acc</option>
+                        <option value="XZEA.XETRA">XZEA.XETRA - Xtrackers Zurich ESG Allocation Equities UCITS ETF 1C</option>
+                        <option value="XZEB.XETRA">XZEB.XETRA - Xtrackers II ESG Eurozone Government Bond UCITS ETF</option>
+                        <option value="XZEC.XETRA">XZEC.XETRA - Xtrackers MSCI Europe Consumer Discretionary ESG Screened UCITS ETF</option>
+                        <option value="XZEG.XETRA">XZEG.XETRA - Xtrackers II ESG Global Government Bond UCITS ETF 4D EUR Income Hedged</option>
+                        <option value="XZEM.XETRA">XZEM.XETRA - Xtrackers MSCI Emerging Markets ESG UCITS ETF 1C</option>
+                        <option value="XZEP.XETRA">XZEP.XETRA - Xtrackers MSCI Europe ESG UCITS ETF</option>
+                        <option value="XZEU.XETRA">XZEU.XETRA - Xtrackers ESG MSCI Europe UCITS 1C</option>
+                        <option value="XZEW.XETRA">XZEW.XETRA - Xtrackers S&P 500 Equal Weight ESG UCITS ETF 1C EUR</option>
+                        <option value="XZEZ.XETRA">XZEZ.XETRA - Xtrackers MSCI EMU ESG UCITS ETF 1C</option>
+                        <option value="XZHE.XETRA">XZHE.XETRA - Xtrackers ESG EUR High Yield Corporate Bond UCITS ETF</option>
+                        <option value="XZHY.XETRA">XZHY.XETRA - Xtrackers ESG USD High Yield Corporate Bond UCITS ETF</option>
+                        <option value="XZMD.XETRA">XZMD.XETRA - Xtrackers MSCI USA ESG UCITS ETF 1D EUR</option>
+                        <option value="XZME.XETRA">XZME.XETRA - Xtrackers MSCI USA ESG UCITS ETF 2C EUR Hedged</option>
+                        <option value="XZMJ.XETRA">XZMJ.XETRA - Xtrackers ESG MSCI Japan UCITS 1C EUR</option>
+                        <option value="XZMU.XETRA">XZMU.XETRA - Xtrackers MSCI USA ESG UCITS ETF 1C EUR</option>
+                        <option value="XZSE.XETRA">XZSE.XETRA - Xtrackers MSCI Europe Small Cap ESG UCITS ETF 1C</option>
+                        <option value="XZSP.XETRA">XZSP.XETRA - Xtrackers S&P 500 ESG UCITS ETF 1C EUR</option>
+                        <option value="XZSW.XETRA">XZSW.XETRA - Xtrackers MSCI World Small Cap ESG UCITS ETF 1C</option>
+                        <option value="XZW0.XETRA">XZW0.XETRA - Xtrackers MSCI World ESG UCITS ETF 1C</option>
+                        <option value="XZWD.XETRA">XZWD.XETRA - Xtrackers MSCI World ESG UCITS ETF</option>
+                        <option value="XZWE.XETRA">XZWE.XETRA - Xtrackers MSCI World ESG UCITS ETF 2C - EUR Hedged</option>
+                        <option value="XZWG.XETRA">XZWG.XETRA - Xtrackers II ESG Global Government Bond UCITS ETF 1D EUR Income</option>
+                </select>
+            </div>
+
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-4 pb-4 border-b border-white/20">
+                <div class="flex flex-wrap gap-2 items-center">
+                    <span class="text-xs text-white uppercase font-orbitron font-black mr-2">Indikatoren:</span>
+                    <button id="toggle-sma20" class="px-3 py-1 bg-[#0a0a0a]/60 border border-white/40 rounded text-xs text-white font-mono font-bold transition-all hover:bg-white/10">SMA 20 (Fast)</button>
+                    <button id="toggle-sma50" class="px-3 py-1 bg-[#0a0a0a]/60 border border-white/40 rounded text-xs text-white font-mono font-bold transition-all hover:bg-white/10">SMA 50 (Trend)</button>
+                    <button id="toggle-sma200" class="px-3 py-1 bg-[#0a0a0a]/60 border border-white/40 rounded text-xs text-white font-mono font-bold transition-all hover:bg-white/10">SMA 200 (Macro)</button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-1.5 bg-[#0a0a0a]/80 p-1.5 border border-white/20 rounded-xl">
+                    <span class="text-[10px] text-gray-400 font-mono uppercase px-1.5 font-bold">Chart-Nav:</span>
+                    <button id="ctrl-left" class="px-2.5 py-1 bg-[#1e293b] border border-white/30 text-white font-mono text-xs font-bold rounded hover:bg-white hover:text-black transition-all">◀ Links</button>
+                    <button id="ctrl-zoom-out" class="px-2.5 py-1 bg-[#1e293b] border border-white/30 text-white font-mono text-xs font-bold rounded hover:bg-white hover:text-black transition-all">➖ Zoom Out</button>
+                    <button id="ctrl-zoom-in" class="px-2.5 py-1 bg-[#1e293b] border border-white/30 text-white font-mono text-xs font-bold rounded hover:bg-white hover:text-black transition-all">➕ Zoom In</button>
+                    <button id="ctrl-right" class="px-2.5 py-1 bg-[#1e293b] border border-white/30 text-white font-mono text-xs font-bold rounded hover:bg-white hover:text-black transition-all">Rechts ▶</button>
+                    <button id="ctrl-reset" class="px-2 py-1 ml-1 bg-cyan-950 border border-cyan-400 text-cyan-400 font-mono text-xs font-bold rounded hover:bg-cyan-400 hover:text-black transition-all">Reset 🔄</button>
+                </div>
+
+                <div class="flex gap-1">
+                    <button class="timeframe-btn px-3 py-1 bg-[#0a0a0a]/60 border border-white/40 rounded text-xs text-white font-mono font-bold hover:bg-white/10" data-days="90">3M</button>
+                    <button class="timeframe-btn active px-3 py-1 bg-white text-black font-black border border-white rounded text-xs font-mono" data-days="365">1Y</button>
+                    <button class="timeframe-btn px-3 py-1 bg-[#0a0a0a]/60 border border-white/40 rounded text-xs text-white font-mono font-bold hover:bg-white/10" data-days="1095">3Y</button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex gap-2">
+                    <button class="chart-type-btn active px-3 py-1 bg-white text-black font-black border border-white rounded text-xs font-mono" data-mode="line">Line-Chart</button>
+                    <button class="chart-type-btn px-3 py-1 bg-[#0a0a0a]/60 border border-white/40 rounded text-xs text-white font-mono font-bold hover:bg-white/10" data-mode="area">Area-Fill</button>
+                </div>
+
+                <div class="flex gap-2">
+                    <button id="export-png" class="px-3 py-1 bg-white text-black border border-white rounded text-xs hover:bg-gray-200 transition-all font-mono font-black">📸 Export Terminal (PNG)</button>
+                    <button id="export-report-txt" class="px-3 py-1 bg-cyan-900 border border-cyan-400 rounded text-xs text-white font-mono font-bold hover:bg-cyan-400 hover:text-black transition-all">📋 Download Report (TXT)</button>
+                </div>
+            </div>
+
+            <div class="chart-container bg-[#080f1e]/90 rounded-xl p-3 border border-slate-800">
+                <canvas id="corporateEngineChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'https://gemini-os.replit.app/api/eod';
+
+        let currentSymbol = 'AT0000704176.EUFUND';
+        let currentChart = null;
+        let activeDays = 365;
+        let activeChartMode = 'line';
+
+        let showSMA20 = true;   
+        let showSMA50 = true;   
+        let showSMA200 = true;  
+
+        let fetchedHistoricalCache = [];
+        let latestRealtimeQuote = null;
+
+        let viewportStartIndex = null;
+        let viewportEndIndex = null;
+
+        let globalFastSignal = null;  
+        let globalMacroSignal = null; 
+
+        // Globale Metriken-Objekt für den TXT-Export
+        let currentMetrics = {
+            performance: '--',
+            high: '--',
+            low: '--',
+            volatility: '--',
+            rsi: '--'
+        };
+
+        function updateClock() {
+            const el = document.getElementById('terminal-time');
+            if (el) el.textContent = new Date().toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'medium' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function computeSMA(prices, windowSize) {
+            let result = [];
+            for (let i = 0; i < prices.length; i++) {
+                if (i < windowSize - 1) {
+                    result.push(null);
+                } else {
+                    let sum = 0;
+                    for (let j = 0; j < windowSize; j++) sum += prices[i - j];
+                    result.push(parseFloat((sum / windowSize).toFixed(4)));
+                }
+            }
+            return result;
+        }
+
+        function computeRSI(prices, period = 14) {
+            if (prices.length < period + 1) return null;
+            let gains = 0, losses = 0;
+
+            for (let i = 1; i <= period; i++) {
+                let diff = prices[i] - prices[i - 1];
+                if (diff > 0) gains += diff;
+                else losses -= diff;
+            }
+
+            let avgGain = gains / period;
+            let avgLoss = losses / period;
+
+            for (let i = period + 1; i < prices.length; i++) {
+                let diff = prices[i] - prices[i - 1];
+                let gain = diff > 0 ? diff : 0;
+                let loss = diff < 0 ? -diff : 0;
+                avgGain = (avgGain * (period - 1) + gain) / period;
+                avgLoss = (avgLoss * (period - 1) + loss) / period;
+            }
+
+            if (avgLoss === 0) return 100;
+            let rs = avgGain / avgLoss;
+            return parseFloat((100 - (100 / (1 + rs))).toFixed(2));
+        }
+
+        function analyzeStrategyFramework(allPrices) {
+            globalFastSignal = null;
+            globalMacroSignal = null;
+
+            if (allPrices.length < 50) {
+                document.getElementById('strategy-cross-signal').textContent = "--";
+                document.getElementById('strategy-cross-pnl').textContent = "N/A";
+                return;
+            }
+
+            const sma20 = computeSMA(allPrices, 20);
+            const sma50 = computeSMA(allPrices, 50);
+            const sma200 = computeSMA(allPrices, 200);
+
+            const lastIdx = allPrices.length - 1;
+            const currentPrice = allPrices[lastIdx];
+
+            // 1. Scan: Kurzfristiger Cross (SMA 20/50)
+            let fastText = "Trend stabil";
+            for (let i = lastIdx; i >= 50; i--) {
+                if (sma20[i] && sma50[i] && sma20[i-1] && sma50[i-1]) {
+                    if (sma20[i] > sma50[i] && sma20[i-1] <= sma50[i-1]) {
+                        fastText = `FAST L 🟢 (${fetchedHistoricalCache[i].date})`;
+                        globalFastSignal = { globalIndex: i, type: 'FAST L', entryPrice: allPrices[i], date: fetchedHistoricalCache[i].date };
+                        break;
+                    }
+                    if (sma20[i] < sma50[i] && sma20[i-1] >= sma50[i-1]) {
+                        fastText = `FAST S 🔴 (${fetchedHistoricalCache[i].date})`;
+                        globalFastSignal = { globalIndex: i, type: 'FAST S', entryPrice: allPrices[i], date: fetchedHistoricalCache[i].date };
+                        break;
+                    }
+                }
+            }
+            document.getElementById('strategy-cross-signal').textContent = fastText;
+
+            const pnlCrossEl = document.getElementById('strategy-cross-pnl');
+            if (globalFastSignal) {
+                let pnlPct = ((currentPrice - globalFastSignal.entryPrice) / globalFastSignal.entryPrice) * 100;
+                if (globalFastSignal.type === 'FAST S') pnlPct = -pnlPct;
+
+                globalFastSignal.livePnl = `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%`;
+                pnlCrossEl.textContent = globalFastSignal.livePnl;
+                pnlCrossEl.className = `text-sm font-orbitron font-black mt-1 ${pnlPct >= 0 ? 'text-green-400' : 'text-red-500'}`;
+            } else {
+                pnlCrossEl.textContent = "--";
+                pnlCrossEl.className = "text-sm font-orbitron font-black text-white mt-1";
+            }
+
+            // 2. Scan: Langfristiger Filter (Kurs vs. SMA 200)
+            if (allPrices.length >= 200 && sma200[lastIdx]) {
+                let macroText = "Kein Strukturbruch";
+                for (let i = lastIdx; i >= 200; i--) {
+                    if (sma200[i] && sma200[i-1]) {
+                        let pCurr = allPrices[i];
+                        let pPrev = allPrices[i-1];
+                        let smaCurr = sma200[i];
+                        let smaPrev = sma200[i-1];
+
+                        if (pCurr >= smaCurr && pPrev < smaPrev) {
+                            macroText = `MACRO L 🟢 (${fetchedHistoricalCache[i].date})`;
+                            globalMacroSignal = { globalIndex: i, type: 'MACRO L', entryPrice: allPrices[i], date: fetchedHistoricalCache[i].date };
+                            break;
+                        }
+                        if (pCurr < smaCurr && pPrev >= smaPrev) {
+                            macroText = `MACRO S 🔴 (${fetchedHistoricalCache[i].date})`;
+                            globalMacroSignal = { globalIndex: i, type: 'MACRO S', entryPrice: allPrices[i], date: fetchedHistoricalCache[i].date };
+                            break;
+                        }
+                    }
+                }
+                document.getElementById('strategy-macro-signal').textContent = macroText;
+
+                const pnlMacroEl = document.getElementById('strategy-macro-pnl');
+                if (globalMacroSignal) {
+                    let pnlPct = ((currentPrice - globalMacroSignal.entryPrice) / globalMacroSignal.entryPrice) * 100;
+                    if (globalMacroSignal.type === 'MACRO S') pnlPct = -pnlPct;
+
+                    globalMacroSignal.livePnl = `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%`;
+                    pnlMacroEl.textContent = globalMacroSignal.livePnl;
+                    pnlMacroEl.className = `text-sm font-orbitron font-black mt-1 ${pnlPct >= 0 ? 'text-green-400' : 'text-red-500'}`;
+                } else {
+                    pnlMacroEl.textContent = "--";
+                    pnlMacroEl.className = "text-sm font-orbitron font-black text-white mt-1";
+                }
+            } else {
+                document.getElementById('strategy-macro-signal').textContent = "Warte auf Historie";
+                document.getElementById('strategy-macro-pnl').textContent = "N/A";
+            }
+        }
+
+        function calculateAndRenderAnalytics(subset) {
+            if (!subset || subset.length < 2) return;
+
+            const prices = subset.map(d => d.close);
+            const startPrice = prices[0];
+            const endPrice = prices[prices.length - 1];
+
+            const perfPct = ((endPrice - startPrice) / startPrice) * 100;
+            currentMetrics.performance = `${perfPct >= 0 ? '+' : ''}${perfPct.toFixed(2)}%`;
+            document.getElementById('perf-period').textContent = currentMetrics.performance;
+
+            const highPrice = Math.max(...prices);
+            const lowPrice = Math.min(...prices);
+            currentMetrics.high = `€${highPrice.toFixed(2)}`;
+            currentMetrics.low = `€${lowPrice.toFixed(2)}`;
+            document.getElementById('perf-highlow').innerHTML = `H: ${currentMetrics.high}<br>L: ${currentMetrics.low}`;
+
+            const mean = prices.reduce((a, b) => a + b, 0) / prices.length;
+            const variance = prices.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / prices.length;
+            const stdDev = Math.sqrt(variance);
+            const volaPct = (stdDev / mean) * 100;
+            currentMetrics.volatility = `${volaPct.toFixed(2)}%`;
+            document.getElementById('perf-volatility').textContent = currentMetrics.volatility;
+
+            const totalPrices = fetchedHistoricalCache.map(d => d.close);
+            const rsiVal = computeRSI(totalPrices);
+            currentMetrics.rsi = rsiVal !== null ? rsiVal.toString() : "N/A";
+            document.getElementById('perf-rsi').textContent = currentMetrics.rsi;
+
+            analyzeStrategyFramework(totalPrices);
+        }
+
+        async function fetchManualFund(symbol) {
+            try {
+                const res = await fetch(`${API_BASE}?symbol=${symbol}&type=EUFUND`);
+                if (!res.ok) return [];
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    return data.map(item => ({
+                        date: item.date,
+                        open: parseFloat(item.open),
+                        high: parseFloat(item.high),
+                        low: parseFloat(item.low),
+                        close: parseFloat(item.close)
+                    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+                }
+                return [];
+            } catch (e) { return []; }
+        }
+
+        async function fetchHistoricalSeries(symbol) {
+            try {
+                const res = await fetch(`${API_BASE}?symbol=${symbol}&endpoint=historical&fmt=json`);
+                if (!res.ok) return [];
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    return data.map(item => ({
+                        date: item.date,
+                        open: parseFloat(item.open),
+                        high: parseFloat(item.high),
+                        low: parseFloat(item.low),
+                        close: parseFloat(item.close)
+                    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+                }
+                return [];
+            } catch (e) { return []; }
+        }
+
+        function getSymbolFullName(symbol) {
+            const sel = document.getElementById('symbol-selector');
+            if (!sel) return symbol;
+            const cleanSymbol = symbol.replace('.EUFUND', '').replace('.XETRA', '').trim();
+            for (let opt of sel.options) {
+                if (opt.value === symbol || opt.value === cleanSymbol) {
+                    const text = opt.textContent.trim();
+                    if (text.includes(' - ')) return text.split(' - ').slice(1).join(' - ');
+                    return text;
+                }
+            }
+            return symbol;
+        }
+
+        function renderBannerDisplay(quote) {
+            const header = document.getElementById('price-header');
+            if (!quote) {
+                header.innerHTML = `<div class="text-center text-red-400 font-mono font-bold">⚠️ PROXY TIMEOUT NODE OFFLINE</div>`;
+                return;
+            }
+            const fullName = getSymbolFullName(quote.code || currentSymbol);
+            header.innerHTML = `
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-mono tracking-widest text-white uppercase font-black">ACTIVE QUANT MATRIX</div>
+                        <div class="text-xl font-orbitron font-black text-white">${fullName}</div>
+                    </div>
+                    <div class="text-4xl font-mono font-bold text-white font-black">€${parseFloat(quote.close || 0).toFixed(2)}</div>
+                </div>
+            `;
+        }
+
+        const multiSignalFlagPlugin = {
+            id: 'multiSignalFlagPlugin',
+            afterDatasetsDraw(chart) {
+                if (!fetchedHistoricalCache.length || viewportStartIndex === null) return;
+
+                const ctx = chart.ctx;
+                const meta = chart.getDatasetMeta(0);
+
+                function drawMiniFlag(signalObj, label, offsetHeight, isLong) {
+                    if (!signalObj || signalObj.globalIndex < viewportStartIndex || signalObj.globalIndex > viewportEndIndex) return;
+
+                    const sliceIdx = signalObj.globalIndex - viewportStartIndex;
+                    if (!meta.data[sliceIdx]) return;
+
+                    const { x, y } = meta.data[sliceIdx].getProps(['x', 'y'], true);
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x, y - offsetHeight);
+                    ctx.stroke();
+
+                    ctx.fillStyle = isLong ? '#22c55e' : '#ef4444';
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1;
+
+                    const boxWidth = 54;
+                    const boxHeight = 14;
+                    const boxX = x - 27; 
+                    const boxY = y - offsetHeight - boxHeight;
+
+                    ctx.beginPath();
+                    ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 8px "Roboto Mono", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(label, boxX + (boxWidth / 2), boxY + (boxHeight / 2) + 0.5);
+                    ctx.restore();
+                }
+
+                if (globalFastSignal) {
+                    const isL = globalFastSignal.type === 'FAST L';
+                    drawMiniFlag(globalFastSignal, isL ? 'FAST L' : 'FAST S', 24, isL);
+                }
+
+                if (globalMacroSignal) {
+                    const isL = globalMacroSignal.type === 'MACRO L';
+                    drawMiniFlag(globalMacroSignal, isL ? 'MACRO L' : 'MACRO S', 10, isL);
+                }
+            }
+        };
+        Chart.register(multiSignalFlagPlugin);
+
+        function drawChartUI() {
+            if (!fetchedHistoricalCache.length) return;
+
+            if (viewportStartIndex === null || viewportEndIndex === null) {
+                viewportEndIndex = fetchedHistoricalCache.length - 1;
+                viewportStartIndex = Math.max(0, viewportEndIndex - activeDays + 1);
+            }
+
+            const subset = fetchedHistoricalCache.slice(viewportStartIndex, viewportEndIndex + 1);
+            calculateAndRenderAnalytics(subset);
+
+            const ctx = document.getElementById('corporateEngineChart').getContext('2d');
+            if (currentChart) { currentChart.destroy(); }
+
+            const dates = subset.map(d => d.date);
+            const closePrices = subset.map(d => d.close);
+
+            const globalPrices = fetchedHistoricalCache.map(d => d.close);
+            const globalSMA20 = computeSMA(globalPrices, 20).slice(viewportStartIndex, viewportEndIndex + 1);
+            const globalSMA50 = computeSMA(globalPrices, 50).slice(viewportStartIndex, viewportEndIndex + 1);
+            const globalSMA200 = computeSMA(globalPrices, 200).slice(viewportStartIndex, viewportEndIndex + 1);
+
+            const fullName = getSymbolFullName(currentSymbol);
+            let chartDataset = {
+                label: `${fullName} Kurs`,
+                data: closePrices,
+                borderColor: '#00ffff',
+                borderWidth: 2.5,
+                pointRadius: subset.length > 150 ? 0 : 2,
+                tension: 0.04,
+                fill: false
+            };
+
+            if (activeChartMode === 'area') {
+                chartDataset.fill = true;
+                chartDataset.backgroundColor = 'rgba(0, 255, 255, 0.12)';
+            }
+
+            let datasets = [chartDataset];
+
+            if (showSMA20) {
+                datasets.push({
+                    label: 'SMA 20 (Fast)',
+                    data: globalSMA20,
+                    borderColor: '#facc15',
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    fill: false
+                });
+            }
+
+            if (showSMA50) {
+                datasets.push({
+                    label: 'SMA 50 (Trend)',
+                    data: globalSMA50,
+                    borderColor: '#f97316',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false
+                });
+            }
+
+            if (showSMA200) {
+                datasets.push({
+                    label: 'SMA 200 (Macro)',
+                    data: globalSMA200,
+                    borderColor: '#ef4444',
+                    borderWidth: 2.5,
+                    borderDash: [4, 4],
+                    pointRadius: 0,
+                    fill: false
+                });
+            }
+
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: dates, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#ffffff', font: { family: 'Roboto Mono', size: 11, weight: 'bold' } } },
+                        tooltip: { mode: 'index', intersect: false, backgroundColor: '#0f172a', borderColor: '#ffffff', borderWidth: 1 }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#ffffff', font: { family: 'Roboto Mono', weight: 'bold' } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#ffffff', font: { family: 'Roboto Mono', weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        async function pipelineWorkflowLoad(symbol, isManualSearch = false) {
+            currentSymbol = symbol.trim().toUpperCase();
+
+            const historicalDataArray = isManualSearch
+                ? await fetchManualFund(currentSymbol)
+                : await fetchHistoricalSeries(currentSymbol);
+
+            fetchedHistoricalCache = historicalDataArray;
+
+            viewportStartIndex = null;
+            viewportEndIndex = null;
+
+            renderBannerDisplay(historicalDataArray.length ? {
+                code: currentSymbol,
+                close: historicalDataArray[historicalDataArray.length - 1].close,
+                change_p: 0
+            } : null);
+
+            drawChartUI();
+        }
+
+        // Manuelle Steuerungsknöpfe (Zoom / Navigation)
+        document.getElementById('ctrl-zoom-in').addEventListener('click', () => {
+            if (!fetchedHistoricalCache.length) return;
+            let currentLength = viewportEndIndex - viewportStartIndex + 1;
+            if (currentLength <= 10) return;
+
+            let step = Math.ceil(currentLength * 0.15);
+            viewportStartIndex = Math.min(viewportEndIndex - 10, viewportStartIndex + step);
+            drawChartUI();
+        });
+
+        document.getElementById('ctrl-zoom-out').addEventListener('click', () => {
+            if (!fetchedHistoricalCache.length) return;
+            let currentLength = viewportEndIndex - viewportStartIndex + 1;
+            if (currentLength >= fetchedHistoricalCache.length) return;
+
+            let step = Math.ceil(currentLength * 0.15);
+            viewportStartIndex = Math.max(0, viewportStartIndex - step);
+            viewportEndIndex = Math.min(fetchedHistoricalCache.length - 1, viewportEndIndex + step);
+            drawChartUI();
+        });
+
+        document.getElementById('ctrl-left').addEventListener('click', () => {
+            if (!fetchedHistoricalCache.length) return;
+            let currentLength = viewportEndIndex - viewportStartIndex + 1;
+            let step = Math.ceil(currentLength * 0.2);
+
+            if (viewportStartIndex - step >= 0) {
+                viewportStartIndex -= step;
+                viewportEndIndex -= step;
+            } else {
+                viewportEndIndex = currentLength - 1;
+                viewportStartIndex = 0;
+            }
+            drawChartUI();
+        });
+
+        document.getElementById('ctrl-right').addEventListener('click', () => {
+            if (!fetchedHistoricalCache.length) return;
+            let currentLength = viewportEndIndex - viewportStartIndex + 1;
+            let step = Math.ceil(currentLength * 0.2);
+
+            if (viewportEndIndex + step < fetchedHistoricalCache.length) {
+                viewportStartIndex += step;
+                viewportEndIndex += step;
+            } else {
+                viewportEndIndex = fetchedHistoricalCache.length - 1;
+                viewportStartIndex = Math.max(0, viewportEndIndex - currentLength + 1);
+            }
+            drawChartUI();
+        });
+
+        document.getElementById('ctrl-reset').addEventListener('click', () => {
+            viewportEndIndex = fetchedHistoricalCache.length - 1;
+            viewportStartIndex = Math.max(0, viewportEndIndex - activeDays + 1);
+            drawChartUI();
+        });
+
+        function handleBloombergGo() {
+            const raw = document.getElementById('bloomberg-cmd').value.trim().toUpperCase();
+            if (!raw) return;
+            pipelineWorkflowLoad(raw, true);
+            const sel = document.getElementById('symbol-selector');
+            if (!Array.from(sel.options).some(o => o.value === raw)) {
+                sel.add(new Option(raw, raw));
+            }
+            sel.value = raw;
+            document.getElementById('bloomberg-cmd').value = '';
+        }
+
+        document.getElementById('bloomberg-go-btn').addEventListener('click', handleBloombergGo);
+        document.getElementById('bloomberg-cmd').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleBloombergGo(); });
+
+        document.getElementById('symbol-selector').addEventListener('change', (e) => {
+            const selectorMobile = document.getElementById('symbol-selector-mobile');
+            if (selectorMobile) selectorMobile.value = e.target.value;
+            pipelineWorkflowLoad(e.target.value);
+        });
+        document.getElementById('symbol-selector-mobile').addEventListener('change', (e) => {
+            const selectorDesktop = document.getElementById('symbol-selector');
+            if (selectorDesktop) selectorDesktop.value = e.target.value;
+            pipelineWorkflowLoad(e.target.value);
+        });
+
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.timeframe-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-white', 'text-black', 'font-black');
+                    b.classList.add('bg-[#0a0a0a]/60', 'text-white');
+                });
+                btn.classList.add('active', 'bg-white', 'text-black', 'font-black');
+                activeDays = parseInt(btn.dataset.days);
+
+                viewportStartIndex = null;
+                viewportEndIndex = null;
+                drawChartUI();
+            });
+        });
+
+        document.querySelectorAll('.chart-type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.chart-type-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-white', 'text-black', 'font-black');
+                    b.classList.add('bg-[#0a0a0a]/60', 'text-white');
+                });
+                btn.classList.add('active', 'bg-white', 'text-black', 'font-black');
+                activeChartMode = btn.dataset.mode;
+                drawChartUI();
+            });
+        });
+
+        function styleIndicatorButton(id, isActive) {
+            const btn = document.getElementById(id);
+            if (isActive) {
+                btn.classList.add('bg-white', 'text-black', 'font-black');
+                btn.classList.remove('text-white', 'bg-[#0a0a0a]/60');
+            } else {
+                btn.classList.remove('bg-white', 'text-black', 'font-black');
+                btn.classList.add('text-white', 'bg-[#0a0a0a]/60');
+            }
+        }
+
+        styleIndicatorButton('toggle-sma20', showSMA20);
+        styleIndicatorButton('toggle-sma50', showSMA50);
+        styleIndicatorButton('toggle-sma200', showSMA200);
+
+        document.getElementById('toggle-sma20').addEventListener('click', () => {
+            showSMA20 = !showSMA20;
+            styleIndicatorButton('toggle-sma20', showSMA20);
+            drawChartUI();
+        });
+        document.getElementById('toggle-sma50').addEventListener('click', () => {
+            showSMA50 = !showSMA50;
+            styleIndicatorButton('toggle-sma50', showSMA50);
+            drawChartUI();
+        });
+        document.getElementById('toggle-sma200').addEventListener('click', () => {
+            showSMA200 = !showSMA200;
+            styleIndicatorButton('toggle-sma200', showSMA200);
+            drawChartUI();
+        });
+
+        document.getElementById('export-png').addEventListener('click', () => {
+            if (!currentChart) return;
+            const canvas = document.getElementById('corporateEngineChart');
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = '#080f1e';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(canvas, 0, 0);
+
+            const link = document.createElement('a');
+            link.href = tempCanvas.toDataURL('image/png');
+            link.download = `QuantTerminalExport_${currentSymbol}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // TEXT REPORT DOWNLOADER ENGINE (.txt)
+        document.getElementById('export-report-txt').addEventListener('click', () => {
+            const ts = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+            let rtPrice = latestRealtimeQuote ? `€${parseFloat(latestRealtimeQuote.close).toFixed(2)}` : 'N/A';
+            let rtChange = latestRealtimeQuote ? `${parseFloat(latestRealtimeQuote.change_p).toFixed(2)}%` : 'N/A';
+
+            let report = `================================================================
+                    XTRACKERS CORP QUANT TERMINAL ENGINE REPORT
+================================================================
+Generiert am        : ${ts}
+Aktiver Ticker      : ${currentSymbol}
+Handelsplatz        : XETRA
+
+----------------------------------------------------------------
+1. REALTIME QUOTE MATRIX (LIVE DATA)
+----------------------------------------------------------------
+Letzter Kurs        : ${rtPrice}
+Tagesveränderung    : ${rtChange}
+
+----------------------------------------------------------------
+2. STRATEGIC METRICS (VISIBLE VIEWPORT CONTAINER)
+----------------------------------------------------------------
+Zeitraum (Tage)     : ${activeDays} Tage Daten-Fenster
+Performance (Perf)  : ${currentMetrics.performance}
+Perioden Hoch (H)   : ${currentMetrics.high}
+Perioden Tief (L)   : ${currentMetrics.low}
+Volatilität (StdDev): ${currentMetrics.volatility}
+RSI (14-Tage-Index) : ${currentMetrics.rsi}
+
+----------------------------------------------------------------
+3. ALGORITHMIC STRATEGY SIGNALS (QUANT SYSTEM)
+----------------------------------------------------------------
+[Fast Cross-Analysis Engine (SMA 20/50)]
+Letztes Signal      : ${document.getElementById('strategy-cross-signal').textContent}
+Signal-Rendite (Live): ${document.getElementById('strategy-cross-pnl').textContent}
+
+[Long-Term Macro Trend Filter (Price vs. SMA 200)]
+Letztes Signal      : ${document.getElementById('strategy-macro-signal').textContent}
+Macro-Rendite (Live) : ${document.getElementById('strategy-macro-pnl').textContent}
+
+----------------------------------------------------------------
+4. CONFIGURATION PARAMETERS & INDICATORS STATE
+----------------------------------------------------------------
+Chart-Typ-Modus     : ${activeChartMode.toUpperCase()}
+SMA 20 (Schnell)    : ${showSMA20 ? "AKTIVIERT (Sichtbar)" : "DEAKTIVIERT"}
+SMA 50 (Trend)      : ${showSMA50 ? "AKTIVIERT (Sichtbar)" : "DEAKTIVIERT"}
+SMA 200 (Institution): ${showSMA200 ? "AKTIVIERT (Sichtbar)" : "DEAKTIVIERT"}
+
+================================================================
+                     END OF DATA DATASET
+================================================================`;
+
+            const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `QuantTerminal_Report_${currentSymbol}.txt`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+    </script>
+    <!-- EMBEDDED SYMBOL DATA - ALL 10 FUND COMPANIES (457 KB) -->
+    <script>
+const ALL_FUND_SYMBOLS = {
+  'DWS': {
+    'AT0000704176.EUFUND': 'AT0000704176.EUFUND - DWS (Austria) Vermögensbildungsfonds T',
+    'DE0005152375.EUFUND': 'DE0005152375.EUFUND - DWS Europe Dynamic',
+    'DE0005152409.EUFUND': 'DE0005152409.EUFUND - DWS GERM.SMALL/MID CAP LD',
+    'DE0005152441.EUFUND': 'DE0005152441.EUFUND - DWS GLOBAL GROWTH',
+    'DE0005152466.EUFUND': 'DE0005152466.EUFUND - DWS SDG GLOB. EQUITIES LD',
+    'DE0005152482.EUFUND': 'DE0005152482.EUFUND - DWS Smart Industrial Technologies LD',
+    'DE0005318406.EUFUND': 'DE0005318406.EUFUND - DWS STIFTUNGSFONDS LD',
+    'DE0008474008.EUFUND': 'DE0008474008.EUFUND - DWS ESG Investa LD',
+    'DE0008474024.EUFUND': 'DE0008474024.EUFUND - DWS Akkumula LC',
+    'DE0008474032.EUFUND': 'DE0008474032.EUFUND - DWS EUROZONE BONDS FLEX-LD',
+    'DE0008474057.EUFUND': 'DE0008474057.EUFUND - BASLER-AKTIENFONDS DWS',
+    'DE0008474065.EUFUND': 'DE0008474065.EUFUND - BASLER-RENTENFONDS DWS',
+    'DE0008474123.EUFUND': 'DE0008474123.EUFUND - DWS Global Natural Resources Equity Typ O',
+    'DE0008474149.EUFUND': 'DE0008474149.EUFUND - DWS Artificial Intelligence ND',
+    'DE0008474156.EUFUND': 'DE0008474156.EUFUND - DWS EUROPEAN OPPORTUNI.LD',
+    'DE0008474198.EUFUND': 'DE0008474198.EUFUND - DWS Balance',
+    'DE0008474214.EUFUND': 'DE0008474214.EUFUND - DWS Telemedia Typ O ND',
+    'DE0008474230.EUFUND': 'DE0008474230.EUFUND - DWS EURO FLEXIZINS',
+    'DE0008474263.EUFUND': 'DE0008474263.EUFUND - DWS ESG CONVERTIBLES-INC',
+    'DE0008474289.EUFUND': 'DE0008474289.EUFUND - DWS GERMAN EQUITIES TYP O',
+    'DE0008474297.EUFUND': 'DE0008474297.EUFUND - Basler-International DWS',
+    'DE0008476508.EUFUND': 'DE0008476508.EUFUND - DWS Global Small/Mid Cap',
+    'DE0008476516.EUFUND': 'DE0008476516.EUFUND - DWS EURO BOND FUND',
+    'DE0008476524.EUFUND': 'DE0008476524.EUFUND - DWS VERMOEGENSBIL.FD.I LD',
+    'DE0008476532.EUFUND': 'DE0008476532.EUFUND - DWS COVERED BOND FUND',
+    'DE0008486655.EUFUND': 'DE0008486655.EUFUND - DWS Concept GS&P Food LD',
+    'DE0008490822.EUFUND': 'DE0008490822.EUFUND - DWS QI LOWVOL EUROPE NC',
+    'DE0008490848.EUFUND': 'DE0008490848.EUFUND - DWS Eurovesta',
+    'DE0008490897.EUFUND': 'DE0008490897.EUFUND - DWS US Growth',
+    'DE0008490954.EUFUND': 'DE0008490954.EUFUND - Dws Nomura Japan Growth',
+    'DE0008490962.EUFUND': 'DE0008490962.EUFUND - DWS Deutschland LC',
+    'DE0008490988.EUFUND': 'DE0008490988.EUFUND - DWS Hybrid Bonds',
+    'DE0008493370.EUFUND': 'DE0008493370.EUFUND - DWS-Merkur-Fonds 1',
+    'DE0009769703.EUFUND': 'DE0009769703.EUFUND - DWS INTL RENTEN TYP O',
+    'DE0009769760.EUFUND': 'DE0009769760.EUFUND - DWS TOP ASIEN LC',
+    'DE0009769794.EUFUND': 'DE0009769794.EUFUND - DWS ESG Top World',
+    'DE0009769851.EUFUND': 'DE0009769851.EUFUND - DWS Health Care Typ O NC',
+    'DE0009769885.EUFUND': 'DE0009769885.EUFUND - DWS Vorsorge AS (dynamik)',
+    'DE0009769893.EUFUND': 'DE0009769893.EUFUND - DWS Vorsorge AS (flex)',
+    'DE0009769901.EUFUND': 'DE0009769901.EUFUND - Gottlieb Daimler Aktienfonds DWS',
+    'DE0009769919.EUFUND': 'DE0009769919.EUFUND - DWS Financials Typ O ND',
+    'DE0009769976.EUFUND': 'DE0009769976.EUFUND - DWS Biotech LC',
+    'DE0009773010.EUFUND': 'DE0009773010.EUFUND - DWS EMERGI.MARK. TYP O ND',
+    'DE0009778563.EUFUND': 'DE0009778563.EUFUND - DWS Qi Eurozone Equity RC',
+    'DE0009788026.EUFUND': 'DE0009788026.EUFUND - DWS QI EXTRA BOND TL RET-SD',
+    'DE0009848010.EUFUND': 'DE0009848010.EUFUND - DWS TOP PORTF.OFFENSIV',
+    'DE0009848036.EUFUND': 'DE0009848036.EUFUND - E.ON Aktienfonds DWS',
+    'DE0009848044.EUFUND': 'DE0009848044.EUFUND - E.ON Rentenfonds DWS',
+    'DE0009848119.EUFUND': 'DE0009848119.EUFUND - DWS Top Dividende LD',
+    'DE000A0M6W69.EUFUND': 'DE000A0M6W69.EUFUND - DWS Qi European Equity SC'
+  },
+  'ALLIANZ': {
+    'AT0000824685.EUFUND': 'AT0000824685.EUFUND - ALLIANZ INVEST RENTENFONDS-A',
+    'AT0000848791.EUFUND': 'AT0000848791.EUFUND - ALLIANZ INVEST VORSORGEFND-A',
+    'AT0000A05GX3.EUFUND': 'AT0000A05GX3.EUFUND - Allianz Invest Eurorent A',
+    'AT0000A19NT8.EUFUND': 'AT0000A19NT8.EUFUND - ALLIANZ NACHHLTGKTS-RNTNFDS',
+    'DE0006372477.EUFUND': 'DE0006372477.EUFUND - Allianz Strategie 2031 Plus',
+    'DE0006372501.EUFUND': 'DE0006372501.EUFUND - Allianz Multi Manager Global Balanced P EUR',
+    'DE0008471038.EUFUND': 'DE0008471038.EUFUND - Allianz Adifonds A EUR',
+    'DE0008471061.EUFUND': 'DE0008471061.EUFUND - Allianz Adiverba A EUR',
+    'DE0008471400.EUFUND': 'DE0008471400.EUFUND - ALLIANZ RENTENFONDS',
+    'DE0008471467.EUFUND': 'DE0008471467.EUFUND - Allianz Global Equity Dividend A EUR',
+    'DE0008471913.EUFUND': 'DE0008471913.EUFUND - Allianz Mobil-Fonds A EUR',
+    'DE0008475013.EUFUND': 'DE0008475013.EUFUND - Allianz Thesaurus AT EUR',
+    'DE0008475039.EUFUND': 'DE0008475039.EUFUND - Allianz US Large Cap Growth A EUR',
+    'DE0008475047.EUFUND': 'DE0008475047.EUFUND - ALLIANZ EURO RENTENFONDS-A',
+    'DE0008475054.EUFUND': 'DE0008475054.EUFUND - ALLIANZ INTL RENTENFNDS-A',
+    'DE0008475062.EUFUND': 'DE0008475062.EUFUND - Allianz VermÃ¶gensbildung Deutschland A EUR',
+    'DE0008475070.EUFUND': 'DE0008475070.EUFUND - Allianz Interglobal A EUR',
+    'DE0008475096.EUFUND': 'DE0008475096.EUFUND - ALLIANZ ROHSTOFFFONDS A',
+    'DE0008475112.EUFUND': 'DE0008475112.EUFUND - ALLIANZ FDS JAPAN A (EUR)',
+    'DE0008475120.EUFUND': 'DE0008475120.EUFUND - Allianz Informationstechnologie A EUR',
+    'DE0008476011.EUFUND': 'DE0008476011.EUFUND - Allianz Fonds Schweiz A EUR',
+    'DE0008476037.EUFUND': 'DE0008476037.EUFUND - ALLIANZ EUROPAZINS-A',
+    'DE0008481813.EUFUND': 'DE0008481813.EUFUND - Allianz VermÃ¶gensbildung Europa A EUR',
+    'DE0008481862.EUFUND': 'DE0008481862.EUFUND - Allianz Biotechnologie A EUR',
+    'DE0009764431.EUFUND': 'DE0009764431.EUFUND - ALLIANZ SGB RENTEN',
+    'DE0009797209.EUFUND': 'DE0009797209.EUFUND - Allianz Fondsvorsorge 1947-1951 AT EUR',
+    'DE0009797217.EUFUND': 'DE0009797217.EUFUND - Allianz Fondsvorsorge 1952-1956 AT EUR',
+    'DE0009797225.EUFUND': 'DE0009797225.EUFUND - Allianz Fondsvorsorge 1957-1966 AT EUR',
+    'DE0009797233.EUFUND': 'DE0009797233.EUFUND - Allianz Fondsvorsorge 1967-1976 AT EUR',
+    'DE0009797241.EUFUND': 'DE0009797241.EUFUND - Allianz Fondsvorsorge 1977-1996 AT EUR',
+    'DE0009797258.EUFUND': 'DE0009797258.EUFUND - Allianz Strategiefonds Balance A EUR',
+    'DE0009797266.EUFUND': 'DE0009797266.EUFUND - Allianz Strategiefonds Wachstum A EUR',
+    'DE0009797274.EUFUND': 'DE0009797274.EUFUND - Allianz Strategiefonds Wachstum Plus A EUR',
+    'DE0009797282.EUFUND': 'DE0009797282.EUFUND - Allianz Strategiefonds StabilitÃ¤t A EUR',
+    'DE0009797316.EUFUND': 'DE0009797316.EUFUND - Allianz Strategiefonds Wachstum Plus I EUR',
+    'DE0009797480.EUFUND': 'DE0009797480.EUFUND - Allianz Euro Rentenfonds P EUR',
+    'DE0009797514.EUFUND': 'DE0009797514.EUFUND - Allianz Fonds Schweiz A CHF',
+    'DE0009797530.EUFUND': 'DE0009797530.EUFUND - Allianz Nebenwerte Deutschland I EUR',
+    'DE0009797563.EUFUND': 'DE0009797563.EUFUND - Allianz Interglobal P EUR',
+    'DE0009797571.EUFUND': 'DE0009797571.EUFUND - Allianz Strategiefonds Balance PT2 EUR',
+    'DE0009797621.EUFUND': 'DE0009797621.EUFUND - Allianz Strategiefonds StabilitÃ¤t A2 EUR',
+    'DE0009797639.EUFUND': 'DE0009797639.EUFUND - Allianz Strategiefonds Wachstum A2 EUR',
+    'DE0009797647.EUFUND': 'DE0009797647.EUFUND - Allianz Strategiefonds StabilitÃ¤t AT EUR',
+    'DE0009797670.EUFUND': 'DE0009797670.EUFUND - Allianz Euro Rentenfonds AT EUR',
+    'DE0009797688.EUFUND': 'DE0009797688.EUFUND - Allianz Interglobal AT EUR',
+    'DE000A14N9S1.EUFUND': 'DE000A14N9S1.EUFUND - Allianz Strategiefonds Wachstum I EUR',
+    'DE000A14N9Y9.EUFUND': 'DE000A14N9Y9.EUFUND - Allianz Strategiefonds Balance IT2 EUR',
+    'DE000A2AMPK6.EUFUND': 'DE000A2AMPK6.EUFUND - Allianz Strategiefonds StabilitÃ¤t IT2 EUR',
+    'DE000A2AMPL4.EUFUND': 'DE000A2AMPL4.EUFUND - Allianz Strategiefonds Wachstum IT2 EUR',
+    'DE000A2AMPQ3.EUFUND': 'DE000A2AMPQ3.EUFUND - Allianz Flexi Rentenfonds IT2 EUR'
+  },
+  'BLACKROCK': {
+    'BE6315077865.EUFUND': 'BE6315077865.EUFUND - Belfius Portfolio B - BlackRock Convictions 50 P D',
+    'FR00140009Z9.EUFUND': 'FR00140009Z9.EUFUND - SG BlackRock Flexible ISR C',
+    'FR00140097C3.EUFUND': 'FR00140097C3.EUFUND - SG BlackRock Actions Emergents C',
+    'FR0050000100.EUFUND': 'FR0050000100.EUFUND - SG BlackRock Actions US ISR C',
+    'FR0050000423.EUFUND': 'FR0050000423.EUFUND - SG BlackRock Obligations Euro ISR C',
+    'FR0050000688.EUFUND': 'FR0050000688.EUFUND - SG BlackRock Actions Euro ISR C',
+    'GB0000011444.EUFUND': 'GB0000011444.EUFUND - BlackRock Growth and Recovery Fund A Inc',
+    'GB0000017680.EUFUND': 'GB0000017680.EUFUND - BlackRock Growth & Recovery A Acc in GB',
+    'GB0000157817.EUFUND': 'GB0000157817.EUFUND - CLI BlackRock UK in GB',
+    'GB0000270651.EUFUND': 'GB0000270651.EUFUND - Canlife BlackRock Emerging Markets Pn PS4 Acc GTR ',
+    'GB0000274638.EUFUND': 'GB0000274638.EUFUND - CLI BlackRock Emerging Markets in GB',
+    'GB0000494905.EUFUND': 'GB0000494905.EUFUND - BlackRock European Dynamic A Inc TR in GB',
+    'GB0000495209.EUFUND': 'GB0000495209.EUFUND - BlackRock European Dynamic A Acc in GB',
+    'GB0000645019.EUFUND': 'GB0000645019.EUFUND - BlackRock Developed Markets Sustainable Equity A I',
+    'GB0000646421.EUFUND': 'GB0000646421.EUFUND - BlackRock Developed Markets Sustainable Equity A A',
+    'GB0001403608.EUFUND': 'GB0001403608.EUFUND - Zurich BlackRock Balanced Growth Portfolio G4 AL i',
+    'GB0001532166.EUFUND': 'GB0001532166.EUFUND - Aviva Pen BlackRock UK Equity FP Pn GTR in GB',
+    'GB0001732584.EUFUND': 'GB0001732584.EUFUND - BlackRock Gold & General A Inc TR in GB**',
+    'GB0002664935.EUFUND': 'GB0002664935.EUFUND - OMR BlackRock Developed Markets Sustainable Equity',
+    'GB0002704277.EUFUND': 'GB0002704277.EUFUND - Zurich BlackRock Balanced Growth Portfolio AP GTR ',
+    'GB0002772241.EUFUND': 'GB0002772241.EUFUND - OMR BlackRock Developed Markets Sustainable Equity',
+    'GB0002863834.EUFUND': 'GB0002863834.EUFUND - FPIL BlackRock US Flexible Equity in GB',
+    'GB0003749982.EUFUND': 'GB0003749982.EUFUND - BlackRock Corporate Bond A Inc TR in GB',
+    'GB0005201990.EUFUND': 'GB0005201990.EUFUND - BlackRock UK Property TR in GB',
+    'GB0005394415.EUFUND': 'GB0005394415.EUFUND - Aegon/Scottish Equitable plc BlackRock Balanced Ma',
+    'GB0005396238.EUFUND': 'GB0005396238.EUFUND - Aegon/Scottish Equitable plc BlackRock Balanced Ma',
+    'GB0005769541.EUFUND': 'GB0005769541.EUFUND - BlackRock Corporate Bond A Acc TR in GB',
+    'GB0005773774.EUFUND': 'GB0005773774.EUFUND - BlackRock UK A Acc in GB',
+    'GB0005773881.EUFUND': 'GB0005773881.EUFUND - BlackRock UK A Inc TR in GB',
+    'GB0005803191.EUFUND': 'GB0005803191.EUFUND - BlackRock US Dynamic A Inc TR in GB',
+    'GB0005803316.EUFUND': 'GB0005803316.EUFUND - BlackRock UK Equity I Inc',
+    'GB0005803530.EUFUND': 'GB0005803530.EUFUND - BlackRock UK Equity I Acc',
+    'GB0005803977.EUFUND': 'GB0005803977.EUFUND - BlackRock UK Special Situations A Inc TR in GB**',
+    'GB0005804165.EUFUND': 'GB0005804165.EUFUND - BlackRock US Dynamic A Acc in GB',
+    'GB0005804504.EUFUND': 'GB0005804504.EUFUND - BlackRock Continental European A Inc TR in GB',
+    'GB0005804728.EUFUND': 'GB0005804728.EUFUND - BlackRock Continental European A Acc in GB',
+    'GB0005804835.EUFUND': 'GB0005804835.EUFUND - BlackRock UK Income A Inc TR in GB',
+    'GB0005804942.EUFUND': 'GB0005804942.EUFUND - BlackRock UK Income A Acc in GB',
+    'GB0005805022.EUFUND': 'GB0005805022.EUFUND - BlackRock UK Special Situations A Acc in GB',
+    'GB0005810667.EUFUND': 'GB0005810667.EUFUND - BlackRock Balanced Growth Portfolio A Inc TR in GB',
+    'GB0005810774.EUFUND': 'GB0005810774.EUFUND - BlackRock Balanced Growth Portfolio A Acc in GB',
+    'GB0005811301.EUFUND': 'GB0005811301.EUFUND - BlackRock UK Smaller Companies A Inc TR in GB',
+    'GB0005811418.EUFUND': 'GB0005811418.EUFUND - BlackRock UK Smaller Companies A Acc in GB',
+    'GB0005811749.EUFUND': 'GB0005811749.EUFUND - BlackRock US Opportunities A Inc TR in GB',
+    'GB0005811855.EUFUND': 'GB0005811855.EUFUND - BlackRock US Opportunities A Acc in GB',
+    'GB0005849350.EUFUND': 'GB0005849350.EUFUND - BlackRock Cash A Inc TR in GB',
+    'GB0005849467.EUFUND': 'GB0005849467.EUFUND - BlackRock Cash A Acc TR in GB',
+    'GB0005852396.EUFUND': 'GB0005852396.EUFUND - BlackRock Gold and General Fund A Acc',
+    'GB0005860837.EUFUND': 'GB0005860837.EUFUND - BlackRock Emerging Markets A Inc TR in GB',
+    'GB0005860944.EUFUND': 'GB0005860944.EUFUND - BlackRock Emerging Markets A Acc in GB'
+  },
+  'AMUNDI': {
+    'AT0000600382.EUFUND': 'AT0000600382.EUFUND - Amundi ESG Income 2 - T (C)',
+    'AT0000600390.EUFUND': 'AT0000600390.EUFUND - Amundi ESG Income 2 - VI (C)',
+    'AT0000613146.EUFUND': 'AT0000613146.EUFUND - Amundi Ethik Fonds VA',
+    'AT0000646765.EUFUND': 'AT0000646765.EUFUND - Amundi Ethik Fonds VI',
+    'AT0000675186.EUFUND': 'AT0000675186.EUFUND - Amundi Eastern Europe Stock 2VA',
+    'AT0000729389.EUFUND': 'AT0000729389.EUFUND - Amundi Ã–ko Sozial Global High Yield Bond',
+    'AT0000731575.EUFUND': 'AT0000731575.EUFUND - Amundi Ethik Fonds T',
+    'AT0000747100.EUFUND': 'AT0000747100.EUFUND - Amundi Ethik Fonds flexibel VI',
+    'AT0000754270.EUFUND': 'AT0000754270.EUFUND - Amundi Healthcare Stock',
+    'AT0000764865.EUFUND': 'AT0000764865.EUFUND - Amundi Oeko Soz.Em.Mkts Cor.BdI',
+    'AT0000767736.EUFUND': 'AT0000767736.EUFUND - Amundi Austria Stock T',
+    'AT0000774484.EUFUND': 'AT0000774484.EUFUND - Amundi Ethik Fonds Evolution A',
+    'AT0000801071.EUFUND': 'AT0000801071.EUFUND - AMUNDI KOMFORT INVEST TRAD-T',
+    'AT0000801097.EUFUND': 'AT0000801097.EUFUND - Amundi Mega Trends T',
+    'AT0000818885.EUFUND': 'AT0000818885.EUFUND - AMUNDI KOMFORT INVEST AUSG-A',
+    'AT0000856026.EUFUND': 'AT0000856026.EUFUND - AMUNDI EURO GOVERN BOND-A',
+    'AT0000856125.EUFUND': 'AT0000856125.EUFUND - AMUNDI GF EURO CORE RENT-A',
+    'AT0000856505.EUFUND': 'AT0000856505.EUFUND - AMUNDI MUENDEL RENT-A',
+    'AT0000857008.EUFUND': 'AT0000857008.EUFUND - AMUNDI GF EURO RENT-A',
+    'AT0000857040.EUFUND': 'AT0000857040.EUFUND - Amundi Gold Stock',
+    'AT0000857081.EUFUND': 'AT0000857081.EUFUND - Amundi Ã–ko Sozial Dollar Bond A',
+    'AT0000857164.EUFUND': 'AT0000857164.EUFUND - AMUNDI ETHIK FONDS-A',
+    'AT0000857412.EUFUND': 'AT0000857412.EUFUND - AMUNDI AUSTRIA STOCK A',
+    'AT0000A05TJ5.EUFUND': 'AT0000A05TJ5.EUFUND - AMUNDI - OPTIRENDITE-A',
+    'AT0000A06Q31.EUFUND': 'AT0000A06Q31.EUFUND - Amundi Ãko Sozial Stock T',
+    'AT0000A0FM61.EUFUND': 'AT0000A0FM61.EUFUND - AMUNDI OKO SOZIAL RENT-A',
+    'AT0000A1X4E0.EUFUND': 'AT0000A1X4E0.EUFUND - Amundi ESG Income 2 -USD- A (D)',
+    'AT0000A1Z0C0.EUFUND': 'AT0000A1Z0C0.EUFUND - Amundi Ethik Fonds IT',
+    'AT0000A28YT6.EUFUND': 'AT0000A28YT6.EUFUND - Amundi CPR Climate Action A',
+    'AT0000A2L443.EUFUND': 'AT0000A2L443.EUFUND - Amundi Ethik Fonds Evolution T',
+    'AT0000A2RYF9.EUFUND': 'AT0000A2RYF9.EUFUND - Amundi Ethik Fonds - R2',
+    'DE0008472440.EUFUND': 'DE0008472440.EUFUND - VPV-Rent Amundi - A (D)',
+    'DE0008472895.EUFUND': 'DE0008472895.EUFUND - Amundi BKK Rent',
+    'DE0008480468.EUFUND': 'DE0008480468.EUFUND - VPV-Spezial Amundi - A (D)',
+    'DE0009752303.EUFUND': 'DE0009752303.EUFUND - Amundi German Equity A ND',
+    'DE0009779736.EUFUND': 'DE0009779736.EUFUND - Amundi Top World',
+    'DE0009779884.EUFUND': 'DE0009779884.EUFUND - AMUNDI AKTIEN ROHSTOFFE A',
+    'DE0009785303.EUFUND': 'DE0009785303.EUFUND - Amundi Internetaktien',
+    'DE0009792002.EUFUND': 'DE0009792002.EUFUND - Amundi Ethik Plus A ND',
+    'DE000A1W9BL3.EUFUND': 'DE000A1W9BL3.EUFUND - Amundi Multi Manager Best Select - A (DA)',
+    'DE000A2DW327.EUFUND': 'DE000A2DW327.EUFUND - Amundi Multi Manager Best Select H ND',
+    'DE000A2DW368.EUFUND': 'DE000A2DW368.EUFUND - Amundi Multi Manager Best Select R DA',
+    'DE000A2H5ZF0.EUFUND': 'DE000A2H5ZF0.EUFUND - Amundi CPR Defensiv',
+    'DE000A2H5ZG8.EUFUND': 'DE000A2H5ZG8.EUFUND - Amundi CPR Aktiv',
+    'DE000A2H5ZH6.EUFUND': 'DE000A2H5ZH6.EUFUND - Amundi CPR Dynamisch',
+    'DE000A2P8UA6.EUFUND': 'DE000A2P8UA6.EUFUND - Amundi Ethik Plus A DA',
+    'DE000A2P8UB4.EUFUND': 'DE000A2P8UB4.EUFUND - Amundi Ethik Plus R DA',
+    'DE000A2P8UC2.EUFUND': 'DE000A2P8UC2.EUFUND - Amundi Ethik Plus H DA',
+    'DE000A3CUQ05.EUFUND': 'DE000A3CUQ05.EUFUND - AMUNDI Welt Ertrag Nachhaltig A DQ',
+    'DE000A3CUQ13.EUFUND': 'DE000A3CUQ13.EUFUND - Amundi Welt Ertrag Nachhaltig A DA'
+  },
+  'FIDELITY': {
+    'DE000A0RHF92.EUFUND': 'DE000A0RHF92.EUFUND - Fidelity Demografiefonds Konservativ',
+    'DE000A0RHGA4.EUFUND': 'DE000A0RHGA4.EUFUND - Fidelity Demografiefonds Ausgewogen',
+    'FR0000008674.EUFUND': 'FR0000008674.EUFUND - Fidelity Europe A',
+    'FR0010241059.EUFUND': 'FR0010241059.EUFUND - CNP Actions Europe Fidelity',
+    'FR0011538800.EUFUND': 'FR0011538800.EUFUND - S Tempo Fidelity',
+    'FR0012686350.EUFUND': 'FR0012686350.EUFUND - Hugo Fidelity',
+    'FR0013293891.EUFUND': 'FR0013293891.EUFUND - Fidelity Europe N',
+    'GB0001262525.EUFUND': 'GB0001262525.EUFUND - Phoenix SM Fidelity Managed Pn GTR in GB',
+    'GB0002051620.EUFUND': 'GB0002051620.EUFUND - Fidelity Institutional Sterling Corporate Bond Fun',
+    'GB0002473683.EUFUND': 'GB0002473683.EUFUND - Fidelity Institutional Index Linked Bond Inc',
+    'GB0002677648.EUFUND': 'GB0002677648.EUFUND - Zurich Fidelity Managed 2000 AP GTR in GB',
+    'GB0003027629.EUFUND': 'GB0003027629.EUFUND - RLP UK Equity Specialist (Fidelity UK Opportunitie',
+    'GB0003027843.EUFUND': 'GB0003027843.EUFUND - RLP Fidelity UK Select Pn GTR in GB',
+    'GB0003250601.EUFUND': 'GB0003250601.EUFUND - Sterling Fidelity Worldwide Special Situations in ',
+    'GB0003367504.EUFUND': 'GB0003367504.EUFUND - Fidelity Institutional America Acc',
+    'GB0003368577.EUFUND': 'GB0003368577.EUFUND - Fidelity Institutional Emerging Markets Fund Acc',
+    'GB0003369765.EUFUND': 'GB0003369765.EUFUND - OMR Professional Fidelity Sustainable European Equ',
+    'GB0003370094.EUFUND': 'GB0003370094.EUFUND - OMR Professional Fidelity MoneyBuilder Dividend Pn',
+    'GB0003371399.EUFUND': 'GB0003371399.EUFUND - Fidelity Institutional Japan Acc',
+    'GB0003371407.EUFUND': 'GB0003371407.EUFUND - Fidelity Institutional South East Asia Acc',
+    'GB0003373668.EUFUND': 'GB0003373668.EUFUND - Fidelity Institutional UK in GB',
+    'GB0003860789.EUFUND': 'GB0003860789.EUFUND - Fidelity Sustainable Global Equity Fund A-Accumula',
+    'GB0003860904.EUFUND': 'GB0003860904.EUFUND - Fidelity Moneybuilder Dividend Inc TR in GB',
+    'GB0003863916.EUFUND': 'GB0003863916.EUFUND - Fidelity Moneybuilder Income A Inc TR in GB',
+    'GB0003864542.EUFUND': 'GB0003864542.EUFUND - Fidelity UK Select Acc in GB',
+    'GB0003865176.EUFUND': 'GB0003865176.EUFUND - Fidelity American Acc in GB',
+    'GB0003865390.EUFUND': 'GB0003865390.EUFUND - Fidelity American Special Situations Acc in GB',
+    'GB0003874798.EUFUND': 'GB0003874798.EUFUND - Fidelity European Acc in GB',
+    'GB0003874913.EUFUND': 'GB0003874913.EUFUND - Fidelity Sustainable European Equity A Acc in GB',
+    'GB0003875100.EUFUND': 'GB0003875100.EUFUND - Fidelity Special Situations',
+    'GB0003875324.EUFUND': 'GB0003875324.EUFUND - Fidelity Index UK Fund A-Accumulation',
+    'GB0003877817.EUFUND': 'GB0003877817.EUFUND - Fidelity Japan Acc in GB',
+    'GB0003878559.EUFUND': 'GB0003878559.EUFUND - Fidelity Moneybuilder Balanced Inc TR in GB',
+    'GB0003879185.EUFUND': 'GB0003879185.EUFUND - Fidelity Asia Fund A Acc',
+    'GB0005314926.EUFUND': 'GB0005314926.EUFUND - Fidelity Extra Income Dis TR in GB',
+    'GB0005609796.EUFUND': 'GB0005609796.EUFUND - FPIL Fidelity Euro Blue Chip in GB',
+    'GB0006325772.EUFUND': 'GB0006325772.EUFUND - Phoenix Cent Fidelity Managed Pn 3 Acc GTR in GB',
+    'GB0006788839.EUFUND': 'GB0006788839.EUFUND - CLI Fidelity Global Focus in GB',
+    'GB0006788946.EUFUND': 'GB0006788946.EUFUND - CLI Fidelity European Sustainable Equity in GB',
+    'GB0006789027.EUFUND': 'GB0006789027.EUFUND - CLI Fidelity Asia in GB',
+    'GB0006789134.EUFUND': 'GB0006789134.EUFUND - CLI Fidelity UK Opportunities in GB',
+    'GB0007379992.EUFUND': 'GB0007379992.EUFUND - Zurich Fidelity Managed EP GTR in GB',
+    'GB0007381188.EUFUND': 'GB0007381188.EUFUND - Zurich Fidelity Managed G4 AL in GB',
+    'GB0007468878.EUFUND': 'GB0007468878.EUFUND - SW Fidelity Managed in GB',
+    'GB0008011735.EUFUND': 'GB0008011735.EUFUND - FPIL Fidelity Euro Bond in GB',
+    'GB0008080110.EUFUND': 'GB0008080110.EUFUND - OMR Fidelity Long Bond Inst in GB',
+    'GB0008083783.EUFUND': 'GB0008083783.EUFUND - OMR Fidelity UK Select in GB',
+    'GB0008083908.EUFUND': 'GB0008083908.EUFUND - OMR Fidelity UK Select Pn GTR in GB',
+    'GB0008089582.EUFUND': 'GB0008089582.EUFUND - OMR Fidelity American in GB',
+    'GB0008089707.EUFUND': 'GB0008089707.EUFUND - OMR Fidelity American Special Situations in GB'
+  },
+  'BNP': {
+    'BE0026480963.EUFUND': 'BE0026480963.EUFUND - BNP Paribas B Pension Sustainable Balanced Classic',
+    'BE0146933750.EUFUND': 'BE0146933750.EUFUND - BNP Paribas B Strategy - Global Sustainable Conser',
+    'BE0146934766.EUFUND': 'BE0146934766.EUFUND - BNP Paribas B Strategy - Global Sustainable Defens',
+    'BE0146935771.EUFUND': 'BE0146935771.EUFUND - BNP Paribas B Strategy - Global Sustainable Defens',
+    'BE0146937793.EUFUND': 'BE0146937793.EUFUND - BNP PARI GLO BALANCED WRLD-C',
+    'BE0163304539.EUFUND': 'BE0163304539.EUFUND - BNP PA B STRA GLOB DYNAMIC-C',
+    'BE0163305544.EUFUND': 'BE0163305544.EUFUND - BNP PA B GLBL STRA DYNAMIC-C',
+    'BE0164272511.EUFUND': 'BE0164272511.EUFUND - BNP Paribas B Invest - Global Equity D Classis Dis',
+    'BE0169818680.EUFUND': 'BE0169818680.EUFUND - BNP Paribas B Invest Balanced Classic Cap',
+    'BE0935065822.EUFUND': 'BE0935065822.EUFUND - BNP PAR B GLOBAL AGRESSIVE-D',
+    'BE0935066838.EUFUND': 'BE0935066838.EUFUND - BNP PAR B GLOBAL AGGR-A',
+    'BE0946411791.EUFUND': 'BE0946411791.EUFUND - BNP Paribas B Pension Sustainable Growth Classic',
+    'BE0947069580.EUFUND': 'BE0947069580.EUFUND - BNP Paribas B Invest Global Eq D I',
+    'BE6257904464.EUFUND': 'BE6257904464.EUFUND - BNP PA B ST GLB DYN-LIFE CAP',
+    'BE6257910529.EUFUND': 'BE6257910529.EUFUND - BNP PA B GLOBAL DEFENSIVE-LC',
+    'BE6257911535.EUFUND': 'BE6257911535.EUFUND - BNP PARI GLOBAL NEUTRAL-LCAP',
+    'BE6294245129.EUFUND': 'BE6294245129.EUFUND - BNPPF Private - Balanced Classic Dis',
+    'BE6294261282.EUFUND': 'BE6294261282.EUFUND - BNPPF Private - Balanced Select 1 Dis',
+    'BE6294262298.EUFUND': 'BE6294262298.EUFUND - BNPPF Private Bal SRI Class Solid Cap',
+    'BE6294263304.EUFUND': 'BE6294263304.EUFUND - BNPPF Private - Sustainable Balanced Classic Solid',
+    'BE6294271380.EUFUND': 'BE6294271380.EUFUND - BNPPF Private - Sustainable Balanced Select 2 Dis',
+    'BE6294304710.EUFUND': 'BE6294304710.EUFUND - BNPPF PRI CONSEVT-CLA DIS',
+    'BE6294315823.EUFUND': 'BE6294315823.EUFUND - BNPPF Private Wealth Balanced Wealth Cap',
+    'BE6294318850.EUFUND': 'BE6294318850.EUFUND - BNPPF Private Wealth Defensive Wlth Cap',
+    'BE6294354244.EUFUND': 'BE6294354244.EUFUND - BNPPF Private - Dynamic Classic Dis',
+    'BE6294420904.EUFUND': 'BE6294420904.EUFUND - BNPPF Private - Sustainable Dynamic Classic Solida',
+    'BE6309060836.EUFUND': 'BE6309060836.EUFUND - BNPPF Private - Wealth Sustainable Growth Privileg',
+    'BE6311012957.EUFUND': 'BE6311012957.EUFUND - BNPPF SERENITY BONDS EUR-PRV',
+    'BE6311138273.EUFUND': 'BE6311138273.EUFUND - BNPPF SERENITY BDS USD-PRIV',
+    'DK0015737563.EUFUND': 'DK0015737563.EUFUND - Danske Invest Europa Indeks BNP KL DKK d',
+    'FR0000174567.EUFUND': 'FR0000174567.EUFUND - BNP Paribas Perspectives Court Terme I',
+    'FR0000174617.EUFUND': 'FR0000174617.EUFUND - BNP Paribas Perspectives Long Terme I Attente',
+    'FR0000287716.EUFUND': 'FR0000287716.EUFUND - BNP PARIBAS MONEY 3M-IC',
+    'FR0000299620.EUFUND': 'FR0000299620.EUFUND - BNP Paribas MonÃ© Etat Privilege',
+    'FR0007009808.EUFUND': 'FR0007009808.EUFUND - BNP Paribas Mois ISR IC',
+    'FR0007074208.EUFUND': 'FR0007074208.EUFUND - BNP Paribas Actions Rendement Classic',
+    'FR0007074232.EUFUND': 'FR0007074232.EUFUND - BNP Paribas Actions Euro R',
+    'FR0007496047.EUFUND': 'FR0007496047.EUFUND - BNP Paribas Cash Invest Classic',
+    'FR0010021576.EUFUND': 'FR0010021576.EUFUND - BNP Paribas Perspectives Moyen Terme PD',
+    'FR0010028902.EUFUND': 'FR0010028902.EUFUND - BNP Paribas Valeurs FranÃ§aises Classic C',
+    'FR0010028910.EUFUND': 'FR0010028910.EUFUND - BNP Paribas Actions Patrimoine ISR Classic C',
+    'FR0010028969.EUFUND': 'FR0010028969.EUFUND - BNP Paribas Actions Euro Responsable Classic D',
+    'FR0010076430.EUFUND': 'FR0010076430.EUFUND - BNP Paribas SÃ©lection Dynamique PEA',
+    'FR0010076547.EUFUND': 'FR0010076547.EUFUND - BNP Paribas SÃ©lection Dynamique Monde Classic',
+    'FR0010076893.EUFUND': 'FR0010076893.EUFUND - BNP Paribas Obli ISR Classic C',
+    'FR0010076943.EUFUND': 'FR0010076943.EUFUND - BNP Paribas Obli ISR Classic D',
+    'FR0010077255.EUFUND': 'FR0010077255.EUFUND - BNP PAR MULTI STRATEGIC-C',
+    'FR0010077412.EUFUND': 'FR0010077412.EUFUND - BNP Paribas DÃ©veloppement Humain Classic',
+    'FR0010077859.EUFUND': 'FR0010077859.EUFUND - BNP Paribas Midcap France Classic D',
+    'FR0010093872.EUFUND': 'FR0010093872.EUFUND - BNP Paribas Obli Revenus Classic'
+  },
+  'JPMORGAN': {
+    'GB0003210027.EUFUND': 'GB0003210027.EUFUND - FPIL JPMorgan Pacific Technology in GB',
+    'GB0007422271.EUFUND': 'GB0007422271.EUFUND - FPIL JPMorgan Asia Growth in GB',
+    'GB0007528390.EUFUND': 'GB0007528390.EUFUND - FPIL JPMorgan Pacific Securities in GB',
+    'GB0007605313.EUFUND': 'GB0007605313.EUFUND - FPIL JPMorgan India in GB',
+    'GB00B0ZQ8K88.EUFUND': 'GB00B0ZQ8K88.EUFUND - RLP US Specialist (JPMorgan US) Pn GTR in GB',
+    'GB00B1FH3G96.EUFUND': 'GB00B1FH3G96.EUFUND - FPIL JPMorgan Asian Smaller Companies in GB',
+    'GB00B1J2XP95.EUFUND': 'GB00B1J2XP95.EUFUND - SIP JPMorgan Emerging Markets Pn S8 GTR in GB',
+    'GB00B1J2XV55.EUFUND': 'GB00B1J2XV55.EUFUND - SIP JPMorgan Emerging Markets S8 in GB',
+    'GB00B1J2Y235.EUFUND': 'GB00B1J2Y235.EUFUND - SIP JPMorgan Europe Smaller Companies Pn S8 GTR in',
+    'GB00B1J2Y789.EUFUND': 'GB00B1J2Y789.EUFUND - SIP JPMorgan Europe Smaller Companies S8 in GB',
+    'GB00B1NV0T57.EUFUND': 'GB00B1NV0T57.EUFUND - Aegon/Scottish Equitable plc JPMorgan Europe Dynam',
+    'GB00B1NV0V79.EUFUND': 'GB00B1NV0V79.EUFUND - Aegon/Scottish Equitable plc JPMorgan Europe Dynam',
+    'GB00B1VZ1K75.EUFUND': 'GB00B1VZ1K75.EUFUND - FPIL JPMorgan ASEAN in GB',
+    'GB00B3Y4QV16.EUFUND': 'GB00B3Y4QV16.EUFUND - Aegon/Scottish Equitable plc JPMorgan Europe Dynam',
+    'GB00B563NV96.EUFUND': 'GB00B563NV96.EUFUND - RLP JPMorgan Natural Resources Pn GTR in GB',
+    'GB00B56XCW32.EUFUND': 'GB00B56XCW32.EUFUND - RLP JPMorgan Global Macro Balanced Pn GTR in GB',
+    'GB00B68L3P27.EUFUND': 'GB00B68L3P27.EUFUND - RLP JPMorgan Emerging Europe Equity Pn GTR in GB',
+    'GB00B7XL3656.EUFUND': 'GB00B7XL3656.EUFUND - JPMorgan Fund III ICVC - JPM Diversified Growth Fu',
+    'GB00BGP63B67.EUFUND': 'GB00BGP63B67.EUFUND - Aegon/Scottish Equitable plc JPMorgan US Equity In',
+    'HK0000123940.EUFUND': 'HK0000123940.EUFUND - Jpmorgan Asean Fund (acc) - Hkd',
+    'IE00081SF8K7.EUFUND': 'IE00081SF8K7.EUFUND - JPMorgan ETFs (Ireland) ICAV - EUR Government Bond',
+    'IE000TGCBXG8.EUFUND': 'IE000TGCBXG8.EUFUND - JPMorgan Emerging Markets Local',
+    'IE00BFXY6F05.EUFUND': 'IE00BFXY6F05.EUFUND - Jpmorgan European Equity FAM FUND L Acc',
+    'IE00BFXY6G12.EUFUND': 'IE00BFXY6G12.EUFUND - Jpmorgan European Equity FAM FUND L Dis',
+    'IE00BFXY6H29.EUFUND': 'IE00BFXY6H29.EUFUND - Jpmorgan European Equity FAM FUND A Acc',
+    'IE00BFXY6K57.EUFUND': 'IE00BFXY6K57.EUFUND - Jpmorgan Us Equity Value FAM FUND L Acc',
+    'IE00BFXY6M71.EUFUND': 'IE00BFXY6M71.EUFUND - Jpmorgan Us Equity Value FAM FUND L Dis',
+    'IE00BFXY6P03.EUFUND': 'IE00BFXY6P03.EUFUND - Jpmorgan Us Equity Value FAM FUND A Acc',
+    'IE00BHNMWY92.EUFUND': 'IE00BHNMWY92.EUFUND - Fineco JPMorgan Us Equity Value Fam K EUR in GB',
+    'IE00BMD8FF47.EUFUND': 'IE00BMD8FF47.EUFUND - JPMORGAN CHINA A-SHARES OPPORTUNITIES FAM FUND L A',
+    'IE00BMD8FK99.EUFUND': 'IE00BMD8FK99.EUFUND - JPMORGAN CHINA A-SHARES OPPORTUNITIES FAM FUND A A',
+    'IE00BMZ5K472.EUFUND': 'IE00BMZ5K472.EUFUND - JPMORGAN CHINA A-SHARES OPPORTUNITIES FAM FUND LH ',
+    'LU0011815304.EUFUND': 'LU0011815304.EUFUND - JPMorgan Liquidity Funds - USD Liquidity VNAV Fund',
+    'LU0051755006.EUFUND': 'LU0051755006.EUFUND - JPMorgan Funds - China A (dist) USD',
+    'LU0052474979.EUFUND': 'LU0052474979.EUFUND - JPMorgan Funds - Pacific Equity Fund A (dist) - US',
+    'LU0053666078.EUFUND': 'LU0053666078.EUFUND - JPMORGAN FUNDS-AMERICA EQUITY FUND',
+    'LU0053671581.EUFUND': 'LU0053671581.EUFUND - JPMorgan Funds - US Small Cap Growth A (dist) USD',
+    'LU0053685029.EUFUND': 'LU0053685029.EUFUND - JPMorgan Funds - Europe Equity Fund A (dist) - EUR',
+    'LU0053685615.EUFUND': 'LU0053685615.EUFUND - JPMorgan Funds - Emerging Markets Equity A (dist) ',
+    'LU0053687074.EUFUND': 'LU0053687074.EUFUND - JPMorgan Funds - Europe Small Cap Fund A (dist) - ',
+    'LU0053687314.EUFUND': 'LU0053687314.EUFUND - JPMorgan Funds - Latin America Equity Fund A (dist',
+    'LU0053696067.EUFUND': 'LU0053696067.EUFUND - JPMorgan Funds - Global Aggregate Bond Fund A (dis',
+    'LU0053696224.EUFUND': 'LU0053696224.EUFUND - JPMorgan Funds - Japan Equity Fund A (dist) - USD',
+    'LU0058908533.EUFUND': 'LU0058908533.EUFUND - JPMorgan Funds - India Fund A (dist) - USD',
+    'LU0070177588.EUFUND': 'LU0070177588.EUFUND - JPMorgan Liquidity Funds - GBP Liquidity VNAV Fund',
+    'LU0070214613.EUFUND': 'LU0070214613.EUFUND - JPMorgan Investment Funds - Japan Sustainable Equi',
+    'LU0070215933.EUFUND': 'LU0070215933.EUFUND - JPMorgan Investment Funds - US Bond Fund A (acc) -',
+    'LU0070217475.EUFUND': 'LU0070217475.EUFUND - JPMorgan Investment Funds - Global Select Equity F',
+    'LU0072845869.EUFUND': 'LU0072845869.EUFUND - JPMorgan Funds - Emerging Markets Debt Fund A (dis',
+    'LU0079556006.EUFUND': 'LU0079556006.EUFUND - JPMorgan Investment Funds - Europe Select Equity F'
+  },
+  'UBS': {
+    'AT0000698089.EUFUND': 'AT0000698089.EUFUND - FRS Substanz T',
+    'CH0002788807.EUFUND': 'CH0002788807.EUFUND - UBS 100 Index-Fund Switzerland (CHF) P Dis',
+    'CH0109739000.EUFUND': 'CH0109739000.EUFUND - Ubs (ch) Suisse - 65 (chf) P-dist',
+    'CH0127276381.EUFUND': 'CH0127276381.EUFUND - UBS Swiss High Dividend Equity Fund CHF P',
+    'CH0413292308.EUFUND': 'CH0413292308.EUFUND - Ubs (ch) Vitainvest - World 100 Sustainable U',
+    'CH1110134140.EUFUND': 'CH1110134140.EUFUND - Ubs (ch) Vitainvest - Passive 75 Sustainable Q',
+    'DE0005320329.EUFUND': 'DE0005320329.EUFUND - UBS (D) Konzeptfonds Europe Plus',
+    'DE0008488206.EUFUND': 'DE0008488206.EUFUND - UBS (D) Aktienfonds-Special I Deutschland',
+    'DE0008488214.EUFUND': 'DE0008488214.EUFUND - UBS (D) Equity Fund - Global Opportunity',
+    'DE0009751651.EUFUND': 'DE0009751651.EUFUND - UBS(D)EQ.FD-SM.GERM.COS',
+    'DE000A0M13W2.EUFUND': 'DE000A0M13W2.EUFUND - ASVK Substanz & Wachstum',
+    'DE000A0MMTQ4.EUFUND': 'DE000A0MMTQ4.EUFUND - HSBC Rendite Substanz AC',
+    'DE000A0NBG59.EUFUND': 'DE000A0NBG59.EUFUND - Stadtsparkasse DÃ¼sseldorf Top-Substanz',
+    'DE000A0NEBQ7.EUFUND': 'DE000A0NEBQ7.EUFUND - Hartz Regehr Substanz-Fonds A',
+    'DE000A0RHEV5.EUFUND': 'DE000A0RHEV5.EUFUND - WARBURG-PAX-SUBSTANZ FD',
+    'DE000A12BRG9.EUFUND': 'DE000A12BRG9.EUFUND - S&H Substanzwerte P(a)',
+    'DE000A12BSV6.EUFUND': 'DE000A12BSV6.EUFUND - KIRIX Substitution Plus',
+    'DE000A1C0TA1.EUFUND': 'DE000A1C0TA1.EUFUND - HSBC Strategie Substanz AD',
+    'DE000A2P1RD1.EUFUND': 'DE000A2P1RD1.EUFUND - Substanz & Nachhaltigkeit Global A',
+    'DE000A2QFHK3.EUFUND': 'DE000A2QFHK3.EUFUND - S&H Substanzwerte I(a)',
+    'DE000A3D06D9.EUFUND': 'DE000A3D06D9.EUFUND - Meisterwert Substanz R',
+    'ES0158316036.EUFUND': 'ES0158316036.EUFUND - UBS MIXTO GESTION ACTIVA-I',
+    'ES0180943039.EUFUND': 'ES0180943039.EUFUND - UBS EspaÃ±a GestiÃ³n Activa P FI',
+    'GB0007906794.EUFUND': 'GB0007906794.EUFUND - Aegon/Scottish Equitable plc UBS Global Emerging M',
+    'GB0031098741.EUFUND': 'GB0031098741.EUFUND - UBS Global Emerging Markets Equity J Acc in GB',
+    'GB0032304510.EUFUND': 'GB0032304510.EUFUND - Aegon/Scottish Equitable plc UBS Balanced Managed ',
+    'GB0032306556.EUFUND': 'GB0032306556.EUFUND - Aegon/Scottish Equitable plc UBS Balanced Managed ',
+    'GB00B0MTKP99.EUFUND': 'GB00B0MTKP99.EUFUND - Aegon/Scottish Equitable plc UBS Global Emerging M',
+    'GB00B0MTKQ07.EUFUND': 'GB00B0MTKQ07.EUFUND - Aegon/Scottish Equitable plc UBS Global Emerging M',
+    'GB00B0MTKT38.EUFUND': 'GB00B0MTKT38.EUFUND - Aegon/Scottish Equitable plc UBS US Equity A Pn in',
+    'GB00B0MTKV59.EUFUND': 'GB00B0MTKV59.EUFUND - Aegon/Scottish Equitable plc UBS US Equity Pn GTR ',
+    'GB00B176PW43.EUFUND': 'GB00B176PW43.EUFUND - Zurich UBS US Equity ZP GTR in GB',
+    'GB00B17PJX08.EUFUND': 'GB00B17PJX08.EUFUND - Sterling UBS US Equity in GB',
+    'GB00B28Z6802.EUFUND': 'GB00B28Z6802.EUFUND - UBS Global Emerging Markets Equity K Acc in GB**',
+    'GB00B3KMPJ07.EUFUND': 'GB00B3KMPJ07.EUFUND - TM UBS (UK) Global Growth C Inc TR in GB**',
+    'GB00B3M3NZ37.EUFUND': 'GB00B3M3NZ37.EUFUND - TM UBS (UK) Global Balanced C Inc TR in GB**',
+    'GB00B3MYY754.EUFUND': 'GB00B3MYY754.EUFUND - TM UBS (UK) Global Yield C Inc TR in GB**',
+    'GB00B3PT4999.EUFUND': 'GB00B3PT4999.EUFUND - TM UBS (UK) Global Balanced C Acc in GB',
+    'GB00B4KQBJ16.EUFUND': 'GB00B4KQBJ16.EUFUND - UBS Life Japan Equity Tracker C in GB**',
+    'GB00B4MGDQ07.EUFUND': 'GB00B4MGDQ07.EUFUND - UBS Global Allocation Fund (UK) Class C Accumulati',
+    'GB00B4W58959.EUFUND': 'GB00B4W58959.EUFUND - UBS UK Equity Income Fund Class C Accumulation Sha',
+    'GB00B61S0L57.EUFUND': 'GB00B61S0L57.EUFUND - Aegon/Scottish Equitable plc UBS Global Emerging M',
+    'GB00B61V8V02.EUFUND': 'GB00B61V8V02.EUFUND - TM UBS (UK) Balanced C Acc in GB',
+    'GB00B627G135.EUFUND': 'GB00B627G135.EUFUND - TM UBS (UK) Income Focus C Acc in GB',
+    'GB00B6330N07.EUFUND': 'GB00B6330N07.EUFUND - TM UBS (UK) UK Equity C Acc in GB',
+    'GB00B63FZY28.EUFUND': 'GB00B63FZY28.EUFUND - TM UBS (UK) Balanced C Inc TR in GB**',
+    'GB00B641P491.EUFUND': 'GB00B641P491.EUFUND - TM UBS (UK) Global Growth C Acc in GB',
+    'GB00B6528P31.EUFUND': 'GB00B6528P31.EUFUND - TM UBS (UK) Growth C Inc TR in GB**',
+    'GB00B673YT03.EUFUND': 'GB00B673YT03.EUFUND - TM UBS (UK) Growth C Acc in GB',
+    'GB00B67NKZ87.EUFUND': 'GB00B67NKZ87.EUFUND - TM UBS (UK) Income Focus C Inc TR in GB**'
+  },
+  'GOLDMAN': {
+    'GB00B3DBH434.EUFUND': 'GB00B3DBH434.EUFUND - Phoenix Wealth Goldman Sachs Emerging Markets Equi',
+    'IE0000MK7GG1.EUFUND': 'IE0000MK7GG1.EUFUND - Goldman Sachs EUR Government Bond Active UCITS ETF',
+    'IE0003763251.EUFUND': 'IE0003763251.EUFUND - Goldman Sachs US$ Liquid Reserves Fund Institution',
+    'IE0006948016.EUFUND': 'IE0006948016.EUFUND - Goldman Sachs Sterling Liquid Reserves Fund Instit',
+    'IE0006948453.EUFUND': 'IE0006948453.EUFUND - Goldman Sachs Sterling Liquid Reserves Fund Admini',
+    'IE0006948677.EUFUND': 'IE0006948677.EUFUND - Goldman Sachs Sterling Liquid Reserves Fund Prefer',
+    'IE0006B9CPY7.EUFUND': 'IE0006B9CPY7.EUFUND - GOLDMAN SACHS ETF ICAV GS USD H',
+    'IE00080A3NO0.EUFUND': 'IE00080A3NO0.EUFUND - Goldman Sachs Euro Liquid Reserves Fund X EUR',
+    'IE0008ZMPWA5.EUFUND': 'IE0008ZMPWA5.EUFUND - Goldman Sachs Euro Liquid Reserves Fund R EUR',
+    'IE0009407531.EUFUND': 'IE0009407531.EUFUND - Goldman Sachs US$ Liquid Reserves Fund Preferred I',
+    'IE0009EDBBS3.EUFUND': 'IE0009EDBBS3.EUFUND - Goldman Sachs EUR Investment Grade Corporate Bond ',
+    'IE000FRX67F3.EUFUND': 'IE000FRX67F3.EUFUND - Goldman Sachs Global Government Bond Active UCITS ',
+    'IE000GNOSM10.EUFUND': 'IE000GNOSM10.EUFUND - Goldman Sachs MSCI World Private Equity Return Tra',
+    'IE000HYFO765.EUFUND': 'IE000HYFO765.EUFUND - GOLDMAN SACHS ETF ICAV GS ALPHA',
+    'IE000KEFZYE7.EUFUND': 'IE000KEFZYE7.EUFUND - Goldman Sachs Alpha Enhanced Emerging Markets Equi',
+    'IE000L0X6L81.EUFUND': 'IE000L0X6L81.EUFUND - Goldman Sachs Global Green Bond UCITS ETF Class EU',
+    'IE000M02BVY5.EUFUND': 'IE000M02BVY5.EUFUND - Goldman Sachs EUR High Yield Bond Active UCITS ETF',
+    'IE000RRCJI06.EUFUND': 'IE000RRCJI06.EUFUND - Goldman Sachs USD Investment Grade Corporate Bond ',
+    'IE000UFAX9L6.EUFUND': 'IE000UFAX9L6.EUFUND - GOLDMAN SACHS ETF ICAV GS ALPHA',
+    'IE000VM921L3.EUFUND': 'IE000VM921L3.EUFUND - Goldman Sachs Euro Liquid Reserves Fund Institutio',
+    'IE000ZUTO1I5.EUFUND': 'IE000ZUTO1I5.EUFUND - Goldman Sachs Alpha Enhanced Japan Equity Active U',
+    'IE0031294303.EUFUND': 'IE0031294303.EUFUND - Goldman Sachs US$ Liquid Reserves Fund Institution',
+    'IE0031294410.EUFUND': 'IE0031294410.EUFUND - Goldman Sachs US$ Liquid Reserves Fund Administrat',
+    'IE0031295821.EUFUND': 'IE0031295821.EUFUND - Goldman Sachs Euro Liquid Reserves Fund Administra',
+    'IE0031296019.EUFUND': 'IE0031296019.EUFUND - Goldman Sachs Euro Liquid Reserves Fund Pref Acc',
+    'IE0031296126.EUFUND': 'IE0031296126.EUFUND - Goldman Sachs Sterling Liquid Reserves Fund Admini',
+    'IE0031296456.EUFUND': 'IE0031296456.EUFUND - Goldman Sachs Sterling Liquid Reserves Fund Prefer',
+    'IE0031297975.EUFUND': 'IE0031297975.EUFUND - Goldman Sachs US$ Liquid Reserves Fund Preferred A',
+    'IE00B7Y62B70.EUFUND': 'IE00B7Y62B70.EUFUND - Goldman Sachs Sterling Liquid Reserves Fund R Inc',
+    'IE00B896JM91.EUFUND': 'IE00B896JM91.EUFUND - Goldman Sachs Euro Liquid Reserves Fund R Acc',
+    'IE00B8KJ1435.EUFUND': 'IE00B8KJ1435.EUFUND - Goldman Sachs Sterling Liquid Reserves Fund R Acc',
+    'IE00B9297623.EUFUND': 'IE00B9297623.EUFUND - Goldman Sachs US$ Treasury Liquid Reserves Fund R ',
+    'IE00B92BZ422.EUFUND': 'IE00B92BZ422.EUFUND - Goldman Sachs US$ Liquid Reserves Fund R Inc',
+    'IE00B96CNN65.EUFUND': 'IE00B96CNN65.EUFUND - Goldman Sachs Euro Liquid Reserves Fund Institutio',
+    'IE00BDFK2Z48.EUFUND': 'IE00BDFK2Z48.EUFUND - Goldman Sachs Euro Standard VNAV Fund Institutiona',
+    'IE00BDFK3280.EUFUND': 'IE00BDFK3280.EUFUND - Goldman Sachs US$ Standard VNAV Fund Institutional',
+    'IE00BHC9JR32.EUFUND': 'IE00BHC9JR32.EUFUND - Goldman Sachs US$ Liquid Reserves Fund Institution',
+    'IE00BHTFVV24.EUFUND': 'IE00BHTFVV24.EUFUND - Goldman Sachs Euro Liquid Reserves Fund R Acc (T)',
+    'IE00BHTFVX48.EUFUND': 'IE00BHTFVX48.EUFUND - Goldman Sachs Euro Liquid Reserves Fund Preferred ',
+    'IE00BHTFVY54.EUFUND': 'IE00BHTFVY54.EUFUND - Goldman Sachs Euro Liquid Reserves Fund Value Acc ',
+    'IE00BHTFW087.EUFUND': 'IE00BHTFW087.EUFUND - Goldman Sachs Euro Liquid Reserves Fund X Acc (T)',
+    'IE00BL0BL736.EUFUND': 'IE00BL0BL736.EUFUND - Goldman Sachs US$ Treasury Liquid Reserves Fund In',
+    'LU0040769829.EUFUND': 'LU0040769829.EUFUND - Goldman Sachs Global Equity Income Portfolio Base ',
+    'LU0050126431.EUFUND': 'LU0050126431.EUFUND - Goldman Sachs Asia Equity Portfolio Base Inc USD',
+    'LU0065003666.EUFUND': 'LU0065003666.EUFUND - Goldman Sachs Japan Equity Portfolio Base Inc JPY',
+    'LU0082087353.EUFUND': 'LU0082087353.EUFUND - Goldman Sachs Central Europe Equity - P Cap CZK',
+    'LU0082087437.EUFUND': 'LU0082087437.EUFUND - Goldman Sachs Czech Crown Bond - P Cap CZK',
+    'LU0083344555.EUFUND': 'LU0083344555.EUFUND - Goldman Sachs Emerging Markets Equity Portfolio Ba',
+    'LU0083912112.EUFUND': 'LU0083912112.EUFUND - Goldman Sachs Global High Yield Portfolio Base Inc',
+    'LU0089313992.EUFUND': 'LU0089313992.EUFUND - Goldman Sachs US Fixed Income Portfolio Base Inc U'
+  },
+  'VANGUARD': {
+    'AU60VAN00022.EUFUND': 'AU60VAN00022.EUFUND - Vanguard Australian Shares Index Fund',
+    'AU60VAN00030.EUFUND': 'AU60VAN00030.EUFUND - Vanguard International Shares Index Fund',
+    'AU60VAN00055.EUFUND': 'AU60VAN00055.EUFUND - Vanguard Emerging Markets Shares Index Fund',
+    'AU60VAN01053.EUFUND': 'AU60VAN01053.EUFUND - Vanguard International Shares Index Fund (hedged) ',
+    'AU60VAN01087.EUFUND': 'AU60VAN01087.EUFUND - Vanguard Balanced Index Fund',
+    'AU60VAN01095.EUFUND': 'AU60VAN01095.EUFUND - Vanguard Conservative Index Fund',
+    'AU60VAN01111.EUFUND': 'AU60VAN01111.EUFUND - Vanguard High Growth Index Fund',
+    'GB0005885628.EUFUND': 'GB0005885628.EUFUND - FPIL Vanguard US 500 Stock Index in GB',
+    'GB00B2NDLX93.EUFUND': 'GB00B2NDLX93.EUFUND - LV= Vanguard FTSE Developed Europe ex-UK Equity In',
+    'GB00B2NDMR09.EUFUND': 'GB00B2NDMR09.EUFUND - LV= Vanguard Pacific ex-Japan Stock Index Pn GTR i',
+    'GB00B2NDNG68.EUFUND': 'GB00B2NDNG68.EUFUND - LV= Vanguard Japan Stock Index Pn GTR in GB',
+    'GB00B2NDP483.EUFUND': 'GB00B2NDP483.EUFUND - LV= Vanguard US Equity Index Pn GTR in GB',
+    'GB00B2NDPC60.EUFUND': 'GB00B2NDPC60.EUFUND - LV= Vanguard FTSE UK All Share Index Pn GTR in GB',
+    'GB00B3TNSL75.EUFUND': 'GB00B3TNSL75.EUFUND - LV= Vanguard LifeStrategy 80% Equity Pn S2 GTR in ',
+    'GB00B3TYHH97.EUFUND': 'GB00B3TYHH97.EUFUND - Vanguard LifeStrategy 60% Equity Fund A Acc',
+    'GB00B3X7QG63.EUFUND': 'GB00B3X7QG63.EUFUND - Vanguard FTSE U.K. All Share Index Unit Trust Accu',
+    'GB00B3ZHN960.EUFUND': 'GB00B3ZHN960.EUFUND - Vanguard LifeStrategy 40% Equity Fund A Acc',
+    'GB00B41F6L43.EUFUND': 'GB00B41F6L43.EUFUND - Vanguard LifeStrategy 40% Equity Fund A Inc',
+    'GB00B41XG308.EUFUND': 'GB00B41XG308.EUFUND - Vanguard LifeStrategy 100% Equity Fund A Acc',
+    'GB00B44DQC62.EUFUND': 'GB00B44DQC62.EUFUND - Vanguard Investments Funds ICVC-Vanguard U.K. Long',
+    'GB00B45Q9038.EUFUND': 'GB00B45Q9038.EUFUND - Vanguard Investments Funds ICVC-Vanguard U.K. Infl',
+    'GB00B4620290.EUFUND': 'GB00B4620290.EUFUND - Vanguard LifeStrategy 20% Equity Fund A Gross Inc',
+    'GB00B467FS56.EUFUND': 'GB00B467FS56.EUFUND - Vanguard Investments Funds ICVC-Vanguard U.K. Infl',
+    'GB00B4KWNF91.EUFUND': 'GB00B4KWNF91.EUFUND - Vanguard LifeStrategy 80% Equity Fund A Inc',
+    'GB00B4M89245.EUFUND': 'GB00B4M89245.EUFUND - Vanguard Investments Funds ICVC-Vanguard U.K. Long',
+    'GB00B4NXY349.EUFUND': 'GB00B4NXY349.EUFUND - Vanguard LifeStrategy 20% Equity Fund A Gross Acc',
+    'GB00B4PQW151.EUFUND': 'GB00B4PQW151.EUFUND - Vanguard LifeStrategy 80% Equity Fund A Acc',
+    'GB00B4R2F348.EUFUND': 'GB00B4R2F348.EUFUND - Vanguard LifeStrategy 60% Equity Fund A Inc',
+    'GB00B545NX97.EUFUND': 'GB00B545NX97.EUFUND - Vanguard LifeStrategy 100% Equity Fund A Inc',
+    'GB00B58HY274.EUFUND': 'GB00B58HY274.EUFUND - LV= Vanguard UK Government Bond Index Pn S2 GTR in',
+    'GB00B59G4H82.EUFUND': 'GB00B59G4H82.EUFUND - Vanguard FTSE U.K. Equity Income Index Acc',
+    'GB00B59G4Q73.EUFUND': 'GB00B59G4Q73.EUFUND - Vanguard FTSE Dev World ex UK Equity Index Acc',
+    'GB00B5B71H80.EUFUND': 'GB00B5B71H80.EUFUND - Vanguard FTSE Developed Europe ex UK Equity Index ',
+    'GB00B5B71Q71.EUFUND': 'GB00B5B71Q71.EUFUND - Vanguard US Equity Index Acc',
+    'GB00B5B74684.EUFUND': 'GB00B5B74684.EUFUND - Vanguard FTSE U.K. Equity Income Index Inc',
+    'GB00B5B74F71.EUFUND': 'GB00B5B74F71.EUFUND - Vanguard FTSE Dev World ex UK Equity Index Inc',
+    'GB00B5B74N55.EUFUND': 'GB00B5B74N55.EUFUND - Vanguard FTSE Developed Europe ex UK Equity Index ',
+    'GB00B5B74S01.EUFUND': 'GB00B5B74S01.EUFUND - Vanguard US Equity Index Inc',
+    'GB00B5KWKH75.EUFUND': 'GB00B5KWKH75.EUFUND - LV= Vanguard Emerging Markets Stock Index Pn S2 GT',
+    'GB00B600X806.EUFUND': 'GB00B600X806.EUFUND - LV= Vanguard FTSE Developed Europe ex-UK Equity In',
+    'GB00B600X913.EUFUND': 'GB00B600X913.EUFUND - LV= Vanguard Pacific ex-Japan Stock Index Pn S2 GT',
+    'GB00B600XC43.EUFUND': 'GB00B600XC43.EUFUND - LV= Vanguard Japan Stock Index Pn S2 GTR in GB',
+    'GB00B600XD59.EUFUND': 'GB00B600XD59.EUFUND - LV= Vanguard US Equity Index Pn S2 GTR in GB',
+    'GB00B600XF73.EUFUND': 'GB00B600XF73.EUFUND - LV= Vanguard FTSE UK All Share Index Pn S2 GTR in ',
+    'GB00B634MF92.EUFUND': 'GB00B634MF92.EUFUND - LV= Vanguard UK Investment Grade Bond Index Pn S2 ',
+    'GB00B70DDK80.EUFUND': 'GB00B70DDK80.EUFUND - LV= Vanguard LifeStrategy 60% Equity Pn S2 GTR in ',
+    'GB00B79LS647.EUFUND': 'GB00B79LS647.EUFUND - LV= Vanguard LifeStrategy 20% Equity Pn S2 GTR in ',
+    'GB00B7GTPR10.EUFUND': 'GB00B7GTPR10.EUFUND - LV= Vanguard LifeStrategy 100% Equity Pn S2 GTR in',
+    'GB00B7M7M782.EUFUND': 'GB00B7M7M782.EUFUND - LV= Vanguard LifeStrategy 40% Equity Pn S2 GTR in ',
+    'GB00B7Y6JH20.EUFUND': 'GB00B7Y6JH20.EUFUND - LV= Vanguard Sterling Short-Term Money Market Fund'
+  },
+  'GENERALI': {
+    'DE0004156302.EUFUND': 'DE0004156302.EUFUND - GENERALI AKTIVMIX ERTRAG',
+    'DE0005317705.EUFUND': 'DE0005317705.EUFUND - GENERALI GELDMARKT EURO',
+    'DE000A0H0WU9.EUFUND': 'DE000A0H0WU9.EUFUND - Generali AktivMix Dynamik Protect 80',
+    'FR0007064324.EUFUND': 'FR0007064324.EUFUND - Generali France Future Leaders C',
+    'FR0007064357.EUFUND': 'FR0007064357.EUFUND - Generali Europe Mid-Caps',
+    'FR0007064431.EUFUND': 'FR0007064431.EUFUND - Generali Pacifique P',
+    'FR0007064449.EUFUND': 'FR0007064449.EUFUND - Generali Japon P',
+    'FR0007064472.EUFUND': 'FR0007064472.EUFUND - Generali Obligations Internationales',
+    'FR0007475959.EUFUND': 'FR0007475959.EUFUND - Generali Audace Europe',
+    'FR0007494760.EUFUND': 'FR0007494760.EUFUND - Generali Prudence P',
+    'FR0007494778.EUFUND': 'FR0007494778.EUFUND - Generali Equilibre P',
+    'FR0007494786.EUFUND': 'FR0007494786.EUFUND - Generali Dynamisme P',
+    'FR0010034892.EUFUND': 'FR0010034892.EUFUND - Generali Euro Convertibles A',
+    'FR0010075333.EUFUND': 'FR0010075333.EUFUND - Generali Investissement D',
+    'FR0010075341.EUFUND': 'FR0010075341.EUFUND - Generali Euro-Actions D',
+    'FR0010086512.EUFUND': 'FR0010086512.EUFUND - Generali Investissement C',
+    'FR0010168757.EUFUND': 'FR0010168757.EUFUND - Generali Revenus A',
+    'FR0010233726.EUFUND': 'FR0010233726.EUFUND - GENERALI TRESORERIE',
+    'FR0010420117.EUFUND': 'FR0010420117.EUFUND - Generali Japon I',
+    'FR0010420133.EUFUND': 'FR0010420133.EUFUND - Generali Pacifique I',
+    'FR0010607697.EUFUND': 'FR0010607697.EUFUND - Generali Equilibre I',
+    'FR0010607713.EUFUND': 'FR0010607713.EUFUND - Generali Prudence I',
+    'FR0010694133.EUFUND': 'FR0010694133.EUFUND - Generali Euro Convertibles ISR C',
+    'FR0011363639.EUFUND': 'FR0011363639.EUFUND - Generali TrÃ©sorerie ISR A',
+    'FR0014008KM1.EUFUND': 'FR0014008KM1.EUFUND - Generali Vision Responsable Balanced PER',
+    'FR0014008KO7.EUFUND': 'FR0014008KO7.EUFUND - Generali Vision Responsable Moderate PER',
+    'FR0014008KQ2.EUFUND': 'FR0014008KQ2.EUFUND - Generali Vision Responsable Opportunities PER',
+    'GB0000548924.EUFUND': 'GB0000548924.EUFUND - Assic Generali UK Equities Pn GTR in GB',
+    'GB0000549336.EUFUND': 'GB0000549336.EUFUND - Assic Generali European Equities Pn GTR in GB',
+    'GB0000549559.EUFUND': 'GB0000549559.EUFUND - Assic Generali Japanese Equities Pn GTR in GB',
+    'GB0000549880.EUFUND': 'GB0000549880.EUFUND - Assic Generali US Equities Pn GTR in GB',
+    'GB0000550334.EUFUND': 'GB0000550334.EUFUND - Assic Generali Money Pn GTR in GB',
+    'GB0000551183.EUFUND': 'GB0000551183.EUFUND - Assic Generali Fixed Interest Pn GTR in GB',
+    'IE00B4362Q21.EUFUND': 'IE00B4362Q21.EUFUND - Generali Invest CEE plc - Corporate Bonds Fund A E',
+    'IE00BC7GWH52.EUFUND': 'IE00BC7GWH52.EUFUND - Generali Invest CEE plc - Premium Conservative Fun',
+    'IE00BC7GWJ76.EUFUND': 'IE00BC7GWJ76.EUFUND - Generali Invest CEE plc - Corporate Bonds Fund A C',
+    'LU0100842029.EUFUND': 'LU0100842029.EUFUND - Generali Komfort Balance',
+    'LU0100846798.EUFUND': 'LU0100846798.EUFUND - Generali Komfort Wachstum',
+    'LU0100847093.EUFUND': 'LU0100847093.EUFUND - Generali Komfort Dynamik Europa',
+    'LU0100847929.EUFUND': 'LU0100847929.EUFUND - Generali Komfort Dynamik Global',
+    'LU0136762910.EUFUND': 'LU0136762910.EUFUND - Generali FondsStrat Aktien Glbl Dyn Inc',
+    'LU0145455142.EUFUND': 'LU0145455142.EUFUND - Generali European S.R.I. ',
+    'LU0145455571.EUFUND': 'LU0145455571.EUFUND - Generali Investments SICAV - SRI European Equity F',
+    'LU0145455738.EUFUND': 'LU0145455738.EUFUND - Generali Investments SICAV - SRI European Equity F',
+    'LU0145455811.EUFUND': 'LU0145455811.EUFUND - Generali European Equities Opportunity C ',
+    'LU0145456207.EUFUND': 'LU0145456207.EUFUND - Generali Investments SICAV - SRI European Equity F',
+    'LU0145469952.EUFUND': 'LU0145469952.EUFUND - Generali Central & Eastern European Equities B ',
+    'LU0145470703.EUFUND': 'LU0145470703.EUFUND - Generali Investments SICAV - Central & Eastern Eur',
+    'LU0145471693.EUFUND': 'LU0145471693.EUFUND - Generali Investments SICAV - Central & Eastern Eur',
+    'LU0145475843.EUFUND': 'LU0145475843.EUFUND - GENERALI INV-EURO BOND-AX'
+  }
+};
+    </script>
+
+    <!-- NEURAL FUNDS GLOBAL - MULTI-COMPANY SYMBOL LOADER -->
+    <script>
+        // Use embedded symbol data
+        const FUND_COMPANIES = {
+            'DWS': true,
+            'ALLIANZ': true,
+            'BLACKROCK': true,
+            'AMUNDI': true,
+            'FIDELITY': true,
+            'BNP': true,
+            'JPMORGAN': true,
+            'UBS': true,
+            'GOLDMAN': true,
+            'VANGUARD': true,
+            'GENERALI': true
+        };
+
+        function updateDropdown(company) {
+            const symbols = ALL_FUND_SYMBOLS[company] || {};
+            const selector = document.getElementById('symbol-selector');
+            selector.innerHTML = `<option value="">-- ${company} FONDS (${Object.keys(symbols).length}) --</option>`;
+
+            let count = 0;
+            for (const [ticker, label] of Object.entries(symbols)) {
+                if (count >= 500) break;
+                const option = document.createElement('option');
+                option.value = ticker;
+                option.textContent = label;
+                selector.appendChild(option);
+                count++;
+            }
+
+            if (count === 0) {
+                selector.innerHTML += '<option>Keine Symbole verfügbar</option>';
+            }
+
+            const selectorMobile = document.getElementById('symbol-selector-mobile');
+            if (selectorMobile) selectorMobile.innerHTML = selector.innerHTML;
+
+            const firstOption = selector.options[1];
+            if (firstOption) {
+                selector.value = firstOption.value;
+                if (selectorMobile) selectorMobile.value = firstOption.value;
+                pipelineWorkflowLoad(firstOption.value);
+            }
+        }
+
+        // Tab switching
+        document.querySelectorAll('.fund-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                document.querySelectorAll('.fund-tab').forEach(t => {
+                    t.classList.remove('active');
+                    t.style.color = 'white';
+                });
+
+                // Add active to clicked tab
+                this.classList.add('active');
+                this.style.color = '#FFB800';
+
+                // Load symbols for this company
+                const company = this.dataset.company;
+                if (ALL_FUND_SYMBOLS[company]) {
+                    updateDropdown(company);
+                } else {
+                    console.warn(`No data for ${company}`);
+                }
+            });
+        });
+
+        // Initialize with first available company on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find first available company
+            let firstCompany = null;
+            for (const company of Object.keys(FUND_COMPANIES)) {
+                if (ALL_FUND_SYMBOLS[company]) {
+                    firstCompany = company;
+                    break;
+                }
+            }
+
+            if (firstCompany) {
+                // Click first tab
+                const firstTab = document.querySelector(`[data-company="${firstCompany}"]`);
+                if (firstTab) firstTab.click();
+            }
+        });
+
+    </script>
+
+<script>
+/* ── SMART DROPDOWN: FUNDS-MIX (ETF + FONDS) ────────────────────────── */
+(function () {
+    var CATS = [
+        { label: '♻️ ESG & Screened',        kw: ['esg','sri','screened','responsible','sustainable','climate','impact','paris'] },
+        { label: '📈 Aktien USA',             kw: ["s&p 500",'sp500','russell','nasdaq','dow jones','us large','us equity','us national','american','california','critical tech'] },
+        { label: '🇪🇺 Aktien Europa',         kw: ['europe','stoxx','dax','msci europe','eurozone','eurostoxx','continental','euro stoxx'] },
+        { label: '🌏 Aktien Asien & EM',      kw: ['china','msci china','csi 300','csi 500','japan','korea','india','emerging','msci em','msci asia','harvest','asia pacific'] },
+        { label: '🌍 Aktien Global',          kw: ['all-world','allworld','world','global','ftse all','eafe','international'] },
+        { label: '⚡ Leveraged & Short',      kw: ['leveraged','shortdax','short dax','levdax','2x','x2','daily swap','inverse','lev'] },
+        { label: '💱 Währungsgesichert',      kw: ['hedged'] },
+        { label: '🏥 Sektor & Themen',        kw: ['semiconductor','technology','biotech','health','pharma','real estate','financial','bank','energy','gold','commodity','infrastructure','consumer','utilities','semiconductor','chips'] },
+        { label: '🏦 Anleihen / Renten',      kw: ['bond','government','corporate bond','treasury','municipal','high yield','credit','gilt','inflation','floating','covered'] },
+        { label: '📊 Faktor & Smart Beta',    kw: ['factor','quality','value','momentum','low vol','equal weight','minimum variance','msci','multi-factor'] },
+    ];
+
+    function classify(t) {
+        t = t.toLowerCase();
+        for (var i = 0; i < CATS.length; i++) {
+            var c = CATS[i];
+            for (var j = 0; j < c.kw.length; j++) { if (t.indexOf(c.kw[j]) !== -1) return c.label; }
+        }
+        return '📋 Sonstige';
+    }
+
+    // Strip "SYMBOL.EXCHANGE - " prefix from display text
+    function stripExchange(text) {
+        var m = text.match(/^[A-Z0-9]+\.[A-Z]+ - (.+)$/);
+        return m ? m[1].trim() : text.trim();
+    }
+
+    var searchSnaps = {};
+
+    function rebuildSelect(selId) {
+        var sel = document.getElementById(selId);
+        if (!sel) return;
+        var allOpts = Array.from(sel.options).filter(function(o) { return o.value; });
+        if (!allOpts.length) return;
+        var ph = sel.options[0];
+
+        var groups = {};
+        allOpts.forEach(function(opt) {
+            var display = stripExchange(opt.textContent.trim());
+            var cat = classify(display);
+            (groups[cat] = groups[cat] || []).push({ v: opt.value, t: display });
+        });
+        Object.keys(groups).forEach(function(c) {
+            groups[c].sort(function(a, b) { return a.t.localeCompare(b.t, 'de'); });
+        });
+
+        sel.innerHTML = '';
+        sel.appendChild(ph);
+        CATS.concat([{ label: '📋 Sonstige', kw: [] }]).forEach(function(c) {
+            var items = groups[c.label]; if (!items || !items.length) return;
+            var g = document.createElement('optgroup');
+            g.label = c.label + '  (' + items.length + ')';
+            items.forEach(function(item) {
+                var o = document.createElement('option'); o.value = item.v; o.textContent = item.t; g.appendChild(o);
+            });
+            sel.appendChild(g);
+        });
+        searchSnaps[selId] = sel.innerHTML;
+    }
+
+    // Add search filter to a select (called once per select)
+    function addSearch(selId, placeholder) {
+        var sel = document.getElementById(selId);
+        if (!sel || sel._smartSearch) return;
+        sel._smartSearch = true;
+        var si = document.createElement('input');
+        si.type = 'text'; si.placeholder = placeholder || '🔍 Fonds suchen…';
+        si.className = 'px-3 py-2 bg-[#16213e] border border-white/50 rounded-lg text-white text-xs font-mono font-bold';
+        si.style.cssText = 'flex-shrink:0;width:200px;outline:none;';
+        si.oninput = function () {
+            var q = this.value.toLowerCase().trim();
+            var snap = searchSnaps[selId] || '';
+            if (!q) { sel.innerHTML = snap; return; }
+            var tmp = document.createElement('select'); tmp.innerHTML = snap;
+            var hits = Array.from(tmp.querySelectorAll('option')).filter(function(o) {
+                return o.value && o.textContent.toLowerCase().indexOf(q) !== -1;
+            });
+            sel.innerHTML = '';
+            var ph2 = document.createElement('option'); ph2.value = '';
+            ph2.textContent = hits.length ? '🔍 ' + hits.length + ' Treffer' : '❌ Kein Treffer';
+            sel.appendChild(ph2);
+            hits.forEach(function(o) { sel.appendChild(o.cloneNode(true)); });
+        };
+        if (sel.parentNode) sel.parentNode.insertBefore(si, sel);
+    }
+
+    // MutationObserver: fires when updateDropdown() populates the desktop select
+    var rebuilding = false;
+    function onMutation() {
+        if (rebuilding) return;
+        rebuilding = true;
+        setTimeout(function () {
+            rebuildSelect('symbol-selector');
+            // sync to mobile (mirror structure)
+            var mob = document.getElementById('symbol-selector-mobile');
+            var desk = document.getElementById('symbol-selector');
+            if (mob && desk) {
+                var mSnap = mob.innerHTML;
+                mob.innerHTML = desk.innerHTML; // copy grouped version
+                searchSnaps['symbol-selector-mobile'] = mob.innerHTML;
+                // restore original mobile snapshot if already grouped
+            }
+            rebuilding = false;
+        }, 80);
+    }
+
+    var desktopSel = document.getElementById('symbol-selector');
+    if (desktopSel) {
+        new MutationObserver(onMutation).observe(desktopSel, { childList: true });
+        // Also rebuild mobile select for static options
+        rebuildSelect('symbol-selector-mobile');
+        addSearch('symbol-selector-mobile', '🔍 Fonds suchen…');
+    }
+})();
+</script>
+</body>
+</html>

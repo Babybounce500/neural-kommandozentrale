@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0"/>
+  <title>DANIEL.AI — COMMAND CENTER v7.0</title>
+  <style>
+    :root {
+      --safe-top: max(env(safe-area-inset-top), 8px);
+      --safe-bottom: max(env(safe-area-inset-bottom), 8px);
+      --primary: #00ff66;
+      --cyan: #00bfff;
+      --orange: #ff9900;
+      --error: #ff3333;
+      --warning: #ffaa00;
+      --bg: #0c0d12;
+      --bg2: #14151f;
+      --bg3: #1a1b26;
+      --border: #1f2335;
+      --active-ai: #00ff66;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg); color: var(--primary);
+      font-family: 'Fira Code', 'Cascadia Code', monospace;
+      display: flex; height: 100vh; overflow: hidden;
+    }
+
+    /* ── LEFT PANEL ─────────────────────────────────────────────── */
+    #terminal-side {
+      width: 42%; min-width: 320px; border-right: 2px solid var(--border);
+      display: flex; flex-direction: column; background: var(--bg2);
+      padding-top: var(--safe-top);
+    }
+
+    .panel-header {
+      padding: 7px 12px; font-size: 11px; font-weight: bold; color: #666;
+      background: #0f1018; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .panel-title { color: #888; }
+    #ai-indicator {
+      font-size: 10px; padding: 2px 8px; border-radius: 2px;
+      border: 1px solid var(--active-ai); color: var(--active-ai);
+      background: rgba(0,0,0,0.4); transition: all 0.2s; white-space: nowrap;
+    }
+
+    #chat-history {
+      flex: 1; padding: 12px; overflow-y: auto; font-size: 12.5px;
+      white-space: pre-wrap; scrollbar-width: thin; scrollbar-color: #39ff14 #1a1a2e;
+    }
+    #chat-history::-webkit-scrollbar { width: 5px; }
+    #chat-history::-webkit-scrollbar-thumb { background: #39ff14; border-radius: 3px; }
+
+    .user-msg {
+      color: #00bfff; margin-bottom: 10px; font-weight: bold;
+      border-bottom: 1px dotted #00bfff22; padding-bottom: 5px;
+    }
+    .ai-msg {
+      color: var(--primary); margin-bottom: 14px;
+      border-left: 2px solid #33ff77; padding-left: 8px;
+    }
+    .sys-log {
+      color: var(--warning); margin-bottom: 5px; font-size: 10.5px;
+      border: 1px dashed #ffaa0044; padding: 3px 7px;
+      background: #15100a; border-radius: 2px;
+    }
+    .error-msg {
+      color: var(--error); margin-bottom: 5px; font-size: 10.5px;
+      border: 1px solid #ff333344; padding: 3px 7px;
+      background: #150808; border-radius: 2px;
+    }
+
+    .ai-prose { color: var(--primary); line-height: 1.45; }
+    .ai-prose h1 { color: #00e5ff; font-size: 1.25em; margin: 8px 0 4px; }
+    .ai-prose h2 { color: #39ff14; font-size: 1.1em; margin: 6px 0 3px; }
+    .ai-prose h3 { color: #ffff00; font-size: 1em; margin: 5px 0 2px; }
+    .ai-prose code { background: #1a1a2e; color: #00e5ff; padding: 1px 4px; border-radius: 2px; font-size: 0.88em; }
+    .ai-prose strong { color: #39ff14; }
+
+    .code-block {
+      background: #12131e; border: 1px solid #2a3a2a; border-radius: 3px;
+      padding: 8px; margin: 7px 0; overflow-x: auto;
+    }
+    .code-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #1f3020;
+      font-size: 10px; color: #39ff14;
+    }
+    .code-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
+    .code-btn {
+      padding: 2px 7px; border: 1px solid; background: transparent;
+      cursor: pointer; font-size: 10px; border-radius: 2px; transition: 0.15s;
+      font-family: inherit;
+    }
+    .code-btn.copy  { border-color: #555; color: #aaa; }
+    .code-btn.copy:hover  { background: rgba(255,255,255,0.08); }
+    .code-btn.dl    { border-color: #00bfff55; color: #00bfff; }
+    .code-btn.dl:hover    { background: rgba(0,191,255,0.1); }
+    .code-btn.run   { border-color: #ffff0055; color: #ffff00; }
+    .code-btn.run:hover   { background: rgba(255,255,0,0.1); }
+
+    /* ── INPUT AREA ──────────────────────────────────────────────── */
+    #input-area {
+      display: flex; flex-direction: column; gap: 5px;
+      background: #0f1018; border-top: 2px solid var(--border);
+      padding: 8px; padding-bottom: calc(var(--safe-bottom) + 8px);
+    }
+
+    /* Row 1 — AI mode + Type + Model */
+    .ctrl-row {
+      display: flex; gap: 5px; align-items: center; flex-wrap: wrap;
+    }
+    .ai-group { display: flex; gap: 2px; }
+    .ai-btn {
+      padding: 5px 11px; border: 1px solid #2a2b3d; background: transparent;
+      color: #555; cursor: pointer; font-family: inherit; font-size: 11px;
+      font-weight: bold; border-radius: 2px; transition: all 0.15s; letter-spacing: 0.5px;
+    }
+    .ai-btn:hover { border-color: #444; color: #888; }
+
+    .ai-btn.active[data-ai="gpt"] {
+      border-color: var(--primary); color: var(--primary);
+      background: rgba(0,255,102,0.07); box-shadow: 0 0 8px rgba(0,255,102,0.25);
+    }
+    .ai-btn.active[data-ai="claude"] {
+      border-color: var(--cyan); color: var(--cyan);
+      background: rgba(0,191,255,0.07); box-shadow: 0 0 8px rgba(0,191,255,0.25);
+    }
+    .ai-btn.active[data-ai="computer-use"] {
+      border-color: var(--orange); color: var(--orange);
+      background: rgba(255,153,0,0.07); box-shadow: 0 0 8px rgba(255,153,0,0.25);
+    }
+
+    .sep { color: #2a2b3d; font-size: 14px; margin: 0 1px; user-select: none; }
+
+    select, input[type="number"] {
+      background: #1a1b26; border: 1px solid #2a2b3d; color: #888;
+      padding: 4px 6px; font-family: inherit; font-size: 11px;
+      border-radius: 2px; outline: none; cursor: pointer;
+    }
+    select:focus, input[type="number"]:focus { border-color: var(--active-ai); }
+    #model-select { max-width: 200px; }
+    #type-select  { max-width: 110px; }
+    input[type="number"] { width: 68px; text-align: center; }
+
+    /* Computer Use quick-action row */
+    #cu-panel {
+      display: none; padding: 5px 8px; border: 1px solid #ff990044;
+      border-radius: 3px; background: #120d00; font-size: 10px; color: var(--orange);
+    }
+    #cu-panel.show { display: block; }
+    .cu-actions { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+    .cu-tag {
+      padding: 2px 8px; border: 1px solid #ff990055; border-radius: 2px;
+      color: var(--orange); font-size: 10px; cursor: pointer;
+      background: transparent; font-family: inherit; transition: 0.15s;
+    }
+    .cu-tag:hover { background: rgba(255,153,0,0.15); }
+
+    /* Row 2 — Textarea */
+    #user-input {
+      width: 100%; background: #13141e; border: 1px solid #2a2b3d;
+      color: var(--primary); padding: 9px 10px; font-family: inherit;
+      font-size: 13px; outline: none; border-radius: 3px; resize: vertical;
+      min-height: 62px; max-height: 180px; transition: border-color 0.2s;
+    }
+    #user-input:focus { border-color: var(--active-ai); }
+    #user-input::placeholder { color: #333; }
+
+    /* Row 3 — Params + Send */
+    .send-row {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .param-group {
+      display: flex; gap: 8px; align-items: center;
+      font-size: 10.5px; color: #444;
+    }
+    .param-group label { display: flex; gap: 4px; align-items: center; }
+    input[type="range"] {
+      width: 64px; height: 3px; accent-color: var(--active-ai);
+      padding: 0; background: none; border: none; cursor: pointer;
+    }
+    #temp-val { color: var(--primary); min-width: 22px; font-size: 10.5px; }
+
+    .spacer { flex: 1; }
+
+    #send-btn {
+      padding: 8px 16px; border: none; font-weight: bold; cursor: pointer;
+      transition: all 0.2s; border-radius: 3px; font-family: inherit;
+      font-size: 11.5px; letter-spacing: 0.5px; white-space: nowrap;
+      background: var(--primary); color: #000;
+    }
+    #send-btn.mode-claude       { background: var(--cyan); color: #000; }
+    #send-btn.mode-computer-use { background: var(--orange); color: #000; }
+    #send-btn:hover  { filter: brightness(1.15); box-shadow: 0 0 10px var(--active-ai); }
+    #send-btn:disabled { opacity: 0.35; cursor: not-allowed; filter: none; box-shadow: none; }
+
+    /* AUTO mode button */
+    #auto-btn {
+      padding: 5px 10px; border: 1px solid #2a2b3d; background: transparent;
+      color: #555; cursor: pointer; font-family: inherit; font-size: 11px;
+      font-weight: bold; border-radius: 2px; transition: all 0.15s; letter-spacing: 0.5px;
+    }
+    #auto-btn:hover { border-color: #ffaa00; color: #ffaa00; }
+    #auto-btn.active {
+      border-color: #ffaa00; color: #000; background: #ffaa00;
+      box-shadow: 0 0 10px rgba(255,170,0,0.5); animation: pulse-auto 1s infinite;
+    }
+    @keyframes pulse-auto { 0%,100% { box-shadow: 0 0 6px rgba(255,170,0,0.4); } 50% { box-shadow: 0 0 14px rgba(255,170,0,0.8); } }
+
+    /* Claude API key row */
+    #claude-key-row {
+      display: none; gap: 5px; align-items: center; padding: 4px 6px;
+      border: 1px solid #00bfff33; border-radius: 3px; background: #080e14;
+      font-size: 10px; color: var(--cyan);
+    }
+    #claude-key-row.show { display: flex; }
+    #claude-key-input {
+      flex: 1; background: #0d1520; border: 1px solid #00bfff33; color: var(--cyan);
+      padding: 3px 8px; font-family: inherit; font-size: 11px; border-radius: 2px; outline: none;
+    }
+    #claude-key-input::placeholder { color: #245; }
+    #claude-key-input:focus { border-color: var(--cyan); }
+    #key-save-btn {
+      padding: 3px 10px; border: 1px solid var(--cyan); background: transparent;
+      color: var(--cyan); cursor: pointer; font-family: inherit; font-size: 10px; border-radius: 2px;
+    }
+    #key-save-btn:hover { background: rgba(0,191,255,0.1); }
+    #key-status { font-size: 10px; white-space: nowrap; }
+
+    /* ── RIGHT PANEL ─────────────────────────────────────────────── */
+    #iframe-side {
+      flex: 1; display: flex; flex-direction: column; background: var(--bg3);
+      padding-top: var(--safe-top);
+    }
+    #word-iframe { width: 100%; flex: 1; border: none; background: #fff; }
+
+    /* ── SPINNER ─────────────────────────────────────────────────── */
+    .spin {
+      display: inline-block; width: 10px; height: 10px;
+      border: 2px solid var(--primary); border-top-color: transparent;
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 5px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── MOBILE OPTIMIERUNG & BURGER MENU ───────────────────────── */
+    #burger-menu-toggle {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        position: relative;
+      }
+
+      /* Beide Panels vollflächig und absolut positionieren */
+      #terminal-side, #iframe-side {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        min-width: 0 !important;
+        border: none !important;
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        padding-top: calc(var(--safe-top) + 45px) !important;
+      }
+
+      /* Terminal aktiv (Iframe nach rechts) */
+      body.view-terminal #terminal-side {
+        transform: translateX(0);
+        opacity: 1;
+        z-index: 2;
+      }
+      body.view-terminal #iframe-side {
+        transform: translateX(100%);
+        opacity: 0;
+        z-index: 1;
+      }
+
+      /* Iframe aktiv (Terminal nach links) */
+      body.view-iframe #terminal-side {
+        transform: translateX(-100%);
+        opacity: 0;
+        z-index: 1;
+      }
+      body.view-iframe #iframe-side {
+        transform: translateX(0);
+        opacity: 1;
+        z-index: 2;
+      }
+
+      /* Mobile Optimierung */
+      .param-group { display: none; }
+      .ctrl-row { gap: 3px; }
+      #model-select, #type-select { max-width: 90px; font-size: 10px; }
+
+      /* Burger-Header-Leiste */
+      #burger-menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 45px;
+        background: #0f1018;
+        border-bottom: 2px solid var(--border);
+        z-index: 999;
+        padding: 0 15px;
+      }
+
+      /* Burger-Icon (3 Striche) */
+      .burger-icon {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        padding: 8px;
+      }
+      .burger-icon span {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: var(--primary);
+        transition: 0.2s;
+      }
+
+      /* Animation: Striche zu X */
+      body.view-iframe .burger-icon span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+      body.view-iframe .burger-icon span:nth-child(2) { opacity: 0; }
+      body.view-iframe .burger-icon span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+
+      /* View-Titel */
+      .current-view-title {
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        color: var(--primary);
+      }
+    }
+
+    /* ── BURGER MENU ─────────────────────────────────────────────── */
+    #input-area { position: relative; }
+
+    #cmd-menu-btn {
+      padding: 4px 10px; border: 1px solid #2a2b3d; background: transparent;
+      color: #666; cursor: pointer; font-family: inherit; font-size: 11px;
+      border-radius: 2px; transition: all 0.15s;
+    }
+    #cmd-menu-btn:hover, #cmd-menu-btn.open { border-color: var(--primary); color: var(--primary); }
+
+    #cmd-panel {
+      display: none; position: absolute; bottom: calc(100% + 4px); left: 0; right: 0;
+      background: #0d0e18; border: 1px solid #1f2335; border-radius: 4px;
+      padding: 8px; z-index: 100; max-height: 320px; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: #39ff14 #1a1a2e;
+    }
+    #cmd-panel.open { display: block; }
+    .cmd-cat { color: #39ff14; font-size: 10px; font-weight: bold; margin: 8px 0 4px; letter-spacing: 1px; border-bottom: 1px solid #1f2335; padding-bottom: 2px; }
+    .cmd-cat:first-child { margin-top: 0; }
+    .cmd-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 4px; }
+    .cmd-chip {
+      padding: 3px 8px; border: 1px solid #2a2b3d; background: transparent;
+      color: #888; cursor: pointer; font-family: inherit; font-size: 10px;
+      border-radius: 2px; transition: all 0.15s; white-space: nowrap;
+    }
+    .cmd-chip:hover { border-color: var(--active-ai); color: var(--active-ai); background: rgba(0,255,102,0.05); }
+    .cmd-chip.navigate { border-color: #39ff1433; }
+    .cmd-chip.navigate:hover { border-color: #39ff14; color: #39ff14; }
+    .cmd-chip.form { border-color: #ffaa0033; }
+    .cmd-chip.form:hover { border-color: #ffaa00; color: #ffaa00; }
+    .cmd-chip.click-cmd { border-color: #00bfff33; }
+    .cmd-chip.click-cmd:hover { border-color: #00bfff; color: #00bfff; }
+    .cmd-chip.auto { border-color: #ff990033; }
+    .cmd-chip.auto:hover { border-color: #ff9900; color: #ff9900; }
+  </style>
+</head>
+<body class="view-terminal">
+
+<!-- ── MOBILE BURGER HEADER ──────────────────────────────────────── -->
+<div id="burger-menu-toggle">
+  <span class="current-view-title" id="mobile-view-label">⬡ TERMINAL MODE</span>
+  <button class="burger-icon" onclick="toggleMobileView()" title="Ansicht wechseln">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+</div>
+
+<!-- ── LEFT: TERMINAL ─────────────────────────────────────────────── -->
+<div id="terminal-side">
+
+  <div class="panel-header">
+    <span class="panel-title">⬡ DANIEL.AI COMMAND CENTER v7.0</span>
+    <span id="ai-indicator">GPT-4o-mini</span>
+  </div>
+
+  <div id="chat-history"></div>
+
+  <div id="input-area">
+
+    <!-- Command palette row -->
+    <div class="ctrl-row" style="justify-content:space-between; margin-bottom:2px;">
+      <button id="cmd-menu-btn" onclick="toggleCmdPanel()">&#8801; COMMANDS</button>
+      <span style="font-size:9px;color:#444;">click to insert into prompt</span>
+    </div>
+    <div id="cmd-panel">
+      <!-- NAVIGATE -->
+      <div class="cmd-cat">NAVIGATE</div>
+      <div class="cmd-chips">
+        <span id="nav-chips"></span>
+      </div>
+      <!-- WRITE -->
+      <div class="cmd-cat">WRITE / FILL</div>
+      <div class="cmd-chips">
+        <button class="cmd-chip form" onclick="insertSmartFormFill()">FORM_FILL ✨</button>
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:WRITE_EDITOR|text]]')">WRITE_EDITOR</button>
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:WRITE_AI|text]]')">WRITE_AI</button>
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:WRITE_SEARCH|text]]')">WRITE_SEARCH</button>
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:WRITE|1|text]]')">WRITE [N]</button>
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:WRITE|label|text]]')">WRITE [label]</button>
+      </div>
+      <!-- FORM CONTROLS -->
+      <div class="cmd-cat">FORM CONTROLS</div>
+      <div class="cmd-chips">
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:SELECT|1|option]]')">SELECT</button>
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:CHECK|1]]')">CHECK</button>
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:RADIO|1|value]]')">RADIO</button>
+        <button class="cmd-chip form" onclick="insertCmd('[[CMD:SUBMIT_FORM]]')">SUBMIT_FORM</button>
+      </div>
+      <!-- CLICK / INTERACT -->
+      <div class="cmd-cat">CLICK / INTERACT</div>
+      <div class="cmd-chips">
+        <button class="cmd-chip click-cmd" onclick="insertCmd('[[CMD:CLICK|button text]]')">CLICK [text]</button>
+        <button class="cmd-chip click-cmd" onclick="insertCmd('[[CMD:CLICK|#css-selector]]')">CLICK [#id]</button>
+        <button class="cmd-chip click-cmd" onclick="insertCmd('[[CMD:PROMPT|text]]')">PROMPT (AI)</button>
+        <button class="cmd-chip click-cmd" onclick="insertCmd('[[CMD:SCROLL|down|300]]')">SCROLL &#8595;</button>
+        <button class="cmd-chip click-cmd" onclick="insertCmd('[[CMD:SCROLL|up|300]]')">SCROLL &#8593;</button>
+        <button class="cmd-chip click-cmd" onclick="insertCmd('[[CMD:INSPECT]]')">INSPECT</button>
+      </div>
+      <!-- AUTO MODE -->
+      <div class="cmd-cat">AUTO MODE</div>
+      <div class="cmd-chips">
+        <button class="cmd-chip auto" onclick="insertCmd('Navigiere zu wiki, suche nach Bitcoin, klicke Search')">auto: wiki search</button>
+        <button class="cmd-chip auto" onclick="insertCmd('F&#252;lle alle Formularfelder mit realistischen Testdaten aus und sende ab')">auto: fill &amp; submit</button>
+        <button class="cmd-chip auto" onclick="insertCmd('Analysiere die aktuelle Seite und erstelle eine Zusammenfassung im Editor')">auto: analyze page</button>
+        <button class="cmd-chip auto" onclick="insertCmd('Schreibe einen ausf&#252;hrlichen Artikel &#252;ber [THEMA] in den Editor')">auto: write article</button>
+      </div>
+      <!-- CURRENT IFRAME STATE -->
+      <div class="cmd-cat">IFRAME QUICK INSPECT</div>
+      <div class="cmd-chips">
+        <button class="cmd-chip" onclick="doQuickInspect()">&#128269; Inspect Now</button>
+        <button class="cmd-chip" onclick="insertCmd('[[CMD:INSPECT]]')">Insert INSPECT cmd</button>
+      </div>
+    </div>
+
+    <!-- Row 1: Controls -->
+    <div class="ctrl-row">
+      <div class="ai-group">
+        <button class="ai-btn active" data-ai="gpt">GPT</button>
+        <button class="ai-btn" data-ai="claude">CLAUDE</button>
+        <button class="ai-btn" data-ai="computer-use">COMP.USE</button>
+      </div>
+
+      <span class="sep">│</span>
+
+      <button id="auto-btn" onclick="toggleAutoMode()" title="Autonomous agent loop — AI acts repeatedly until goal achieved">AUTO</button>
+      <input type="number" id="auto-steps" value="5" min="1" max="20" title="Max auto steps" style="width:42px"/>
+
+      <span class="sep">│</span>
+
+      <select id="type-select">
+        <option value="chat">CHAT</option>
+        <option value="code">CODE</option>
+        <option value="analyze">ANALYZE</option>
+        <option value="navigate">NAVIGATE</option>
+        <option value="write">WRITE</option>
+        <option value="search">SEARCH</option>
+      </select>
+
+      <select id="model-select">
+        <option value="gpt-4o-mini">gpt-4o-mini</option>
+        <option value="gpt-4o">gpt-4o</option>
+        <option value="o1-mini">o1-mini</option>
+      </select>
+    </div>
+
+    <!-- Computer Use quick-actions -->
+    <div id="cu-panel">
+      <span>⚙ COMP.USE — direkte iframe-Aktionen:</span>
+      <div class="cu-actions">
+        <button class="cu-tag" onclick="cuInsert('scroll-down')">↓ SCROLL DN</button>
+        <button class="cu-tag" onclick="cuInsert('scroll-up')">↑ SCROLL UP</button>
+        <button class="cu-tag" onclick="cuInsert('inspect')">🔍 INSPECT</button>
+        <button class="cu-tag" onclick="cuInsert('navigate')">→ NAVIGATE…</button>
+        <button class="cu-tag" onclick="cuInsert('click')">🖱 CLICK…</button>
+        <button class="cu-tag" onclick="cuInsert('type')">⌨ TYPE…</button>
+        <button class="cu-tag" onclick="cuInsert('key')">⌨ KEY…</button>
+      </div>
+    </div>
+
+    <!-- Claude API key row -->
+    <div id="claude-key-row">
+      <span>🔑</span>
+      <input type="password" id="claude-key-input" placeholder="sk-ant-api03-…  (stored in localStorage)"/>
+      <button id="key-save-btn" onclick="saveAnthropicKey()">SAVE</button>
+      <span id="key-status"></span>
+    </div>
+
+    <!-- Row 2: Textarea -->
+    <textarea id="user-input" rows="3"
+      placeholder="Command or prompt… (Enter = send, Shift+Enter = newline)"></textarea>
+
+    <!-- Row 3: Params + Send -->
+    <div class="send-row">
+      <div class="param-group">
+        <label>
+          TEMP
+          <input type="range" id="temp-slider" min="0" max="1" step="0.1" value="0.7"/>
+          <span id="temp-val">0.7</span>
+        </label>
+        <label>
+          MAX
+          <input type="number" id="max-tokens" value="2048" min="256" max="8192" step="256"/>
+        </label>
+      </div>
+      <div class="spacer"></div>
+      <button id="send-btn">SEND → GPT</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── RIGHT: IFRAME ──────────────────────────────────────────────── -->
+<div id="iframe-side">
+  <div class="panel-header">
+    <span class="panel-title">📄 IFRAME</span>
+    <span id="current-url-display" style="color:#555; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+      https://domusaurea.tech/WORD27.html
+    </span>
+  </div>
+  <iframe id="word-iframe" src="https://domusaurea.tech/WORD27.html"></iframe>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════════════
+
+const PROXY_URL = 'https://theserver-open-ai.replit.app';
+
+// All modes hit the same proxy endpoint — model name routes on backend (LiteLLM / proxy config).
+// Computer Use runs as a prompt-based simulation: AI outputs [[CMD:*]] that execute in iframe.
+const AI_CONFIGS = {
+  gpt: {
+    label: 'GPT',
+    color: '#00ff66',
+    models: ['gpt-4o-mini', 'gpt-4o', 'o1-mini', 'o1-preview']
+  },
+  claude: {
+    label: 'CLAUDE',
+    color: '#00bfff',
+    models: ['claude-sonnet-4-6', 'claude-opus-4-8', 'claude-haiku-4-5-20251001', 'claude-3-5-sonnet-20241022']
+  },
+  'computer-use': {
+    label: 'COMP.USE',
+    color: '#ff9900',
+    models: ['gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet-20241022']
+  }
+};
+
+// ── Universal iframe command block injected into EVERY system prompt ──
+const IFRAME_CMD_BLOCK = `
+DU HAST VOLLEN ZUGRIFF AUF ALLE FORMULARFELDER IM IFRAME. Mehrere Befehle pro Antwort erlaubt.
+
+══ FORMULARE AUSFÜLLEN ══
+[[CMD:FORM_FILL|{"Label":"Wert","Label2":"Wert2"}]]
+  → BEVORZUGTE METHODE: füllt mehrere Felder auf einmal anhand der Label-Namen aus dem LIVE STATE
+  → Funktioniert für: input, textarea, select (Dropdown), contenteditable
+  → Beispiel: [[CMD:FORM_FILL|{"Name":"Max Müller","E-Mail":"max@test.de","Nachricht":"Hallo"}]]
+
+[[CMD:WRITE|N|text]]              → In Feld [N] schreiben (Index aus LIVE STATE)
+[[CMD:WRITE|label-text|text]]     → In Feld mit diesem Label-Text schreiben
+[[CMD:WRITE_EDITOR|text]]         → In Haupt-Editor/großes Textfeld
+[[CMD:WRITE_AI|text]]             → In AI-Prompt-Feld (Ask AI, GPT, Claude…)
+[[CMD:WRITE_SEARCH|text]]         → In Suchfeld
+[[CMD:WRITE_TRANSLATE|text]]      → In Übersetzungsfeld
+
+══ DROPDOWNS & CHECKBOXEN ══
+[[CMD:SELECT|N|option-text]]      → Dropdown [N] auf Option setzen (partial match)
+[[CMD:SELECT|label|option-text]]  → Dropdown per Label
+[[CMD:CHECK|N]]                   → Checkbox [N] anklicken (toggle)
+[[CMD:RADIO|N|value]]             → Radio-Button [N] auswählen
+
+══ KLICKEN & SUBMIT ══
+[[CMD:CLICK|text]]                → Button per sichtbarem Text klicken
+[[CMD:SUBMIT_FORM]]               → Nächsten Submit-Button klicken (oder Enter in letztem Feld)
+[[CMD:PROMPT|text]]               → AI-Feld befüllen + absenden
+[[CMD:SCROLL|down|300]]           → Scrollen
+[[CMD:NAVIGATE|app]]              → App wechseln
+[[CMD:INSPECT]]                   → Alle Felder mit Labels anzeigen (nutze das zuerst!)
+
+WORKFLOW für unbekannte Formulare:
+1. [[CMD:INSPECT]] → alle Felder mit Labels sehen
+2. [[CMD:FORM_FILL|{...}]] → alles auf einmal füllen
+3. [[CMD:SUBMIT_FORM]] → absenden
+
+LIVE STATE zeigt dir alle Felder + welche Label sie haben → nutze EXAKT diese Labels in FORM_FILL!`;
+
+const TYPE_FOCUS = {
+  chat:     'Du bist DANIEL.AI. Antworte präzise. Nutze Iframe-Befehle wenn der Nutzer im Iframe etwas tun will.',
+  code:     'Du bist DANIEL.AI Code-Expert. Code immer in Markdown-Blöcken. Nutze [[CMD:WRITE|code]] um Code in den Iframe-Editor zu schreiben.',
+  analyze:  'Du bist DANIEL.AI Analyst. Analysiere strukturiert mit Listen und Schlussfolgerungen. Navigiere zu relevanten Apps wenn sinnvoll.',
+  navigate: 'Du bist DANIEL.AI Navigator. IMMER sofort mit [[CMD:NAVIGATE|app]] navigieren wenn eine App genannt wird. Dann kurz bestätigen.',
+  write:    'Du bist DANIEL.AI Writer. Texte schreiben und IMMER mit [[CMD:WRITE|vollständiger Text]] abschicken — niemals ohne.',
+  search:   'Du bist DANIEL.AI Search. Strukturierte Ergebnisse mit Quellen. Navigiere zu passenden Apps.'
+};
+
+const CU_FOCUS = 'Du bist DANIEL.AI Computer-Use-Agent. Antworte IMMER mit einem Befehl. Analysiere den Iframe-State und handle direkt.';
+
+const APP_MATRIX = {
+  wiki:   'https://domusaurea.tech/WIKI22.html',
+  mind:   'https://domusaurea.tech/MIND1.html',
+  kartei: 'https://domusaurea.tech/KARTEI1.html',
+  chart:  'https://domusaurea.tech/AXEL50.html',
+  calc:   'https://domusaurea.tech/WOLFRAMsimple.html',
+  note:   'https://domusaurea.tech/NOTIZ1.html',
+  code:   'https://domusaurea.tech/HTML3.html',
+  photo:  'https://domusaurea.tech/PHOTO2.html',
+  voice:  'https://domusaurea.tech/UNAVOCE1.html',
+  word:   'https://domusaurea.tech/WORD27.html'
+};
+
+// cuInsert defined below after DOM refs are available
+
+// ════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════
+
+let activeAI = 'gpt';
+let chatMessages = [];
+
+// ════════════════════════════════════════════════════════════════════
+// DOM
+// ════════════════════════════════════════════════════════════════════
+
+const chatEl      = document.getElementById('chat-history');
+const inputEl     = document.getElementById('user-input');
+const sendBtn     = document.getElementById('send-btn');
+const iframe      = document.getElementById('word-iframe');
+const urlDisplay  = document.getElementById('current-url-display');
+const typeSelect  = document.getElementById('type-select');
+const modelSelect = document.getElementById('model-select');
+const tempSlider  = document.getElementById('temp-slider');
+const tempVal     = document.getElementById('temp-val');
+const maxTokEl    = document.getElementById('max-tokens');
+const aiIndicator = document.getElementById('ai-indicator');
+const cuPanel     = document.getElementById('cu-panel');
+
+// ════════════════════════════════════════════════════════════════════
+// SYSTEM PROMPT
+// ════════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════════
+// IFRAME CRAWLER — gives AI real knowledge of what's in the iframe
+// ════════════════════════════════════════════════════════════════════
+
+function crawlIframe() {
+  try {
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc?.body) return null;
+
+    // Use stable visual-order field collection
+    const fieldItems = getVisibleFields(doc);
+    const inputs = fieldItems.map((f, i) => {
+      const val = (f.el.value || f.el.textContent || '').trim().substring(0, 25);
+      return {
+        index: i + 1,
+        kind:  f.kind,
+        tag:   f.tag,
+        hint:  [f.ph, f.id ? `#${f.id}` : '', f.el.name ? `name=${f.el.name}` : ''].filter(Boolean).join(' / ') || '—',
+        value: val
+      };
+    });
+
+    const vis = el => el.offsetWidth > 0 && el.offsetHeight > 0;
+    const buttons = Array.from(doc.querySelectorAll('button, [role="button"], input[type="submit"]'))
+      .filter(vis)
+      .map((b, i) => ({ index: i + 1, text: (b.textContent.trim() || b.value || b.id || '').substring(0, 40) }))
+      .filter(b => b.text).slice(0, 20);
+
+    const headings = Array.from(doc.querySelectorAll('h1,h2,h3'))
+      .map(h => h.textContent.trim()).filter(Boolean).slice(0, 6);
+
+    const forms = Array.from(doc.querySelectorAll('form'))
+      .map(f => `form[${f.id || f.name || f.action?.split('/').pop() || '?'}]`).slice(0, 5);
+
+    const bodyText = (doc.body.innerText || '').replace(/\s+/g, ' ').trim().substring(0, 500);
+
+    return { url: iframe.src, title: doc.title || '(no title)', inputs, buttons, headings, forms, bodyText };
+  } catch(e) {
+    return { url: iframe.src, crossOrigin: true };
+  }
+}
+
+function buildIframeContext() {
+  const doc = iframeDoc();
+  if (!doc) return 'IFRAME: not loaded yet';
+
+  let url, title, bodyText, headings, forms;
+  try {
+    url      = iframe.src;
+    title    = doc.title || '(no title)';
+    bodyText = (doc.body.innerText || '').replace(/\s+/g, ' ').trim().substring(0, 400);
+    headings = Array.from(doc.querySelectorAll('h1,h2,h3')).map(h => h.textContent.trim()).filter(Boolean).slice(0, 5);
+    forms    = Array.from(doc.querySelectorAll('form')).map(f => f.id || f.name || '?').slice(0, 4);
+  } catch { return `IFRAME (cross-origin): ${iframe.src}`; }
+
+  const fields  = getVisibleFields(doc);
+  const isVis   = el => { try { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; } catch { return false; } };
+  const buttons = Array.from(doc.querySelectorAll('button,[role="button"],input[type="submit"]'))
+    .filter(isVis)
+    .map((b, i) => `    [${i+1}] "${(b.textContent.trim() || b.value || b.id).substring(0,40)}"`)
+    .slice(0, 15).join('\n');
+
+  // Format each field with all info AI needs
+  const fieldLines = fields.map(f => {
+    const req  = f.required ? ' *REQUIRED*' : '';
+    const val  = f.currentVal ? ` | current="${f.currentVal}"` : '';
+    const opts = f.options?.length ? ` | options: [${f.options.slice(0,6).join(', ')}]` : '';
+    const cmd  = {
+      'editor':    `[[CMD:WRITE_EDITOR|text]]`,
+      'ai-input':  `[[CMD:WRITE_AI|text]]`,
+      'search':    `[[CMD:WRITE_SEARCH|text]]`,
+      'translate': `[[CMD:WRITE_TRANSLATE|text]]`,
+      'select':    `[[CMD:SELECT|${f.index}|option]]`,
+      'checkbox':  `[[CMD:CHECK|${f.index}]]`,
+      'radio':     `[[CMD:RADIO|${f.index}|value]]`,
+    }[f.kind] || `[[CMD:WRITE|${f.index}|text]]`;
+    return `    [${f.index}] ${f.kind.padEnd(11)} | label="${f.label}"${req}${val}${opts} → ${cmd}`;
+  }).join('\n');
+
+  // Build FORM_FILL template — only text-like fields (excludes select/color/checkbox/radio/file)
+  const FORM_FILL_KINDS = ['input','editor','ai-input','search','translate','email','password','name','number','date'];
+  const formFillTemplate = fields
+    .filter(f => FORM_FILL_KINDS.includes(f.kind) && f.label)
+    .map(f => `"${f.label}": "${f.currentVal || '...'}"`)
+    .slice(0, 12).join(', ');
+
+  // Separate SELECT and CHECKBOX hints
+  const selectFields   = fields.filter(f => f.kind === 'select' && f.label);
+  const checkboxFields = fields.filter(f => f.kind === 'checkbox' && f.label);
+  const selectLine   = selectFields.length
+    ? `  SELECT FIELDS: ${selectFields.map(f => `[[CMD:SELECT|${f.label}|option]]`).join(' ')}`
+    : null;
+  const checkboxLine = checkboxFields.length
+    ? `  CHECKBOX FIELDS: ${checkboxFields.map(f => `[[CMD:CHECK|${f.label}]]`).join(' ')}`
+    : null;
+
+  return [
+    `IFRAME LIVE STATE:`,
+    `  URL: ${url}  |  Title: ${title}`,
+    headings.length ? `  Headings: ${headings.join(' | ')}` : null,
+    forms.length    ? `  Forms: ${forms.join(', ')}` : null,
+    fields.length
+      ? `  FORM FIELDS (use labels in FORM_FILL):\n${fieldLines}`
+      : `  FORM FIELDS: none detected`,
+    buttons
+      ? `  BUTTONS:\n${buttons}`
+      : `  BUTTONS: none`,
+    formFillTemplate
+      ? `  QUICK FILL TEMPLATE:\n    [[CMD:FORM_FILL|{${formFillTemplate}}]]`
+      : null,
+    selectLine,
+    checkboxLine,
+    bodyText ? `  CONTENT: ${bodyText.substring(0, 250)}` : null,
+  ].filter(Boolean).join('\n');
+}
+
+function buildSystemPrompt() {
+  const focus  = activeAI === 'computer-use' ? CU_FOCUS : (TYPE_FOCUS[typeSelect.value] || TYPE_FOCUS.chat);
+  const matrix = Object.entries(APP_MATRIX).map(([k, v]) => `  ${k}: ${v}`).join('\n');
+  const ctx    = buildIframeContext();
+  return `${focus}\n${IFRAME_CMD_BLOCK}\n\nAPP-MATRIX:\n${matrix}\n\n${ctx}`;
+}
+
+function resetChat() {
+  chatMessages = [{ role: 'system', content: buildSystemPrompt() }];
+}
+
+// ════════════════════════════════════════════════════════════════════
+// AI MODE SWITCH
+// ════════════════════════════════════════════════════════════════════
+
+function setActiveAI(ai) {
+  activeAI = ai;
+  const cfg = AI_CONFIGS[ai];
+
+  document.querySelectorAll('.ai-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.ai === ai);
+  });
+
+  modelSelect.innerHTML = cfg.models
+    .map(m => `<option value="${m}">${m}</option>`)
+    .join('');
+
+  sendBtn.textContent = `SEND → ${cfg.label}`;
+  sendBtn.className   = ai === 'gpt' ? '' : `mode-${ai}`;
+
+  document.documentElement.style.setProperty('--active-ai', cfg.color);
+  aiIndicator.textContent      = cfg.models[0];
+  aiIndicator.style.borderColor = cfg.color;
+  aiIndicator.style.color       = cfg.color;
+
+  cuPanel.classList.toggle('show', ai === 'computer-use');
+  keyRowEl.classList.toggle('show', ai === 'claude');
+  if (ai === 'claude') loadAnthropicKey();
+
+  resetChat();
+  logSystem(`⚡ Mode → ${cfg.label} | model: ${cfg.models[0]}`);
+}
+
+document.querySelectorAll('.ai-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setActiveAI(btn.dataset.ai);
+    maintainFocus();
+  });
+});
+
+typeSelect.addEventListener('change', () => {
+  resetChat();
+  logSystem(`⚡ Type → ${typeSelect.value.toUpperCase()}`);
+  maintainFocus();
+});
+
+modelSelect.addEventListener('change', () => {
+  aiIndicator.textContent = modelSelect.value;
+});
+
+tempSlider.addEventListener('input', () => {
+  tempVal.textContent = tempSlider.value;
+});
+
+// ════════════════════════════════════════════════════════════════════
+// COMPUTER USE QUICK-INSERT
+// ════════════════════════════════════════════════════════════════════
+
+// CU quick-action buttons — direct iframe actions where possible, prompt otherwise
+window.cuInsert = (action) => {
+  switch (action) {
+    case 'scroll-down':
+      try { iframe.contentWindow.scrollBy(0, 400); logSystem('✅ Scrolled ↓ 400px'); }
+      catch(e) { logError(`✗ Scroll blocked: ${e.message}`); }
+      break;
+    case 'scroll-up':
+      try { iframe.contentWindow.scrollBy(0, -400); logSystem('✅ Scrolled ↑ 400px'); }
+      catch(e) { logError(`✗ Scroll blocked: ${e.message}`); }
+      break;
+    case 'inspect':
+      executeCommands('[[CMD:INSPECT]]');
+      break;
+    case 'navigate':
+      inputEl.value = 'Navigiere zu: ';
+      inputEl.focus();
+      inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+      break;
+    case 'click':
+      inputEl.value = 'Klicke auf: ';
+      inputEl.focus();
+      inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+      break;
+    case 'type':
+      inputEl.value = 'Schreibe in das Eingabefeld: ';
+      inputEl.focus();
+      inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+      break;
+    case 'key':
+      inputEl.value = 'Drücke die Tastenkombination: ';
+      inputEl.focus();
+      inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+      break;
+    default:
+      inputEl.value = action;
+      inputEl.focus();
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════
+// MARKDOWN + CODE BLOCKS
+// ════════════════════════════════════════════════════════════════════
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+function renderMarkdown(raw) {
+  let h = escapeHtml(raw);
+  h = h.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  h = h.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  h = h.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  h = h.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\n\n/g, '<br><br>');
+  return `<div class="ai-prose">${h}</div>`;
+}
+
+function renderWithCodeBlocks(raw) {
+  const regex = /```\s*([a-z0-9+\-.]*)\s*[\r\n]+([\s\S]*?)[\r\n]+```/gi;
+  let result = raw;
+  let match;
+  while ((match = regex.exec(raw)) !== null) {
+    const lang = match[1] || 'plaintext';
+    const code = match[2].trim();
+    const id = 'cb' + Math.random().toString(36).slice(2, 9);
+    const isHtml = /^html?$/i.test(lang);
+    const block = `
+<div class="code-block" id="${id}">
+  <div class="code-header">
+    <span>${lang}</span>
+    <div class="code-buttons">
+      <button class="code-btn copy" onclick="copyCode('${id}')">⧉ COPY</button>
+      <button class="code-btn dl" onclick="dlCode('${id}','${lang}')">⬇ DL</button>
+      ${isHtml ? `<button class="code-btn run" onclick="runCode('${id}')">▶ RUN</button>` : ''}
+    </div>
+  </div>
+  <pre style="margin:0;color:#00e5ff;overflow-x:auto"><code>${escapeHtml(code)}</code></pre>
+  <div class="code-content" style="display:none">${code}</div>
+</div>`;
+    result = result.replace(match[0], block);
+  }
+  return renderMarkdown(result);
+}
+
+window.copyCode = (id) => {
+  const txt = document.querySelector(`#${id} .code-content`).textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.querySelector(`#${id} .copy`);
+    btn.textContent = '✓ DONE';
+    setTimeout(() => { btn.textContent = '⧉ COPY'; }, 2000);
+  });
+};
+
+window.dlCode = (id, lang) => {
+  const txt  = document.querySelector(`#${id} .code-content`).textContent;
+  const exts = { python: 'py', javascript: 'js', typescript: 'ts', css: 'css', html: 'html', bash: 'sh', json: 'json' };
+  const ext  = exts[lang] || lang || 'txt';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+  a.download = `code.${ext}`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+window.runCode = (id) => {
+  const w = window.open();
+  w.document.write(document.querySelector(`#${id} .code-content`).textContent);
+  w.document.close();
+};
+
+// ════════════════════════════════════════════════════════════════════
+// IFRAME COMMANDS
+// ════════════════════════════════════════════════════════════════════
+
+function iframeDoc() {
+  try {
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    return doc?.querySelector ? doc : null;
+  } catch(e) {
+    logError(`✗ iframe blocked: ${e.message}`);
+    return null;
+  }
+}
+
+async function waitReady(ms = 3000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    if (iframeDoc()?.body) return true;
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return false;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// FORM INTELLIGENCE — label extraction, all field types, smart fill
+// ════════════════════════════════════════════════════════════════════
+
+// Get the best human-readable label for any form element
+function getFieldLabel(el, doc) {
+  const trim = s => (s || '').replace(/\s+/g, ' ').trim().substring(0, 60);
+
+  // 1. <label for="id">
+  if (el.id) {
+    const lbl = doc.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+    if (lbl) return trim(lbl.textContent);
+  }
+  // 2. aria-label
+  const al = el.getAttribute('aria-label');
+  if (al) return trim(al);
+  // 3. aria-labelledby
+  const alby = el.getAttribute('aria-labelledby');
+  if (alby) {
+    const lblEl = doc.getElementById(alby);
+    if (lblEl) return trim(lblEl.textContent);
+  }
+  // 4. Wrapping <label>
+  const parentLabel = el.closest('label');
+  if (parentLabel) return trim(parentLabel.textContent);
+  // 5. Previous sibling text (common pattern: <label/span> then <input>)
+  let prev = el.previousElementSibling;
+  while (prev) {
+    const t = trim(prev.textContent);
+    if (t && !['INPUT','SELECT','TEXTAREA','BUTTON'].includes(prev.tagName)) return t;
+    prev = prev.previousElementSibling;
+  }
+  // 6. Parent's first text node
+  const parentText = trim(el.parentElement?.textContent?.replace(el.textContent, ''));
+  if (parentText) return parentText.substring(0, 40);
+  // 7. Placeholder / name / id as last resort
+  return trim(el.placeholder || el.name || el.id || '');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// STABLE FIELD COLLECTION — visual top→bottom left→right order
+// ════════════════════════════════════════════════════════════════════
+
+function getVisibleFields(doc) {
+  // Include ALL interactive field types
+  const QUERY =
+    'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="image"]),' +
+    'textarea, select, [contenteditable="true"], [contenteditable=""]';
+
+  const seen  = new Set();
+  const items = [];
+
+  doc.querySelectorAll(QUERY).forEach(el => {
+    if (seen.has(el)) return;
+    seen.add(el);
+    const r = el.getBoundingClientRect();
+    const ce = el.getAttribute('contenteditable') != null;
+    // For contenteditable, only require width > 10 (height may be 0 when empty)
+    if (ce ? r.width <= 10 : (r.width <= 0 || r.height <= 0)) return;
+
+    const elType = el.type?.toLowerCase() || el.tagName.toLowerCase();
+    const ph     = (el.placeholder || '').toLowerCase();
+    const id     = (el.id || '').toLowerCase();
+    const nm     = (el.name || '').toLowerCase();
+    const label  = getFieldLabel(el, doc);
+    const lbl    = label.toLowerCase();
+    const big    = r.height > 80 || ce;
+
+    // Determine field type category
+    let kind;
+    if (elType === 'select-one' || elType === 'select-multiple' || el.tagName === 'SELECT') {
+      kind = 'select';
+    } else if (elType === 'checkbox') {
+      kind = 'checkbox';
+    } else if (elType === 'radio') {
+      kind = 'radio';
+    } else if (elType === 'date' || elType === 'datetime-local' || elType === 'time' || elType === 'month') {
+      kind = 'date';
+    } else if (elType === 'number' || elType === 'range') {
+      kind = 'number';
+    } else if (elType === 'file') {
+      kind = 'file';
+    } else if (elType === 'color') {
+      kind = 'color';
+    } else if (big) {
+      kind = 'editor';
+    } else {
+      kind = 'input';
+    }
+
+    // Semantic override for text fields based on label/placeholder/id/name
+    if (['input','editor'].includes(kind)) {
+      const sig = ph + id + nm + lbl;
+      if (/ask|ai|prompt|gpt|claude|chat/i.test(sig))    kind = 'ai-input';
+      if (/search|query|suche|find|artikel/i.test(sig))  kind = 'search';
+      if (/transl|lang|sprache/i.test(sig))              kind = 'translate';
+      if (/email|mail/i.test(sig))                       kind = 'email';
+      if (/pass|password|kennwort/i.test(sig))           kind = 'password';
+    }
+
+    // For SELECT: collect options
+    const options = el.tagName === 'SELECT'
+      ? Array.from(el.options).map(o => o.text.trim()).filter(Boolean).slice(0, 10)
+      : null;
+
+    const currentVal = el.type === 'checkbox' ? (el.checked ? 'checked' : 'unchecked')
+      : el.type === 'radio' ? (el.checked ? 'selected' : 'unselected')
+      : (el.value || el.textContent || '').trim().substring(0, 40);
+
+    items.push({
+      el, top: r.top, left: r.left,
+      kind, ph, id: el.id, nm, tag: el.tagName, elType,
+      label,     // human-readable label — KEY for FORM_FILL matching
+      options,   // for SELECTs
+      currentVal,
+      required: el.required || el.getAttribute('aria-required') === 'true'
+    });
+  });
+
+  // Visual order: top→bottom (10px snap bands), then left→right
+  items.sort((a, b) => (Math.round(a.top / 10) - Math.round(b.top / 10)) || (a.left - b.left));
+  return items.map((item, i) => ({ ...item, index: i + 1 }));
+}
+
+function writeToField(el, rawText) {
+  const text  = rawText.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+  const elDoc = el.ownerDocument; // always the element's own document
+
+  const elType = el.type?.toLowerCase();
+
+  if (el.tagName === 'SELECT') {
+    // Handled separately by doSelect
+    selectOption(el, text);
+    return;
+  }
+  if (elType === 'checkbox') {
+    const want = /true|yes|ja|1|checked|an/i.test(text);
+    if (el.checked !== want) el.click();
+    return;
+  }
+  if (elType === 'radio') {
+    el.checked = true;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return;
+  }
+  if (elType === 'date' || elType === 'datetime-local' || elType === 'time' || elType === 'month') {
+    el.value = text; // expect ISO format from AI
+    el.dispatchEvent(new Event('input',  { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return;
+  }
+
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+    try {
+      const win    = elDoc.defaultView;
+      const proto  = el.tagName === 'INPUT' ? win.HTMLInputElement.prototype
+                                            : win.HTMLTextAreaElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+      if (setter) setter.call(el, text); else el.value = text;
+    } catch { el.value = text; }
+  } else {
+    // contenteditable — use element's own document to create nodes
+    el.focus();
+    el.innerHTML = '';
+    text.split('\n').forEach((line, i) => {
+      if (i > 0) el.appendChild(elDoc.createElement('br'));
+      if (line)  el.appendChild(elDoc.createTextNode(line));
+    });
+  }
+
+  ['keydown','keyup','input','change'].forEach(ev =>
+    el.dispatchEvent(new Event(ev, { bubbles: true, cancelable: true }))
+  );
+  el.focus();
+}
+
+function selectOption(el, query) {
+  const q = query.toLowerCase();
+  let opt = Array.from(el.options).find(o => o.text.toLowerCase() === q)
+         || Array.from(el.options).find(o => o.value.toLowerCase() === q)
+         || Array.from(el.options).find(o => o.text.toLowerCase().includes(q))
+         || Array.from(el.options).find(o => o.value.toLowerCase().includes(q));
+  if (!opt && /^\d+$/.test(query)) opt = el.options[parseInt(query) - 1];
+  if (!opt) { logError(`✗ SELECT: option "${query}" not found in [${Array.from(el.options).map(o=>o.text).join(', ')}]`); return false; }
+  el.value = opt.value;
+  ['input','change'].forEach(ev => el.dispatchEvent(new Event(ev, { bubbles: true })));
+  logSystem(`✅ SELECT → "${opt.text}"`);
+  return true;
+}
+
+// Find field by label, placeholder, index, or kind
+function resolveField(fields, ref) {
+  if (!ref || ref === '') return fields[0];
+  if (/^\d+$/.test(ref)) return fields[parseInt(ref, 10) - 1] || null;
+  const q = ref.toLowerCase();
+  // Exact label match
+  let f = fields.find(f => f.label.toLowerCase() === q);
+  if (f) return f;
+  // Kind match
+  f = fields.find(f => f.kind === q);
+  if (f) return f;
+  // Label contains
+  f = fields.find(f => f.label.toLowerCase().includes(q));
+  if (f) return f;
+  // Placeholder/id/name contains
+  f = fields.find(f => f.ph.includes(q) || f.id.toLowerCase().includes(q) || f.nm.includes(q));
+  if (f) return f;
+  // CSS selector
+  try {
+    const doc = iframeDoc();
+    const found = doc?.querySelector(ref);
+    if (found) return fields.find(f => f.el === found) || null;
+  } catch { /* skip */ }
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// ROBUST JSON PARSER — handles trailing commas, single quotes, fences
+// ════════════════════════════════════════════════════════════════════
+function parseFormJson(raw) {
+  // Step 1: strip markdown fences
+  let s = raw.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+
+  // Step 2: try direct parse
+  try { return JSON.parse(s); } catch(e1) { /* continue */ }
+
+  // Step 3: remove trailing commas before } or ]
+  const noTrailing = s.replace(/,\s*([}\]])/g, '$1');
+  try { return JSON.parse(noTrailing); } catch(e2) { /* continue */ }
+
+  // Step 4: replace single quotes with double quotes
+  const dq = noTrailing.replace(/'/g, '"');
+  try { return JSON.parse(dq); } catch(e3) { /* continue */ }
+
+  // Step 5: regex key-value extraction as last resort
+  const result = {};
+  const rx = /["']([^"']+)["']\s*:\s*["']([^"']*?)["']/g;
+  let m;
+  while ((m = rx.exec(s)) !== null) result[m[1]] = m[2];
+  if (Object.keys(result).length > 0) {
+    console.warn('FORM_FILL: used regex fallback parser, result may be partial');
+    return result;
+  }
+
+  console.error('FORM_FILL: all parse attempts failed. Input was:', raw.substring(0, 200));
+  return null;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SMART FORM_FILL — fill N fields at once from JSON {label: value}
+// ════════════════════════════════════════════════════════════════════
+function doFormFill(jsonStr) {
+  const doc = iframeDoc();
+  if (!doc) { logError('✗ FORM_FILL: iframe inaccessible'); return '❌'; }
+
+  const data = parseFormJson(jsonStr);
+  if (!data) { logError(`✗ FORM_FILL: could not parse JSON after all attempts — "${jsonStr.substring(0,80)}"`); return '❌ [bad JSON]'; }
+
+  const fields  = getVisibleFields(doc);
+  const results = [];
+  const used    = new Set();
+
+  for (const [key, value] of Object.entries(data)) {
+    const field = resolveField(fields.filter(f => !used.has(f)), key);
+    if (!field) {
+      logError(`✗ FORM_FILL: no match for "${key}" (available: ${fields.map(f=>f.label||f.kind).join(', ')})`);
+      results.push(`❌ ${key}`);
+      continue;
+    }
+    used.add(field);
+    writeToField(field.el, String(value));
+    const hint = field.label || field.ph || field.tag;
+    logSystem(`✅ FORM_FILL [${field.index}:${field.kind}] "${key}" → "${String(value).substring(0,40)}" → ${hint}`);
+    results.push(`✅ ${key}`);
+  }
+
+  return `✅ FORM_FILL: ${results.join(' | ')}`;
+}
+
+// ── SELECT dropdown ──
+function doSelect(rawArgs) {
+  const doc = iframeDoc();
+  if (!doc) return '❌';
+  const pipe = rawArgs.indexOf('|');
+  if (pipe === -1) { logError('✗ SELECT: use [[CMD:SELECT|field|option]]'); return '❌'; }
+  const ref   = rawArgs.substring(0, pipe).trim();
+  const value = rawArgs.substring(pipe + 1).trim();
+  const fields = getVisibleFields(doc).filter(f => f.kind === 'select');
+  const field  = resolveField(fields, ref) || getVisibleFields(doc).find(f => f.kind === 'select');
+  if (!field) { logError(`✗ SELECT: no dropdown found for "${ref}"`); return '❌'; }
+  return selectOption(field.el, value) ? `✅ [select: ${field.label}="${value}"]` : '❌';
+}
+
+// ── CHECKBOX toggle ──
+function doCheck(rawArgs) {
+  const doc = iframeDoc();
+  if (!doc) return '❌';
+  const fields = getVisibleFields(doc).filter(f => f.kind === 'checkbox');
+  const pipe   = rawArgs.indexOf('|');
+  const ref    = pipe !== -1 ? rawArgs.substring(0, pipe).trim() : rawArgs.trim();
+  const want   = pipe !== -1 ? /true|yes|ja|1|an/i.test(rawArgs.substring(pipe+1)) : null;
+  const field  = resolveField(fields, ref);
+  if (!field) { logError(`✗ CHECK: no checkbox "${ref}"`); return '❌'; }
+  if (want === null) { field.el.click(); }
+  else if (field.el.checked !== want) field.el.click();
+  logSystem(`✅ CHECK [${field.index}] "${field.label}" → ${field.el.checked ? 'checked' : 'unchecked'}`);
+  return `✅ [checkbox: ${field.el.checked}]`;
+}
+
+// ── SUBMIT FORM ──
+function doSubmitForm() {
+  const doc = iframeDoc();
+  if (!doc) return '❌';
+  const isVis = el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  // 1. Submit button
+  const submitBtn = Array.from(doc.querySelectorAll(
+    'button[type="submit"], input[type="submit"], button:not([type]), [role="button"]'
+  )).filter(isVis).find(b => /submit|send|senden|absenden|weiter|next|ok|save|speichern|search|suchen/i.test(
+    b.textContent + b.value + b.id
+  ));
+  if (submitBtn) {
+    submitBtn.click();
+    logSystem(`✅ SUBMIT → "${submitBtn.textContent.trim() || submitBtn.value}"`);
+    return '✅ [submitted]';
+  }
+  // 2. Any visible submit input
+  const anySubmit = Array.from(doc.querySelectorAll('input[type="submit"], button')).filter(isVis)[0];
+  if (anySubmit) { anySubmit.click(); logSystem('✅ SUBMIT → first visible button'); return '✅ [submitted]'; }
+  // 3. Form.submit()
+  const form = doc.querySelector('form');
+  if (form) { form.submit(); logSystem('✅ SUBMIT → form.submit()'); return '✅ [submitted]'; }
+  logError('✗ SUBMIT: no submit button or form found');
+  return '❌';
+}
+
+// ── WRITE — stable visual-order field targeting ──
+function doWrite(rawArgs, kindOverride) {
+  const doc = iframeDoc();
+  if (!doc) { logError('✗ WRITE: iframe inaccessible'); return '❌ [iframe blocked]'; }
+
+  const fields = getVisibleFields(doc);
+  if (!fields.length) { logError('✗ WRITE: no visible fields'); return '❌ [no fields]'; }
+
+  // Semantic kind shortcut (WRITE_EDITOR, WRITE_AI, etc.)
+  if (kindOverride) {
+    let target = fields.find(f => f.kind === kindOverride);
+
+    // Fallback for 'editor': try any contenteditable (ignoring height) or largest textarea
+    if (!target && kindOverride === 'editor') {
+      const doc2 = iframeDoc();
+      if (doc2) {
+        // Try CE without height check
+        const ceEl = Array.from(doc2.querySelectorAll('[contenteditable="true"],[contenteditable=""]'))
+          .find(el => el.offsetWidth > 10);
+        if (ceEl) target = { el: ceEl, kind: 'editor', label: 'contenteditable', index: 0 };
+        // Try largest textarea
+        if (!target) {
+          const tas = Array.from(doc2.querySelectorAll('textarea'))
+            .filter(el => el.offsetWidth > 0)
+            .sort((a, b) => (b.offsetHeight * b.offsetWidth) - (a.offsetHeight * a.offsetWidth));
+          if (tas[0]) target = { el: tas[0], kind: 'editor', label: 'textarea', index: 0 };
+        }
+      }
+    }
+
+    if (!target) {
+      const avail = fields.map(f => `[${f.index}]${f.kind}`).join(' ');
+      logError(`✗ WRITE_${kindOverride}: kind not found. Available: ${avail}`);
+      return `❌ [${kindOverride} not found]`;
+    }
+    writeToField(target.el, rawArgs);
+    const hint = target.ph || target.id || target.tag || target.label;
+    logSystem(`✅ WRITE [${target.index}:${kindOverride}] "${rawArgs.substring(0, 50)}" → ${hint}`);
+    return `✅ [→ ${kindOverride} field ${target.index}]`;
+  }
+
+  // Parse: "text"       → first field (visual order)
+  //        "N|text"     → nth field (1-based, visual order)
+  //        "kind|text"  → by semantic kind (editor/ai-input/search/translate/…)
+  //        "hint|text"  → placeholder / id / name substring match
+  const pipeIdx = rawArgs.indexOf('|');
+  let ref  = null;
+  let text = rawArgs;
+  if (pipeIdx !== -1) { ref = rawArgs.substring(0, pipeIdx).trim(); text = rawArgs.substring(pipeIdx + 1); }
+
+  let item = null;
+
+  if (ref === null) {
+    item = fields[0];
+  } else if (/^\d+$/.test(ref)) {
+    item = fields[parseInt(ref, 10) - 1] || null;
+  } else {
+    const q = ref.toLowerCase();
+    // Kind match
+    item = fields.find(f => f.kind === q);
+    // CSS selector
+    if (!item) {
+      try { const el = doc.querySelector(ref); if (el) item = fields.find(f => f.el === el); } catch { /* skip */ }
+    }
+    // Placeholder / id / name substring
+    if (!item) {
+      item = fields.find(f =>
+        f.ph.includes(q) || f.id.toLowerCase().includes(q) ||
+        (f.el.name || '').toLowerCase().includes(q) ||
+        (f.el.closest?.('label')?.textContent || '').toLowerCase().includes(q)
+      );
+    }
+  }
+
+  if (!item) {
+    // Debug: show available fields
+    const avail = fields.map((f,i) => `[${i+1}]${f.kind}:${f.ph||f.id||f.tag}`).join(' ');
+    logError(`✗ WRITE: "${ref}" not found. Available: ${avail}`);
+    return `❌ [field "${ref}" not found]`;
+  }
+
+  writeToField(item.el, text);
+  const fieldHint = item.ph || item.id || item.tag;
+  logSystem(`✅ WRITE [${item.index}:${item.kind}] "${text.substring(0, 55)}" → ${fieldHint}`);
+  return `✅ [→ field ${item.index} (${item.kind})]`;
+}
+
+// Extract best human-readable label from a button (handles icon-only buttons)
+function getButtonLabel(el) {
+  const txt = el.textContent.trim();
+  if (txt) return txt.substring(0, 50);
+  return (
+    el.getAttribute('aria-label') ||
+    el.getAttribute('title') ||
+    el.getAttribute('data-tooltip') ||
+    el.getAttribute('data-title') ||
+    el.value ||
+    el.name ||
+    el.id ||
+    el.className?.split(' ')[0] ||
+    el.tagName
+  ).substring(0, 50);
+}
+
+// ── CLICK helper ──
+function doClick(query) {
+  const doc = iframeDoc();
+  if (!doc) { logError('✗ CLICK: iframe inaccessible'); return '❌'; }
+
+  const isVis = el => { try { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; } catch { return false; } };
+
+  let el = null;
+
+  // 1. CSS selector (only if query looks like one)
+  if (query.startsWith('#') || query.startsWith('.') || query.includes('[')) {
+    try { const found = doc.querySelector(query); if (found && isVis(found)) el = found; } catch { /* skip */ }
+  }
+
+  if (!el) {
+    const q = query.toLowerCase().replace(/\b(button|btn|schaltfläche)\b/g, '').trim();
+    const candidates = Array.from(doc.querySelectorAll(
+      'button, a[href], [role="button"], input[type="submit"], input[type="button"]'
+    )).filter(isVis);
+
+    // 2. Exact text/label match
+    el = candidates.find(e => getButtonLabel(e).toLowerCase() === q);
+    // 3. Starts-with
+    if (!el) el = candidates.find(e => getButtonLabel(e).toLowerCase().startsWith(q));
+    // 4. Contains
+    if (!el) el = candidates.find(e => getButtonLabel(e).toLowerCase().includes(q));
+    // 5. id / aria-label contains
+    if (!el) el = candidates.find(e =>
+      (e.id + ' ' + (e.getAttribute('aria-label') || '') + ' ' + (e.name || '')).toLowerCase().includes(q)
+    );
+  }
+
+  if (!el) {
+    const btns = Array.from(doc.querySelectorAll('button,[role="button"],input[type="submit"]'))
+      .filter(isVis).map(b => `"${getButtonLabel(b)}"`).join(', ');
+    logError(`✗ CLICK: "${query}" not found. Visible: ${btns || 'none'}`);
+    return '❌';
+  }
+
+  el.click();
+  logSystem(`✅ CLICK "${getButtonLabel(el)}"`);
+  return `✅ [clicked]`;
+}
+
+// ── PROMPT helper ──
+function doPrompt(text) {
+  const doc = iframeDoc();
+  if (!doc) { logError('✗ PROMPT: iframe inaccessible'); return '❌'; }
+
+  const field = [
+    'input[placeholder*="Ask"]','input[placeholder*="Prompt"]',
+    'input[placeholder*="GPT"]','input[placeholder*="Claude"]',
+    'textarea','input[type="text"]'
+  ].map(s => { try { return doc.querySelector(s); } catch { return null; } }).find(Boolean);
+
+  if (!field) { logError('✗ PROMPT: no input found'); return '❌'; }
+
+  field.value = text;
+  field.dispatchEvent(new Event('input',  { bubbles: true }));
+  field.dispatchEvent(new Event('change', { bubbles: true }));
+
+  const btn = Array.from(doc.querySelectorAll('button'))
+    .find(b => /ask|gpt|claude|send|submit/i.test(b.textContent));
+  if (btn) setTimeout(() => { btn.click(); logSystem('⚡ AI submit clicked'); }, 200);
+
+  logSystem(`⚡ PROMPT → "${text.substring(0, 50)}"`);
+  return `⚡ [prompt sent]`;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// INDIVIDUAL COMMAND HANDLERS (called by async executor)
+// ════════════════════════════════════════════════════════════════════
+
+function cmdInspect() {
+  const doc = iframeDoc();
+  if (!doc) { logError('✗ INSPECT: iframe inaccessible'); return '❌'; }
+  const fields = getVisibleFields(doc);
+  logSystem(`📊 INSPECT: ${fields.length} fields | ${doc.body?.children.length} top-level`);
+  fields.forEach(f => console.log(`[${f.index}] ${f.kind.padEnd(10)} label="${f.label}" ph="${f.ph}" id="${f.id}"`));
+  return '📊 [inspected]';
+}
+
+function cmdScroll(args) {
+  const parts  = args.split('|');
+  const dir    = (parts[0] || 'down').toLowerCase();
+  const amount = parseInt(parts[1]) || 300;
+  const sign   = dir === 'up' ? -1 : 1;
+  try { iframe.contentWindow.scrollBy({ top: sign * amount, behavior: 'smooth' }); logSystem(`✅ SCROLL ${dir} ${amount}px`); }
+  catch(e) { logError(`✗ SCROLL: ${e.message}`); }
+  return `✅ [scroll ${dir}]`;
+}
+
+// Returns a Promise that resolves AFTER the new page is ready
+function cmdNavigate(key) {
+  const url = APP_MATRIX[key.toLowerCase()];
+  if (!url) { logError(`✗ NAVIGATE: unknown "${key}"`); return Promise.resolve('❌'); }
+  _navigating = true;
+  return new Promise(resolve => {
+    iframe.src = url;
+    urlDisplay.textContent = url;
+    const timeout = setTimeout(() => {
+      logError(`✗ NAVIGATE: timeout loading ${key}`);
+      resolve(`⚡ [→ ${key} timeout]`);
+    }, 8000);
+    iframe.onload = async () => {
+      clearTimeout(timeout);
+      const ready = await waitReady(4000);
+      if (ready) {
+        logSystem(`✅ ${key} ready`);
+        // Wait for DOM to stabilize, then crawl
+        await new Promise(r => setTimeout(r, 600));
+        const s = crawlIframe();
+        if (s && !s.crossOrigin) {
+          logSystem(`📡 ${s.inputs?.length || 0} fields | ${s.buttons?.length || 0} buttons | "${s.title}"`);
+        }
+      }
+      resolve(`⚡ [→ ${key}]`);
+    };
+  });
+}
+
+// ── Main command executor — ASYNC SEQUENTIAL so NAVIGATE waits before WRITE/CLICK ──
+async function executeCommands(text) {
+  // Parse ALL commands in document order (one pass, preserves sequence)
+  const RE = /\[\[CMD:([\w_]+)(?:\|([\s\S]*?))?\]\]/g;
+  const cmds = [];
+  let m;
+  while ((m = RE.exec(text)) !== null) {
+    cmds.push({ full: m[0], cmd: m[1].toUpperCase(), args: m[2] || '' });
+  }
+
+  if (!cmds.length) return text;
+
+  let out = text;
+
+  for (const { full, cmd, args } of cmds) {
+    let result;
+    switch (cmd) {
+      case 'INSPECT':       result = cmdInspect(); break;
+      case 'SCROLL':        result = cmdScroll(args); break;
+      case 'NAVIGATE':      result = await cmdNavigate(args.trim()); break; // ← AWAITED
+      case 'FORM_FILL':     result = doFormFill(args); break;
+      case 'SELECT':        result = doSelect(args); break;
+      case 'CHECK':
+      case 'RADIO':         result = doCheck(args); break;
+      case 'SUBMIT_FORM':   result = doSubmitForm(); break;
+      case 'WRITE':         result = doWrite(args); break;
+      case 'WRITE_EDITOR':  result = doWrite(args, 'editor'); break;
+      case 'WRITE_AI':      result = doWrite(args, 'ai-input'); break;
+      case 'WRITE_SEARCH':  result = doWrite(args, 'search'); break;
+      case 'WRITE_TRANSLATE': result = doWrite(args, 'translate'); break;
+      case 'WRITE_INPUT':   result = doWrite(args, 'input'); break;
+      case 'CLICK':         result = doClick(args.trim()); break;
+      case 'PROMPT':        result = doPrompt(args); break;
+      default:              result = full; // unknown — keep literal
+    }
+    // Replace only the FIRST occurrence to avoid clobbering identical commands
+    out = out.replace(full, result);
+  }
+
+  return out;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// CLAUDE API KEY MANAGEMENT
+// ════════════════════════════════════════════════════════════════════
+
+const keyStatusEl = document.getElementById('key-status');
+const keyInputEl  = document.getElementById('claude-key-input');
+const keyRowEl    = document.getElementById('claude-key-row');
+
+function loadAnthropicKey() {
+  const k = localStorage.getItem('anthropic_key') || '';
+  keyInputEl.value = k ? '•'.repeat(20) : '';
+  keyStatusEl.textContent = k ? '✅ key set' : '⚠ no key';
+  keyStatusEl.style.color = k ? 'var(--primary)' : 'var(--warning)';
+  return k;
+}
+
+window.saveAnthropicKey = () => {
+  const val = keyInputEl.value.trim();
+  if (!val || val.startsWith('•')) return; // ignore placeholder
+  if (!val.startsWith('sk-ant-')) {
+    logError('✗ Invalid key — must start with sk-ant-');
+    return;
+  }
+  localStorage.setItem('anthropic_key', val);
+  keyInputEl.value = '•'.repeat(20);
+  keyStatusEl.textContent = '✅ saved';
+  keyStatusEl.style.color = 'var(--primary)';
+  logSystem('✅ Anthropic API key saved');
+};
+
+// ════════════════════════════════════════════════════════════════════
+// STREAMING HELPERS
+// ════════════════════════════════════════════════════════════════════
+
+// Anthropic streaming SSE — different event types than OpenAI
+async function* streamAnthropic(response) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      try {
+        const p = JSON.parse(raw);
+        if (p.type === 'content_block_delta' && p.delta?.type === 'text_delta') {
+          yield p.delta.text;
+        }
+      } catch { /* skip */ }
+    }
+  }
+}
+
+async function* streamSSE(response) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6).trim();
+      if (raw === '[DONE]') return;
+      try {
+        const p = JSON.parse(raw);
+        // OpenAI delta
+        const oai = p.choices?.[0]?.delta?.content;
+        // Anthropic content_block_delta
+        const ant = p.type === 'content_block_delta' ? p.delta?.text : null;
+        // Computer Use tool result text
+        const cu  = p.type === 'content_block_start' && p.content_block?.type === 'text'
+          ? p.content_block.text : null;
+        const chunk = oai || ant || cu;
+        if (chunk) yield chunk;
+      } catch { /* non-JSON line, skip */ }
+    }
+  }
+}
+
+async function doRequest(messages) {
+  const model  = modelSelect.value;
+  const temp   = parseFloat(tempSlider.value);
+  const maxTok = parseInt(maxTokEl.value) || 2048;
+
+  // Claude mode — call Anthropic API directly from browser
+  // Requires anthropic-dangerous-direct-browser-access header (officially supported)
+  if (activeAI === 'claude') {
+    const key = localStorage.getItem('anthropic_key');
+    if (!key) throw new Error('Anthropic API key required — click 🔑 and enter sk-ant-… key');
+
+    const sysMsg = messages.find(m => m.role === 'system')?.content || '';
+    const msgs   = messages.filter(m => m.role !== 'system');
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ model, max_tokens: maxTok, temperature: temp, stream: true, system: sysMsg, messages: msgs })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`Anthropic ${res.status}: ${err.error?.message || res.statusText}`);
+    }
+
+    return streamAnthropic(res);
+  }
+
+  // GPT + Computer Use — OpenAI-compatible proxy
+  const body = {
+    model,
+    max_tokens: maxTok,
+    temperature: temp,
+    stream: true,
+    messages
+  };
+
+  const res = await fetch(`${PROXY_URL}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => res.statusText);
+    const preview = errText.replace(/<[^>]+>/g, '').trim().substring(0, 160);
+    throw new Error(`API ${res.status} [${model}]: ${preview}`);
+  }
+
+  return streamSSE(res);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SEND
+// ════════════════════════════════════════════════════════════════════
+
+async function handleSend() {
+  const text = inputEl.value.trim();
+  if (!text || sendBtn.disabled) return;
+
+  const cfg = AI_CONFIGS[activeAI];
+
+  // Show user message
+  const userDiv = document.createElement('div');
+  userDiv.className = 'user-msg';
+  userDiv.textContent = `[${cfg.label} / ${typeSelect.value.toUpperCase()}] > ${text}`;
+  chatEl.appendChild(userDiv);
+  inputEl.value = '';
+  sendBtn.disabled = true;
+
+  // Refresh system prompt with live iframe state before every request
+  chatMessages[0] = { role: 'system', content: buildSystemPrompt() };
+  chatMessages.push({ role: 'user', content: text });
+
+  // AI response placeholder
+  const aiDiv = document.createElement('div');
+  aiDiv.className = 'ai-msg';
+  aiDiv.innerHTML = `<span class="spin"></span>${cfg.label} processing…`;
+  chatEl.appendChild(aiDiv);
+  chatEl.scrollTop = chatEl.scrollHeight;
+
+  let fullContent = '';
+
+  try {
+    const stream = await doRequest(chatMessages);
+
+    for await (const chunk of stream) {
+      fullContent += chunk;
+      aiDiv.innerHTML = renderMarkdown(fullContent);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    const cleaned = await executeCommands(fullContent);
+    aiDiv.innerHTML = renderWithCodeBlocks(cleaned);
+    chatMessages.push({ role: 'assistant', content: fullContent });
+
+  } catch (err) {
+    logError(`✗ ${err.message}`);
+    aiDiv.innerHTML = `<span style="color:var(--error)">❌ ${escapeHtml(err.message)}</span>`;
+  } finally {
+    sendBtn.disabled = false;
+    inputEl.focus();
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// LOG HELPERS
+// ════════════════════════════════════════════════════════════════════
+
+function logSystem(msg) {
+  const d = document.createElement('div');
+  d.className = 'sys-log';
+  d.textContent = msg;
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function logError(msg) {
+  const d = document.createElement('div');
+  d.className = 'error-msg';
+  d.textContent = msg;
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// AUTONOMOUS AGENT MODE
+// ════════════════════════════════════════════════════════════════════
+
+let autoRunning = false;
+let autoAbort   = false;
+
+const autoBtn  = document.getElementById('auto-btn');
+const autoStepsEl = document.getElementById('auto-steps');
+
+const AUTO_SYSTEM_SUFFIX = `
+
+AUTONOMER MODUS — Du arbeitest in einer Agenten-Loop:
+- Bei jeder Antwort führe KONKRETE Aktionen aus (WRITE, CLICK, NAVIGATE, SCROLL)
+- Am Ende deiner Antwort schreibe EXAKT eine dieser Zeilen:
+  CONTINUE: [kurze Begründung warum weitere Aktion nötig]
+  DONE: [was du erreicht hast]
+- Wenn du CONTINUE schreibst, wirst du erneut aufgerufen mit dem neuen Iframe-State
+- Wenn du DONE schreibst oder keine Befehle mehr nötig sind → Loop endet
+- Sei präzise, führe immer Befehle aus, keine langen Erklärungen`;
+
+window.toggleAutoMode = () => {
+  if (autoRunning) {
+    autoAbort = true;
+    autoRunning = false;
+    autoBtn.classList.remove('active');
+    autoBtn.textContent = 'AUTO';
+    logSystem('⏹ Auto-Mode abgebrochen');
+  } else {
+    const goal = inputEl.value.trim();
+    if (!goal) { logError('✗ Auto-Mode: Ziel im Input eingeben zuerst'); return; }
+    startAutoLoop(goal);
+  }
+};
+
+async function startAutoLoop(goal) {
+  autoRunning = true;
+  autoAbort   = false;
+  autoBtn.classList.add('active');
+  autoBtn.textContent = 'STOP';
+  sendBtn.disabled = true;
+
+  const maxSteps = parseInt(autoStepsEl.value) || 5;
+  const cfg = AI_CONFIGS[activeAI];
+
+  logSystem(`🤖 AUTO START — Ziel: "${goal.substring(0, 60)}" | Max ${maxSteps} Schritte`);
+  inputEl.value = '';
+
+  // Build agentic system prompt (append AUTO suffix to current prompt)
+  const agentMessages = [
+    { role: 'system', content: buildSystemPrompt() + AUTO_SYSTEM_SUFFIX }
+  ];
+
+  // Inject current iframe state as first observation
+  agentMessages.push({
+    role: 'user',
+    content: `ZIEL: ${goal}\n\nAktueller Iframe-State:\n${buildIframeContext()}\n\nBeginn die Ausführung.`
+  });
+
+  let step = 0;
+
+  while (step < maxSteps && !autoAbort) {
+    step++;
+    logSystem(`🤖 Schritt ${step}/${maxSteps}…`);
+
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'ai-msg';
+    aiDiv.innerHTML = `<span class="spin"></span>[AUTO ${step}] ${cfg.label}…`;
+    chatEl.appendChild(aiDiv);
+    chatEl.scrollTop = chatEl.scrollHeight;
+
+    let fullContent = '';
+
+    try {
+      // Refresh iframe state before each step
+      agentMessages[0] = { role: 'system', content: buildSystemPrompt() + AUTO_SYSTEM_SUFFIX };
+
+      const stream = await doRequest(agentMessages);
+      for await (const chunk of stream) {
+        fullContent += chunk;
+        aiDiv.innerHTML = renderMarkdown(fullContent);
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+
+      // Execute all commands sequentially (AWAIT for NAVIGATE to complete)
+      const cleaned = await executeCommands(fullContent);
+      aiDiv.innerHTML = renderWithCodeBlocks(cleaned);
+      aiDiv.querySelector('.spin')?.remove();
+
+      agentMessages.push({ role: 'assistant', content: fullContent });
+
+      // Wait for any iframe navigation to complete
+      await new Promise(r => setTimeout(r, 800));
+
+      // Check stop condition
+      if (/^DONE:/im.test(fullContent) || !/^CONTINUE:/im.test(fullContent)) {
+        logSystem(`✅ AUTO DONE — Schritt ${step}: Ziel erreicht oder kein weiterer Schritt nötig`);
+        break;
+      }
+
+      // Inject fresh iframe state as next observation
+      const obs = buildIframeContext();
+      agentMessages.push({
+        role: 'user',
+        content: `Aktueller Iframe-State nach Aktion ${step}:\n${obs}\n\nFahre fort mit dem Ziel.`
+      });
+
+    } catch(err) {
+      logError(`✗ AUTO Schritt ${step}: ${err.message}`);
+      aiDiv.innerHTML = `<span style="color:var(--error)">❌ ${escapeHtml(err.message)}</span>`;
+      break;
+    }
+  }
+
+  if (step >= maxSteps && autoRunning) {
+    logSystem(`⏹ AUTO STOP — ${maxSteps} Schritte erreicht`);
+  }
+
+  autoRunning = false;
+  autoAbort   = false;
+  autoBtn.classList.remove('active');
+  autoBtn.textContent = 'AUTO';
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
+
+// ════════════════════════════════════════════════════════════════════
+// COMMAND HISTORY & SMART FOCUS MANAGEMENT
+// ════════════════════════════════════════════════════════════════════
+
+let cmdHistory = [];
+let historyIndex = -1;
+
+// Maintain focus on input field after button clicks
+function maintainFocus() {
+  setTimeout(() => inputEl.focus(), 50);
+}
+
+// Extend existing keydown listener with history handling
+const originalKeydownHandler = function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (inputEl.value.trim() !== "") {
+      cmdHistory.push(inputEl.value);
+      historyIndex = cmdHistory.length;
+    }
+    handleSend();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (historyIndex > 0) {
+      historyIndex--;
+      inputEl.value = cmdHistory[historyIndex];
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (historyIndex < cmdHistory.length - 1) {
+      historyIndex++;
+      inputEl.value = cmdHistory[historyIndex];
+    } else {
+      historyIndex = cmdHistory.length;
+      inputEl.value = "";
+    }
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════
+// MOBILE HANDLING & VIEW TOGGLE
+// ════════════════════════════════════════════════════════════════════
+
+function toggleMobileView() {
+  const body = document.body;
+  const label = document.getElementById('mobile-view-label');
+  
+  if (body.classList.contains('view-terminal')) {
+    body.classList.remove('view-terminal');
+    body.classList.add('view-iframe');
+    if (label) label.textContent = "📄 LIVE IFRAME VIEW";
+  } else {
+    body.classList.remove('view-iframe');
+    body.classList.add('view-terminal');
+    if (label) label.textContent = "⬡ TERMINAL MODE";
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// COMMAND PALETTE / BURGER MENU
+// ════════════════════════════════════════════════════════════════════
+
+window.toggleCmdPanel = () => {
+  const panel = document.getElementById('cmd-panel');
+  const btn   = document.getElementById('cmd-menu-btn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open) buildNavChips();
+};
+
+function buildNavChips() {
+  const container = document.getElementById('nav-chips');
+  if (!container || container.children.length > 0) return;
+  Object.keys(APP_MATRIX).forEach(app => {
+    const btn = document.createElement('button');
+    btn.className = 'cmd-chip navigate';
+    btn.textContent = `→ ${app}`;
+    btn.onclick = () => insertCmd(`[[CMD:NAVIGATE|${app}]]`);
+    container.appendChild(btn);
+  });
+}
+
+window.insertCmd = (template) => {
+  const ta = document.getElementById('user-input');
+  const start = ta.selectionStart;
+  const end   = ta.selectionEnd;
+  const val   = ta.value;
+  ta.value = val.substring(0, start) + template + val.substring(end);
+  // Position cursor after inserted text
+  const newPos = start + template.length;
+  ta.setSelectionRange(newPos, newPos);
+  ta.focus();
+  // Close panel
+  document.getElementById('cmd-panel')?.classList.remove('open');
+  document.getElementById('cmd-menu-btn')?.classList.remove('open');
+};
+
+// Generate FORM_FILL template from ACTUAL current iframe fields
+window.insertSmartFormFill = () => {
+  const doc = iframeDoc();
+  const FILL_KINDS = ['input','editor','ai-input','search','translate','email','password','name','number','date'];
+  if (doc) {
+    const fields = getVisibleFields(doc).filter(f => FILL_KINDS.includes(f.kind) && f.label);
+    if (fields.length) {
+      const json = '{' + fields.map(f => `"${f.label}": "${f.currentVal || '...'}"`).join(', ') + '}';
+      window.insertCmd(`[[CMD:FORM_FILL|${json}]]`);
+      return;
+    }
+  }
+  window.insertCmd('[[CMD:FORM_FILL|{"Label": "Wert"}]]');
+};
+
+window.doQuickInspect = () => {
+  executeCommands('[[CMD:INSPECT]]');
+  const s = crawlIframe();
+  if (s && !s.crossOrigin) {
+    logSystem(`📊 Quick inspect: ${s.inputs?.length || 0} fields | ${s.buttons?.length || 0} buttons`);
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════
+// EVENTS
+// ════════════════════════════════════════════════════════════════════
+
+sendBtn.addEventListener('click', handleSend);
+inputEl.addEventListener('keydown', originalKeydownHandler);
+
+// ════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════
+
+setActiveAI('gpt');
+
+// Global load handler — only for system prompt refresh + initial load crawl
+// cmdNavigate() handles its own crawl log, so we skip logging if navigating
+let _navigating = false;
+iframe.addEventListener('load', () => {
+  setTimeout(() => {
+    // Update system prompt with fresh iframe state
+    if (chatMessages.length > 0) chatMessages[0] = { role: 'system', content: buildSystemPrompt() };
+    // Only log crawl if NOT triggered by cmdNavigate (which logs its own)
+    if (!_navigating) {
+      const s = crawlIframe();
+      if (s && !s.crossOrigin) {
+        urlDisplay.textContent = s.url;
+        logSystem(`📡 Iframe crawled: "${s.title}" | ${s.inputs?.length || 0} fields | ${s.buttons?.length || 0} buttons`);
+      }
+    }
+    _navigating = false;
+  }, 650);
+});
+
+logSystem('✅ DANIEL.AI COMMAND CENTER v7.0 ONLINE');
+logSystem('💡 GPT + CLAUDE + COMP.USE — alle haben VOLLEN Iframe-Zugriff');
+logSystem('💡 Iframe wird bei jedem Load auto-gecrawlt → AI sieht Buttons, Inputs, Content');
+</script>
+</body>
+</html>

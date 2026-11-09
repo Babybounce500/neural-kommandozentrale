@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>André Kostolany — Der letzte große Spekulant</title>
+<style>
+  :root {
+    --bg: #090810;
+    --surface: #0e0c18;
+    --card: #14112a;
+    --border: #211d38;
+    --violet: #7c3aed;
+    --violet2: #a78bfa;
+    --violet3: #ddd6fe;
+    --rose: #e11d48;
+    --rose2: #fb7185;
+    --gold: #d97706;
+    --gold2: #fbbf24;
+    --green: #10b981;
+    --green2: #6ee7b7;
+    --blue: #60a5fa;
+    --text: #e2e8f0;
+    --muted: #2d2850;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .header {
+    background: linear-gradient(135deg, #06051a 0%, #120f28 40%, #06051a 100%);
+    border-bottom: 1px solid #211d38;
+    padding: 56px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 30%, rgba(217,119,6,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 90%, rgba(225,29,72,0.04) 0%, transparent 40%);
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 5px; text-transform: uppercase; color: var(--violet2); margin-bottom: 14px; opacity: 0.8; }
+  .header-name { font-size: clamp(36px, 7vw, 68px); font-weight: 900; letter-spacing: -2px; line-height: 0.95; margin-bottom: 10px; }
+  .header-name .first { color: #64748b; }
+  .header-name .last { color: var(--violet3); text-shadow: 0 0 60px rgba(124,58,237,0.3); }
+  .header-subtitle { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: var(--violet2); margin-bottom: 16px; }
+  .header-tagline { font-size: 15px; color: #475569; max-width: 720px; margin: 0 auto 20px; line-height: 1.7; }
+  .header-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge { padding: 5px 14px; border-radius: 20px; font-size: 11px; letter-spacing: 1px; font-weight: 600; }
+  .badge-violet { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); color: var(--violet3); }
+  .badge-gold { background: rgba(217,119,6,0.12); border: 1px solid rgba(217,119,6,0.3); color: var(--gold2); }
+  .badge-rose { background: rgba(225,29,72,0.1); border: 1px solid rgba(225,29,72,0.3); color: var(--rose2); }
+
+  .stats-bar { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+  .stat-item { background: var(--surface); padding: 20px; text-align: center; }
+  .stat-num { font-size: 26px; font-weight: 900; font-family: monospace; }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+  .s-violet .stat-num { color: var(--violet3); }
+  .s-gold .stat-num { color: var(--gold2); }
+  .s-rose .stat-num { color: var(--rose2); }
+  .s-green .stat-num { color: var(--green2); }
+
+  .content { max-width: 1060px; margin: 0 auto; padding: 56px 24px; }
+  .section-header { margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--violet2); margin-bottom: 4px; }
+  .section-title { font-size: 22px; font-weight: 800; color: var(--text); }
+  .section-gap { margin-top: 60px; }
+
+  .info-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px 26px; margin-bottom: 20px; }
+  .info-card-body { font-size: 13px; color: #8b949e; line-height: 1.75; }
+  .info-card-body strong { color: var(--text); }
+  .info-card-body em { color: var(--violet3); font-style: normal; }
+
+  .lw-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .lw-table th { background: rgba(124,58,237,0.08); color: var(--violet2); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 11px 14px; border: 1px solid var(--border); text-align: left; }
+  .lw-table td { padding: 11px 14px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .lw-table tr:nth-child(even) td { background: rgba(124,58,237,0.02); }
+  .lw-table td:first-child { color: var(--text); font-weight: 600; }
+  .val-green { color: var(--green2); font-weight: 700; }
+  .val-red { color: var(--rose2); font-weight: 700; }
+  .val-gold { color: var(--gold2); font-weight: 700; }
+  .val-violet { color: var(--violet3); font-weight: 700; }
+
+  /* GELD + GEDANKEN MATRIX */
+  .matrix-four { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 24px; }
+  .mx-cell { background: var(--card); padding: 22px; }
+  .mx-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .mx-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; }
+  .mx-body { font-size: 12px; color: #64748b; line-height: 1.6; }
+  .mx-body strong { color: var(--text); }
+  .mx-bull { border-left: 3px solid var(--green); }
+  .mx-bull .mx-label { color: var(--green2); }
+  .mx-bull .mx-title { color: var(--green); }
+  .mx-side1 { border-left: 3px solid var(--gold); }
+  .mx-side1 .mx-label { color: var(--gold2); }
+  .mx-side1 .mx-title { color: var(--gold); }
+  .mx-side2 { border-left: 3px solid var(--violet2); }
+  .mx-side2 .mx-label { color: var(--violet2); }
+  .mx-side2 .mx-title { color: var(--violet2); }
+  .mx-bear { border-left: 3px solid var(--rose); }
+  .mx-bear .mx-label { color: var(--rose2); }
+  .mx-bear .mx-title { color: var(--rose); }
+
+  /* PHASE CARDS */
+  .phase-timeline { display: flex; flex-direction: column; gap: 0; margin-bottom: 32px; }
+  .phase-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 20px 24px;
+    border-left: 4px solid;
+    margin-bottom: 2px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .phase-card:first-child { border-radius: 10px 10px 0 0; }
+  .phase-card:last-child { border-radius: 0 0 10px 10px; }
+  .p-accumulation { border-color: var(--green); }
+  .p-participation { border-color: var(--violet2); }
+  .p-exaggeration { border-color: var(--gold); }
+  .p-correction { border-color: var(--rose); }
+  .phase-num { font-size: 40px; font-weight: 900; font-family: monospace; opacity: 0.2; min-width: 50px; line-height: 1; }
+  .p-accumulation .phase-num { color: var(--green); }
+  .p-participation .phase-num { color: var(--violet2); }
+  .p-exaggeration .phase-num { color: var(--gold); }
+  .p-correction .phase-num { color: var(--rose); }
+  .phase-content { flex: 1; }
+  .phase-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .p-accumulation .phase-label { color: var(--green2); }
+  .p-participation .phase-label { color: var(--violet3); }
+  .p-exaggeration .phase-label { color: var(--gold2); }
+  .p-correction .phase-label { color: var(--rose2); }
+  .phase-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .phase-body { font-size: 12px; color: #64748b; line-height: 1.65; }
+  .phase-body strong { color: var(--text); }
+  .phase-action { margin-top: 10px; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; }
+  .p-accumulation .phase-action { background: rgba(16,185,129,0.1); color: var(--green2); }
+  .p-participation .phase-action { background: rgba(124,58,237,0.1); color: var(--violet3); }
+  .p-exaggeration .phase-action { background: rgba(217,119,6,0.1); color: var(--gold2); }
+  .p-correction .phase-action { background: rgba(225,29,72,0.1); color: var(--rose2); }
+
+  /* QUOTE */
+  .quote-block { background: linear-gradient(135deg, rgba(124,58,237,0.05) 0%, rgba(109,40,217,0.03) 100%); border: 1px solid rgba(124,58,237,0.15); border-left: 4px solid var(--violet); border-radius: 8px; padding: 20px 24px; margin-bottom: 16px; }
+  .quote-text { font-size: 15px; font-style: italic; color: var(--violet3); line-height: 1.7; margin-bottom: 8px; }
+  .quote-attr { font-size: 11px; color: #475569; letter-spacing: 1px; }
+
+  /* HARTGESOTTENE vs ZITTRIGE */
+  .hz-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .hz-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 22px; border-top: 3px solid; }
+  .hz-hart { border-top-color: var(--green); }
+  .hz-zitt { border-top-color: var(--rose); }
+  .hz-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .hz-hart .hz-label { color: var(--green2); }
+  .hz-zitt .hz-label { color: var(--rose2); }
+  .hz-title { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+  .hz-hart .hz-title { color: var(--green); }
+  .hz-zitt .hz-title { color: var(--rose); }
+  .hz-body { font-size: 12px; color: #64748b; line-height: 1.65; }
+  .hz-body strong { color: var(--text); }
+  .hz-body em { color: var(--violet3); font-style: italic; }
+
+  .highlight-box { background: rgba(124,58,237,0.05); border: 1px solid rgba(124,58,237,0.15); border-left: 4px solid var(--violet); border-radius: 8px; padding: 18px 22px; margin-bottom: 20px; }
+  .hl-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--violet2); margin-bottom: 8px; }
+  .hl-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .hl-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .hl-body strong { color: var(--text); }
+  .hl-body em { color: var(--violet3); font-style: normal; }
+
+  /* MANN UND HUND */
+  .dog-walk { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 24px; overflow: hidden; position: relative; }
+  .dog-walk-track { height: 12px; background: var(--border); border-radius: 6px; margin: 16px 0; position: relative; overflow: visible; }
+  .dog-walk-man { height: 12px; background: var(--violet); border-radius: 6px; width: 100%; position: absolute; top: 0; left: 0; }
+  .dog-walk-dog { position: absolute; top: -6px; font-size: 20px; animation: none; }
+  .dog-walk-dog-1 { left: 10%; }
+  .dog-walk-dog-2 { left: 40%; top: -20px; }
+  .dog-walk-dog-3 { left: 70%; top: 8px; }
+  .dog-walk-dog-4 { left: 90%; top: -10px; }
+
+  .magritte-quote { font-style: italic; font-size: 12px; color: rgba(124,58,237,0.3); padding-left: 14px; border-left: 2px solid rgba(124,58,237,0.2); margin-top: 14px; line-height: 1.6; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { font-size: 10px; padding: 3px 9px; border-radius: 10px; background: rgba(124,58,237,0.08); color: var(--violet2); border: 1px solid rgba(124,58,237,0.2); }
+  .tag-gold { background: rgba(217,119,6,0.08); color: var(--gold2); border-color: rgba(217,119,6,0.2); }
+  .tag-green { background: rgba(16,185,129,0.08); color: var(--green2); border-color: rgba(16,185,129,0.2); }
+  .tag-rose { background: rgba(225,29,72,0.08); color: var(--rose2); border-color: rgba(225,29,72,0.2); }
+
+  @media (max-width: 700px) {
+    .content { padding: 28px 14px; }
+    .hz-two, .matrix-four { grid-template-columns: 1fr; }
+    .header { padding: 40px 16px; }
+    .phase-card { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK — Trading Legends Series</div>
+  <div class="header-name">
+    <span class="first">ANDRÉ </span><span class="last">KOSTOLANY</span>
+  </div>
+  <div class="header-subtitle">Der letzte große Spekulant · Philosoph der Börse</div>
+  <p class="header-tagline">
+    Der Mann der zwei Weltkriege, Hyperinflation und Exil überlebte — und trotzdem ein Vermögen machte.
+    Ungarisch geboren, Pariser Herz, deutschsprachiger Geist. Über 50 Jahre lang Europas einflussreichste
+    Stimme zur Börse. Seine Weisheit ist unvergänglich weil sie aus echtem Leben kommt.
+  </p>
+  <div class="header-badges">
+    <span class="badge badge-violet">1906–1999 · Budapest–Paris</span>
+    <span class="badge badge-gold">11 Bücher · TV-Legende</span>
+    <span class="badge badge-rose">Hartgesottene vs. Zittrige · Geld + Gedanken</span>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item s-violet"><div class="stat-num">93</div><div class="stat-label">Jahre gelebt</div></div>
+  <div class="stat-item s-gold"><div class="stat-num">70+</div><div class="stat-label">Jahre an der Börse</div></div>
+  <div class="stat-item s-rose"><div class="stat-num">11</div><div class="stat-label">Bücher geschrieben</div></div>
+  <div class="stat-item s-violet"><div class="stat-num">1929</div><div class="stat-label">Überlebte den Crash</div></div>
+  <div class="stat-item s-gold"><div class="stat-num">1906</div><div class="stat-label">geboren in Budapest</div></div>
+  <div class="stat-item s-green"><div class="stat-num">1999</div><div class="stat-label">gestorben in Paris</div></div>
+</div>
+
+<div class="content">
+
+  <!-- BIOGRAPHIE -->
+  <div class="section-header">
+    <div class="section-label">Der Mensch</div>
+    <div class="section-title">André Kostolany — Ein europäisches Jahrhundertleben</div>
+  </div>
+
+  <div class="info-card" style="border-left:4px solid var(--violet);">
+    <div class="info-card-body">
+      <strong>1906 — Budapest:</strong> Geburt in eine wohlhabende jüdisch-ungarische Familie. Sein Vater war Textilfabrikant.
+      Kostolany wächst mehrsprachig auf: Ungarisch, Deutsch, Französisch, später Englisch.
+      <br><br>
+      <strong>1924 — Paris:</strong> Mit 18 Jahren zieht er nach Paris, wird Lehrling bei einem Börsenmakler.
+      Die Stadt und die Börse werden seine zweite Heimat. <em>„Paris hat mir die Eleganz des Denkens beigebracht. Die Börse hat mir den Rest beigebracht."</em>
+      <br><br>
+      <strong>1929 — Der Crash:</strong> Kostolany ist 23 Jahre alt. Er verliert bei der Panik, aber nicht alles — weil er gelernt hatte,
+      Gewinne mitzunehmen. <strong>Erste große Lektion: Gier ist der Hauptfeind des Spekulanten.</strong>
+      <br><br>
+      <strong>1930er–40er — Exil und Überleben:</strong> Als Jude in der Nazizeit musste Kostolany in Paris untertauchen.
+      Er floh in die USA. Kehrte nach dem Krieg nach Paris zurück — und baute sein Vermögen erneut auf.
+      Durch all diese Krisen lernte er: <em>„Nur wer Sachwerte hat, überlebt die Geschichte."</em>
+      <br><br>
+      <strong>1950er–1999 — Deutschsprachige Legende:</strong> Trotz seines Pariser Lebens schrieb er seine Bücher auf Deutsch.
+      Wurde zur populärsten Börsen-Stimme im deutschsprachigen Raum. Bis ins hohe Alter schrieb er Kolumnen,
+      trat im Fernsehen auf und hielt Vorträge. Sein letztes Buch erschien nach seinem Tod.
+    </div>
+  </div>
+
+  <!-- GELD UND GEDANKEN -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die Grundformel</div>
+    <div class="section-title">Geld + Gedanken = Börse — Kostolany's Universalformel</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Die einfachste und tiefste Börsenformel der Geschichte:</strong>
+      Kostolany reduzierte die gesamte Komplexität der Finanzmärkte auf zwei Variablen.
+      <em>Geld</em> (Liquidität, Zinsen, Kreditverfügbarkeit) und <em>Gedanken</em>
+      (Psychologie, Stimmung, Erwartungen, Fantasie).
+      Beide müssen positiv sein für einen nachhaltigen Bullenmarkt.
+    </div>
+    <div style="background:#060410;border:1px solid var(--border);border-radius:8px;padding:20px;margin:16px 0;text-align:center;font-family:monospace;">
+      <div style="font-size:clamp(16px,3vw,26px);font-weight:900;color:var(--violet3);">B = G × P</div>
+      <div style="font-size:12px;color:#475569;margin-top:8px;">Börse = Geld (Liquidität) × Psychologie (Gedanken / Stimmung)</div>
+    </div>
+  </div>
+
+  <div class="matrix-four">
+    <div class="mx-cell mx-bull">
+      <div class="mx-label">Optimal · Hausse</div>
+      <div class="mx-title">💰 + 😊<br>Viel Geld + Positiv</div>
+      <div class="mx-body"><strong>Der klassische Bullenmarkt.</strong> Niedrige Zinsen, reichlich Liquidität, optimistische Stimmung.
+      Geld sucht Rendite, Gedanken sehen Chancen. <em>Kaufen und halten.</em></div>
+    </div>
+    <div class="mx-cell mx-side1">
+      <div class="mx-label">Seitwärts mit Hoffnung</div>
+      <div class="mx-title">💸 + 😊<br>Wenig Geld + Positiv</div>
+      <div class="mx-body">Stimmung ist gut, aber Kapital ist knapp (hohe Zinsen, Kreditklemme). Kurse kämpfen sich mühsam höher. <em>Selektiv, geduldig.</em></div>
+    </div>
+    <div class="mx-cell mx-side2">
+      <div class="mx-label">Seitwärts mit Angst</div>
+      <div class="mx-title">💰 + 😟<br>Viel Geld + Negativ</div>
+      <div class="mx-body">Kapital vorhanden, aber Stimmung ist schlecht. Anleger sitzen auf Cash statt zu investieren.
+      Latente Kaufkraft. <em>Antizipieren, wann Gedanken drehen.</em></div>
+    </div>
+    <div class="mx-cell mx-bear">
+      <div class="mx-label">Baisse · Gefährlich</div>
+      <div class="mx-title">💸 + 😟<br>Wenig Geld + Negativ</div>
+      <div class="mx-body">Kreditkrise + Panik. Das klassische Crash-Szenario. <strong>1929, 2008.</strong>
+      Kapitalvernichtung und Pessimismus verstärken sich gegenseitig. <em>Cash ist König.</em></div>
+    </div>
+  </div>
+
+  <!-- HARTGESOTTENE vs ZITTRIGE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die zwei Anleger-Typen</div>
+    <div class="section-title">Der Hartgesottene und der Zittrige — Kostolany's mächtigste Unterscheidung</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      Kostolany teilte alle Börsenteilnehmer in zwei Gruppen. Die <em>Aktienbesitzer</em> und die <em>Aktienbesessenen</em>.
+      Der Börsenkurs wird bestimmt durch das Verhältnis zwischen diesen Gruppen — nicht durch fundamentale Daten.
+    </div>
+  </div>
+
+  <div class="hz-two">
+    <div class="hz-card hz-hart">
+      <div class="hz-label">Typ 1 · Die Starken</div>
+      <div class="hz-title">Der Hartgesottene</div>
+      <div class="hz-body">
+        <em>„Nerven wie ein Elefant. Geduld wie ein Elefant. Gedächtnis wie ein Elefant."</em>
+        <br><br>
+        <strong>Wer das ist:</strong> Langfristige Anleger mit einer fundierten Überzeugung.
+        Sie kaufen wenn alle verkaufen. Sie halten wenn alle zweifeln. Sie verkaufen wenn alle euphorisch sind.
+        <br><br>
+        <strong>Was sie tun:</strong> Qualitätsunternehmen mit „Phantasie" kaufen, Schlaftabletten nehmen,
+        10–20 Jahre warten, reich werden.
+        <br><br>
+        <strong>Was sie nicht tun:</strong> Täglich Kurse checken. Auf Nachrichten reagieren.
+        Panik-verkaufen. FOMO-kaufen.
+        <br><br>
+        Kostolany's Vorbild: wer 1950 Siemens oder BASF kaufte und bis 2000 hielt,
+        wurde <strong>reich — unabhängig aller Zwischenschwankungen</strong>.
+      </div>
+    </div>
+    <div class="hz-card hz-zitt">
+      <div class="hz-label">Typ 2 · Die Schwachen</div>
+      <div class="hz-title">Der Zittrige</div>
+      <div class="hz-body">
+        <em>„Er hat Aktien aber schläft nicht. Der Hartgesottene hat Aktien und schläft tief."</em>
+        <br><br>
+        <strong>Wer das ist:</strong> Spekulanten ohne eigene Überzeugung. Sie folgen der Masse,
+        reagieren auf jede Schlagzeile, und treffen Entscheidungen aus Angst.
+        <br><br>
+        <strong>Was sie tun:</strong> Kaufen wenn alle kaufen (Hochpunkte). Verkaufen wenn alle verkaufen (Tiefpunkte).
+        Verlieren systematisch.
+        <br><br>
+        <strong>Warum das wichtig ist:</strong> Die Börse transferiert permanent Kapital von den Zittrigen
+        zu den Hartgesottenen. Es ist kein Nullsummenspiel in Bezug auf Dummheit —
+        <strong>die Geduldigeren gewinnen immer</strong>.
+        <br><br>
+        Kostolany: <em>„Wenn alle Zittrigen raus sind — erst dann steigen die Kurse wirklich."</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIE DREI BÖRSENPHASEN -->
+  <div class="section-header section-gap">
+    <div class="section-label">Der Zyklus</div>
+    <div class="section-title">Kostolany's Börsenphasen — Wo stehst du gerade?</div>
+  </div>
+
+  <div class="phase-timeline">
+    <div class="phase-card p-accumulation">
+      <div class="phase-num">1</div>
+      <div class="phase-content">
+        <div class="phase-label">Akkumulation / Korrekturphase</div>
+        <div class="phase-title">Wenige kaufen — alle anderen fliehen noch</div>
+        <div class="phase-body">
+          <strong>Charakter:</strong> Stimmung am Boden. Nachrichten negativ. Zittrige verkaufen noch.
+          Handelsvolumen gering. Die meisten Anleger haben Angst oder sind schon ausgestoppt.
+          <br><br>
+          <strong>Wer hier agiert:</strong> Nur die Hartgesottenen und institutionelle Schnäppchenjäger.
+          Sie akkumulieren leise während alle anderen in Panik sind.
+          <br><br>
+          Kostolany: <em>„Kaufen wenn die Kanonen donnern — nicht wenn die Geigen spielen."</em>
+        </div>
+        <div class="phase-action">★ KAUFEN — Bestmöglicher Einstieg</div>
+      </div>
+    </div>
+    <div class="phase-card p-participation">
+      <div class="phase-num">2</div>
+      <div class="phase-content">
+        <div class="phase-label">Begleitphase / Partizipation</div>
+        <div class="phase-title">Stimmung dreht — gut informierte Anleger steigen ein</div>
+        <div class="phase-body">
+          <strong>Charakter:</strong> Kurse steigen moderat aber stetig. Erste positive Nachrichten.
+          Institutionelle erhöhen Positionen. Handelsvolumen steigt graduell.
+          Die breite Öffentlichkeit ist noch skeptisch.
+          <br><br>
+          <strong>Die beste Phase zum Halten:</strong> Position aus Phase 1 behalten.
+          Noch Raum für substanzielle Gewinne, aber bereits gesicherter Boden.
+        </div>
+        <div class="phase-action">✓ HALTEN — Gut positioniert, Trend intakt</div>
+      </div>
+    </div>
+    <div class="phase-card p-exaggeration">
+      <div class="phase-num">3</div>
+      <div class="phase-content">
+        <div class="phase-label">Übertreibungsphase / Exzess</div>
+        <div class="phase-title">ALLE kaufen — Taxifahrer geben Tipps · GEFAHR</div>
+        <div class="phase-body">
+          <strong>Charakter:</strong> Euphorie. Handelsvolumen explodiert. Alle sprechen über Aktien.
+          Taxifahrer, Friseure, Nachbarn geben Börsentipps. Bewertungen sind absurd.
+          Die Zittrigen haben jetzt alle gekauft (FOMO).
+          <br><br>
+          Kostolany's Warnsignal: <em>„Wenn der Taxifahrer mir sagt was ich kaufen soll — ist es Zeit zu verkaufen."</em>
+          <br><br>
+          <strong>Wer jetzt kauft verliert:</strong> Es gibt keine Hartgesottenen mehr die kaufen wollen.
+          Jeder ist investiert. Wer soll noch kaufen? — Niemand. Nur noch Verkäufer.
+        </div>
+        <div class="phase-action">⚠ VERKAUFEN — Top-Formation · Hartgesottene steigen aus</div>
+      </div>
+    </div>
+    <div class="phase-card p-correction">
+      <div class="phase-num">4</div>
+      <div class="phase-content">
+        <div class="phase-label">Rückschlagphase / Neue Akkumulation</div>
+        <div class="phase-title">Alle verkaufen — Blut in den Straßen — und der Zyklus beginnt neu</div>
+        <div class="phase-body">
+          <strong>Charakter:</strong> Panik. Zittrige verkaufen unter Panik. Kurse fallen schnell
+          (Angst fällt schneller als Gier steigt). Medien berichten von Katastrophen.
+          <br><br>
+          Kostolany: <em>„An der Börse sind 2×2 niemals 4, sondern 5 minus 1.
+          Man muss nur die Nerven haben, das Minus 1 auszuhalten."</em>
+          <br><br>
+          <strong>Das Minus 1 ist das Eintrittsgeld für das Plus 5.</strong> Wer das nicht erträgt, verliert.
+          Wer es erträgt, gewinnt — weil Phase 1 wieder beginnt.
+        </div>
+        <div class="phase-action">★ KAUFEN — Neuer Zyklus beginnt</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANN UND HUND -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die Parabel</div>
+    <div class="section-title">Der Mann und der Hund — Kostolany's bekannteste Analogie</div>
+  </div>
+
+  <div class="dog-walk">
+    <div class="info-card-body" style="margin-bottom:16px;">
+      <strong>Die Parabel:</strong> Stell dir einen Mann vor, der mit seinem Hund spazieren geht.
+      Der Mann geht einen langen, geraden Weg entlang. Er schreitet gleichmäßig vorwärts — er ist der <em>fundamentale Wert</em> des Unternehmens.
+      <br><br>
+      Der Hund läuft wild herum. Er läuft weit vor, dann wieder zurück, schnüffelt hier, springt da.
+      Er weicht vom Weg ab, macht Umwege, rennt manchmal doppelt so schnell, manchmal bleibt er stehen.
+      Der Hund ist der <em>Börsenkurs</em>.
+      <br><br>
+      <strong>Aber:</strong> Egal wie wild der Hund herumlärmt — er verlässt nie dauerhaft die Nähe seines Herrchens.
+      Am Ende des Spaziergangs kommen <em>beide am selben Punkt an</em>.
+    </div>
+    <div style="background:#060410;border:1px solid var(--border);border-radius:8px;padding:20px;margin:0;">
+      <div style="display:flex;align-items:center;gap:24px;font-size:13px;">
+        <div style="text-align:center;min-width:100px;">
+          <div style="font-size:32px;">🚶</div>
+          <div style="font-size:10px;color:var(--violet2);letter-spacing:1px;text-transform:uppercase;margin-top:4px;">Fundamentalwert</div>
+          <div style="font-size:11px;color:#64748b;">Gleichmäßig · Stetig · Langfristig</div>
+        </div>
+        <div style="flex:1;">
+          <div class="dog-walk-track">
+            <div class="dog-walk-man"></div>
+            <div class="dog-walk-dog dog-walk-dog-1">🐕</div>
+            <div class="dog-walk-dog dog-walk-dog-2">🐕</div>
+            <div class="dog-walk-dog dog-walk-dog-3">🐕</div>
+            <div class="dog-walk-dog dog-walk-dog-4">🐕</div>
+          </div>
+          <div style="font-size:10px;color:#334155;display:flex;justify-content:space-between;margin-top:4px;">
+            <span>Start</span><span>Zwischenstand (Kurs volatil)</span><span>Ziel</span>
+          </div>
+        </div>
+        <div style="text-align:center;min-width:100px;">
+          <div style="font-size:32px;">🐕</div>
+          <div style="font-size:10px;color:var(--rose2);letter-spacing:1px;text-transform:uppercase;margin-top:4px;">Börsenkurs</div>
+          <div style="font-size:11px;color:#64748b;">Wild · Emotional · Kurzfristig</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#475569;margin-top:16px;text-align:center;font-style:italic;">
+        „Am Ende des Spaziergangs kommen Mann und Hund am selben Ort an. Die kurzfristige Abweichung des Kurses vom Fundamentalwert ist Lärm — nicht Signal."
+      </div>
+    </div>
+  </div>
+
+  <!-- PHANTASIE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Der Kernfaktor</div>
+    <div class="section-title">„Phantasie" — Was wirklich Aktien antreibt</div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-body">
+      <strong>Kostolany's wichtigste Investmentthese:</strong>
+      Aktien werden nicht von aktuellen Gewinnen angetrieben — sondern von der <em>Vorstellungskraft</em>
+      über die zukünftigen Möglichkeiten eines Unternehmens. Er nannte das „Phantasie".
+      <br><br>
+      <strong>Beispiel:</strong> Apple in den frühen 2000ern. Gewinne minimal. Kurs explodierte trotzdem —
+      weil Millionen von Anlegern sich vorstellten was Apple werden könnte. Die Phantasie lief dem Fundamentalwert voraus.
+      <br><br>
+      <em>„Der beste Wert ist ein Unternehmen mit Phantasie."</em>
+      <br><br>
+      Aber: <strong>Phantasie ohne Substanz ist Spekulation. Phantasie mit einem soliden Fundament ist Investition.</strong>
+      Kostolany investierte in Unternehmen die beides hatten: eine echte Geschichte UND eine faszinierende Zukunftsvision.
+    </div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Phantasie vorhanden</th><th>Phantasie fehlend</th><th>Kosteolany's Urteil</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Neues Produkt das Marktstruktur verändert</td><td>Commodities ohne Differenzierung</td><td class="val-violet">Invest in Phantasie · Halten bis Realisierung</td></tr>
+      <tr><td>Turnaround-Story: Unternehmen kehrt zurück</td><td>Stagnation ohne Zukunftsperspektive</td><td class="val-gold">Turnarounds haben maximale Phantasie im Tief</td></tr>
+      <tr><td>Geopolitische Veränderung erschließt neuen Markt</td><td>Keine strategische Positionierung</td><td class="val-violet">Geopolitik als Phantasie-Katalysator erkennen</td></tr>
+      <tr><td>CEO mit visionärer Geschichte (Musk, Jobs)</td><td>Verwaltungsvorstand ohne Vision</td><td class="val-gold">Menschen-Phantasie: der Gründer-Effekt</td></tr>
+    </tbody>
+  </table>
+
+  <!-- BERÜHMTE ZITATE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Die Weisheiten</div>
+    <div class="section-title">Kostolany's unvergängliche Börsen-Aphorismen</div>
+  </div>
+
+  <div class="quote-block">
+    <div class="quote-text">„An der Börse ist alles möglich, auch das Gegenteil."</div>
+    <div class="quote-attr">— André Kostolany · Wichtigste Demut-Lektion</div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">„Kaufen Sie Aktien, nehmen Sie Schlaftabletten und schauen Sie die Papiere nicht mehr an. Nach vielen Jahren werden Sie sehen: Sie sind reich."</div>
+    <div class="quote-attr">— André Kostolany · Das Kernprinzip des langfristigen Anlegers</div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">„Wer die Aktien nicht hat, wenn sie fallen, hat sie auch nicht, wenn sie steigen."</div>
+    <div class="quote-attr">— André Kostolany · Über den Mut zu kaufen wenn es weh tut</div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">„An der Börse sind 2×2 niemals 4, sondern 5 minus 1. Man muss nur die Nerven haben, das Minus 1 auszuhalten."</div>
+    <div class="quote-attr">— André Kostolany · Das Durchhalte-Prinzip</div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">„Geld wird an der Börse nicht verdient, sondern die Ungeduld bestraft und die Geduld belohnt."</div>
+    <div class="quote-attr">— André Kostolany · Über Zeit als wichtigstes Anlagekapital</div>
+  </div>
+  <div class="quote-block">
+    <div class="quote-text">„Man braucht für das Geldverdienen an der Börse entweder sehr viel Geld oder sehr viel Zeit."</div>
+    <div class="quote-attr">— André Kostolany · Die zwei Wege zum Erfolg</div>
+  </div>
+
+  <!-- INFLATION UND SACHWERTE -->
+  <div class="section-header section-gap">
+    <div class="section-label">Lebenslektion</div>
+    <div class="section-title">Inflation und Sachwerte — Was zwei Weltkriege lehrten</div>
+  </div>
+
+  <div class="info-card" style="border-left:4px solid var(--gold);">
+    <div class="info-card-body">
+      <strong>Kostolany erlebte die Weimarer Hyperinflation, zwei Weltkriege, und mehrere Währungsreformen.</strong>
+      Was er lernte: Geld auf dem Konto verdampft. Sachwerte — Aktien, Gold, Immobilien — überleben.
+      <br><br>
+      <em>„Wer kein Eigentum hat, hat gar nichts."</em>
+      <br><br>
+      <strong>Die Kaufkraft von 1 Mark aus 1920 war 1923 gleich null.</strong>
+      1 Aktie der AEG aus 1920 war 1950 — trotz Krieg, Teilung und Neubeginn — immer noch eine Aktie der AEG.
+      Das Eigentumsrecht überlebt Währungsreformen. Geldguthaben nicht.
+      <br><br>
+      Für Kostolany war das keine Theorie — es war gelebte Geschichte.
+      <strong>Für DUDE BANK: dasselbe Argument für Crypto und DeFi-Assets als Inflation-Schutz.</strong>
+    </div>
+  </div>
+
+  <!-- BÜCHER -->
+  <div class="section-header section-gap">
+    <div class="section-label">Das Werk</div>
+    <div class="section-title">Kostolany's wichtigste Bücher</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Buch</th><th>Kernthema</th><th>Wichtigste Erkenntnis</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Die Kunst über Geld nachzudenken (2000)</td><td>Sein Vermächtnis, posthum veröffentlicht</td><td class="val-violet">Gesamtwerk-Destillat: Geld, Geduld, Psychologie. Das beste Einstiegsbuch.</td></tr>
+      <tr><td>Kostolanys Börsenpsychologie (1987)</td><td>Hartgesottene vs. Zittrige, Massenpsychologie</td><td class="val-gold">Tiefste Analyse der menschlichen Irrationalität an den Märkten.</td></tr>
+      <tr><td>Das ist die Börse (1961)</td><td>Erster Bestseller, Grundlagen</td><td class="val-violet">Wie die Börse wirklich funktioniert — für Einsteiger und Fortgeschrittene gleichzeitig.</td></tr>
+      <tr><td>Geldanlage für Lebenskünstler</td><td>Anlagepraxis mit Lebensweisheit</td><td class="val-gold">Verbindet Lebenskunst mit Geldanlage. Typisch Kostolany: nie trocken, immer unterhaltsam.</td></tr>
+      <tr><td>Der große Kostolany</td><td>Kompendium aller wichtigen Texte</td><td class="val-violet">Beste Einzelquelle wenn man nur ein Kostolany-Buch lesen will.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- DUDE BANK VERBINDUNG -->
+  <div class="section-header section-gap">
+    <div class="section-label">DUDE BANK × Kostolany</div>
+    <div class="section-title">Kostolany's Prinzipien in der DUDE BANK Genossenschaft</div>
+  </div>
+
+  <table class="lw-table">
+    <thead>
+      <tr><th>Kostolany Prinzip</th><th>DUDE BANK Anwendung</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Geld + Gedanken = Börse</td><td>Makro-Filter im KI-Trading-Agent: bevor jede Strategie aktiviert wird, wird Liquiditätslage (Geld) und Markt-Sentiment-Index (Gedanken) geprüft.</td></tr>
+      <tr><td>Hartgesottene vs. Zittrige</td><td>DUDE BANK Mitglieder = Hartgesottene per Konstruktion. Rulebook verhindert Panik-Verkäufe: keine Position wird in Panikphasen vollständig liquidiert ohne CRO-Veto.</td></tr>
+      <tr><td>Phase 3 Taxifahrer-Test</td><td>Sentiment-Indikator im KI: wenn Social Media Bullishness &gt;85% historischem Durchschnitt + OI explodiert → automatische Positions-Reduktion.</td></tr>
+      <tr><td>Mann und Hund — Rückkehr zum Fundamentalwert</td><td>Value-Anker im Portfolio: jede Position hat einen Fundamentalwert-Anker. Wenn Kurs 40%+ über Fundamentalwert → Gewinnmitnahme Pflicht.</td></tr>
+      <tr><td>Schlaftabletten-Prinzip (Nicht täglich schauen)</td><td>Monatliches Reporting statt täglichem Dashboard für Mitglieder. Wöchentlicher KI-Report reicht. Verhindert emotionale Kurzschluss-Entscheidungen.</td></tr>
+      <tr><td>Sachwerte gegen Inflation</td><td>DUDE BANK hält 20% des Portfolios in inflationsresistenten Assets: Gold, Bitcoin, Immobilien-Token — genau wie Kostolany es empfohlen hätte.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-card" style="border-top:3px solid var(--violet);">
+    <div class="info-card-body">
+      <strong>Das Kostolany Vermächtnis:</strong>
+      <br><br>
+      Kostolany war kein System-Trader wie Livermore oder ein Methodik-Wissenschaftler wie Van Tharp.
+      Er war ein <em>Philosoph des Marktes</em> — jemand der aus der Geschichte lernte, aus dem Leben lernte,
+      und seine Erkenntnisse mit europäischer Eleganz und Selbstironie teilte.
+      <br><br>
+      Sein wichtigstes Geschenk: Er entmystifizierte die Börse für Millionen von Kleinanlegern
+      im deutschsprachigen Raum. Er erklärte, dass Geduld keine passive Eigenschaft ist —
+      sondern die aktivste und profitabelste Anlage-Entscheidung die es gibt.
+      <br><br>
+      <em>„An der Börse ist alles möglich, auch das Gegenteil."</em>
+      Dieser Satz ist kein Nihilismus — er ist das Gegengift gegen Überheblichkeit.
+      Niemand hat immer recht. <strong>Wer das akzeptiert, verliert selten alles.</strong>
+    </div>
+    <div class="magritte-quote">„Ceci n'est pas une bourse — c'est le reflet de l'âme humaine collective."<br>
+    (Das ist keine Börse — es ist der Spiegel der kollektiven menschlichen Seele.)</div>
+    <div class="tags">
+      <span class="tag">Geld + Gedanken</span>
+      <span class="tag">Hartgesottene</span>
+      <span class="tag tag-gold">Phantasie</span>
+      <span class="tag tag-green">Mann und Hund</span>
+      <span class="tag tag-rose">Budapest · Paris · 1906–1999</span>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center;padding:32px;color:#2d2850;font-size:12px;border-top:1px solid #211d38;">
+  DUDE BANK — André Kostolany · Der letzte große Spekulant · Geld + Gedanken · Hartgesottene · Phantasie · 1906–1999 · 2026
+</div>
+</body>
+</html>

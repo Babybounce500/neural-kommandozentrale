@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DUDE BANK — Historische Finanzevolution</title>
+<style>
+  :root {
+    --bg: #070a0d;
+    --surface: #0d1117;
+    --card: #131922;
+    --border: #21262d;
+    --gold: #c9a84c;
+    --gold2: #f5d47a;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #d29922;
+    --teal: #26c6da;
+    --text: #c9d1d9;
+    --muted: #484f58;
+    --accent: #388bfd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  .header {
+    background: linear-gradient(180deg, #0a1628 0%, #070a0d 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px;
+    text-align: center;
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--blue); margin-bottom: 12px; }
+  .header h1 { font-size: clamp(28px, 5vw, 48px); font-weight: 900; color: var(--text); letter-spacing: -1px; }
+  .header h1 span { color: var(--gold); }
+  .header-sub { margin-top: 12px; font-size: 14px; color: #555; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+  /* TIMELINE */
+  .timeline-container { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+  .timeline-era {
+    position: relative;
+    margin-bottom: 64px;
+  }
+  .era-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .era-badge {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--gold);
+    white-space: nowrap;
+    min-width: 120px;
+    text-align: center;
+  }
+  .era-title-wrap {}
+  .era-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .era-geo { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+  .era-line {
+    width: 2px;
+    background: var(--border);
+    position: absolute;
+    left: 59px;
+    top: 56px;
+    bottom: -32px;
+    z-index: 0;
+  }
+
+  /* EVENT CARDS */
+  .events { padding-left: 80px; display: flex; flex-direction: column; gap: 16px; }
+  .event-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .event-card:hover { border-color: var(--gold); }
+  .event-card::before {
+    content: '';
+    position: absolute;
+    left: -28px;
+    top: 22px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--bg);
+    z-index: 1;
+  }
+  .event-year {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    font-family: monospace;
+    margin-bottom: 6px;
+  }
+  .event-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .event-body { font-size: 13px; color: #8b949e; line-height: 1.7; }
+  .event-body strong { color: var(--text); }
+  .event-connect {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(201,168,76,0.06);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 6px 6px 0;
+    font-size: 12px;
+    color: #888;
+    line-height: 1.6;
+  }
+  .event-connect .conn-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+
+  .magritte-quote {
+    margin-top: 12px;
+    font-style: italic;
+    font-size: 12px;
+    color: #c9a84c88;
+    padding-left: 12px;
+    border-left: 2px solid rgba(201,168,76,0.2);
+  }
+
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .tag {
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 10px;
+    background: rgba(88,166,255,0.1);
+    color: var(--blue);
+    border: 1px solid rgba(88,166,255,0.2);
+    letter-spacing: 0.5px;
+  }
+  .tag-gold { background: rgba(201,168,76,0.1); color: var(--gold); border-color: rgba(201,168,76,0.3); }
+  .tag-green { background: rgba(63,185,80,0.1); color: var(--green); border-color: rgba(63,185,80,0.3); }
+  .tag-red { background: rgba(248,81,73,0.1); color: var(--red); border-color: rgba(248,81,73,0.3); }
+  .tag-purple { background: rgba(188,140,255,0.1); color: var(--purple); border-color: rgba(188,140,255,0.3); }
+
+  /* COMPARISON TABLE */
+  .compare-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 48px 32px; }
+  .compare-title { text-align: center; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 32px; }
+  .compare-table { width: 100%; border-collapse: collapse; max-width: 900px; margin: 0 auto; }
+  .compare-table th { background: var(--card); color: var(--gold); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 12px 16px; border: 1px solid var(--border); }
+  .compare-table td { padding: 12px 16px; border: 1px solid var(--border); font-size: 13px; color: #8b949e; vertical-align: top; line-height: 1.6; }
+  .compare-table tr:hover td { background: rgba(201,168,76,0.03); }
+  .compare-table td:first-child { color: var(--text); font-weight: 600; white-space: nowrap; }
+  .compare-table td strong { color: var(--teal); }
+
+  /* DNA SECTION */
+  .dna-section { padding: 48px 32px; max-width: 900px; margin: 0 auto; }
+  .dna-title { font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: var(--blue); margin-bottom: 24px; text-align: center; }
+  .dna-chain {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    justify-content: center;
+  }
+  .dna-node {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .dna-node-year { font-size: 11px; color: var(--muted); font-family: monospace; margin-bottom: 4px; }
+  .dna-node-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .dna-node-key { font-size: 10px; color: var(--gold); margin-top: 4px; }
+  .dna-arrow {
+    font-size: 20px;
+    color: var(--muted);
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 600px) {
+    .timeline-container { padding: 24px 12px; }
+    .events { padding-left: 48px; }
+    .era-badge { min-width: 80px; font-size: 16px; }
+    .dna-chain { flex-direction: column; }
+    .dna-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">DUDE BANK eG — Historische Dokumentation</div>
+  <h1>Die Evolution des <span>Geldes</span></h1>
+  <p class="header-sub">
+    Von der Schule von Salamanca (1250) bis zur Dude Bank (2026) — eine vollständige Chronik der Finanzinnovation,
+    extrahiert aus der DUDE-BANK-CONVO.txt. Jede Epoche als Baustein des heutigen DeFi-Systems.
+  </p>
+</div>
+
+<div class="timeline-container">
+
+  <!-- ═══ SALAMANCA ═══ -->
+  <div class="timeline-era">
+    <div class="era-line"></div>
+    <div class="era-header">
+      <div class="era-badge">1250–<br>1350</div>
+      <div class="era-title-wrap">
+        <div class="era-title">Schule von Salamanca</div>
+        <div class="era-geo">Spanien · Dominikaner-Mönche · Universität Salamanca</div>
+      </div>
+    </div>
+    <div class="events">
+
+      <div class="event-card">
+        <div class="event-year">CA. 1250 — FRANCISCO DE VITORIA</div>
+        <div class="event-title">Die erste Inflationstheorie der Welt</div>
+        <div class="event-body">
+          Vitoria beobachtete, dass die Preise in Spanien explodierten, obwohl kein Mangel an Gütern herrschte —
+          nur weil aus Südamerika massenhaft <strong>Gold und Silber</strong> nach Spanien floss (Konquistadoren).
+          Er formulierte als Erster: <strong>Mehr Geld im Umlauf bei gleichbleibenden Gütern → Preisanstieg.</strong>
+          Das ist die Quantitätstheorie des Geldes, 300 Jahre vor Milton Friedman.
+        </div>
+        <div class="event-connect">
+          <div class="conn-label">Dude Bank Relevanz</div>
+          Erklärt warum Geldmengenwachstum (DeFi Liquidity Mining, CBDC-Drucken) Inflation erzeugt.
+          Basis für die Dude Bank's Real-Asset-Backing Strategie.
+        </div>
+        <div class="tags">
+          <span class="tag tag-gold">Quantitätstheorie</span>
+          <span class="tag tag-gold">Inflation</span>
+          <span class="tag">Geldmenge</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">CA. 1300 — TOMÁS DE MERCADO</div>
+        <div class="event-title">Lucrum Cessans — Das Recht auf Opportunity Cost</div>
+        <div class="event-body">
+          De Mercado durchbrach das absolute Zinsverbot mit dem Konzept des <strong>Lucrum Cessans</strong>
+          (entgangener Gewinn): Ein Kaufmann, der Geld verleiht, verzichtet auf seinen eigenen Handelsgewinn.
+          Diese <strong>Opportunitätskosten</strong> rechtfertigen eine Kompensation — auch ohne kirchliches Wucherverbot
+          zu verletzen. Das ist der erste legale Zinsbegriff der Neuzeit.
+        </div>
+        <div class="event-connect">
+          <div class="conn-label">Dude Bank Relevanz</div>
+          Lucrum Cessans ist die DNA von DeFi Yield Farming. Ein Dude, der Kapital in den Liquidity Pool einschießt,
+          verliert seine Handlungsfreiheit → Yield ist sein gerechter Lucrum-Cessans-Anspruch.
+        </div>
+        <div class="tags">
+          <span class="tag tag-gold">Lucrum Cessans</span>
+          <span class="tag tag-green">DeFi Yield</span>
+          <span class="tag">Zinsrecht</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">CA. 1350 — LUIS DE MOLINA</div>
+        <div class="event-title">Periculum — Risiko als Preiskomponente</div>
+        <div class="event-body">
+          Molina ergänzte: Nicht nur entgangener Gewinn, sondern auch das <strong>Periculum</strong> (Risiko des
+          Kapitalverlusts) rechtfertigt einen Zinszuschlag. Das ist die erste formale Risikoprämien-Theorie.
+          Ohne Risikobewertung gibt es keinen fairen Preis — das ist bis heute die Grundlage jedes Zinssatzes.
+        </div>
+        <div class="magritte-quote">
+          „Ceci n'est pas de l'usure. C'est la juste mesure du sacrifice."
+          (Dies ist kein Wucher — das ist das gerechte Maß des Opfers.)
+        </div>
+        <div class="tags">
+          <span class="tag tag-gold">Periculum</span>
+          <span class="tag tag-gold">Risikoprämie</span>
+          <span class="tag">Modern Credit Risk</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ KIRCHE ZINSVERBOT ═══ -->
+  <div class="timeline-era">
+    <div class="era-line"></div>
+    <div class="era-header">
+      <div class="era-badge">1139–<br>1311</div>
+      <div class="era-title-wrap">
+        <div class="era-title">Kirchliche Zinsverbote</div>
+        <div class="era-geo">Rom · Lateran · Vienne · Konzilsbeschlüsse</div>
+      </div>
+    </div>
+    <div class="events">
+
+      <div class="event-card">
+        <div class="event-year">1139 — ZWEITES LATERANKONZIL</div>
+        <div class="event-title">Absolutes Zinsverbot für Christen</div>
+        <div class="event-body">
+          Das 2. Laterankonzil (Papst Innozenz II.) erklärte Zinsen für Christen zur <strong>Todsünde</strong>.
+          Jeder, der Zinsen nahm (Usura), sollte exkommuniziert werden und durfte nicht kirchlich begraben werden.
+          Dies zwang alle christlichen Länder zu einem schwarzen Finanzmarkt — der von Juden, Lombarden
+          und später den Templern bedient wurde.
+        </div>
+        <div class="tags">
+          <span class="tag tag-red">Exkommunikation</span>
+          <span class="tag">Usura</span>
+          <span class="tag">Lateran II</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">1311 — KONZIL VON VIENNE</div>
+        <div class="event-title">Auflösung der Templer / Häresie-Verdammnis</div>
+        <div class="event-body">
+          Papst Clemens V. und König Philipp IV. von Frankreich (Schuldner der Templer!) lösten den
+          Templerorden auf. Offizieller Vorwand: Häresie und Sodomie. Realer Grund: Frankreich war
+          massiv verschuldet. Der Konzilsbeschluss von Vienne definierte zudem: Wer öffentlich behauptet,
+          Zins sei <strong>nicht sündhaft</strong>, ist selbst als Häretiker zu verfolgen.
+          Das Zinsverbot wurde damit zur Staatsdoktrin.
+        </div>
+        <div class="event-connect">
+          <div class="conn-label">Moderne Parallele (Kreditkarte)</div>
+          Das mittelalterliche Trick, Schaden als „id quod interest" (Schadensersatz) umzulabeln statt „Usura" —
+          ist exakt dasselbe wie der 0%-Zinsfrist-Trick moderner Kreditkarten, der das Ende der Frist
+          als künstliche Schadensfrist konstruiert.
+        </div>
+        <div class="magritte-quote">„Ceci n'est pas une carte de crédit. C'est une machine à remonter le temps."</div>
+        <div class="tags">
+          <span class="tag tag-red">Templer Auflösung</span>
+          <span class="tag tag-red">Freitag 13.</span>
+          <span class="tag">Häresie</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ TEMPLER ═══ -->
+  <div class="timeline-era">
+    <div class="era-line"></div>
+    <div class="era-header">
+      <div class="era-badge">1100–<br>1307</div>
+      <div class="era-title-wrap">
+        <div class="era-title">Templer Banking</div>
+        <div class="era-geo">Heiliges Land · Paris · London · Globales Netzwerk</div>
+      </div>
+    </div>
+    <div class="events">
+
+      <div class="event-card">
+        <div class="event-year">1100–1300 — CHIFFRE-BRIEFE</div>
+        <div class="event-title">Erste Travel Checks der Welt / Buchgeld</div>
+        <div class="event-body">
+          Ein Pilger gab in Paris dem Templer-Kommandeur sein Gold. Er erhielt stattdessen einen
+          <strong>Chiffre-Brief</strong> — kein Geld, sondern eine verschlüsselte Zahlungsanweisung.
+          In Jerusalem konnte er diesen Brief einlösen und erhielt sein Gold zurück (minus Provision).
+          Das ist das Prinzip des <strong>Buchgeld-Transfers</strong> ohne physischen Goldtransport —
+          der Vorläufer von SWIFT, Überweisung und Bitcoin-Lightning-Network.
+        </div>
+        <div class="event-connect">
+          <div class="conn-label">3-Faktor Authentifikation</div>
+          Der Templer-Brief nutzte: (1) Chiffre-Code = Was du hast / (2) Passphrase = Was du weißt /
+          (3) Biologisches Erkennungsmerkmal = Wer du bist. Das ist exakt das 2FA/3FA-System moderner Apps.
+        </div>
+        <div class="magritte-quote">„Ceci n'est pas un morceau de papier. C'est une clé cryptographique."</div>
+        <div class="tags">
+          <span class="tag tag-gold">Travel Checks</span>
+          <span class="tag tag-green">Buchgeld</span>
+          <span class="tag">3-Faktor Auth</span>
+          <span class="tag">Multi-Sig Vorläufer</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">1307 — FREITAG, 13. OKTOBER</div>
+        <div class="event-title">Kollaps des ersten globalen Bankennetzwerks</div>
+        <div class="event-body">
+          Philipp IV. von Frankreich ließ gleichzeitig alle Templer Frankreichs verhaften.
+          Er schuldete ihnen massive Summen. Das globale Templer-Bankennetzwerk kollabierte in einer Nacht.
+          <strong>Lesson:</strong> Zentralisierung schafft Single Point of Failure. Ein König mit
+          Machtbefugnis kann das gesamte Netz in einer Nacht kappen. Das ist der Grund für Dezentralisierung.
+        </div>
+        <div class="tags">
+          <span class="tag tag-red">Systemkollaps</span>
+          <span class="tag tag-red">Zentralisierungsrisiko</span>
+          <span class="tag">Single Point of Failure</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ FUGGER ═══ -->
+  <div class="timeline-era">
+    <div class="era-line"></div>
+    <div class="era-header">
+      <div class="era-badge">1515</div>
+      <div class="era-title-wrap">
+        <div class="era-title">Contractus Trinus (Fugger/Eck)</div>
+        <div class="era-geo">Augsburg · Jakob Fugger · Johannes Eck</div>
+      </div>
+    </div>
+    <div class="events">
+
+      <div class="event-card">
+        <div class="event-year">1515 — DAS DREI-VERTRAGS-MODELL</div>
+        <div class="event-title">Legalisierung von 5% Zinsen durch drei Verträge</div>
+        <div class="event-body">
+          Johannes Eck und Jakob Fugger konstruierten den <strong>Contractus Trinus</strong> (Drei-Vertrags-Konstrukt),
+          um Zinsen kirchenrechtlich zu legalisieren:
+          <br><br>
+          <strong>Vertrag 1 (Gesellschaftsvertrag):</strong> Du investierst Kapital in ein Handelsunternehmen
+          und nimmst an Gewinnen und Verlusten teil. (Erlaubt — klassische Beteiligung.)
+          <br><br>
+          <strong>Vertrag 2 (Versicherungsvertrag):</strong> Du kaufst gegen Gebühr eine Versicherung gegen
+          deinen Kapitalverlust. (Erlaubt — Risikoabsicherung.)
+          <br><br>
+          <strong>Vertrag 3 (Gewinnverkauf):</strong> Du verkaufst deinen variablen Gewinnanteil gegen einen
+          fixierten Pauschalbetrag (5%). (Erlaubt — Gewinnverkauf.)
+          <br><br>
+          Zusammen ergeben drei legal erlaubte Verträge → <strong>5% garantierter Festzins</strong>.
+          Das Zinsverbot war umgangen. Das Vatikankonzil billigte es nach heftigem Streit.
+        </div>
+        <div class="event-connect">
+          <div class="conn-label">Moderne Entsprechungen (DNA bis heute)</div>
+          • Hybridanleihen = Eigenkapital + Fremdkapital in einem Instrument (Contractus Trinus Prinzip)<br>
+          • Genussscheine = Beteiligung + Fixverzinsung + Rangrücktritt<br>
+          • Aktienzertifikate = Derivat auf Aktie + Kapitalschutzkomponente + Coupon<br>
+          • Kreditkarte = 0%-Periode (Vertrag 1) + künstliche Fristdefinition (Vertrag 2) + Strafzins (Vertrag 3)
+        </div>
+        <div class="magritte-quote">„Ceci n'est pas un acte de piété. C'est le bilan d'un empire."</div>
+        <div class="tags">
+          <span class="tag tag-gold">Contractus Trinus</span>
+          <span class="tag tag-gold">5% Zins</span>
+          <span class="tag">Hybridanleihe DNA</span>
+          <span class="tag">Genussschein</span>
+          <span class="tag">Fugger</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ KERBHOLZ ═══ -->
+  <div class="timeline-era">
+    <div class="era-line"></div>
+    <div class="era-header">
+      <div class="era-badge">1100–<br>1834</div>
+      <div class="era-title-wrap">
+        <div class="era-title">Kerbholz / Tally Sticks</div>
+        <div class="era-geo">England · Schatzamt Westminster · Court of Exchequer</div>
+      </div>
+    </div>
+    <div class="events">
+
+      <div class="event-card">
+        <div class="event-year">1100–1500 — DAS BRITISCHE SCHATZAMT</div>
+        <div class="event-title">Erstes dezentrales P2P-Ledger-System der Welt</div>
+        <div class="event-body">
+          Das Kerbholz-System funktionierte durch <strong>Spiegelstruktur</strong>: Schuldenbetrag wurde als
+          Kerben in ein Haselnussholz geschnitzt, dann genau in der Mitte gespalten. Gläubiger erhielt
+          den <strong>Stock</strong> (Stammstück), Schuldner das <strong>Foil</strong> (Gegenstück).
+          Die einzigartige Splitterkante = unmöglich zu fälschen. Eisengallustinte auf dem Holz =
+          chemisch unlöschbar (WORM-Speicher). Über <strong>700 Jahre</strong> war dies die staatliche Finanzinfrastruktur Englands.
+          <br><br>
+          <strong>Etymologie:</strong> „Stockholder" = jemand, der einen Stock (Kerbholz-Stammstück) hält.
+          Der Begriff für Aktionäre kommt buchstäblich von mittelalterlichem Schulden-Holz.
+        </div>
+        <div class="event-connect">
+          <div class="conn-label">Blockchain Parallelen (1:1)</div>
+          • Splitterkante = kryptografische Hash-Signatur (unmöglich zu fälschen)<br>
+          • Stock (beim Gläubiger) = Private Key / Wallet<br>
+          • Foil (beim Schuldner) = Public Key / Smart Contract Record<br>
+          • Eisengallustinte = WORM (Write Once Read Many) Blockchain<br>
+          • Court of Exchequer = Chainlink Oracle / Schiedsrichter<br>
+          • Pipe Rolls = Off-Chain Datenbank / Backup Node<br>
+          • UTXO (Bitcoin) = Kerbholz Teilzahlungssystem (altes Holz entwerten, neues schnitzen)<br>
+          • Dividend Tally (Zinskupon) = Anleihe-Coupon (etymologisch: abschneiden)
+        </div>
+        <div class="magritte-quote">„Ceci n'est pas un morceau de bois. C'est un registre distribué indéfectible."</div>
+        <div class="tags">
+          <span class="tag tag-gold">Stockholder Etymologie</span>
+          <span class="tag tag-green">UTXO Vorläufer</span>
+          <span class="tag">Dezentral</span>
+          <span class="tag">P2P Ledger</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">1834 — DER BRAND IM PARLAMENT</div>
+        <div class="event-title">Parliament fire: 700 Jahre Holz-Archiv verbrennt</div>
+        <div class="event-body">
+          Das britische Schatzamt beschloss 1834, die jahrhundertealten Kerbholz-Archive zu vernichten
+          (das System war seit 1826 offiziell abgeschafft). Man verfeuerte sie in den Öfen unter dem
+          Parlamentsgebäude. Die Öfen überhitzten. Das Parlament brannte nieder. <strong>Walter Bagehot</strong>
+          kommentierte trocken: „Ein Land, das seine staatliche Finanzgeschichte aus dem 12. Jahrhundert
+          mit einem Heizungsfeuer vernichtet und dabei sein Parlament abbrennt, hat tiefgreifende
+          Probleme mit seiner institutionellen Kontinuität."
+        </div>
+        <div class="tags">
+          <span class="tag tag-red">Westminster Brand</span>
+          <span class="tag">1834</span>
+          <span class="tag">Datenverlust</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ VOC / AMSTERDAM ═══ -->
+  <div class="timeline-era">
+    <div class="era-line"></div>
+    <div class="era-header">
+      <div class="era-badge">1602–<br>1720</div>
+      <div class="era-title-wrap">
+        <div class="era-title">VOC / Amsterdam Börse / Tulpenmanie</div>
+        <div class="era-geo">Amsterdam · Niederlande · Erste Aktien-Ära</div>
+      </div>
+    </div>
+    <div class="events">
+
+      <div class="event-card">
+        <div class="event-year">1602 — VOC GRÜNDUNG</div>
+        <div class="event-title">Erste Aktiengesellschaft & erste Börse der Welt</div>
+        <div class="event-body">
+          Die <strong>Vereenigde Oost-Indische Compagnie (VOC)</strong> war die erste Gesellschaft, die
+          ihre Finanzierungsstruktur durch <strong>öffentlich handelbare Anteile</strong> (Aktien) aufbaute.
+          Die Amsterdamer Börse (1611) war der erste regulierte Handelsplatz. Sofort entstanden
+          Derivative: Optionen auf VOC-Aktien, Forwards, Leerverkäufe — all dies ohne jede Regulierung.
+          <br><br>
+          <strong>Thales als Urvater:</strong> Der griechische Philosoph Thales (624–546 v.Chr.) kaufte
+          im Winter günstig alle Olivenpressen-Nutzungsrechte für den Frühling vor (schlechte Ernte erwartet,
+          niedrige Prämie). Als tatsächlich eine Rekordernte eintrat, hatte er das Monopol auf alle Pressen.
+          Das ist der erste dokumentierte Optionshandel der Geschichte.
+        </div>
+        <div class="tags">
+          <span class="tag tag-gold">Erste Aktie</span>
+          <span class="tag tag-gold">VOC 1602</span>
+          <span class="tag">Thales Options</span>
+          <span class="tag">Amsterdam Börse</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">1636–1637 — TULPENMANIE</div>
+        <div class="event-title">Erste Spekulationsblase / First DeFi Crash</div>
+        <div class="event-body">
+          Auf dem Höhepunkt der Tulpenmanie (1636) kostete eine einzige <strong>Semper Augustus</strong>-Zwiebel
+          so viel wie ein Amsterdamer Kanal-Haus. Das Handeln erfolgte ausschließlich über Terminkontrakte
+          (Futures auf noch nicht existierende Tulpenzwiebeln). Im Februar 1637 kollabierte der Markt
+          innerhalb von Tagen — weil es keine zugrundeliegenden Assets mehr gab, nur noch
+          Papierversprechen auf Papierversprechen. Erste <strong>Leverage-Blase</strong> ohne Underlying.
+        </div>
+        <div class="event-connect">
+          <div class="conn-label">Dude Bank Lehre</div>
+          Tulpenmanie = 100% Derivat ohne Real-Asset-Backing. Dude Bank Regel: Alle Dude-Token sind
+          durch reale Genossenschaftsanteile (Geschäftsguthaben) gedeckt. Kein Token-Pump ohne Substanz.
+        </div>
+        <div class="tags">
+          <span class="tag tag-red">Spekulationsblase</span>
+          <span class="tag tag-red">No Underlying</span>
+          <span class="tag">Leverage Crash</span>
+          <span class="tag">Tulpenmanie</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ DOJIMA / JAPAN ═══ -->
+  <div class="timeline-era">
+    <div class="era-line"></div>
+    <div class="era-header">
+      <div class="era-badge">1697–<br>1803</div>
+      <div class="era-title-wrap">
+        <div class="era-title">Dojima Reisbörse / Homma Munehisa</div>
+        <div class="era-geo">Osaka, Japan · Edo-Zeit · Tokugawa-Shogunat</div>
+      </div>
+    </div>
+    <div class="events">
+
+      <div class="event-card">
+        <div class="event-year">1697 — DOJIMA REISBÖRSE OSAKA</div>
+        <div class="event-title">Erstes reguliertes Clearinghouse der Welt</div>
+        <div class="event-body">
+          Japan verwendete <strong>Reis als Währung</strong> (Koku-System). Die Daimyo-Fürsten schickten
+          Reis nach Osaka und erhielten <strong>Beika Kitte (Reisgutscheine)</strong> — Futures-Kontrakte
+          auf zukünftige Reislieferungen. Diese Scheine wurden gehandelt. Auf dem Höhepunkt:
+          <strong>4,5 Millionen Säcke</strong> gehandelt — bei nur 1,8 Millionen Säcken realem Reis.
+          Das System war zu 250% derivativ und gehebeltes Financial Engineering.
+          <br><br>
+          Das Clearinghouse rechnete täglich Netto-Differenzen ab ohne physische Lieferung.
+          Das ist exakt das Prinzip moderner <strong>Cash Settlement Futures</strong>.
+        </div>
+        <div class="tags">
+          <span class="tag tag-gold">Futures Vorläufer</span>
+          <span class="tag tag-gold">Clearinghouse</span>
+          <span class="tag">Reis-Derivate</span>
+          <span class="tag">Cash Settlement</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">1724–1803 — HOMMA MUNEHISA</div>
+        <div class="event-title">Erfinder der Candlestick-Charts / Erster Quant-Trader</div>
+        <div class="event-body">
+          Homma Munehisa erkannte als <strong>Erster auf diesem Planeten</strong>, dass Märkte zu 90%
+          von Psychologie bestimmt werden. Er entwickelte:
+          <br><br>
+          <strong>OHLC-Candlesticks:</strong> Open (Eröffnung = Erwartung), High (Gier), Low (Angst),
+          Close (Vernunft). Die Kerzenform macht die emotionale Verfassung der Masse sichtbar.
+          <br><br>
+          <strong>Flaggen-Spiegelnetz (First HFT):</strong> 600km Netz von Männern auf Berggipfeln,
+          die Reispreise und Wetterdaten per Flaggen- und Spiegelsignalen in Echtzeit nach Osaka übermittelten.
+          Informationsvorsprung = Handelsvorsprung. Das ist das Prinzip des modernen Co-Location HFT.
+          <br><br>
+          Homma soll umgerechnet <strong>Milliarden</strong> verdient und wurde Finanzberater des Shoguns.
+        </div>
+        <div class="event-connect">
+          <div class="conn-label">Dude Bank KI-Parallele</div>
+          Hommas Flaggennetz → Dude Bank KI liest On-Chain Candlesticks in Millisekunden aus,
+          erkennt charttechnische Erschöpfungssignale, schützt Dudes vor dem Dump bevor Wall Street reagiert.
+        </div>
+        <div class="magritte-quote">„Ceci n'est pas un graphique. C'est le champ de bataille de l'âme humaine."</div>
+        <div class="tags">
+          <span class="tag tag-gold">Candlestick Inventor</span>
+          <span class="tag tag-gold">Homma Munehisa</span>
+          <span class="tag">OHLC Psychologie</span>
+          <span class="tag">First HFT</span>
+          <span class="tag">Massenpsychologie</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ BITCOIN / DEFI ═══ -->
+  <div class="timeline-era">
+    <div class="era-line"></div>
+    <div class="era-header">
+      <div class="era-badge">2009–<br>2026</div>
+      <div class="era-title-wrap">
+        <div class="era-title">Bitcoin → DeFi → Dude Bank</div>
+        <div class="era-geo">Global · Dezentral · Open Source</div>
+      </div>
+    </div>
+    <div class="events">
+
+      <div class="event-card">
+        <div class="event-year">2009 — BITCOIN GENESIS BLOCK</div>
+        <div class="event-title">Kerbholz als Code: UTXO-Modell</div>
+        <div class="event-body">
+          Bitcoin's <strong>UTXO-Modell</strong> (Unspent Transaction Output) ist das Kerbholz-System
+          in digitaler Form. Wie beim mittelalterlichen Tally Stick wird kein Kontostand überschrieben —
+          stattdessen werden alte UTXOs „verbrannt" und neue erzeugt. Der Private Key = der Stock (Stammstück).
+          Das Netzwerk = die verteilten Foils auf tausenden Nodes.
+        </div>
+        <div class="tags">
+          <span class="tag tag-gold">UTXO = Kerbholz</span>
+          <span class="tag tag-green">Bitcoin</span>
+          <span class="tag">Dezentral</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">2015–2020 — ETHEREUM / DEFI</div>
+        <div class="event-title">Smart Contracts = Contractus Trinus automatisiert</div>
+        <div class="event-body">
+          Ethereum brachte den Contractus Trinus als Code: Mehrstufige Vertragsstrukturen automatisch
+          ausgeführt durch <strong>Smart Contracts</strong>. AMM (Automated Market Maker) =
+          Liquiditätspools wie der Dojima-Clearinghouse-Mechanismus, nur algorithmisch.
+          ERC-4337 (Account Abstraction) = Social Recovery = das Kerbholz-Problem des verlorenen Stocks
+          digital gelöst durch Guardian-Dudes.
+        </div>
+        <div class="tags">
+          <span class="tag tag-gold">Smart Contract</span>
+          <span class="tag tag-green">AMM</span>
+          <span class="tag">ERC-4337</span>
+          <span class="tag">Social Recovery</span>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-year">2026 — DUDE BANK eG</div>
+        <div class="event-title">Genossenschaft + DeFi = Evolution abgeschlossen</div>
+        <div class="event-body">
+          Die Dude Bank eG synthetisiert <strong>700 Jahre Finanzgeschichte</strong>:
+          Raiffeisen (eG-Struktur) + Templer (kryptografische Sicherheit) + Kerbholz (unveränderliches Ledger) +
+          Dojima (Liquidity Pools) + Contractus Trinus (Hybridinstrumente) + Candlestick-KI (Marktpsychologie-Analyse)
+          = ein Genossenschafts-DeFi-System, das dem Volk gehört.
+        </div>
+        <div class="tags">
+          <span class="tag tag-gold">Dude Bank eG</span>
+          <span class="tag tag-green">1M Dudes</span>
+          <span class="tag">Synthese</span>
+          <span class="tag">Open Source</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /timeline-container -->
+
+<!-- COMPARISON TABLE -->
+<div class="compare-section">
+  <div class="compare-title">EUROPA vs. ASIEN — FINANZINNOVATION IM VERGLEICH</div>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Epoche</th>
+        <th>Europa</th>
+        <th>Japan / Asien</th>
+        <th>Dude Bank Analogie</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1100–1300</td>
+        <td>Templer: Chiffre-Briefe, physische Goldtransporte, Buchgeld</td>
+        <td>Früher Reishandel: Lagerhäuser, hölzerne Preistafeln in Kyoto</td>
+        <td><strong>Verschlüsselte Wallet-Transfers</strong></td>
+      </tr>
+      <tr>
+        <td>1300–1500</td>
+        <td>Kerbholz-Vollbetrieb: Court of Exchequer, Pipe Rolls</td>
+        <td>Standardisierung: Erste Reishandels-Kodizes</td>
+        <td><strong>Immutable On-Chain Ledger</strong></td>
+      </tr>
+      <tr>
+        <td>1600–1700</td>
+        <td>Amsterdam: Erste Aktien (VOC), unregulierter Optionshandel, Tulpenkrise</td>
+        <td>Dojima Osaka: Erstes reguliertes Clearinghouse der Welt</td>
+        <td><strong>AMM Liquidity Pool (mit Regeln)</strong></td>
+      </tr>
+      <tr>
+        <td>1700–1800</td>
+        <td>Preisfindung per Bauchgefühl und lautem Schreien (Open Outcry)</td>
+        <td>Homma: Candlesticks, Marktpsychologie-Bücher (Sakata-Regeln)</td>
+        <td><strong>KI-Candlestick-Analyse in Echtzeit</strong></td>
+      </tr>
+      <tr>
+        <td>1800–1900</td>
+        <td>Raiffeisen eG: Genossenschaftsbanken für Arme, 1 Mitglied = 1 Stimme</td>
+        <td>Meiji-Modernisierung: westliche Börsenstrukturen übernommen</td>
+        <td><strong>Genossenschaftliche Governance</strong></td>
+      </tr>
+      <tr>
+        <td>1900–2000</td>
+        <td>Black-Scholes (1973): Optionspreisformel, moderner Derivatemarkt</td>
+        <td>Nikkei: Größte Börsenblase 1989, Platzen 1990</td>
+        <td><strong>Algorithmisches Risk-Management</strong></td>
+      </tr>
+      <tr>
+        <td>2000–2026</td>
+        <td>Bitcoin, Ethereum, DeFi: Kerbholz-Prinzip als Code</td>
+        <td>SBI Holdings, Ripple Japan: Institutional DeFi</td>
+        <td><strong>Dude Bank eG: Alles vereint</strong></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- DNA CHAIN -->
+<div class="dna-section">
+  <div class="dna-title">DIE DNA-KETTE DER DUDE BANK — HISTORISCHE ABSTAMMUNG</div>
+  <div class="dna-chain">
+    <div class="dna-node">
+      <div class="dna-node-year">250 v.Chr.</div>
+      <div class="dna-node-name">Thales</div>
+      <div class="dna-node-key">Erste Option</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node">
+      <div class="dna-node-year">1100</div>
+      <div class="dna-node-name">Templer</div>
+      <div class="dna-node-key">Kryptografie</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node">
+      <div class="dna-node-year">1200</div>
+      <div class="dna-node-name">Salamanca</div>
+      <div class="dna-node-key">Zinstheorie</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node">
+      <div class="dna-node-year">1300</div>
+      <div class="dna-node-name">Kerbholz</div>
+      <div class="dna-node-key">P2P Ledger</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node">
+      <div class="dna-node-year">1515</div>
+      <div class="dna-node-name">Fugger</div>
+      <div class="dna-node-key">Hybrid Bond</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node">
+      <div class="dna-node-year">1602</div>
+      <div class="dna-node-name">VOC</div>
+      <div class="dna-node-key">Erste Aktie</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node">
+      <div class="dna-node-year">1697</div>
+      <div class="dna-node-name">Dojima</div>
+      <div class="dna-node-key">Clearinghouse</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node">
+      <div class="dna-node-year">1864</div>
+      <div class="dna-node-name">Raiffeisen</div>
+      <div class="dna-node-key">eG Modell</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node">
+      <div class="dna-node-year">2009</div>
+      <div class="dna-node-name">Bitcoin</div>
+      <div class="dna-node-key">UTXO Chain</div>
+    </div>
+    <div class="dna-arrow">→</div>
+    <div class="dna-node" style="border-color:var(--gold); background:rgba(201,168,76,0.08);">
+      <div class="dna-node-year">2026</div>
+      <div class="dna-node-name" style="color:var(--gold);">Dude Bank</div>
+      <div class="dna-node-key">Synthese</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:32px;color:#333;font-size:12px;border-top:1px solid #1a1a1a;">
+  DUDE BANK eG — Historische Finanzevolution · Quelle: DUDE-BANK-CONVO.txt · 2026
+</div>
+
+</body>
+</html>
