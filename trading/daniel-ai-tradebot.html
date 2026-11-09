@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>DANIEL.AI Tradebot</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../../shared/css/neural.css" />
+<style>
+  :root { --chat-gap: var(--space-2); }
+  * { box-sizing: border-box; }
+
+  /* Fullscreen chat shell */
+  .chat-shell { display: flex; flex-direction: column; height: 100dvh; max-height: 100dvh; overflow: hidden; }
+
+  /* Compact header */
+  .chat-topbar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+  .chat-topbar .brand { font-family: var(--font-display); font-size: var(--text-sm); white-space: nowrap; display: flex; align-items: center; gap: var(--space-1); }
+  .chat-topbar .brand .mark { color: var(--accent); }
+  .chat-topbar .brand .acc { color: var(--accent-strong); }
+  .chat-search-wrap { position: relative; flex: 1; min-width: 0; }
+  .chat-search-wrap input { width: 100%; padding: var(--space-1) var(--space-2); font-size: var(--text-sm); border-radius: var(--radius-sm); }
+  /* Symbol search results overlay */
+  .chat-sr { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 100; max-height: 280px; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); }
+  .chat-sr-item { display: flex; justify-content: space-between; gap: var(--space-2); padding: var(--space-1) var(--space-2); cursor: pointer; width: 100%; background: none; border: none; color: inherit; font: inherit; text-align: left; }
+  .chat-sr-item:hover { background: var(--surface-hover); }
+  .chat-sr-name { color: var(--text-muted); font-size: var(--text-xs); }
+
+  /* Top chips row (scrollable, compact) */
+  .chips-row { display: flex; gap: var(--space-1); padding: var(--space-1) var(--space-3); overflow-x: auto; flex-shrink: 0; border-bottom: 1px solid var(--border); scrollbar-width: thin; }
+  .chips-row::-webkit-scrollbar { height: 4px; }
+  .chips-row::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-full); }
+  .chip { flex-shrink: 0; padding: 2px 10px; border-radius: var(--radius-full); font-size: var(--text-xs); background: var(--surface-2); border: 1px solid var(--border); cursor: pointer; color: var(--text); transition: all 0.15s; white-space: nowrap; }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active { background: var(--accent); color: var(--accent-contrast); border-color: transparent; }
+
+  /* Active symbol mini-card */
+  .active-bar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--surface-1); min-height: 36px; }
+  .active-bar .sym { font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700; }
+  .active-bar .price { font-family: var(--font-mono); font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+  .active-bar .price.up { color: var(--success); }
+  .active-bar .price.down { color: var(--danger); }
+
+  /* Chat messages area */
+  .chat-msgs { flex: 1; overflow-y: auto; padding: var(--space-2) var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); scroll-behavior: smooth; }
+  .chat-msgs:empty::after { content: 'Wähle ein Symbol oder stelle eine Frage.'; display: block; text-align: center; color: var(--text-faint); font-size: var(--text-sm); padding: var(--space-8) var(--space-3); }
+
+  /* Message bubbles */
+  .msg { max-width: 88%; animation: fadeIn 0.2s ease; }
+  .msg.user { align-self: flex-end; }
+  .msg.bot { align-self: flex-start; }
+  .msg .bubble { padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-sm); line-height: 1.5; word-wrap: break-word; }
+  .msg.user .bubble { background: var(--accent); color: var(--accent-contrast); border-bottom-right-radius: 4px; }
+  .msg.bot .bubble { background: var(--surface-2); border: 1px solid var(--border); border-bottom-left-radius: 4px; line-height: 1.6; white-space: pre-wrap; }
+  .msg.bot .bubble.md-rendered { white-space: normal; }
+  .msg.bot .bubble h2, .msg.bot .bubble h3 { font-size: var(--text-base); margin: var(--space-1) 0; }
+  .msg.bot .bubble h2 { font-weight: 700; }
+  .msg.bot .bubble h3 { font-weight: 600; }
+  .msg.bot .bubble p { margin: var(--space-1) 0; }
+  .msg.bot .avatar { font-size: var(--text-xs); font-weight: 700; color: var(--accent-strong); margin-bottom: 2px; display: flex; align-items: center; gap: var(--space-1); }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+  /* Chart embedded in chat bubble */
+  .msg.bot:has(.msg-chart) { max-width: 100%; width: 100%; }
+  .msg-chart { width: 100%; margin: 0; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); height: min(45vh, 340px); }
+  .msg-chart iframe, .msg-chart .tv-container { width: 100%; height: 100%; border: none; }
+
+  /* Quick action chips (inside chat area, at bottom) */
+  .quick-actions { display: flex; gap: var(--space-1); flex-wrap: wrap; padding: var(--space-1) 0; }
+  .quick-actions .qa-chip { padding: 3px 12px; border-radius: var(--radius-full); font-size: var(--text-xs); border: 1px solid var(--border); cursor: pointer; background: var(--surface-2); transition: all 0.15s; white-space: nowrap; }
+  .quick-actions .qa-chip:hover { border-color: var(--accent); background: var(--surface-hover); }
+
+  /* RAG context indicator */
+  .rag-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: var(--text-faint); padding: 1px 6px; border-radius: var(--radius-full); background: var(--surface-1); white-space: nowrap; }
+
+  /* Input bar */
+  .chat-inputbar { display: flex; align-items: flex-end; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+  .chat-inputbar textarea { flex: 1; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-1) var(--space-2); font-size: var(--text-sm); font-family: inherit; resize: none; max-height: 80px; background: var(--surface-1); color: var(--text); outline: none; }
+  .chat-inputbar textarea:focus { border-color: var(--accent); }
+  .chat-inputbar .btn-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--accent); color: var(--accent-contrast); border: none; cursor: pointer; flex-shrink: 0; font-size: var(--text-sm); transition: opacity 0.15s; }
+  .chat-inputbar .btn-icon:disabled { opacity: 0.4; cursor: default; }
+  .chat-inputbar .btn-icon:hover:not(:disabled) { opacity: 0.85; }
+  .chat-inputbar .btn-upload { background: none; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: var(--radius-sm); font-size: var(--text-sm); flex-shrink: 0; transition: all 0.15s; }
+  .chat-inputbar .btn-upload:hover { border-color: var(--accent); color: var(--text); }
+
+  /* Image preview above input */
+  .img-preview { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); flex-shrink: 0; border-top: 1px solid var(--border); background: var(--surface-1); }
+  .img-preview img { max-height: 80px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+  .img-preview .clear-img { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: var(--text-sm); padding: 2px 6px; }
+
+  /* Watchlist compact */
+  .watchlist-bar { display: flex; gap: var(--space-1); padding: var(--space-1) var(--space-3); flex-shrink: 0; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: thin; }
+  .watchlist-bar::-webkit-scrollbar { height: 3px; }
+  .wl-chip { flex-shrink: 0; font-size: var(--text-xs); padding: 1px 8px; border-radius: var(--radius-full); border: 1px solid var(--border); cursor: pointer; background: none; color: var(--text-muted); white-space: nowrap; }
+  .wl-chip:hover { border-color: var(--accent); color: var(--text); }
+  .wl-chip .remove { background: none; border: none; color: inherit; cursor: pointer; padding: 0 0 0 4px; opacity: 0.5; font-size: 10px; }
+  .wl-chip .remove:hover { opacity: 1; color: var(--danger); }
+
+  /* Commands popover */
+  .cmd-popover { position: absolute; bottom: calc(100% + var(--space-2)); right: 0; z-index: 90; width: min(85vw, 320px); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); padding: var(--space-2) var(--space-3); display: none; }
+  .cmd-popover.show { display: block; }
+  .cmd-popover code { font-family: var(--font-mono); color: var(--accent-strong); font-size: var(--text-xs); }
+  .cmd-popover li { padding: 2px 0; font-size: var(--text-xs); }
+
+  .wl-chip { flex-shrink: 0; font-size: var(--text-xs); padding: 1px 8px; border-radius: var(--radius-full); border: 1px solid var(--border); cursor: pointer; background: none; color: var(--text-muted); white-space: nowrap; }
+  .wl-chip:hover { border-color: var(--accent); color: var(--text); }
+  .wl-chip .remove { background: none; border: none; color: inherit; cursor: pointer; padding: 0 0 0 4px; opacity: 0.5; font-size: 10px; }
+  .wl-chip .remove:hover { opacity: 1; color: var(--danger); }
+  @media (max-width: 640px) {
+    .msg { max-width: 95%; }
+    .chat-msgs { padding: var(--space-1) var(--space-2); }
+    .chat-inputbar { padding: var(--space-1) var(--space-2); }
+    .chips-row { padding: var(--space-1) var(--space-2); }
+    .active-bar { padding: var(--space-1) var(--space-2); min-height: 30px; }
+  }
+</style>
+</head>
+<body class="theme-gold">
+<canvas id="neuralAmbientCanvas" class="n-ambient-canvas"></canvas>
+
+<div class="chat-shell">
+  <!-- Top bar: brand + search + theme toggle + commands -->
+  <div class="chat-topbar">
+    <a href="../../index.html" class="brand" style="text-decoration:none;color:inherit;">
+      <span class="mark">◆</span> DANIEL<span class="acc">.AI</span>
+    </a>
+    <div class="chat-search-wrap">
+      <input type="text" id="symbolSearch" placeholder="🔍 Symbol suchen..." autocomplete="off" />
+      <div class="chat-sr" id="searchResults" style="display:none;"></div>
+    </div>
+    <button class="n-btn n-btn-sm n-btn-secondary" id="cmdBtn" style="font-size:var(--text-xs);padding:2px 8px;position:relative;" aria-label="Befehle">?</button>
+    <div class="cmd-popover" id="cmdPopover">
+      <div style="font-weight:600;font-size:var(--text-sm);margin-bottom:var(--space-1);">Befehle</div>
+      <ul style="list-style:none;padding:0;margin:0;">
+        <li><code>!AAPL.US</code> Momentum</li>
+        <li><code>#AAPL.US</code> Volumen</li>
+        <li><code>n AAPL.US</code> News</li>
+        <li><code>s AAPL.US</code> SMA(20/50)</li>
+        <li><code>g</code> Wettquoten</li>
+        <li><code>c</code> Hilfe</li>
+      </ul>
+      <p style="font-size:var(--text-xs);color:var(--text-muted);margin:var(--space-1) 0 0;">Sonst → Gemini-Chat mit RAG + Chart-Upload</p>
+    </div>
+    <button class="n-btn n-btn-sm n-btn-secondary" id="themeToggle" style="font-size:var(--text-xs);padding:2px 8px;" aria-label="Theme">🌙</button>
+  </div>
+
+  <!-- Quick chips row -->
+  <div class="chips-row" id="chipsRow"></div>
+
+  <!-- Active symbol bar (hidden when no symbol) -->
+  <div class="active-bar" id="activeBar" style="display:none;">
+    <span class="sym" id="activeSymName">—</span>
+    <span class="price" id="activeSymPrice">—</span>
+    <span class="rag-badge" id="ragBadge" style="display:none;">📊 RAG aktiv</span>
+  </div>
+
+  <!-- Watchlist bar (hidden when empty) -->
+  <div class="watchlist-bar" id="watchlistBar" style="display:none;"></div>
+
+  <!-- Chat messages -->
+  <div class="chat-msgs" id="chatMsgs"></div>
+
+  <!-- Image preview (hidden) -->
+  <div class="img-preview" id="imgPreview" style="display:none;">
+    <img id="imgThumb" alt="Vorschau">
+    <button class="clear-img" id="clearImgBtn">✕</button>
+  </div>
+
+  <!-- Input bar -->
+  <div class="chat-inputbar">
+    <button class="btn-upload" id="uploadBtn" title="Chart-Bild hochladen">🖼️</button>
+    <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" style="display:none">
+    <textarea id="chatInput" rows="1" placeholder="!NVDA.US, #AAPL.US, n TSLA.US ... oder Frage"></textarea>
+    <button class="btn-icon" id="sendBtn">➤</button>
+  </div>
+</div>
+
+<div class="n-toast-region" id="toastRegion"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
+<script src="../../shared/js/api-client.js"></script>
+<script>
+// ==================== State ====================
+let activeSymbol = null;
+let activeLabel = null;
+let pendingImage = null;
+let chatHistory = []; // Gemini history [{role, parts}]
+let isSending = false;
+let tvWidget = null;
+
+const POPULAR = [
+  {s:'AAPL.US',l:'Apple'},{s:'MSFT.US',l:'Microsoft'},{s:'NVDA.US',l:'NVIDIA'},
+  {s:'TSLA.US',l:'Tesla'},{s:'AMZN.US',l:'Amazon'},{s:'GOOGL.US',l:'Alphabet'},
+  {s:'META.US',l:'Meta'},{s:'SPY.US',l:'S&P 500'},{s:'QQQ.US',l:'Nasdaq-100'},
+  {s:'BTC-USD.CC',l:'Bitcoin'},{s:'ETH-USD.CC',l:'Ethereum'},{s:'EURUSD.FOREX',l:'EUR/USD'}
+];
+
+// ==================== DOM refs ====================
+const $ = id => document.getElementById(id);
+const chatMsgs = $('chatMsgs'), chatInput = $('chatInput'), sendBtn = $('sendBtn');
+const chipsRow = $('chipsRow'), symbolSearch = $('symbolSearch'), searchResults = $('searchResults');
+const activeBar = $('activeBar'), activeSymName = $('activeSymName'), activeSymPrice = $('activeSymPrice');
+const ragBadge = $('ragBadge'), watchlistBar = $('watchlistBar'), imgPreview = $('imgPreview');
+const imgThumb = $('imgThumb'), clearImgBtn = $('clearImgBtn'), uploadBtn = $('uploadBtn');
+const fileInput = $('fileInput'), cmdBtn = $('cmdBtn'), cmdPopover = $('cmdPopover');
+const themeToggle = $('themeToggle'), toastRegion = $('toastRegion');
+
+// ==================== Utility ====================
+function esc(s) { return (s||'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg, type) {
+  const el = document.createElement('div'); el.className = 'n-toast';
+  if (type==='danger') el.style.borderColor='var(--danger)';
+  el.textContent = msg; toastRegion.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+function convertTS(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString('de-DE')+' '+d.toLocaleTimeString('de-DE');
+}
+
+// ==================== Theme toggle ====================
+function getTheme() {
+  const a = document.documentElement.getAttribute('data-theme');
+  if (a==='dark'||a==='light') return a;
+  return window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+}
+themeToggle.addEventListener('click', () => {
+  const next = getTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+});
+
+// ==================== Commands ====================
+cmdBtn.addEventListener('click', (e) => { e.stopPropagation(); cmdPopover.classList.toggle('show'); });
+document.addEventListener('click', (e) => { if (!e.target.closest('#cmdBtn')&&!e.target.closest('#cmdPopover')) cmdPopover.classList.remove('show'); });
+
+// ==================== Chips ====================
+function renderChips() {
+  chipsRow.innerHTML = POPULAR.map(p =>
+    `<button class="chip" data-sym="${p.s}" data-label="${p.l}">${p.l}</button>`
+  ).join('');
+  chipsRow.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => setSymbol(btn.dataset.sym, btn.dataset.label));
+  });
+}
+renderChips();
+
+function syncChips() {
+  chipsRow.querySelectorAll('.chip').forEach(b => b.classList.toggle('active', b.dataset.sym === activeSymbol));
+}
+
+// ==================== Symbol Search ====================
+let searchTimer = null;
+symbolSearch.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const q = symbolSearch.value.trim();
+  if (q.length < 2) { searchResults.style.display = 'none'; return; }
+  searchTimer = setTimeout(() => runSearch(q), 300);
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.chat-search-wrap')) searchResults.style.display = 'none';
+});
+
+async function runSearch(q) {
+  searchResults.innerHTML = '<div style="padding:var(--space-2);color:var(--text-muted);font-size:var(--text-xs);">Suche...</div>';
+  searchResults.style.display = 'block';
+  try {
+    const res = await API.eod.search(q);
+    if (!Array.isArray(res)||!res.length) {
+      searchResults.innerHTML = '<div style="padding:var(--space-2);color:var(--text-muted);font-size:var(--text-xs);">Keine Treffer.</div>';
+      return;
+    }
+    searchResults.innerHTML = res.slice(0,10).map(r => {
+      const code = r.Code && r.Exchange ? `${r.Code}.${r.Exchange}` : (r.Code||'');
+      if (!code) return '';
+      return `<button class="chat-sr-item" data-sym="${esc(code)}" data-label="${esc(r.Name||r.name||code)}">
+        <span>${esc(code)}</span><span class="chat-sr-name">${esc(r.Name||r.name||'')}</span>
+      </button>`;
+    }).filter(Boolean).join('');
+    searchResults.querySelectorAll('.chat-sr-item').forEach(b => {
+      b.addEventListener('click', () => { setSymbol(b.dataset.sym, b.dataset.label); searchResults.style.display='none'; symbolSearch.value=''; });
+    });
+  } catch(e) {
+    searchResults.innerHTML = `<div style="padding:var(--space-2);color:var(--danger);font-size:var(--text-xs);">Fehler: ${esc(e.message)}</div>`;
+  }
+}
+
+// ==================== TradingView Chart ====================
+function tvSym(s) {
+  if (s.endsWith('.US')) return s.slice(0,-3);
+  if (s.endsWith('.CC')) return s.slice(0,-3).replace('-','')+'USDT';
+  if (s.endsWith('.FOREX')) return s.slice(0,-6).replace('/','');
+  return s.split('.')[0];
+}
+function injectChart(symbol, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (typeof TradingView === 'undefined') {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-faint);font-size:var(--text-sm);">TradingView nicht verfügbar</div>';
+    return;
+  }
+  // Altes Widget sauber entfernen
+  if (tvWidget) { try { tvWidget.remove(); } catch(e){} tvWidget = null; }
+  // Force synchronen Layout-Reflow, damit autosize nicht 0 misst (v.a. Mobile)
+  container.offsetHeight;
+  tvWidget = new TradingView.widget({
+    autosize: true,
+    symbol: tvSym(symbol),
+    interval: 'D',
+    timezone: 'Etc/UTC',
+    theme: getTheme(),
+    style: '1',
+    locale: 'de_DE',
+    hide_side_toolbar: false,
+    container_id: containerId
+  });
+}
+
+// Watch for theme changes to re-render chart
+new MutationObserver(() => {
+  if (activeSymbol) {
+    const chartBubble = document.querySelector('.msg-chart');
+    if (chartBubble) {
+      const id = chartBubble.id;
+      chartBubble.innerHTML = '';
+      setTimeout(() => injectChart(activeSymbol, id), 50);
+    }
+  }
+}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// ==================== Watchlist ====================
+const WL_KEY = 'fintechWatchlist_v2';
+function getWL() { try { return JSON.parse(localStorage.getItem(WL_KEY)||'[]'); } catch(e) { return []; } }
+function setWL(l) { localStorage.setItem(WL_KEY, JSON.stringify(l)); renderWL(); }
+function addWL(sym, label) {
+  let l = getWL().filter(w => w.s !== sym);
+  l.unshift({s: sym, l: label}); setWL(l.slice(0,10));
+}
+function rmWL(sym) { setWL(getWL().filter(w => w.s !== sym)); }
+function renderWL() {
+  const l = getWL();
+  if (!l.length) { watchlistBar.style.display = 'none'; return; }
+  watchlistBar.style.display = 'flex';
+  watchlistBar.innerHTML = l.map(w =>
+    `<span class="wl-chip"><span class="wl-link" data-sym="${esc(w.s)}" data-label="${esc(w.l||w.s)}">${esc(w.l||w.s)}</span><button class="remove" data-sym="${esc(w.s)}">×</button></span>`
+  ).join('');
+  watchlistBar.querySelectorAll('.wl-link').forEach(el => el.addEventListener('click', () => setSymbol(el.dataset.sym, el.dataset.label)));
+  watchlistBar.querySelectorAll('.remove').forEach(el => el.addEventListener('click', (e) => { e.stopPropagation(); rmWL(el.dataset.sym); }));
+}
+
+// ==================== Set Active Symbol ====================
+async function setSymbol(sym, label) {
+  activeSymbol = sym; activeLabel = label || sym;
+  activeSymName.textContent = activeLabel;
+  activeBar.style.display = 'flex';
+  syncChips();
+  addWL(sym, activeLabel);
+
+  // Fetch realtime price
+  try {
+    const d = await API.eod.realtime(sym);
+    const price = Number(d.close), prev = Number(d.previousClose??d.close);
+    const chg = price - prev, pct = prev ? ((chg/prev)*100).toFixed(2) : '—';
+    const up = chg >= 0;
+    activeSymPrice.textContent = `${price.toFixed(2)} ${up?'▲':'▼'} ${Math.abs(chg).toFixed(2)}%`;
+    activeSymPrice.className = 'price ' + (up ? 'up' : 'down');
+  } catch(e) {
+    activeSymPrice.textContent = '—';
+  }
+
+  // Show chart as chat bubble
+  addChartBubble(sym);
+
+  // Reset Gemini context when switching symbols
+  if (chatHistory.length > 2) chatHistory = chatHistory.slice(-2);
+}
+
+// ==================== Chart Bubble ====================
+function addChartBubble(sym) {
+  const id = 'tv_' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML = `<div class="avatar">📊 ${esc(activeLabel||sym)}</div>
+    <div class="bubble" style="padding:var(--space-1);">
+      <div class="msg-chart"><div class="tv-container" id="${id}" style="width:100%;height:100%;"></div></div>
+    </div>`;
+  chatMsgs.appendChild(div);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  // Init TV widget after DOM insertion
+  setTimeout(() => injectChart(sym, id), 100);
+}
+
+// ==================== Analysis Functions (commands) ====================
+async function momentumAnalysis(sym) {
+  const d = await API.eod.realtime(sym);
+  const high=d.high, low=d.low, price=d.close, avg=(high+low)/2, range=high-low;
+  const trend = price>avg?'LONG':price<avg?'SHORT':'Neutral';
+  const stop = trend==='LONG'?(price*0.99).toFixed(2):(price*1.01).toFixed(2);
+  return `## 📈 Momentum — ${sym}
+**Preis:** ${price}
+**Trend:** ${trend}
+**Trailing Stop:** ${stop}
+**Range:** ${range.toFixed(2)}
+**Long Breakout:** ${(price+0.5*range).toFixed(2)}
+**Short Breakout:** ${(price-0.5*range).toFixed(2)}
+*${convertTS(d.timestamp)}*`;
+}
+
+async function volumeAnalysis(sym) {
+  const d = await API.eod.historical(sym, {period:'d'});
+  const [a,b] = d.slice(-2);
+  return `## 📊 Volumen — ${sym}
+**Tag 1:** ${a.date} — Vol: ${a.volume}
+**Tag 2:** ${b.date} — Vol: ${b.volume}
+**Signal:** ${b.volume>a.volume ? '✅ GO' : '⛔ NO'}`;
+}
+
+async function newsAnalysis(sym) {
+  const items = await API.eod.news({s:sym, limit:2});
+  if (!items.length) return `Keine News für ${sym}.`;
+  return `## 📰 News — ${sym}\n` + items.map((n,i) => `${i+1}. **${n.title}** (${n.date||'?'})\n${(n.content||'').slice(0,200)}...`).join('\n\n');
+}
+
+async function smaAnalysis(sym) {
+  const closes = (await API.eod.historical(sym,{period:'d'})).map(r=>Number(r.close)).filter(n=>!isNaN(n));
+  const price = closes[closes.length-1];
+  const sma20 = closes.length>=20 ? closes.slice(-20).reduce((a,b)=>a+b,0)/20 : null;
+  const sma50 = closes.length>=50 ? closes.slice(-50).reduce((a,b)=>a+b,0)/50 : null;
+  const trend = sma20!==null&&sma50!==null ? (sma20>sma50?'🟢 Bullish':'🔴 Bearish') : '—';
+  return `## ∿ SMA-Analyse — ${sym}
+**Preis:** ${price.toFixed(2)}
+**SMA(20):** ${sma20?.toFixed(2)||'—'}
+**SMA(50):** ${sma50?.toFixed(2)||'—'}
+**Trend:** ${trend}
+**Signal:** ${sma20!==null&&sma50!==null?(sma20>sma50?'Golden Cross (bullish)':'Death Cross (bearish)'):'Zu wenig Daten'}`;
+}
+
+async function sampleOdds() {
+  const data = await API.rapidapi.raw('odds.p.rapidapi.com','/v4/sports/upcoming/odds',{regions:'us',oddsFormat:'decimal',markets:'h2h',dateFormat:'iso'});
+  if (!Array.isArray(data)||!data.length) return 'Keine Quoten verfügbar.';
+  const e=data[0];
+  return `**${e.sport_title}:** ${e.home_team} vs ${e.away_team}`;
+}
+
+const CMD_DOCS = `**Befehle:**
+• \`!SYMBOL\` — Momentum-Analyse
+• \`#SYMBOL\` — Volumen-Analyse
+• \`n SYMBOL\` — News
+• \`s SYMBOL\` — SMA(20/50)
+• \`g\` — Wettquoten
+• \`c\` — Hilfe`;
+
+// ==================== Image Upload ====================
+uploadBtn.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = (e) => { pendingImage = e.target.result; imgThumb.src = pendingImage; imgPreview.style.display = 'flex'; };
+  r.readAsDataURL(f);
+});
+clearImgBtn.addEventListener('click', () => { pendingImage = null; imgPreview.style.display = 'none'; fileInput.value = ''; });
+
+// ==================== Gemini RAG ====================
+async function fetchRAG(sym) {
+  if (!sym) return '';
+  try {
+    const [rt, hist, news] = await Promise.allSettled([
+      API.eod.realtime(sym), API.eod.historical(sym,{period:'d'}), API.eod.news({s:sym,limit:2})
+    ]);
+    let ctx = `--- AKTUELLE MARKTDATEN: ${sym} ---\n`;
+    if (rt.status==='fulfilled'&&rt.value) {
+      const d=rt.value, p=Number(d.close), pr=Number(d.previousClose??d.close);
+      const ch=p-pr, pc=pr?((ch/pr)*100).toFixed(2):'—';
+      ctx += `Kurs: ${p.toFixed(2)} ${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2)} (${pc}%)\n`;
+      ctx += `High: ${d.high} | Low: ${d.low} | Volumen: ${d.volume||'—'}\n`;
+    }
+    if (hist.status==='fulfilled'&&Array.isArray(hist.value)) {
+      const cs=hist.value.map(r=>Number(r.close)).filter(n=>!isNaN(n));
+      if (cs.length>=20) {
+        const s20=cs.slice(-20).reduce((a,b)=>a+b,0)/20;
+        const s50=cs.length>=50?cs.slice(-50).reduce((a,b)=>a+b,0)/50:null;
+        ctx += `SMA(20): ${s20.toFixed(2)}`+(s50?` | SMA(50): ${s50.toFixed(2)}`:'')+'\n';
+        ctx += `Trend: ${s50?(s20>s50?'Bullish':'Bearish'):'Neutral'}\n`;
+      }
+    }
+    if (news.status==='fulfilled'&&Array.isArray(news.value)&&news.value.length) {
+      ctx += 'News:\n';
+      news.value.slice(0,2).forEach(n => { ctx += `- ${n.date||''}: ${n.title||''}\n`; });
+    }
+    ctx += `--- ENDE MARKTDATEN ---`;
+    return ctx;
+  } catch(_) { return ''; }
+}
+
+// ==================== Add Message ====================
+function addMsg(role, html) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  if (role === 'bot') {
+    div.innerHTML = `<div class="avatar">🤖 DANIEL.AI</div><div class="bubble"></div>`;
+  } else {
+    div.innerHTML = `<div class="bubble"></div>`;
+  }
+  chatMsgs.appendChild(div);
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+  const bubble = div.querySelector('.bubble');
+  bubble.innerHTML = html;
+  return bubble;
+}
+
+// ==================== Gemini Chat ====================
+// Nutzt das native Interactions-API-Format:
+// input = [{ type: 'user_input'|'model_output', content: [{ type: 'text', text }] }]
+function makeContent(text, imgUrl) {
+  const c = [];
+  if (imgUrl) {
+    const m = imgUrl.match(/^data:(image\/\w+);base64,/);
+    c.push({ type: 'inline_data', mimeType: m ? m[1] : 'image/png', data: imgUrl.split(',')[1] });
+  }
+  c.push({ type: 'text', text });
+  return c;
+}
+
+async function geminiChat(userText, imgUrl) {
+  // Detect symbols
+  const syms = new Set();
+  if (activeSymbol) syms.add(activeSymbol);
+  const hits = userText.toUpperCase().match(/\b([A-Z]{1,5}(?:\.[A-Z]{2,4})?)\b/g);
+  if (hits) hits.forEach(s => syms.add(s));
+
+  let ragCtx = '';
+  for (const s of syms) {
+    const ctx = await fetchRAG(s);
+    if (ctx) ragCtx += ctx + '\n\n';
+  }
+
+  const sys = `Du bist DANIEL, ein professioneller Finanz- und Trading-Analyst. Antworte auf Deutsch. Formatiere mit **fett**, Listen, Codeblöcken.
+${ragCtx ? `\nAKTUELLE MARKTDATEN:\n${ragCtx}` : ''}
+Nutze die Marktdaten in deiner Analyse. Nenne Ticker mit $SYMBOL.`;
+
+  const input = [...chatHistory];
+  const userTurn = { type: 'user_input', content: makeContent(userText, imgUrl) };
+  input.push(userTurn);
+
+  const result = await API.geminiInteraction({
+    model: 'gemini-3.5-flash',
+    input,
+    systemInstruction: sys,
+    onDelta: (delta, full) => {
+      const bubble = chatMsgs.querySelector('.msg.bot:last-child .bubble');
+      if (bubble) { bubble.classList.add('md-rendered'); bubble.innerHTML = window.marked ? marked.parse(full) : '<pre>'+esc(full)+'</pre>'; }
+    }
+  });
+
+  chatHistory.push(userTurn);
+  chatHistory.push({ type: 'model_output', content: [{ type: 'text', text: result.text }] });
+  if (chatHistory.length > 40) chatHistory = chatHistory.slice(-40);
+
+  return result.text;
+}
+
+// ==================== Handle Send ====================
+async function handleSend() {
+  const text = chatInput.value.trim();
+  if ((!text && !pendingImage) || isSending) return;
+
+  // Save for command processing
+  const cmd = text.charAt(0);
+  const rest = text.slice(1).trim();
+  const img = pendingImage;
+
+  chatInput.value = ''; chatInput.style.height = 'auto';
+  pendingImage = null; imgPreview.style.display = 'none'; fileInput.value = '';
+  isSending = true; sendBtn.disabled = true;
+
+  // Check commands
+  if ((cmd === '!' && rest) || (cmd === '#' && rest) || text.trim() === 'g' || text.trim() === 'c' ||
+      ((cmd === 'n' || text.startsWith('n ')) && rest) || (cmd === 's' && rest)) {
+    const userLabel = img ? `<img src="${img}" style="max-height:120px;border-radius:var(--radius-sm);max-width:100%;display:block;margin-bottom:4px;">${esc(text)}` : esc(text);
+    addMsg('user', userLabel);
+    const bubble = addMsg('bot', '<span class="n-spinner" style="width:14px;height:14px;"></span>');
+    try {
+      let result;
+      if (cmd === '!') result = await momentumAnalysis(rest.toUpperCase());
+      else if (cmd === '#') result = await volumeAnalysis(rest.toUpperCase());
+      else if (cmd === 's' && rest) result = await smaAnalysis(rest.toUpperCase());
+      else if (text.trim() === 'g') result = await sampleOdds();
+      else if (text.trim() === 'c') result = CMD_DOCS;
+      else if (cmd === 'n' || text.startsWith('n ')) result = await newsAnalysis(rest.toUpperCase());
+      bubble.classList.add('md-rendered');
+      bubble.innerHTML = window.marked ? marked.parse(result) : '<pre>'+esc(result)+'</pre>';
+    } catch(e) { bubble.innerHTML = `<span style="color:var(--danger);">Fehler: ${esc(e.message||e)}</span>`; }
+    isSending = false; sendBtn.disabled = false;
+    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    return;
+  }
+
+  // Gemini with RAG
+  const userHtml = img ? `<img src="${img}" style="max-height:200px;border-radius:var(--radius-sm);max-width:100%;display:block;margin-bottom:4px;"><span>${esc(text||'Chart-Analyse')}</span>` : esc(text);
+  addMsg('user', userHtml);
+  const bubble = addMsg('bot', '<span class="n-spinner" style="width:14px;height:14px;"></span>');
+  const prompt = text || (img ? 'Analysiere diesen Chart.' : '');
+
+  try {
+    if (activeSymbol) ragBadge.style.display = 'inline-flex';
+    const geminiText = await geminiChat(prompt, img);
+    // Final render: stream already updated bubble, but ensure final text is rendered
+    if (bubble && geminiText) {
+      bubble.classList.add('md-rendered');
+      bubble.innerHTML = window.marked ? marked.parse(geminiText) : '<pre>'+esc(geminiText)+'</pre>';
+    }
+    ragBadge.style.display = 'none';
+  } catch(e) {
+    bubble.innerHTML = `<span style="color:var(--danger);">Fehler: ${esc(e.message||e)}</span>`;
+    ragBadge.style.display = 'none';
+  }
+  isSending = false; sendBtn.disabled = false;
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+sendBtn.addEventListener('click', handleSend);
+chatInput.addEventListener('keydown', (e) => { if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); handleSend(); } });
+chatInput.addEventListener('input', function() { this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,80)+'px'; });
+
+// ==================== Init ====================
+addMsg('bot', `<strong>Bereit.</strong> Wähle ein Symbol oben im Suchfeld oder klicke einen Chip — der <strong>TradingView-Chart</strong> erscheint direkt hier im Chat. Nutze <code>!AAPL.US</code> für Momentum, <code>#AAPL.US</code> für Volumen, <code>?=Befehle</code>. Oder stelle eine freie Frage mit RAG.`);
+renderWL();
+</script>
+</body>
+</html>

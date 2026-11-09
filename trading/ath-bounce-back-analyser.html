@@ -1,0 +1,1009 @@
+ <!DOCTYPE html>
+<html lang="de" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATH BOUNCE BACK ANALYSER — Turnaround Quant Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(214.3 31.8% 91.4%)",
+            input: "hsl(214.3 31.8% 91.4%)",
+            ring: "hsl(221.2 83.2% 53.3%)",
+            background: "hsl(0 0% 100%)",
+            foreground: "hsl(222.2 84% 4.9%)",
+            primary: { DEFAULT: "hsl(221.2 83.2% 53.3%)", foreground: "hsl(210 40% 98%)" },
+            secondary: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+            muted: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(215.4 16.3% 46.9%)" },
+            accent: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+            card: { DEFAULT: "hsl(0 0% 100%)", foreground: "hsl(222.2 84% 4.9%)" },
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    .dark {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --primary: 217.2 91.2% 59.8%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --accent: 217.2 32.6% 17.5%;
+      --accent-foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); }
+    .card-panel { transition: transform 0.2s, box-shadow 0.2s; }
+    .card-panel:hover { transform: scale(1.01); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+    .prob-bar { transition: width 1.5s cubic-bezier(0.4,0,0.2,1); }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .fade-in-up { animation: fadeInUp 0.5s ease forwards; }
+    @keyframes slideInBar { from{width:0%} }
+    .state-node { transition: all 0.3s; }
+    .state-node:hover { transform: scale(1.08); }
+    .matrix-cell { font-size: 0.7rem; padding: 3px 5px; text-align: center; border: 1px solid hsl(var(--border)); }
+    .tooltip { position: relative; }
+    .tooltip:hover::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1e293b; color: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; z-index: 50; }
+
+    @media(max-width:768px){
+      html,body{overflow-x:hidden;max-width:100%}
+      input,textarea,select,button{font-size:16px!important}
+      table{display:block;overflow-x:auto}
+      .matrix-cell{font-size:0.6rem;padding:2px 3px}
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+  <header class="bg-white dark:bg-gray-900 shadow-lg">
+    <div class="container mx-auto px-4 py-6">
+      <div class="flex justify-between items-center flex-wrap gap-3">
+        <div>
+          <h1 class="text-2xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-cyan-500 to-emerald-400 bg-clip-text text-transparent">
+            <i class="fa-solid fa-chart-line mr-2"></i>ATH BOUNCE BACK
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 text-xs md:text-sm tracking-wider font-medium">
+            TURNAROUND QUANT ENGINE — MARKOV CHAINS · ML SCORING · SURVIVAL ANALYSIS
+          </p>
+        </div>
+        <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+          <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    <!-- Input Section -->
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <div>
+          <label class="block text-sm font-medium mb-2">Markt-Kategorie</label>
+          <select id="marketCategory" onchange="updateSymbols()" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="">Wählen...</option>
+            <option value="DAX">DAX</option>
+            <option value="DOW JONES">DOW JONES</option>
+            <option value="NASDAQ 100">NASDAQ 100</option>
+            <option value="CRYPTO">CRYPTO</option>
+            <option value="FOREX">FOREX</option>
+            <option value="STOXX 50">STOXX 50</option>
+            <option value="US BANKS">US BANKS</option>
+            <option value="US OIL">US OIL</option>
+            <option value="US INSURANCE">US INSURANCE</option>
+            <option value="EU OIL">EU OIL</option>
+            <option value="EU INSURANCE">EU INSURANCE</option>
+            <option value="MDAX">MDAX</option>
+            <option value="TECDAX">TECDAX</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Symbol</label>
+          <select id="symbolSelect" onchange="pickSymbol()" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="">Symbol wählen...</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Manuelles Symbol</label>
+          <input id="symbolInput" type="text" value="AAPL" placeholder="z.B. AAPL, BTC-USD" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono text-lg"
+            onkeypress="if(event.key==='Enter')runAnalysis()">
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Lookback (Tage)</label>
+          <select id="lookbackSelect" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="365">1 Jahr</option>
+            <option value="730" selected>2 Jahre</option>
+            <option value="1095">3 Jahre</option>
+            <option value="1825">5 Jahre</option>
+            <option value="3650">10 Jahre (Max)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-2">Markov-Horizont</label>
+          <select id="horizonSelect" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="3">3 Monate</option>
+            <option value="6">6 Monate</option>
+            <option value="12" selected>12 Monate</option>
+            <option value="24">24 Monate</option>
+            <option value="36">36 Monate</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3 mt-4">
+        <button onclick="runAnalysis()" class="h-12 px-6 bg-gradient-to-r from-purple-600 to-cyan-500 text-white rounded-md hover:from-purple-700 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center justify-center gap-2 text-lg font-bold flex-1 md:flex-none">
+          <i class="fa-solid fa-microchip"></i>
+          ANALYSE
+        </button>
+      </div>
+      <div class="mt-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+        <span><i class="fa-solid fa-database mr-1"></i>EOD Historical Data Proxy</span>
+        <span>|</span>
+        <span><i class="fa-solid fa-robot mr-1"></i>Markov Chain + ML Modelle</span>
+        <span>|</span>
+        <span><i class="fa-solid fa-shield-halved mr-1"></i>Keine Anlageberatung</span>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingArea" class="hidden">
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-8 text-center">
+        <div class="inline-block w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-3 text-gray-500 dark:text-gray-400"><span id="loadingText">Lade Kursdaten...</span></p>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1" id="loadingDetail"></p>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="errorArea" class="hidden">
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-300">
+        <i class="fa-solid fa-triangle-exclamation mr-2"></i><span id="errorText"></span>
+      </div>
+    </div>
+
+    <!-- Results Container -->
+    <div id="resultsContainer" class="hidden space-y-6 fade-in-up">
+
+      <!-- === HEADLINE METRICS === -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-4 text-center card-panel">
+          <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Current Price</div>
+          <div class="text-2xl font-bold mt-1" id="curPrice">—</div>
+        </div>
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-4 text-center card-panel">
+          <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">All Time High</div>
+          <div class="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400" id="athPrice">—</div>
+        </div>
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-4 text-center card-panel">
+          <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">Distance to ATH</div>
+          <div class="text-2xl font-bold mt-1" id="athDist">—</div>
+        </div>
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-4 text-center card-panel">
+          <div class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">ATH Date</div>
+          <div class="text-2xl font-bold mt-1" id="athDate">—</div>
+        </div>
+      </div>
+
+      <!-- === OVERALL SCORE === -->
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6 card-panel">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider">Overall Bounce-Back Probability</div>
+            <div class="text-4xl font-extrabold mt-1" id="overallProb">0%</div>
+            <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">Gewichteter Score aus 4 Modellen (Markov · ML · Statistisch · Survival)</div>
+          </div>
+          <div class="w-full md:w-1/2">
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div id="overallBar" class="h-full rounded-full transition-all duration-1000" style="width:0%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+              <span>0%</span>
+              <span id="probLabel" class="font-bold">25% — Low Chance</span>
+              <span>100%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- === PROBABILITY MODEL CARDS === -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Markov Chain -->
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-5 card-panel">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+              <i class="fa-solid fa-diagram-project text-purple-600 dark:text-purple-400"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">Markov Chain Model</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">6-State absorbing Markov Chain · P<sup>k</sup> Transition</p>
+            </div>
+          </div>
+          <div class="flex items-end justify-between mb-3">
+            <span class="text-sm text-gray-500">Bounce-Back Probability (ATH Revisit)</span>
+            <span class="text-xl font-bold text-purple-600 dark:text-purple-400" id="markovProb">0%</span>
+          </div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-4">
+            <div id="markovBar" class="h-full rounded-full bg-purple-500 prob-bar" style="width:0%"></div>
+          </div>
+
+          <!-- State Diagram -->
+          <div class="text-xs text-gray-500 mb-2 font-medium">Aktueller Markov-State: <span id="currentState" class="font-bold text-purple-600">—</span></div>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="p-2 rounded bg-green-50 dark:bg-green-900/20 state-node cursor-default tooltip" data-tip="ATH erreicht oder >95% vom ATH">
+              <div class="font-bold text-green-600 dark:text-green-400">S5</div>
+              <div class="text-green-600 dark:text-green-400">ATH</div>
+            </div>
+            <div class="p-2 rounded bg-emerald-50 dark:bg-emerald-900/20 state-node cursor-default tooltip" data-tip="Weniger als 20% vom ATH entfernt">
+              <div class="font-bold text-emerald-600 dark:text-emerald-400">S4</div>
+              <div class="text-emerald-600 dark:text-emerald-400">Near ATH</div>
+            </div>
+            <div class="p-2 rounded bg-cyan-50 dark:bg-cyan-900/20 state-node cursor-default tooltip" data-tip="20-50% unter ATH, Erholungsphase">
+              <div class="font-bold text-cyan-600 dark:text-cyan-400">S3</div>
+              <div class="text-cyan-600 dark:text-cyan-400">Recovery</div>
+            </div>
+            <div class="p-2 rounded bg-amber-50 dark:bg-amber-900/20 state-node cursor-default tooltip" data-tip="50-80% unter ATH, Bodenbildung">
+              <div class="font-bold text-amber-600 dark:text-amber-400">S2</div>
+              <div class="text-amber-600 dark:text-amber-400">Accumulation</div>
+            </div>
+            <div class="p-2 rounded bg-orange-50 dark:bg-orange-900/20 state-node cursor-default tooltip" data-tip=">80% unter ATH, akuter Distress">
+              <div class="font-bold text-orange-600 dark:text-orange-400">S1</div>
+              <div class="text-orange-600 dark:text-orange-400">Deep Distress</div>
+            </div>
+            <div class="p-2 rounded bg-red-50 dark:bg-red-900/20 state-node cursor-default tooltip" data-tip="Absorbing State — Delisting/Insolvenz">
+              <div class="font-bold text-red-600 dark:text-red-400">S0</div>
+              <div class="text-red-600 dark:text-red-400">Delisted</div>
+            </div>
+          </div>
+          <div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded text-xs">
+            <div class="flex justify-between font-medium mb-1">
+              <span>Transition Matrix (Auszug):</span>
+              <span class="text-gray-400">k = <span id="markovHorizonDisp">12</span> Monate</span>
+            </div>
+            <div id="markovMatrix" class="overflow-x-auto"><pre class="text-gray-500">—</pre></div>
+          </div>
+        </div>
+
+        <!-- Machine Learning Score -->
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-5 card-panel">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
+              <i class="fa-solid fa-brain text-cyan-600 dark:text-cyan-400"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">ML Multi-Factor Score</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Weighted Ensemble: RSI, Volume, Volatility, Momentum, Duration</p>
+            </div>
+          </div>
+          <div class="flex items-end justify-between mb-3">
+            <span class="text-sm text-gray-500">ML-Probability Score</span>
+            <span class="text-xl font-bold text-cyan-600 dark:text-cyan-400" id="mlProb">0%</span>
+          </div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-4">
+            <div id="mlBar" class="h-full rounded-full bg-cyan-500 prob-bar" style="width:0%"></div>
+          </div>
+          <div id="mlFactors" class="space-y-2 text-sm">
+            <div class="flex justify-between"><span>RSI Momentum <span id="rsiVal" class="text-gray-400"></span></span><span id="rsiScore" class="font-medium">—</span></div>
+            <div class="flex justify-between"><span>Volume Trend <span id="volVal" class="text-gray-400"></span></span><span id="volScore" class="font-medium">—</span></div>
+            <div class="flex justify-between"><span>Volatility Regime <span id="volaVal" class="text-gray-400"></span></span><span id="volaScore" class="font-medium">—</span></div>
+            <div class="flex justify-between"><span>Drawdown Duration <span id="durVal" class="text-gray-400"></span></span><span id="durScore" class="font-medium">—</span></div>
+            <div class="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+              <span class="font-bold">ML Ensemble Score</span>
+              <span id="mlTotalScore" class="font-bold text-cyan-600">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistical Mean Reversion -->
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-5 card-panel">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <i class="fa-solid fa-chart-bar text-emerald-600 dark:text-emerald-400"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">Statistical Mean Reversion</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Z-Score · Volatility-Adjusted Distance · Historical Bounce Rate</p>
+            </div>
+          </div>
+          <div class="flex items-end justify-between mb-3">
+            <span class="text-sm text-gray-500">Statistische Bounce-Wahrscheinlichkeit</span>
+            <span class="text-xl font-bold text-emerald-600 dark:text-emerald-400" id="statProb">0%</span>
+          </div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-4">
+            <div id="statBar" class="h-full rounded-full bg-emerald-500 prob-bar" style="width:0%"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+              <div class="text-xs text-gray-400">Z-Score (current vs ATH)</div>
+              <div class="text-lg font-bold" id="zscoreVal">—</div>
+            </div>
+            <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+              <div class="text-xs text-gray-400">Annualized Volatility</div>
+              <div class="text-lg font-bold" id="volatilityVal">—</div>
+            </div>
+            <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+              <div class="text-xs text-gray-400">Max Drawdown</div>
+              <div class="text-lg font-bold text-red-500" id="maxDDVal">—</div>
+            </div>
+            <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+              <div class="text-xs text-gray-400">Tage seit ATH</div>
+              <div class="text-lg font-bold" id="daysSinceATH">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Survival / Hazard Analysis -->
+        <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-5 card-panel">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-lg bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+              <i class="fa-solid fa-wave-square text-rose-600 dark:text-rose-400"></i>
+            </div>
+            <div>
+              <h3 class="font-bold">Survival & Hazard Analysis</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Weibull Survival S(t) · Hazard h(t) · Time-to-Event</p>
+            </div>
+          </div>
+          <div class="flex items-end justify-between mb-3">
+            <span class="text-sm text-gray-500">Survival Probability (nicht delisted)</span>
+            <span class="text-xl font-bold text-rose-600 dark:text-rose-400" id="survivalProb">0%</span>
+          </div>
+          <div class="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-4">
+            <div id="survivalBar" class="h-full rounded-full bg-rose-500 prob-bar" style="width:0%"></div>
+          </div>
+          <div class="text-sm space-y-2">
+            <div class="flex justify-between"><span>Shape-Parameter (γ)</span><span id="gammaVal" class="font-mono">—</span></div>
+            <div class="flex justify-between"><span>Scale-Parameter (λ)</span><span id="lambdaVal" class="font-mono">—</span></div>
+            <div class="flex justify-between"><span>Hazard Rate (aktuell)</span><span id="hazardVal" class="font-mono">—</span></div>
+            <div class="flex justify-between"><span>Mean Time to Bounce (Tage)</span><span id="mttbVal" class="font-bold">—</span></div>
+          </div>
+          <!-- Mini survival curve as dots -->
+          <div class="mt-4 flex items-end gap-1 h-12" id="survivalSparkline"></div>
+        </div>
+      </div>
+
+      <!-- === KELLY CRITERION === -->
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6 card-panel">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+            <i class="fa-solid fa-scale-balanced text-amber-600 dark:text-amber-400"></i>
+          </div>
+          <div>
+            <h3 class="font-bold">Kelly Criterion — Positionsgrößen-Rechner</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Fractional Kelly · Erwartungswert · Risk/Reward</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Erwarteter Bounce-Faktor (b)</label>
+            <input id="kellyB" type="number" value="3" min="1" max="20" step="0.5" oninput="calcKelly()" class="w-full h-10 px-3 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Gewinn-Wahrscheinlichkeit p</label>
+            <div class="h-10 flex items-center px-3 rounded border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 font-bold" id="kellyP">—</div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Optimal f* (Full Kelly)</label>
+            <div class="h-10 flex items-center px-3 rounded border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 font-bold text-amber-600" id="kellyF">—</div>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1">Fractional Kelly (25%)</label>
+            <div class="h-10 flex items-center px-3 rounded border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 font-bold text-amber-600" id="kellyFrac">—</div>
+          </div>
+        </div>
+        <button onclick="calcKelly()" class="mt-3 px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 text-sm">
+          <i class="fa-solid fa-calculator mr-1"></i>Kelly neu berechnen
+        </button>
+      </div>
+
+      <!-- === RAW DATA TABLE === -->
+      <details class="bg-white dark:bg-gray-900 rounded-lg shadow">
+        <summary class="p-4 cursor-pointer text-sm font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+          <i class="fa-solid fa-table mr-2"></i>Rohdaten (letzte 20 Kerzen)
+        </summary>
+        <div class="px-4 pb-4 overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="text-left text-gray-400">
+                <th class="p-2">Datum</th><th class="p-2">Open</th><th class="p-2">High</th><th class="p-2">Low</th><th class="p-2">Close</th><th class="p-2">Volumen</th>
+              </tr>
+            </thead>
+            <tbody id="rawDataBody"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+
+    <p class="text-xs text-gray-500 dark:text-gray-500 mt-6">
+      <i class="fa-solid fa-triangle-exclamation mr-1"></i>Keine Anlageberatung. Alle Wahrscheinlichkeiten sind modellbasierte Schätzungen auf Basis historischer Daten. Vergangene Wertentwicklung ist kein Garant für zukünftige Ergebnisse.
+    </p>
+  </main>
+
+  <script>
+    // === CONFIG ===
+    window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
+    const BASE = window.API_BASE_URL || '';
+
+    // === MARKET DATA (identisch zum Broker Bot) ===
+    const marketData = {
+      "DAX": "ADS.XETRA, AIR.XETRA, ALV.XETRA, BAS.XETRA, BAYN.XETRA, BEI.XETRA, BMW.XETRA, BNR.XETRA, CBK.XETRA, CON.XETRA, 1COV.XETRA, DTG.XETRA, DBK.XETRA, DB1.XETRA, DTE.XETRA, DHL.XETRA, EOAN.XETRA, FRE.XETRA, HNR1.XETRA, HEI.XETRA, HEN3.XETRA, IFX.XETRA, MBG.XETRA, MRK.XETRA, MTX.XETRA, MUV2.XETRA, RHM.XETRA, RWE.XETRA, SAP.XETRA, SRT3.XETRA, SIE.XETRA, ENR.XETRA, SHL.XETRA, SY1.XETRA, VOW3.XETRA, VNA.XETRA, ZAL.XETRA",
+      "DOW JONES": "MMM.US,AXP.US,AMGN.US,AAPL,BA,CAT,CVX,CSCO,KO,DOW,GS,HD,HON,IBM,INTC,JNJ,JPM,MCD,MRK,MSFT,NKE,PG,CRM,TRV,UNH,VZ,V,WBA,WMT,DIS",
+      "NASDAQ 100": "ATVI.US, ADBE.US, AMD.US, ALXN.US, ALGN.US, GOOGL.US, GOOG.US, AMZN.US, AAL.US, AMGN.US, ADI.US, ANSS.US, AAPL.US, AMAT.US, ASML.US",
+      "CRYPTO": "ETH-USD.cc,BTC-USD.cc,YFI-USD.cc,LTC-USD.cc",
+      "FOREX": "EUR.FOREX,EURRUB.FOREX, USDEUR.FOREX, USDJPY.FOREX, USDGBP.FOREX",
+      "STOXX 50": "AI.XETRA, AIR.XETRA, ALV.XETRA, ASML.XETRA, CS.XETRA, BNP.XETRA",
+      "US BANKS": "JPM.US, BAC.US, WFC.US, C.US, GS.US, MS.US, USB.US",
+      "US OIL": "XOM.US, CVX.US, COP.US, SLB.US, EOG.US, OXY.US",
+      "US INSURANCE": "BRK-A.US, BRK-B.US, MET.US, TRV.US, ALL.US",
+      "EU OIL": "RDSA.XETRA, RDSB.XETRA, BP.XETRA, TTE.XETRA",
+      "EU INSURANCE": "ALV.XETRA, AXA.XETRA, ZURN.XETRA, MUV2.XETRA",
+      "MDAX": "DRI.XETRA, ARL.XETRA, AIR.XETRA, AOX.XETRA",
+      "TECDAX": "AIXA.XETRA, BC8.XETRA, COK.XETRA, AFX.XETRA"
+    };
+
+    function updateSymbols() {
+      const market = document.getElementById('marketCategory').value;
+      const symbolSelect = document.getElementById('symbolSelect');
+      symbolSelect.innerHTML = '<option value="">Symbol wählen...</option>';
+      if (market && marketData[market]) {
+        const symbols = marketData[market].split(',').map(s => s.trim());
+        symbols.forEach(symbol => {
+          const option = document.createElement('option');
+          option.value = symbol;
+          option.textContent = symbol;
+          symbolSelect.appendChild(option);
+        });
+      }
+    }
+
+    function pickSymbol() {
+      const sel = document.getElementById('symbolSelect').value;
+      if (sel) {
+        document.getElementById('symbolInput').value = sel;
+        runAnalysis();
+      }
+    }
+
+    // === API CLIENT (Minimal — gleicher EOD-Proxy wie Broker Bot) ===
+    async function getJSON(path, params) {
+      const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+      const res = await fetch(BASE + path + qs);
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      return res.json();
+    }
+
+    const API = {
+      eod: {
+        historical: (symbol, params) => getJSON(`/eod/historical/${symbol}`, params),
+        realtime: (symbol) => getJSON(`/eod/realtime/${symbol}`),
+      }
+    };
+
+    function isoDaysAgo(n) {
+      const d = new Date(); d.setDate(d.getDate() - n);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    // === DARK MODE ===
+    function toggleDarkMode() {
+      const h = document.documentElement;
+      h.classList.toggle('dark');
+      document.body.classList.toggle('dark', h.classList.contains('dark'));
+      localStorage.setItem('athTheme', h.classList.contains('dark') ? 'dark' : 'light');
+    }
+    if (localStorage.getItem('athTheme') === 'dark' || (!localStorage.getItem('athTheme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+    }
+
+    // === CORE ANALYSIS ===
+    let lastData = null;
+    let lastATH = null;
+
+    async function runAnalysis() {
+      const symbol = document.getElementById('symbolInput').value.trim().toUpperCase();
+      if (!symbol) { showError('Bitte ein Symbol eingeben.'); return; }
+      const lookback = parseInt(document.getElementById('lookbackSelect').value);
+      const horizon = parseInt(document.getElementById('horizonSelect').value);
+
+      showLoading('Lade Kursdaten...', `${symbol} · ${lookback} Tage Lookback`);
+      hideError();
+      hideResults();
+
+      try {
+        // 1. Fetch historical data via EOD Proxy
+        const fromDate = isoDaysAgo(lookback);
+        const toDate = isoDaysAgo(0);
+        const histData = await API.eod.historical(symbol, { from: fromDate, to: toDate });
+
+        // EOD-Proxy gibt ein raw Array zurück, kein { symbol, data: [...] }
+        const raw = Array.isArray(histData) ? histData : (histData?.data || []);
+        if (!raw || raw.length < 20) {
+          throw new Error(`Nicht genug Daten für ${symbol}. Nur ${raw.length} Datenpunkte erhalten (min. 20 benötigt).`);
+        }
+
+        // Sort by date ascending
+        const candles = raw.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const closes = candles.map(c => c.close);
+        const highs = candles.map(c => c.high);
+        const lows = candles.map(c => c.low);
+        const volumes = candles.map(c => c.volume || 0);
+
+        // 2. Calculate ATH
+        const ath = Math.max(...highs);
+        const athIndex = highs.indexOf(ath);
+        const athDate = candles[athIndex].date;
+        const curPrice = closes[closes.length - 1];
+        const distPct = ((ath - curPrice) / ath) * 100;
+
+        lastData = { candles, closes, highs, lows, volumes, ath, curPrice, distPct, symbol };
+        lastATH = ath;
+
+        // 3. Display headline metrics
+        document.getElementById('curPrice').textContent = '$' + curPrice.toFixed(2);
+        document.getElementById('athPrice').textContent = '$' + ath.toFixed(2);
+        const distEl = document.getElementById('athDist');
+        distEl.textContent = '-' + distPct.toFixed(1) + '%';
+        distEl.style.color = distPct > 50 ? '#ef4444' : distPct > 20 ? '#f59e0b' : '#10b981';
+        document.getElementById('athDate').textContent = athDate;
+
+        // 4. Compute correct daysSinceATH (from highs, not closes!)
+        const athIdx = highs.indexOf(ath);
+        const daysSinceATH = candles.length - 1 - Math.max(athIdx, 0);
+
+        // 4b. Run all models with the CORRECT daysSinceATH
+        const markovResult = runMarkovChain(candles, closes, highs, ath, horizon, daysSinceATH);
+        const mlResult = runMLScore(candles, closes, highs, lows, volumes, ath, daysSinceATH);
+        const statResult = runStatisticalModel(candles, closes, ath, daysSinceATH);
+        const survivalResult = runSurvivalAnalysis(candles, closes, ath, daysSinceATH);
+
+        // 5. Combined Score
+        const weights = { markov: 0.30, ml: 0.30, stat: 0.20, survival: 0.20 };
+        const overall = 
+          markovResult.prob * weights.markov + 
+          mlResult.prob * weights.ml + 
+          statResult.prob * weights.stat + 
+          survivalResult.prob * weights.survival;
+
+        displayResults(overall, markovResult, mlResult, statResult, survivalResult, candles, symbol, horizon);
+        showResults();
+
+        // Animate bars
+        setTimeout(() => {
+          document.getElementById('overallBar').style.width = (overall * 100) + '%';
+          document.getElementById('overallBar').style.background = probColor(overall);
+          document.getElementById('markovBar').style.width = (markovResult.prob * 100) + '%';
+          document.getElementById('mlBar').style.width = (mlResult.prob * 100) + '%';
+          document.getElementById('statBar').style.width = (statResult.prob * 100) + '%';
+          document.getElementById('survivalBar').style.width = (survivalResult.prob * 100) + '%';
+        }, 100);
+
+        // Raw data table
+        renderRawTable(candles);
+
+        // Kelly default
+        calcKelly();
+
+      } catch (err) {
+        showError(err.message || String(err));
+      }
+    }
+
+    // === MARKOV CHAIN MODEL ===
+    function runMarkovChain(candles, closes, highs, ath, horizon, daysSinceATH) {
+      const curPrice = closes[closes.length - 1];
+      const distPct = (ath - curPrice) / ath;
+
+      // Determine current state
+      let currentState;
+      if (distPct < 0.05) currentState = 5;      // S5: ATH
+      else if (distPct < 0.20) currentState = 4;  // S4: Near ATH
+      else if (distPct < 0.50) currentState = 3;  // S3: Recovery
+      else if (distPct < 0.80) currentState = 2;  // S2: Accumulation
+      else currentState = 1;                        // S1: Deep Distress
+
+      // Build transition matrix from empirical data
+      const transitions = Array.from({ length: 6 }, () => Array(6).fill(0));
+      for (let i = 1; i < closes.length; i++) {
+        const prevDist = (ath - highs[i-1]) / ath;
+        const currDist = (ath - highs[i]) / ath;
+        const prevState = distToState(prevDist);
+        const currState = distToState(currDist);
+        if (prevState >= 0 && currState >= 0) {
+          transitions[prevState][currState]++;
+        }
+      }
+
+      // Bayesian-smoothed priors (moderate, allow downward motion from all states)
+      // alpha = 20 means: with 20 pseudo-counts of the prior blended into <5 real observations
+      const alpha = 20;
+      const priors = [
+        [1, 0, 0, 0, 0, 0],      // S0: absorbing
+        [0.12, 0.35, 0.35, 0.12, 0.05, 0.01],  // S1: deep distress — can recover
+        [0.05, 0.10, 0.40, 0.30, 0.12, 0.03],   // S2: accumulation — balanced
+        [0.03, 0.05, 0.15, 0.42, 0.25, 0.10],   // S3: recovery — can slip back
+        [0.02, 0.02, 0.05, 0.20, 0.50, 0.21],   // S4: near ATH — CAN revert to S3
+        [0.01, 0.01, 0.02, 0.06, 0.30, 0.60]    // S5: ATH — CAN drop to S4
+      ];
+
+      // Build smoothed matrix: P = (empirical + alpha * prior) / (row_sum + alpha)
+      const P = Array.from({ length: 6 }, () => Array(6).fill(0));
+      for (let i = 0; i < 6; i++) {
+        const rowSum = transitions[i].reduce((a, b) => a + b, 0);
+        for (let j = 0; j < 6; j++) {
+          P[i][j] = (transitions[i][j] + alpha * priors[i][j]) / (rowSum + alpha);
+        }
+      }
+      // Override S0 to be truly absorbing
+      P[0][0] = 1;
+      for (let j = 1; j < 6; j++) P[0][j] = 0;
+
+      // Matrix power P^k for given horizon months
+      // Cap k at 60 (≈ 3 months) to avoid 100% saturation in long horizons
+      const kRaw = Math.round(horizon * 21);
+      const k = Math.min(kRaw, 63);
+      let Pk = matrixPower(P, k);
+      
+      // Bounce probability: if at S5, probability of STAYING in S4/S5 (i.e. not crashing)
+      // If below S5, probability of REACHING S4/S5
+      let bounceProb;
+      if (currentState === 5) {
+        // Already at ATH — "bounce back" means stay above S2 (survive without deep crash)
+        bounceProb = Pk[5][4] + Pk[5][5];
+      } else if (currentState === 4) {
+        // Near ATH — bounce means hitting S5, not just staying in S4
+        bounceProb = Pk[4][5];
+      } else {
+        bounceProb = Pk[currentState][4] + Pk[currentState][5];
+      }
+      // Apply diminishing returns: cap log-scale to avoid 100% nonsense
+      bounceProb = 1 - Math.pow(1 - Math.min(bounceProb, 0.95), 1.5);
+
+      // Death probability
+      const deathProb = Pk[currentState][0];
+
+      // Format matrix for display
+      const matrixHtml = P.map((row, i) => 
+        'S' + i + ' | ' + row.map(v => v.toFixed(3)).join('  ')
+      ).join('\n');
+
+      document.getElementById('currentState').textContent = 'S' + currentState + ' (' + stateLabel(currentState) + ')';
+      document.getElementById('markovHorizonDisp').textContent = horizon;
+      document.getElementById('markovMatrix').innerHTML = '<pre class="text-gray-500 dark:text-gray-400">' + escapeHtml(matrixHtml) + '</pre>';
+
+      return { prob: bounceProb, deathProb, currentState, P };
+    }
+
+    function distToState(dist) {
+      if (dist > 0.95) return 0;  // effectively dead
+      if (dist > 0.80) return 1;  // deep distress
+      if (dist > 0.50) return 2;  // accumulation
+      if (dist > 0.20) return 3;  // recovery
+      if (dist > 0.05) return 4;  // near ATH
+      return 5;                    // ATH
+    }
+
+    function stateLabel(s) {
+      return ['Delisted','Deep Distress','Accumulation','Recovery','Near ATH','ATH'][s];
+    }
+
+    function matrixPower(A, n) {
+      if (n === 1) return A.map(r => [...r]);
+      const half = matrixPower(A, Math.floor(n / 2));
+      const result = matrixMultiply(half, half);
+      if (n % 2 === 1) return matrixMultiply(result, A);
+      return result;
+    }
+
+    function matrixMultiply(A, B) {
+      const n = A.length;
+      const C = Array.from({ length: n }, () => Array(n).fill(0));
+      for (let i = 0; i < n; i++)
+        for (let k = 0; k < n; k++)
+          if (A[i][k] !== 0)
+            for (let j = 0; j < n; j++)
+              C[i][j] += A[i][k] * B[k][j];
+      return C;
+    }
+
+    // === ML MULTI-FACTOR SCORE ===
+    function runMLScore(candles, closes, highs, lows, volumes, ath, daysSinceATH) {
+      const n = closes.length;
+      const curPrice = closes[n - 1];
+      const distPct = (ath - curPrice) / ath;
+
+      // RSI (14) — use sigmoid-style scoring for better differentiation
+      const rsi = calcRSI(closes, 14);
+      const lastRSI = rsi[rsi.length - 1] || 50;
+      // Low RSI = oversold = higher bounce probability
+      // Normalize: RSI 20 → 0.85, RSI 50 → 0.35, RSI 80 → 0.10
+      const rsiScore = Math.max(0, Math.min(0.95, 1.1 - (lastRSI / 100) * 1.4 + 0.1 * Math.sin(lastRSI / 10)));
+      document.getElementById('rsiVal').textContent = `(RSI=${lastRSI.toFixed(1)})`;
+      document.getElementById('rsiScore').textContent = (rsiScore * 100).toFixed(0) + '%';
+      document.getElementById('rsiScore').style.color = scoreColor(rsiScore);
+
+      // Volume trend — ratio of recent (5d) vs medium-term (20d) avg volume
+      const recentVol = volumes.slice(-5).reduce((a, b) => a + b, 0) / 5;
+      const midVol = volumes.slice(-25, -5).reduce((a, b) => a + b, 0) / 20 || 1;
+      const volRatio = recentVol / midVol;
+      // Rising volume on dips = accumulation = bullish. Falling volume = apathy = bearish.
+      // volRatio: 0.5→0.15, 1.0→0.35, 1.5→0.55, 2.0→0.75
+      const volScore = Math.max(0.05, Math.min(0.90, 0.15 + (volRatio - 0.3) * 0.4));
+      document.getElementById('volVal').textContent = `(Vol-Ratio=${volRatio.toFixed(2)})`;
+      document.getElementById('volScore').textContent = (volScore * 100).toFixed(0) + '%';
+      document.getElementById('volScore').style.color = scoreColor(volScore);
+
+      // Volatility regime
+      const returns = [];
+      for (let i = 1; i < n; i++) returns.push((closes[i] - closes[i-1]) / closes[i-1]);
+      const avgRet = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const variance = returns.reduce((a, b) => a + (b - avgRet) ** 2, 0) / returns.length;
+      const volatility = Math.sqrt(variance * 252) * 100; // annualized %
+      // Higher vol = more bounce POTENTIAL but also more risk
+      // Vol at 20% → 0.25, 40% → 0.45, 60% → 0.60, 80%→0.70
+      const volaScore = Math.max(0.1, Math.min(0.80, 0.15 + volatility * 0.007));
+      document.getElementById('volaVal').textContent = `(σ=${volatility.toFixed(1)}%)`;
+      document.getElementById('volaScore').textContent = (volaScore * 100).toFixed(0) + '%';
+      document.getElementById('volaScore').style.color = scoreColor(volaScore);
+
+      // Drawdown duration — correctly computed from highs index
+      let durScore;
+      if (daysSinceATH > 600) durScore = 0.75;  // extreme duration → due for bounce
+      else if (daysSinceATH > 300) durScore = 0.55;
+      else if (daysSinceATH > 100) durScore = 0.40;
+      else if (daysSinceATH > 30) durScore = 0.30;
+      else if (daysSinceATH > 5) durScore = 0.20;
+      else durScore = 0.10;   // fresh ATH, no bounce needed
+      document.getElementById('durVal').textContent = `(${daysSinceATH} Tage)`;
+      document.getElementById('durScore').textContent = (durScore * 100).toFixed(0) + '%';
+      document.getElementById('durScore').style.color = scoreColor(durScore);
+
+      // Ensemble: weighted average
+      const weights = { rsi: 0.30, vol: 0.20, vola: 0.20, dur: 0.30 };
+      const mlProb = rsiScore * weights.rsi + volScore * weights.vol + volaScore * weights.vola + durScore * weights.dur;
+
+      document.getElementById('mlTotalScore').textContent = (mlProb * 100).toFixed(0) + '%';
+
+      return { prob: mlProb, rsi: lastRSI, volRatio, volatility, daysSinceATH };
+    }
+
+    function calcRSI(closes, period) {
+      const changes = [];
+      for (let i = 1; i < closes.length; i++) changes.push(closes[i] - closes[i-1]);
+      const rsi = [50];
+      let avgGain = 0, avgLoss = 0;
+      for (let i = 0; i < period && i < changes.length; i++) {
+        if (changes[i] > 0) avgGain += changes[i]; else avgLoss -= changes[i];
+      }
+      avgGain /= period; avgLoss /= period;
+      for (let i = period; i < changes.length; i++) {
+        const gain = changes[i] > 0 ? changes[i] : 0;
+        const loss = changes[i] < 0 ? -changes[i] : 0;
+        avgGain = (avgGain * (period - 1) + gain) / period;
+        avgLoss = (avgLoss * (period - 1) + loss) / period;
+        if (avgLoss === 0) rsi.push(100);
+        else rsi.push(100 - 100 / (1 + avgGain / avgLoss));
+      }
+      return rsi;
+    }
+
+    // === STATISTICAL MODEL ===
+    function runStatisticalModel(candles, closes, ath, daysSinceATH) {
+      const n = closes.length;
+      const curPrice = closes[n - 1];
+      const distPct = (ath - curPrice) / ath;
+      const yearsSinceATH = daysSinceATH / 252;
+
+      // Returns stats
+      const returns = [];
+      for (let i = 1; i < n; i++) returns.push((closes[i] - closes[i-1]) / closes[i-1]);
+      const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const std = Math.sqrt(returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length);
+      const variance = std * std;
+      const annualVol = Math.sqrt(variance * 252) * 100;
+
+      // Z-Score: distance in units of return std dev
+      // Normalized so it's comparable across different price levels
+      const zScore = std > 0 ? (curPrice - ath) / (ath * std) : 0;
+
+      // Max Drawdown from peak (peak can be ATH or local peak)
+      let peak = closes[0];
+      let maxDD = 0;
+      for (const price of closes) {
+        if (price > peak) peak = price;
+        const dd = (peak - price) / peak;
+        if (dd > maxDD) maxDD = dd;
+      }
+
+      // Calibrated bounce probability:
+      // - Distance to ATH (distPct) is the primary driver — deeper = more bounce room
+      // - MaxDD adds secondary signal — if less than distance, price was already lower before
+      // - Duration adds time-based mean reversion pressure
+      const distBounce = Math.min(distPct, 0.60) * 0.85;        // 60% dist → 0.51 max
+      const ddBoost = Math.max(0, (maxDD - distPct) * 0.40);     // extra drawdown beyond current dist
+      const timeBoost = Math.min(yearsSinceATH, 5) * 0.04;        // 0.04 per year since ATH
+      const baseProb = distBounce + ddBoost + timeBoost;
+      const bounceProb = Math.min(Math.max(baseProb, 0.03), 0.92);
+
+      document.getElementById('zscoreVal').textContent = zScore.toFixed(3);
+      document.getElementById('volatilityVal').textContent = annualVol.toFixed(1) + '%';
+      document.getElementById('maxDDVal').textContent = '-' + (maxDD * 100).toFixed(1) + '%';
+      document.getElementById('daysSinceATH').textContent = daysSinceATH + ' Tage (' + yearsSinceATH.toFixed(1) + ' Jahre)';
+
+      return { prob: bounceProb, zScore, maxDD, annualVol, daysSinceATH };
+    }
+
+    // === SURVIVAL ANALYSIS ===
+    function runSurvivalAnalysis(candles, closes, ath, daysSinceATH) {
+      // Weibull survival model: S(t) = exp(-(t/λ)^γ)
+      const t = Math.max(1, daysSinceATH);
+      const yearsSinceATH = daysSinceATH / 252;
+
+      // Shape parameter γ:
+      // Fresh ATH (t small) → γ < 1 (hazard decreases: survivor bias)
+      // Long drawdown (t large) → γ ~ 1-1.2 (hazard steady/increasing)
+      const gamma = 0.70 + Math.min(t / 800, 0.5);
+
+      // Scale parameter λ: characteristic time scale
+      // Tied to drawdown magnitude: larger drawdown = longer expected recovery
+      // Also use volatility to calibrate: higher vol = faster potential recovery
+      const returns = [];
+      for (let i = 1; i < closes.length; i++) returns.push((closes[i] - closes[i-1]) / closes[i-1]);
+      const retMean = returns.reduce((a, b) => a + b, 0) / returns.length;
+      const variance = returns.reduce((a, b) => a + (b - retMean) ** 2, 0) / returns.length;
+      const volatility = Math.sqrt(variance * 252);
+      const volFactor = Math.max(0.5, Math.min(2.0, 1.0 / volatility));
+      // λ scales with drawdown duration, adjusted by volatility
+      const lambda = Math.max(60, Math.min(1500, (t + 30) * 0.8 * volFactor));
+
+      // Survival probability at current time t
+      const survivalProb = Math.exp(-Math.pow(t / lambda, gamma));
+
+      // Hazard rate: h(t) = (γ/λ) * (t/λ)^(γ-1)
+      const hazardRate = (gamma / lambda) * Math.pow(t / lambda, gamma - 1);
+
+      // Mean Time to Bounce = median of Weibull - current elapsed time
+      // Median = λ * ln(2)^(1/γ)
+      const median = lambda * Math.pow(Math.log(2), 1 / gamma);
+      const mttb = Math.round(Math.max(0, median - t));
+
+      // Bounce-back probability: if still alive (not delisted), bounce = 1 - survival + improvement factor
+      // Improvement factor: deeper drawdowns have higher bounce potential
+      const curPrice = closes[closes.length - 1];
+      const distFromATH = (ath - curPrice) / ath;
+      const distBoost = Math.min(distFromATH, 0.50) * 0.30;
+      const bounceProb = Math.min(Math.max(1 - survivalProb + distBoost, 0.05), 0.88);
+
+      document.getElementById('gammaVal').textContent = gamma.toFixed(3);
+      document.getElementById('lambdaVal').textContent = lambda.toFixed(0) + ' Tage';
+      document.getElementById('hazardVal').textContent = (hazardRate * 100).toFixed(4);
+      document.getElementById('mttbVal').textContent = Math.max(1, mttb) + ' Tage';
+
+      // Generate sparkline data - survival curve over next 24 months
+      const sparkData = [];
+      const months = 24;
+      for (let m = 0; m <= months; m++) {
+        const day = t + m * 21;
+        const s = Math.exp(-Math.pow(day / lambda, gamma));
+        sparkData.push(s);
+      }
+
+      const container = document.getElementById('survivalSparkline');
+      container.innerHTML = '';
+      const maxS = Math.max(...sparkData);
+      sparkData.forEach((s, i) => {
+        if (i % 2 !== 0) return;
+        const bar = document.createElement('div');
+        const h = (s / maxS) * 48;
+        bar.style.height = Math.max(4, h) + 'px';
+        bar.className = 'w-2 rounded-t';
+        bar.style.background = s > 0.5 ? '#10b981' : s > 0.25 ? '#f59e0b' : '#ef4444';
+        bar.title = `Monat ${i}: ${(s * 100).toFixed(0)}%`;
+        container.appendChild(bar);
+      });
+
+      return { prob: bounceProb, gamma, lambda, hazardRate, mttb };
+    }
+
+    // === KELLY CRITERION ===
+    function calcKelly() {
+      const overall = parseFloat(document.getElementById('overallProb').textContent) / 100;
+      const b = parseFloat(document.getElementById('kellyB').value) || 3;
+      const p = overall;
+      const q = 1 - p;
+      const f = (p * b - q) / b;
+      const fPos = Math.max(0, f);
+
+      document.getElementById('kellyP').textContent = (p * 100).toFixed(1) + '%';
+      document.getElementById('kellyF').textContent = (fPos * 100).toFixed(1) + '%';
+      document.getElementById('kellyFrac').textContent = (fPos * 0.25 * 100).toFixed(1) + '%';
+    }
+
+    // === DISPLAY HELPERS ===
+    function displayResults(overall, markov, ml, stat, survival, candles, symbol, horizon) {
+      document.getElementById('overallProb').textContent = (overall * 100).toFixed(1) + '%';
+      document.getElementById('overallProb').style.color = probColorHex(overall);
+      document.getElementById('probLabel').textContent = probLabel(overall);
+
+      document.getElementById('markovProb').textContent = (markov.prob * 100).toFixed(1) + '%';
+      document.getElementById('mlProb').textContent = (ml.prob * 100).toFixed(1) + '%';
+      document.getElementById('statProb').textContent = (stat.prob * 100).toFixed(1) + '%';
+      document.getElementById('survivalProb').textContent = (survival.prob * 100).toFixed(1) + '%';
+    }
+
+    function probColor(p) {
+      if (p > 0.65) return 'linear-gradient(90deg, #10b981, #059669)';
+      if (p > 0.40) return 'linear-gradient(90deg, #f59e0b, #d97706)';
+      return 'linear-gradient(90deg, #ef4444, #dc2626)';
+    }
+
+    function probColorHex(p) {
+      if (p > 0.65) return '#10b981';
+      if (p > 0.40) return '#f59e0b';
+      return '#ef4444';
+    }
+
+    function probLabel(p) {
+      if (p > 0.75) return '🔥 Hohe Bounce-Wahrscheinlichkeit';
+      if (p > 0.55) return '📈 Moderate Bounce-Chance';
+      if (p > 0.35) return '⚖️ Ausgewogenes Risk/Reward';
+      return '⚠️ Niedrige Bounce-Wahrscheinlichkeit';
+    }
+
+    function scoreColor(s) {
+      return s > 0.6 ? '#10b981' : s > 0.3 ? '#f59e0b' : '#ef4444';
+    }
+
+    function renderRawTable(candles) {
+      const body = document.getElementById('rawDataBody');
+      body.innerHTML = '';
+      const last20 = candles.slice(-20).reverse();
+      last20.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-t border-gray-100 dark:border-gray-800';
+        tr.innerHTML = `<td class="p-2">${c.date}</td><td class="p-2">$${c.open.toFixed(2)}</td><td class="p-2">$${c.high.toFixed(2)}</td><td class="p-2">$${c.low.toFixed(2)}</td><td class="p-2 font-medium">$${c.close.toFixed(2)}</td><td class="p-2">${(c.volume || 0).toLocaleString()}</td>`;
+        body.appendChild(tr);
+      });
+    }
+
+    // === UI HELPERS ===
+    function showLoading(text, detail) {
+      document.getElementById('loadingArea').classList.remove('hidden');
+      document.getElementById('loadingText').textContent = text || 'Lade...';
+      document.getElementById('loadingDetail').textContent = detail || '';
+    }
+
+    function showError(msg) {
+      document.getElementById('errorArea').classList.remove('hidden');
+      document.getElementById('errorText').textContent = msg;
+    }
+
+    function hideError() { document.getElementById('errorArea').classList.add('hidden'); }
+    function hideResults() { document.getElementById('resultsContainer').classList.add('hidden'); }
+    function showResults() { 
+      document.getElementById('loadingArea').classList.add('hidden');
+      document.getElementById('resultsContainer').classList.remove('hidden');
+    }
+
+    // === KEYBOARD SHORTCUT ===
+    document.getElementById('symbolInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') runAnalysis();
+    });
+
+    // === AUTO-LOAD ON START ===
+    setTimeout(() => runAnalysis(), 500);
+  </script>
+</body>
+</html>

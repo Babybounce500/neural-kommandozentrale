@@ -1,0 +1,521 @@
+ <!DOCTYPE html>
+<html lang="de" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MARKOV-ML OPTIONS LAB — Regime-Switching Analytics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(214.3 31.8% 91.4%)",
+            input: "hsl(214.3 31.8% 91.4%)",
+            ring: "hsl(221.2 83.2% 53.3%)",
+            background: "hsl(0 0% 100%)",
+            foreground: "hsl(222.2 84% 4.9%)",
+            primary: { DEFAULT: "hsl(221.2 83.2% 53.3%)", foreground: "hsl(210 40% 98%)" },
+            secondary: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+            muted: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(215.4 16.3% 46.9%)" },
+            accent: { DEFAULT: "hsl(210 40% 96.1%)", foreground: "hsl(222.2 47.4% 11.2%)" },
+            card: { DEFAULT: "hsl(0 0% 100%)", foreground: "hsl(222.2 84% 4.9%)" }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .dark {
+      --background: 222.2 84% 4.9%; --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%; --card-foreground: 210 40% 98%;
+      --primary: 217.2 91.2% 59.8%; --primary-foreground: 222.2 47.4% 11.2%;
+      --secondary: 217.2 32.6% 17.5%; --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%; --muted-foreground: 215 20.2% 65.1%;
+      --accent: 217.2 32.6% 17.5%; --accent-foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); }
+    .panel { transition: transform 0.2s, box-shadow 0.2s; }
+    .panel:hover { box-shadow: 0 10px 25px -5px rgba(0,0,0,.08), 0 6px 10px -6px rgba(0,0,0,.04); }
+    .regime-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 14px; border-radius:9999px; font-weight:700; font-size:.85rem; }
+    .regime-Low { background:#dcfce7; color:#166534; }
+    .regime-Normal { background:#dbeafe; color:#1e40af; }
+    .regime-High { background:#fef3c7; color:#92400e; }
+    .regime-Extreme { background:#fee2e2; color:#991b1b; }
+    .dark .regime-Low { background:#14532d; color:#bbf7d0; }
+    .dark .regime-Normal { background:#1e3a8a; color:#bfdbfe; }
+    .dark .regime-High { background:#78350f; color:#fde68a; }
+    .dark .regime-Extreme { background:#7f1d1d; color:#fecaca; }
+    .matrix-cell { text-align:center; padding:8px; font-variant-numeric:tabular-nums; font-size:.82rem; }
+    .unavailable-card { border:1px dashed hsl(var(--border)); border-radius:.5rem; padding:14px; }
+    .btn-analyze { background: linear-gradient(135deg, #6366f1, #a855f7); }
+    .btn-analyze:hover:not(:disabled) { opacity:.92; }
+    .btn-analyze:disabled { opacity:.5; cursor:not-allowed; }
+    canvas { max-width:100%; }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+  <!-- Header -->
+  <header class="bg-white dark:bg-gray-900 shadow-lg">
+    <div class="container mx-auto px-4 py-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-500 dark:from-indigo-400 dark:to-purple-300 bg-clip-text text-transparent">
+            <i class="fa-solid fa-robot mr-2"></i>MARKOV-ML OPTIONS LAB
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 text-sm md:text-base tracking-wider font-medium">
+            REGIME-SWITCHING ANALYTICS FÜR OPTIONEN &amp; DERIVATE
+          </p>
+        </div>
+        <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+          <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    <!-- Symbol-Auswahl (Projekt-Proxy, korrigierte Formate) -->
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+      <div class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium mb-2"><i class="fa-solid fa-list mr-1"></i>Marktkategorie</label>
+            <select id="marketCategory" onchange="updateSymbols()" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Kategorie wählen...</option>
+              <option value="DAX">DAX</option>
+              <option value="DOW JONES">DOW JONES</option>
+              <option value="NASDAQ 100">NASDAQ 100</option>
+              <option value="S&P 500">S&P 500</option>
+              <option value="CRYPTO">CRYPTO</option>
+              <option value="FOREX">FOREX</option>
+              <option value="ETF (US)">ETF (US)</option>
+              <option value="UK BLUECHIPS">UK BLUECHIPS</option>
+              <option value="SCHWEIZ">SCHWEIZ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2"><i class="fa-solid fa-chart-line mr-1"></i>Symbol</label>
+            <select id="symbolSelect" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Symbol wählen...</option>
+            </select>
+          </div>
+        </div>
+        <div class="space-y-4 sm:space-y-0 sm:flex sm:gap-4 items-end flex-wrap">
+          <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium mb-2"><i class="fa-solid fa-keyboard mr-1"></i>Manuelles Symbol</label>
+            <input id="manualSymbol" type="text" placeholder="z.B. AAPL.US" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium mb-2"><i class="fa-regular fa-calendar mr-1"></i>Lookback (Tage)</label>
+            <select id="lookbackSelect" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="250">250 (~1 Jahr)</option>
+              <option value="500" selected>500 (~2 Jahre)</option>
+              <option value="750">750 (~3 Jahre)</option>
+            </select>
+          </div>
+          <button onclick="runAnalysis()" id="analyzeBtn" class="btn-analyze h-12 px-6 text-white rounded-md flex items-center justify-center gap-2 font-semibold">
+            <i class="fa-solid fa-microchip"></i> Regime-Analyse starten
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-xs text-gray-500 dark:text-gray-500 mt-4">
+      <i class="fa-solid fa-triangle-exclamation mr-1"></i>Keine Anlageberatung. Alle Analysen sind regelbasiert/statistisch aus historischen Kursdaten
+      abgeleitet (kein echtes Options-Pricing, keine Implied-Volatility-Daten). Daten via Projekt-EOD-Proxy.
+    </p>
+
+    <div id="statusArea" class="mt-6"></div>
+    <div id="resultsArea" class="mt-6 space-y-6"></div>
+
+    <!-- Datenverfuegbarkeit -->
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6 mt-10">
+      <h2 class="text-xl font-bold mb-1"><i class="fa-solid fa-clipboard-list mr-1"></i>Datenverfügbarkeit der 10 Workflows</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Der EOD-Proxy liefert nur OHLCV + Fundamentals. Ehrlich markiert, was davon wirklich berechnet wird und was eine andere Datenquelle bräuchte.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="unavailable-card border-green-300 dark:border-green-700">
+          <div class="font-semibold text-green-700 dark:text-green-400 mb-1">✅ #1 Regime-Vola-Modeling — implementiert</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Realized-Vol-Klassifikation (Low/Normal/High/Extreme) + empirische Markov-Übergangsmatrix aus echten historischen Kursen.</p>
+        </div>
+        <div class="unavailable-card">
+          <div class="font-semibold text-gray-500 mb-1">🚫 #2 Deep Hedging (RL) — nicht verfügbar</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Braucht live Options-Greeks (Delta/Gamma), Bid-Ask-Spreads und Transaktionskosten-Daten — keine davon liefert dieser OHLCV-Feed.</p>
+        </div>
+        <div class="unavailable-card">
+          <div class="font-semibold text-gray-500 mb-1">🚫 #3 Early Exercise (Longstaff-Schwartz) — nicht verfügbar</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Braucht eine echte American-Option-Chain (Strikes, Laufzeiten, Preise) — dieser Feed hat keine Options-Daten.</p>
+        </div>
+        <div class="unavailable-card border-green-300 dark:border-green-700">
+          <div class="font-semibold text-green-700 dark:text-green-400 mb-1">✅ #4 Regime-Spread-Screener — implementiert</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Nutzt die Übergangsmatrix: hohe "Bleibt im Range-Regime"-Wahrscheinlichkeit → Iron-Condor-Empfehlung, sonst Richtungsstrategie.</p>
+        </div>
+        <div class="unavailable-card">
+          <div class="font-semibold text-gray-500 mb-1">🚫 #5 IV-Crush-Predictor (Earnings) — nicht verfügbar</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Braucht historische Implied-Volatility-Zeitreihen + einen Earnings-Kalender — beides nicht in diesem Feed enthalten.</p>
+        </div>
+        <div class="unavailable-card">
+          <div class="font-semibold text-gray-500 mb-1">🚫 #6 Order-Flow / Gamma-Squeeze — nicht verfügbar</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Braucht Level-2-Orderbuch-Daten und Dealer-Gamma-Exposure (GEX) — Mikrostruktur-Daten, kein EOD/OHLCV-Feed liefert das.</p>
+        </div>
+        <div class="unavailable-card border-green-300 dark:border-green-700">
+          <div class="font-semibold text-green-700 dark:text-green-400 mb-1">✅ #7 Pfad-Simulation — implementiert (Bootstrap statt GAN)</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Kein echtes Time-GAN (zu rechenintensiv für den Browser) — stattdessen Bootstrap-Resampling echter historischer regime-bedingter Tagesrenditen für Monte-Carlo-Pfade + VaR/CVaR.</p>
+        </div>
+        <div class="unavailable-card border-green-300 dark:border-green-700">
+          <div class="font-semibold text-green-700 dark:text-green-400 mb-1">✅ #8 Regime-Wahrscheinlichkeitskegel — implementiert</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Kegel nutzt regime-bedingte Drift/Vola (aus der Historie des aktuellen Regimes) statt einer statischen GBM-Annahme.</p>
+        </div>
+        <div class="unavailable-card">
+          <div class="font-semibold text-gray-500 mb-1">🚫 #9 Vol-Arbitrage (IV-Anomalie) — nicht verfügbar</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Braucht eine echte Implied-Volatility-Surface (Strike × Laufzeit) zum Vergleich mit dem Modell — nicht in diesem Feed.</p>
+        </div>
+        <div class="unavailable-card border-green-300 dark:border-green-700">
+          <div class="font-semibold text-green-700 dark:text-green-400 mb-1">✅ #10 Tail-Risk-Hedge-Trigger — implementiert</div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Übergangswahrscheinlichkeit ins Extreme-Regime aus der Matrix + Schwellenwert-Empfehlung für OTM-Put-Hedges.</p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="text-center text-xs text-gray-500 dark:text-gray-500 mt-8 pb-4">
+      <i class="fa-solid fa-database mr-1"></i>Datenquelle: Projekt-EOD-Proxy · Alle Berechnungen laufen client-seitig im Browser.
+    </footer>
+  </main>
+
+  <script src="/shared/js/api-client.js"></script>
+  <script>
+'use strict';
+window.API_BASE_URL = '';
+
+// ==================== SYMBOL-DATEN (EODHD-korrekte Formate via Projekt-Proxy) ====================
+const marketData = {
+  "DAX": "ADS.XETRA, ALV.XETRA, BAS.XETRA, BAYN.XETRA, BMW.XETRA, CON.XETRA, DBK.XETRA, DHL.XETRA, DTE.XETRA, EOAN.XETRA, IFX.XETRA, MBG.XETRA, MUV2.XETRA, RWE.XETRA, SAP.XETRA, SIE.XETRA, VOW3.XETRA",
+  "DOW JONES": "AAPL.US, MSFT.US, JPM.US, V.US, WMT.US, HD.US, DIS.US, KO.US, MCD.US, NKE.US, CAT.US, BA.US, GS.US, IBM.US, CVX.US, UNH.US, CRM.US",
+  "NASDAQ 100": "NVDA.US, GOOGL.US, AMZN.US, META.US, TSLA.US, AVGO.US, COST.US, NFLX.US, AMD.US, ADBE.US, AAPL.US, MSFT.US",
+  "S&P 500": "SPY.US, AAPL.US, MSFT.US, NVDA.US, AMZN.US, GOOGL.US, META.US, BRK-B.US, JPM.US, V.US",
+  "CRYPTO": "BTC-USD, ETH-USD, SOL-USD, XRP-USD, ADA-USD, DOGE-USD",
+  "FOREX": "EURUSD.FOREX, GBPUSD.FOREX, USDJPY.FOREX, USDCHF.FOREX, EURGBP.FOREX",
+  "ETF (US)": "SPY.US, QQQ.US, VTI.US, IWM.US, GLD.US, XLE.US, XLF.US",
+  "UK BLUECHIPS": "HSBA.LSE, BP.LSE, ULVR.LSE, AZN.LSE, GSK.LSE",
+  "SCHWEIZ": "NESN.SW, ROG.SW, NOVN.SW, UBSG.SW"
+};
+
+function updateSymbols() {
+  const market = document.getElementById('marketCategory').value;
+  const symbolSelect = document.getElementById('symbolSelect');
+  symbolSelect.innerHTML = '<option value="">Symbol wählen...</option>';
+  if (market && marketData[market]) {
+    marketData[market].split(',').map((s) => s.trim()).forEach((symbol) => {
+      const option = document.createElement('option');
+      option.value = symbol; option.textContent = symbol;
+      symbolSelect.appendChild(option);
+    });
+  }
+}
+
+function toggleDarkMode() {
+  document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+}
+if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+
+// ==================== EOD-PROXY via Projekt-API-Client ====================
+async function eodFetch(symbol, endpoint = 'real-time', opts = {}) {
+  // Nutzt den projekt-eigenen Proxy /eod/* (nicht den externen gemini-os Proxy)
+  if (endpoint === 'historical') {
+    return await API.eod.historical(symbol, opts);
+  } else {
+    return await API.eod.realtime(symbol);
+  }
+}
+
+// ==================== STATISTIK / MARKOV-KERN ====================
+const REGIME_LABELS = ['Low', 'Normal', 'High', 'Extreme'];
+const VOL_WINDOW = 20;
+
+function logReturns(closesAsc) {
+  const out = [];
+  for (let i = 1; i < closesAsc.length; i++) out.push(Math.log(closesAsc[i] / closesAsc[i - 1]));
+  return out;
+}
+
+function rollingRealizedVol(rets, window = 20) {
+  const out = [];
+  for (let i = window; i <= rets.length; i++) {
+    const slice = rets.slice(i - window, i);
+    const mean = slice.reduce((a, b) => a + b, 0) / slice.length;
+    const variance = slice.reduce((a, b) => a + (b - mean) ** 2, 0) / (slice.length - 1);
+    out.push(Math.sqrt(variance) * Math.sqrt(252));
+  }
+  return out;
+}
+
+function classifyRegimes(vols) {
+  const sorted = [...vols].sort((a, b) => a - b);
+  const q = (p) => sorted[Math.max(0, Math.min(sorted.length - 1, Math.floor(p * (sorted.length - 1))))];
+  const q33 = q(0.33), q66 = q(0.66), q90 = q(0.90);
+  return vols.map((v) => (v <= q33 ? 'Low' : v <= q66 ? 'Normal' : v <= q90 ? 'High' : 'Extreme'));
+}
+
+function buildTransitionMatrix(states) {
+  const counts = {};
+  REGIME_LABELS.forEach((a) => { counts[a] = {}; REGIME_LABELS.forEach((b) => { counts[a][b] = 0; }); });
+  for (let i = 1; i < states.length; i++) counts[states[i - 1]][states[i]]++;
+  const matrix = {};
+  REGIME_LABELS.forEach((a) => {
+    const total = REGIME_LABELS.reduce((s, b) => s + counts[a][b], 0);
+    matrix[a] = {};
+    REGIME_LABELS.forEach((b) => { matrix[a][b] = total > 0 ? counts[a][b] / total : 0; });
+  });
+  return matrix;
+}
+
+function regimeConditionalStats(rets, states) {
+  const byRegime = {};
+  REGIME_LABELS.forEach((r) => { byRegime[r] = []; });
+  for (let i = 0; i < states.length; i++) byRegime[states[i]].push(rets[i]);
+  const stats = {};
+  REGIME_LABELS.forEach((r) => {
+    const arr = byRegime[r];
+    if (!arr.length) { stats[r] = { mean: 0, vol: 0, pool: [] }; return; }
+    const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+    const variance = arr.length > 1 ? arr.reduce((a, b) => a + (b - mean) ** 2, 0) / (arr.length - 1) : 0;
+    stats[r] = { mean, vol: Math.sqrt(variance), pool: arr };
+  });
+  return stats;
+}
+
+function gaussianRandom() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function bootstrapPaths(pool, startPrice, days, numPaths, jitterStd = 0) {
+  const paths = [];
+  for (let p = 0; p < numPaths; p++) {
+    const path = [startPrice];
+    let price = startPrice;
+    for (let d = 0; d < days; d++) {
+      let r = pool[Math.floor(Math.random() * pool.length)];
+      if (jitterStd > 0) r += gaussianRandom() * jitterStd;
+      price = price * Math.exp(r);
+      path.push(price);
+    }
+    paths.push(path);
+  }
+  return paths;
+}
+
+function percentile(sortedArr, p) {
+  const idx = Math.max(0, Math.min(sortedArr.length - 1, Math.floor(p * (sortedArr.length - 1))));
+  return sortedArr[idx];
+}
+
+// ==================== UI-HELPER ====================
+function escHtml(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+function fmtPct(v) { return (v * 100).toFixed(1) + '%'; }
+
+function drawLineChart(canvas, series, opts = {}) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.clientWidth * 2;
+  const h = canvas.height = (opts.height || 260) * 2;
+  ctx.scale(1, 1);
+  ctx.clearRect(0, 0, w, h);
+  const allVals = series.flatMap((s) => s.data);
+  const min = Math.min(...allVals), max = Math.max(...allVals);
+  const pad = (max - min) * 0.08 || 1;
+  const yMin = min - pad, yMax = max + pad;
+  const n = series[0].data.length;
+  const x = (i) => (i / (n - 1)) * (w - 40) + 20;
+  const y = (v) => h - 20 - ((v - yMin) / (yMax - yMin)) * (h - 40);
+
+  ctx.strokeStyle = opts.dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const gy = 20 + (i / 4) * (h - 40);
+    ctx.beginPath(); ctx.moveTo(20, gy); ctx.lineTo(w - 20, gy); ctx.stroke();
+  }
+
+  series.forEach((s) => {
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = (s.width || 2) * 2;
+    ctx.globalAlpha = s.alpha ?? 1;
+    ctx.beginPath();
+    s.data.forEach((v, i) => { i === 0 ? ctx.moveTo(x(i), y(v)) : ctx.lineTo(x(i), y(v)); });
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  });
+}
+
+// ==================== HAUPT-ANALYSE ====================
+async function runAnalysis() {
+  const manual = document.getElementById('manualSymbol').value.trim();
+  const selected = document.getElementById('symbolSelect').value;
+  const symbol = manual || selected;
+  const lookback = +document.getElementById('lookbackSelect').value;
+  const statusArea = document.getElementById('statusArea');
+  const resultsArea = document.getElementById('resultsArea');
+  const btn = document.getElementById('analyzeBtn');
+
+  if (!symbol) { statusArea.innerHTML = '<p class="text-red-600 dark:text-red-400"><i class="fa-solid fa-circle-exclamation mr-1"></i>Bitte ein Symbol wählen oder eingeben.</p>'; return; }
+
+  btn.disabled = true;
+  statusArea.innerHTML = '<div class="flex items-center gap-3 text-gray-500"><div class="animate-spin h-5 w-5 border-2 border-indigo-500 border-t-transparent rounded-full"></div>Lade historische Kursdaten für ' + escHtml(symbol) + '...</div>';
+  resultsArea.innerHTML = '';
+
+  try {
+    const today = new Date();
+    const from = new Date(today); from.setDate(from.getDate() - Math.ceil(lookback * 1.6));
+    const fmt = (d) => d.toISOString().split('T')[0];
+    const hist = await eodFetch(symbol, 'historical', { from: fmt(from), to: fmt(today), period: 'd' });
+
+    if (!Array.isArray(hist) || hist.length < 60) {
+      let msg = 'Zu wenig historische Daten (' + (hist?.length || 0) + ' Punkte). ';
+      if (!Array.isArray(hist)) msg = 'API-Fehler: Symbol-Format prüfen (US: .US, DE: .XETRA, Crypto: BTC-USD, Forex: EURUSD.FOREX)';
+      throw new Error(msg);
+    }
+
+    const asc = [...hist].sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-lookback);
+    const closes = asc.map((d) => d.close);
+    const rets = logReturns(closes);
+    const vols = rollingRealizedVol(rets, VOL_WINDOW);
+    const regimeStates = classifyRegimes(vols);
+    const alignedRets = rets.slice(rets.length - regimeStates.length);
+    const currentRegime = regimeStates[regimeStates.length - 1];
+    const transitionMatrix = buildTransitionMatrix(regimeStates);
+    const regimeStats = regimeConditionalStats(alignedRets, regimeStates);
+    const currentPrice = closes[closes.length - 1];
+
+    statusArea.innerHTML = `<p class="text-sm text-gray-500 dark:text-gray-400"><i class="fa-solid fa-circle-check text-green-500 mr-1"></i>${asc.length} Handelstage geladen · ${escHtml(symbol)} · Letzter Kurs: ${currentPrice.toFixed(2)}</p>`;
+
+    renderResults({ symbol, currentPrice, currentRegime, transitionMatrix, regimeStats, alignedRets });
+  } catch (error) {
+    statusArea.innerHTML = `<p class="text-red-600 dark:text-red-400"><i class="fa-solid fa-circle-xmark mr-1"></i>Fehler: ${escHtml(error.message)}</p>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderResults({ symbol, currentPrice, currentRegime, transitionMatrix, regimeStats, alignedRets }) {
+  const resultsArea = document.getElementById('resultsArea');
+  const isDark = document.documentElement.classList.contains('dark');
+
+  const matrixRows = REGIME_LABELS.map((from) => `
+    <tr>
+      <td class="matrix-cell font-semibold text-left pl-3">${from}</td>
+      ${REGIME_LABELS.map((to) => `<td class="matrix-cell" style="background:rgba(99,102,241,${(transitionMatrix[from][to] * 0.6).toFixed(2)})">${fmtPct(transitionMatrix[from][to])}</td>`).join('')}
+    </tr>
+  `).join('');
+
+  const stayProb = transitionMatrix[currentRegime][currentRegime];
+  const toExtreme = transitionMatrix[currentRegime]['Extreme'];
+  let strategyRec, strategyReason;
+  if ((currentRegime === 'Low' || currentRegime === 'Normal') && stayProb > 0.55) {
+    strategyRec = 'Iron Condor / Credit Spread (Range-Strategie)';
+    strategyReason = `P(bleibt in ${currentRegime}) = ${fmtPct(stayProb)} über 55% — Regime-Persistenz spricht für Range-Strategien.`;
+  } else if (currentRegime === 'High' || currentRegime === 'Extreme') {
+    strategyRec = 'Directional / Long Gamma (Straddle, Strangle)';
+    strategyReason = `Aktuelles Regime ist ${currentRegime} — erhöhte Wahrscheinlichkeit für große Kursausschläge spricht gegen Short-Vola-Strategien.`;
+  } else {
+    strategyRec = 'Abwarten / kleine Positionsgröße';
+    strategyReason = `Regime-Persistenz (${fmtPct(stayProb)}) ist nicht eindeutig genug für eine klare Empfehlung.`;
+  }
+
+  const stats = regimeStats[currentRegime];
+  const coneDays = 30;
+  const coneMid = [], coneUp1 = [], coneDown1 = [], coneUp2 = [], coneDown2 = [];
+  for (let d = 0; d <= coneDays; d++) {
+    const drift = stats.mean * d;
+    const spread = stats.vol * Math.sqrt(d);
+    coneMid.push(currentPrice * Math.exp(drift));
+    coneUp1.push(currentPrice * Math.exp(drift + spread));
+    coneDown1.push(currentPrice * Math.exp(drift - spread));
+    coneUp2.push(currentPrice * Math.exp(drift + 2 * spread));
+    coneDown2.push(currentPrice * Math.exp(drift - 2 * spread));
+  }
+
+  const mcDays = 20, mcPaths = 200;
+  const poolIsSparse = stats.pool.length < 10;
+  const mcPool = poolIsSparse ? alignedRets : stats.pool;
+  const jitterStd = poolIsSparse ? stats.vol * 0.3 : 0;
+  const paths = bootstrapPaths(mcPool, currentPrice, mcDays, mcPaths, jitterStd);
+  const finalPrices = paths.map((p) => p[p.length - 1]).sort((a, b) => a - b);
+  const var5 = currentPrice - percentile(finalPrices, 0.05);
+  const cvar5Pool = finalPrices.slice(0, Math.max(1, Math.floor(finalPrices.length * 0.05)));
+  const cvar5 = currentPrice - (cvar5Pool.reduce((a, b) => a + b, 0) / cvar5Pool.length);
+  const samplePaths = paths.slice(0, 40);
+
+  const hedgeThreshold = 0.15;
+  const hedgeActive = toExtreme > hedgeThreshold;
+
+  resultsArea.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="panel bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+        <h3 class="font-bold text-lg mb-3"><i class="fa-solid fa-brain text-indigo-500 mr-1"></i>Regime-Erkennung &amp; Übergangsmatrix</h3>
+        <p class="mb-3">Aktuelles Regime: <span class="regime-badge regime-${currentRegime}">${currentRegime}</span></p>
+        <table class="w-full border-collapse">
+          <thead><tr><th class="text-left pl-3 text-xs text-gray-500">von \\ nach</th>${REGIME_LABELS.map((l) => `<th class="matrix-cell text-xs text-gray-500">${l}</th>`).join('')}</tr></thead>
+          <tbody>${matrixRows}</tbody>
+        </table>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">Markov-Übergangswahrscheinlichkeiten, geschätzt aus ${REGIME_LABELS.map((r) => regimeStats[r].pool.length).reduce((a, b) => a + b, 0)} klassifizierten Handelstagen.</p>
+      </div>
+
+      <div class="panel bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+        <h3 class="font-bold text-lg mb-3"><i class="fa-solid fa-chart-pie text-indigo-500 mr-1"></i>Regime-Spread-Screener</h3>
+        <p class="text-xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">${strategyRec}</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">${strategyReason}</p>
+        <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+          <div class="bg-gray-50 dark:bg-gray-800 rounded p-3"><div class="text-gray-500 text-xs">Regime-Persistenz</div><div class="font-bold">${fmtPct(stayProb)}</div></div>
+          <div class="bg-gray-50 dark:bg-gray-800 rounded p-3"><div class="text-gray-500 text-xs">P(→ Extreme)</div><div class="font-bold">${fmtPct(toExtreme)}</div></div>
+        </div>
+      </div>
+
+      <div class="panel bg-white dark:bg-gray-900 rounded-lg shadow p-6 lg:col-span-2">
+        <h3 class="font-bold text-lg mb-3"><i class="fa-solid fa-chart-area text-indigo-500 mr-1"></i>Regime-Wahrscheinlichkeitskegel (${coneDays} Tage)</h3>
+        <canvas id="coneCanvas" style="width:100%;height:260px"></canvas>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Drift/Vola aus der Historie des aktuellen Regimes (${currentRegime}) abgeleitet, nicht aus einer statischen GBM-Annahme. Äußere Bänder = ±2σ, innere = ±1σ.</p>
+      </div>
+
+      <div class="panel bg-white dark:bg-gray-900 rounded-lg shadow p-6 lg:col-span-2">
+        <h3 class="font-bold text-lg mb-3"><i class="fa-solid fa-chart-line text-indigo-500 mr-1"></i>Monte-Carlo-Pfadsimulation (Bootstrap, ${mcDays} Tage, ${mcPaths} Pfade)</h3>
+        <canvas id="mcCanvas" style="width:100%;height:260px"></canvas>
+        <div class="grid grid-cols-2 gap-3 text-sm mt-3">
+          <div class="bg-red-50 dark:bg-red-950 rounded p-3"><div class="text-gray-500 text-xs">VaR 95% (${mcDays}d)</div><div class="font-bold text-red-600 dark:text-red-400">-${var5.toFixed(2)} (${fmtPct(var5 / currentPrice)})</div></div>
+          <div class="bg-red-50 dark:bg-red-950 rounded p-3"><div class="text-gray-500 text-xs">CVaR 95% (${mcDays}d)</div><div class="font-bold text-red-600 dark:text-red-400">-${cvar5.toFixed(2)} (${fmtPct(cvar5 / currentPrice)})</div></div>
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Pfade per Bootstrap-Resampling echter historischer regime-bedingter Tagesrenditen (kein GAN, aber real-data-basiert statt einer reinen Normalverteilungs-Annahme).</p>
+      </div>
+
+      <div class="panel bg-white dark:bg-gray-900 rounded-lg shadow p-6 lg:col-span-2 ${hedgeActive ? 'border-2 border-red-500' : ''}">
+        <h3 class="font-bold text-lg mb-3"><i class="fa-solid fa-shield-halved text-indigo-500 mr-1"></i>Tail-Risk-Hedge-Trigger</h3>
+        <p class="text-xl font-bold ${hedgeActive ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'} mb-2">
+          ${hedgeActive ? '⚠️ HEDGE EMPFOHLEN' : '✅ Kein akuter Hedge-Bedarf'}
+        </p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          P(${currentRegime} → Extreme) = ${fmtPct(toExtreme)} ${hedgeActive ? 'liegt über' : 'liegt unter'} dem Schwellenwert von ${fmtPct(hedgeThreshold)}.
+          ${hedgeActive ? 'Empfehlung: OTM-Put-Hedge-Allokation erhöhen.' : 'Absicherung bleibt inaktiv, um unnötige Prämienkosten zu vermeiden.'}
+        </p>
+      </div>
+    </div>
+  `;
+
+  drawLineChart(document.getElementById('coneCanvas'), [
+    { data: coneUp2, color: '#c7d2fe', width: 1.5 },
+    { data: coneUp1, color: '#818cf8', width: 1.5 },
+    { data: coneMid, color: '#4338ca', width: 2.5 },
+    { data: coneDown1, color: '#818cf8', width: 1.5 },
+    { data: coneDown2, color: '#c7d2fe', width: 1.5 }
+  ], { dark: isDark });
+
+  drawLineChart(document.getElementById('mcCanvas'), samplePaths.map((p) => ({ data: p, color: '#a855f7', width: 0.6, alpha: 0.35 })), { dark: isDark });
+}
+</script>
+</body>
+</html>

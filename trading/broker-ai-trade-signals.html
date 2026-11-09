@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="de" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BROKER AI - Trade Signals</title>
+  <!--
+    Migriert aus BLUEHOST-ORIGINAL/BLUEHOST/02_AI_CHATBOTS/CLAUDE12broker.html:
+    - Hartcodierter EODHD-Key (direkt gegen eodhistoricaldata.com im Client) entfernt
+      -- Key wurde inzwischen rotiert. Laeuft jetzt ueber unseren
+      /eod/historical/:symbol + /eod/realtime/:symbol Proxy (server/providers/eod.js).
+    - Unser Proxy unterstuetzt kein "limit"-Query-Param (nur from/to/period) --
+      die drei Methoden, die vorher limit=3/5/10 nutzten, fragen stattdessen einen
+      ausreichend weiten "from"-Zeitraum ab und sortieren/schneiden clientseitig
+      genau wie vorher.
+    - Totes html2canvas-Script entfernt (war eingebunden, aber nirgends aufgerufen).
+    - NEU: "KI-Analyse"-Button pro Signal-Karte -- ruft echtes LLM (OpenAI ueber
+      unseren Proxy) fuer eine kurze Chance/Risiko-Einschaetzung des jeweiligen
+      Signals ab. Ergebnis-Objekt wird per Closure an addEventListener uebergeben
+      (kein JSON-in-onclick-Attribut -- vermeidet die Anfuehrungszeichen-/Escaping-
+      Fallstricke, die an anderer Stelle in diesem Projekt schon Bugs verursacht haben).
+  -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: "hsl(214.3 31.8% 91.4%)",
+            input: "hsl(214.3 31.8% 91.4%)",
+            ring: "hsl(221.2 83.2% 53.3%)",
+            background: "hsl(0 0% 100%)",
+            foreground: "hsl(222.2 84% 4.9%)",
+            primary: {
+              DEFAULT: "hsl(221.2 83.2% 53.3%)",
+              foreground: "hsl(210 40% 98%)",
+            },
+            secondary: {
+              DEFAULT: "hsl(210 40% 96.1%)",
+              foreground: "hsl(222.2 47.4% 11.2%)",
+            },
+            muted: {
+              DEFAULT: "hsl(210 40% 96.1%)",
+              foreground: "hsl(215.4 16.3% 46.9%)",
+            },
+            accent: {
+              DEFAULT: "hsl(210 40% 96.1%)",
+              foreground: "hsl(222.2 47.4% 11.2%)",
+            },
+            card: {
+              DEFAULT: "hsl(0 0% 100%)",
+              foreground: "hsl(222.2 84% 4.9%)",
+            },
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    .dark {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --primary: 217.2 91.2% 59.8%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --accent: 217.2 32.6% 17.5%;
+      --accent-foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+    }
+
+    body {
+      background-color: hsl(var(--background));
+      color: hsl(var(--foreground));
+    }
+
+    .comic-panel {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .comic-panel:hover {
+      transform: scale(1.02);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .ai-analyse-btn {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .ai-analyse-btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
+    .ai-analyse-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .ai-analyse-result {
+      white-space: pre-wrap;
+      line-height: 1.5;
+      border-left: 3px solid #8b5cf6;
+      padding-left: 0.6rem;
+    }
+  
+/* ===== MOBILE RESPONSIVE — auto-injected by GLOW-UP-GEMINI review ===== */
+
+/* Universal box-sizing fix */
+*,*::before,*::after{box-sizing:border-box}
+
+/* Base mobile overrides */
+@media(max-width:768px){
+  html,body{overflow-x:hidden;max-width:100%;-webkit-text-size-adjust:100%}
+  img,video,iframe,canvas,svg{max-width:100%;height:auto}
+  input,textarea,select,button{font-size:16px!important}
+  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  
+  /* Full-width container collapse */
+  .app,.container,.wrapper{width:100%!important;max-width:100%!important;padding-left:12px!important;padding-right:12px!important}
+  
+  /* Sidebar -> overlay drawer [removed left conflict] */
+  
+  /* Main area full width */
+  .main,.chat,.content,.panel{width:100%!important;max-width:100%!important;margin-left:0!important;padding-left:10px!important;padding-right:10px!important}
+  
+  /* Chat messages */
+  .message{max-width:95%!important;font-size:.9rem!important;padding:8px 12px!important}
+  
+  /* Input area fixed bottom */
+  .input-area{position:fixed!important;bottom:0!important;left:0!important;width:100%!important;z-index:9998!important;padding:8px 10px!important;border-radius:0!important;background:inherit!important;box-shadow:0 -2px 10px rgba(0,0,0,.1)!important}
+  .input-area input,.input-area textarea{width:100%!important;font-size:16px!important}
+  
+  /* Chat containers need bottom padding for fixed input */
+  .chat,.chat-container,.messages,.chat-messages{padding-bottom:70px!important}
+  
+  /* Grid collapse */
+  .grid,.cards,.card-grid{display:flex!important;flex-direction:column!important;gap:12px!important}
+  .grid>*,.cards>*,.card-grid>*,.card{width:100%!important;max-width:100%!important;min-width:0!important}
+  
+  /* Buttons touch-friendly */
+  .btn,button,.send-btn,.nav-item{padding:10px 16px!important;min-height:44px!important;font-size:.9rem!important}
+  
+  /* Header/nav compact */
+  header,header *,.header,.topbar{padding:8px 12px!important}
+  header h1{font-size:1.3rem!important}
+  nav,.nav{flex-wrap:wrap!important;gap:4px!important}
+  
+  /* Tables/wide content scrollable */
+  .table-wrap,.table-container{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+  
+  /* Dialog/modal full screen */
+  .dialog,.modal{width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important;border-radius:0!important;left:0!important;top:0!important;margin:0!important;position:fixed!important}
+  .dialog-content,.modal-content{width:100%!important;height:100%!important;max-height:100%!important;overflow-y:auto!important}
+  
+  /* Column layout -> stack */
+  .row,[class*=flex-row],[style*="display: flex"]{flex-direction:column!important}
+  .row>*,[class*=flex-row]>*{width:100%!important}
+}
+@media(max-width:480px){
+  .message{max-width:98%!important;font-size:.85rem!important}
+  button,.btn,.nav-item{min-height:40px!important;padding:8px 12px!important;font-size:.85rem!important}
+  h1{font-size:1.2rem!important}
+  h2{font-size:1.1rem!important}
+  .sidebar{width:100%!important;max-width:100%!important}
+}
+
+</style>
+</head>
+<body class="min-h-screen antialiased">
+  <!-- Header -->
+  <header class="bg-white dark:bg-gray-900 shadow-lg">
+    <div class="container mx-auto px-4 py-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-200 bg-clip-text text-transparent">
+            BROKER AI
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 text-sm md:text-base tracking-wider font-medium">
+            INTELLIGENT TRADE SIGNALS
+          </p>
+        </div>
+        <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700">
+          <svg class="w-6 h-6 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+          </svg>
+          <svg class="w-6 h-6 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-8">
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-6">
+      <div class="space-y-6">
+        <!-- Market Category Selection -->
+        <div class="grid grid-cols-1 gap-6">
+          <div>
+            <label class="block text-sm font-medium mb-2">Select Market Category</label>
+            <select id="marketCategory" onchange="updateSymbols()" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Choose market...</option>
+              <option value="DAX">DAX</option>
+              <option value="DOW JONES">DOW JONES</option>
+              <option value="NASDAQ 100">NASDAQ 100</option>
+              <option value="CRYPTO">CRYPTO</option>
+              <option value="FOREX">FOREX</option>
+              <option value="STOXX 50">STOXX 50</option>
+              <option value="US BANKS">US BANKS</option>
+              <option value="US OIL">US OIL</option>
+              <option value="US INSURANCE">US INSURANCE</option>
+              <option value="EU OIL">EU OIL</option>
+              <option value="EU INSURANCE">EU INSURANCE</option>
+              <option value="MDAX">MDAX</option>
+              <option value="TECDAX">TECDAX</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Select Symbol</label>
+            <select id="symbolSelect" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Choose symbol...</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Analysis Method and Controls -->
+        <div class="space-y-4 sm:space-y-0 sm:flex sm:gap-4 items-end">
+          <div class="w-full sm:w-48">
+            <label class="block text-sm font-medium mb-2">Manual Symbol</label>
+            <input id="manualSymbol" type="text" placeholder="e.g. AAPL" class="w-full h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 w-full sm:w-auto">
+            <button onclick="fetchStockData()" class="h-12 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              Get Trade
+            </button>
+
+            <select id="analysisMethod" class="h-12 px-4 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="realtime">Realtime</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+
+            <button onclick="downloadCSV()" class="h-12 px-4 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              CSV
+            </button>
+
+            <button onclick="downloadTXT()" class="h-12 px-4 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              TXT
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-xs text-gray-500 dark:text-gray-500 mt-4">
+      ⚠️ Keine Anlageberatung. Signale sind regelbasiert generiert, die optionale KI-Analyse ist eine
+      zusätzliche, ebenfalls automatisch erzeugte Einschätzung zu Bildungszwecken.
+    </p>
+
+    <!-- Stock Info Container -->
+    <div id="stockInfoContainer" class="flex flex-wrap mt-8"></div>
+  </main>
+
+  <!-- ============================================================
+     STANDALONE-VERSION -- Broker AI Signals
+     Monolithisch: kein /shared/-Ordner noetig, alles in dieser Datei.
+     API_BASE_URL fest auf die deployte Proxy-Instanz gesetzt:
+     https://glow-up-gemini.replit.app
+     Kann von ueberall gehostet/geoeffnet werden (auch file://) --
+     CORS ist serverseitig offen (kein ALLOWED_ORIGINS gesetzt).
+     ============================================================ -->
+<script>
+window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
+/*
+ * Einziger Ort, der fetch() gegen den eigenen Proxy aufruft.
+ * Nie gegen Provider-URLs, nie mit API-Keys -- die liegen ausschliesslich
+ * serverseitig in server/providers/*.js als Replit Secrets.
+ *
+ * Einbindung: <script src="/shared/js/api-client.js"><\/script>
+ * Alles haengt am globalen "API"-Objekt, kein Build-Step noetig.
+ */
+(function (global) {
+  'use strict';
+
+  // Same-origin per Default (Proxy + Prototypen im selben Repl). Fuer statisches
+  // Hosting ohne Backend dahinter (z.B. VS Code "Live Server") vor diesem Script
+  // per <script>window.API_BASE_URL = 'http://localhost:5000';<\/script> auf den
+  // laufenden Node-Proxy zeigen -- CORS ist serverseitig schon offen.
+  const BASE = global.API_BASE_URL || '';
+
+  async function postJSON(path, body) {
+    const res = await fetch(BASE + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body || {})
+    });
+    const data = await res.json();
+    if (!res.ok) throw Object.assign(new Error('API request failed'), { status: res.status, data });
+    return data;
+  }
+
+  async function getJSON(path, params) {
+    const qs = params && Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : '';
+    const res = await fetch(BASE + path + qs);
+    const data = await res.json();
+    if (!res.ok) throw Object.assign(new Error('API request failed'), { status: res.status, data });
+    return data;
+  }
+
+  // Verpackt rohe PCM-Bytes (wie sie Gemini TTS liefert) in einen minimalen
+  // WAV-Header, damit new Audio(url) sie abspielen kann -- Browser koennen
+  // kein "nacktes" PCM ohne Container abspielen.
+  function pcmToWav(pcmBuffer, { sampleRate, numChannels, bitsPerSample }) {
+    const blockAlign = numChannels * (bitsPerSample / 8);
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = pcmBuffer.byteLength;
+    const header = new ArrayBuffer(44);
+    const view = new DataView(header);
+    const writeStr = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+
+    writeStr(0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeStr(8, 'WAVE');
+    writeStr(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeStr(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    return new Blob([header, pcmBuffer], { type: 'audio/wav' });
+  }
+
+  async function postForm(path, formData) {
+    const res = await fetch(BASE + path, { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw Object.assign(new Error('API request failed'), { status: res.status, data });
+    return data;
+  }
+
+  // Generischer SSE-Reader fuer OpenAI-kompatible delta-Streams (OpenAI, Mistral, Groq, Perplexity)
+  async function streamOpenAICompatible(path, body, onDelta, onThinkingDelta) {
+    const res = await fetch(BASE + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, stream: true })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw Object.assign(new Error('Stream request failed'), { status: res.status, data: err });
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const line of decoder.decode(value, { stream: true }).split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (!payload || payload === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(payload);
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (typeof content === 'string') {
+            if (content) { full += content; if (onDelta) onDelta(content, full); }
+          } else if (Array.isArray(content)) {
+            // Reasoning-Modelle (z.B. Mistral magistral-*) liefern delta.content waehrend
+            // der Denkphase als Array von Content-Bloecken statt eines Strings --
+            // {"type":"thinking","thinking":[{"type":"text","text":"..."}]} -- live
+            // verifiziert. Naives "full += content" stringified das Array zu
+            // "[object Object]" und haengt sich dauerhaft an die Antwort (das gemeldete
+            // "immer object object"). Denk-Text wird separat behandelt (optionaler
+            // Callback), nur echte "text"-Bloecke zaehlen als sichtbare Antwort.
+            for (const block of content) {
+              if (block?.type === 'thinking' && Array.isArray(block.thinking)) {
+                const thinkingText = block.thinking.map((t) => t?.text || '').join('');
+                if (thinkingText && onThinkingDelta) onThinkingDelta(thinkingText);
+              } else if (block?.type === 'text' && block.text) {
+                full += block.text; if (onDelta) onDelta(block.text, full);
+              }
+            }
+          }
+        } catch (_) { /* ignore partial/non-JSON keepalive lines */ }
+      }
+    }
+    return full;
+  }
+
+  // Anthropic-Stream hat ein eigenes Event-Format (content_block_delta)
+  async function streamClaude(body, onDelta) {
+    const res = await fetch(BASE + '/claude/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, stream: true })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw Object.assign(new Error('Stream request failed'), { status: res.status, data: err });
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const line of decoder.decode(value, { stream: true }).split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (!payload) continue;
+        try {
+          const parsed = JSON.parse(payload);
+          const token = parsed.delta?.text;
+          if (token) {
+            full += token;
+            if (onDelta) onDelta(token, full);
+          }
+        } catch (_) { /* ignore */ }
+      }
+    }
+    return full;
+  }
+
+  // Reichhaltigere Variante fuer claudeMessage(): erfasst zusaetzlich Extended-
+  // Thinking-Deltas (delta.type === 'thinking_delta'). Tool-Use-Bloecke
+  // (server_tool_use/*_tool_result fuer Web-Suche/Code-Ausfuehrung) lassen sich
+  // aus SSE-Deltas nicht sauber/vollstaendig rekonstruieren -- claudeMessage()
+  // schaltet bei aktiven Tools deshalb auf einen normalen (nicht-gestreamten)
+  // Request um, der den kompletten content[]-Array direkt liefert.
+  async function streamClaudeRich(body, { onTextDelta, onThinkingDelta } = {}) {
+    const res = await fetch(BASE + '/claude/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, stream: true })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw Object.assign(new Error('Stream request failed'), { status: res.status, data: err });
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let text = '';
+    let thinking = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const line of decoder.decode(value, { stream: true }).split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (!payload) continue;
+        try {
+          const parsed = JSON.parse(payload);
+          if (parsed.type === 'content_block_delta') {
+            if (parsed.delta?.type === 'text_delta') {
+              text += parsed.delta.text;
+              if (onTextDelta) onTextDelta(parsed.delta.text, text);
+            } else if (parsed.delta?.type === 'thinking_delta') {
+              thinking += parsed.delta.thinking || '';
+              if (onThinkingDelta) onThinkingDelta(parsed.delta.thinking, thinking);
+            }
+          }
+        } catch (_) { /* ignore */ }
+      }
+    }
+    return { text, thinking };
+  }
+
+  // Extrahiert Text/Thinking/Zitate/Tool-Schritte aus einer NICHT-gestreamten
+  // Claude-Antwort (content[]-Array mit type: text|thinking|server_tool_use|
+  // web_search_tool_result|code_execution_tool_result).
+  function extractClaudeOutput(data) {
+    const blocks = data.content || [];
+    let text = '';
+    let thinking = '';
+    const seenUrls = new Set();
+    const citations = [];
+    const toolSteps = [];
+    for (const block of blocks) {
+      if (block.type === 'text') {
+        text += block.text || '';
+        (block.citations || []).forEach((c) => {
+          if (c.url && !seenUrls.has(c.url)) { seenUrls.add(c.url); citations.push({ url: c.url, title: c.title }); }
+        });
+      } else if (block.type === 'thinking') {
+        thinking += block.thinking || '';
+      } else if (block.type === 'server_tool_use') {
+        toolSteps.push({ type: 'tool_use', name: block.name, input: block.input });
+      } else if (block.type === 'web_search_tool_result' || block.type === 'code_execution_tool_result') {
+        toolSteps.push({ type: 'tool_result', tool: block.type, content: block.content });
+      }
+    }
+    return { text, thinking, citations, toolSteps, raw: data };
+  }
+
+  // Gemini Interactions API hat seit dem Breaking Change vom 26.05.2026 ein eigenes
+  // Stream-Event-Format: {"event_type":"step.delta","delta":{"type":"text","text":"..."}}
+  // -- NICHT das choices[0].delta-Format von OpenAI/Mistral/Groq/Perplexity.
+  async function streamGeminiInteraction(body, onDelta) {
+    const res = await fetch(BASE + '/gemini/interactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, stream: true })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw Object.assign(new Error('Stream request failed'), { status: res.status, data: err });
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let full = '';
+    let interactionId = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const line of decoder.decode(value, { stream: true }).split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (!payload) continue;
+        try {
+          const parsed = JSON.parse(payload);
+          if (parsed.event_type === 'interaction.created') {
+            interactionId = parsed.interaction?.id || interactionId;
+          }
+          if (parsed.event_type === 'step.delta' && parsed.delta?.type === 'text') {
+            full += parsed.delta.text;
+            if (onDelta) onDelta(parsed.delta.text, full);
+          }
+        } catch (_) { /* ignore partial/non-JSON keepalive lines */ }
+      }
+    }
+    // Streaming liefert nur Text-Deltas, keine vollstaendigen Steps (Code-Execution,
+    // Zitate, ...). Die holen wir per Follow-up-GET nach, damit geminiInteraction()
+    // im Stream- und Non-Stream-Fall dieselbe {text, citations, raw}-Form zurueckgibt.
+    return { text: full, interactionId };
+  }
+
+  // Extrahiert Text + Zitate aus einer NICHT-gestreamten Interactions-API-Antwort.
+  // Antwortform: { steps: [{type:'model_output', content:[{type:'text', text, annotations}]}, ...] }
+  // Live gegen echtes Google-Search-Grounding getestet: dieselbe URL taucht oft
+  // mehrfach auf (einmal pro ueberlappendem Text-Abschnitt) -- hier per URL dedupliziert,
+  // sonst listet die UI dieselbe Quelle 3-4x auf.
+  function extractGeminiOutput(data) {
+    const modelOutputSteps = (data.steps || []).filter((s) => s.type === 'model_output');
+    let text = '';
+    const seenUrls = new Set();
+    const citations = [];
+    for (const step of modelOutputSteps) {
+      for (const part of step.content || []) {
+        if (part.type === 'text') {
+          text += part.text;
+          for (const a of part.annotations || []) {
+            if (a.type === 'url_citation' && !seenUrls.has(a.url)) {
+              seenUrls.add(a.url);
+              citations.push({ url: a.url, title: a.title });
+            }
+          }
+        }
+      }
+    }
+    return { text, citations, id: data.id || data.name, raw: data };
+  }
+
+  const API = {
+    // ---------- Chat ----------
+    async chatOpenAI({ messages, model, max_tokens, temperature, onDelta } = {}) {
+      if (onDelta) return streamOpenAICompatible('/api/chat', { messages, model, max_tokens, temperature }, onDelta);
+      const data = await postJSON('/api/chat', { messages, model, max_tokens, temperature });
+      return data.choices?.[0]?.message?.content ?? data;
+    },
+
+    async chatMistral({ messages, model, max_tokens, temperature, onDelta, onThinkingDelta } = {}) {
+      if (onDelta) return streamOpenAICompatible('/mistral/chat', { messages, model, max_tokens, temperature }, onDelta, onThinkingDelta);
+      const data = await postJSON('/mistral/chat', { messages, model, max_tokens, temperature });
+      const msg = data.choices?.[0]?.message;
+      if (msg && typeof msg.content !== 'string' && Array.isArray(msg.content)) {
+        // Nicht-gestreamter Fall bei Reasoning-Modellen (magistral-*): content ist auch
+        // hier ein Array von Bloecken statt eines Strings -- nur "text"-Bloecke ergeben
+        // die sichtbare Antwort, "thinking"-Bloecke werden nicht mit reingemischt.
+        return msg.content.filter((b) => b?.type === 'text').map((b) => b.text || '').join('') || data;
+      }
+      return msg?.content ?? data;
+    },
+
+    async chatGroq({ messages, model, max_tokens, temperature, onDelta } = {}) {
+      if (onDelta) return streamOpenAICompatible('/groq/chat', { messages, model, max_tokens, temperature }, onDelta);
+      const data = await postJSON('/groq/chat', { messages, model, max_tokens, temperature });
+      return data.choices?.[0]?.message?.content ?? data;
+    },
+
+    async chatPerplexity({ messages, model, onDelta, ...rest } = {}) {
+      if (onDelta) return streamOpenAICompatible('/perplexity/chat/completions', { messages, model, ...rest }, onDelta);
+      const data = await postJSON('/perplexity/chat/completions', { messages, model, ...rest });
+      return data.choices?.[0]?.message?.content ?? data;
+    },
+
+    async chatClaude({ messages, model, max_tokens, system, onDelta } = {}) {
+      if (onDelta) return streamClaude({ messages, model, max_tokens, system }, onDelta);
+      const data = await postJSON('/claude/messages', { messages, model, max_tokens, system });
+      return data.content?.[0]?.text ?? data;
+    },
+
+    // Reichhaltige Variante: Extended Thinking, Web-Suche, Code-Ausfuehrung,
+    // Zitate. Rueckgabeform {text, thinking, citations, toolSteps, raw} --
+    // gleich in Stream- und Non-Stream-Fall. Bei aktiven tools wird intern
+    // automatisch nicht-gestreamt angefragt (siehe streamClaudeRich-Kommentar).
+    async claudeMessage({ messages, model, max_tokens, system, tools, tool_choice, thinking, beta, onDelta, onThinkingDelta } = {}) {
+      const body = {
+        messages,
+        model: model || 'claude-sonnet-5',
+        max_tokens: max_tokens || 4096,
+        ...(system && { system }),
+        ...(tools && { tools }),
+        ...(tool_choice && { tool_choice }),
+        ...(thinking && { thinking }),
+        ...(beta && { beta })
+      };
+      const canStream = !!onDelta && !tools;
+      if (canStream) {
+        const { text, thinking: thinkingText } = await streamClaudeRich(body, { onTextDelta: onDelta, onThinkingDelta });
+        return { text, thinking: thinkingText, citations: [], toolSteps: [], raw: null };
+      }
+      const data = await postJSON('/claude/messages', body);
+      return extractClaudeOutput(data);
+    },
+
+    // ---------- Claude: Modelle, Dateien, Batches ----------
+    claude: {
+      models: () => getJSON('/claude/models'),
+      filesList: () => getJSON('/claude/files'),
+      fileUpload: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return postForm('/claude/files', formData);
+      },
+      fileGet: (fileId) => getJSON(`/claude/files/${fileId}`),
+      countTokens: ({ messages, model, system } = {}) => postJSON('/claude/messages/count_tokens', { messages, model, system }),
+      batchCreate: (requests) => postJSON('/claude/messages/batches', { requests }),
+      batchGet: (batchId) => getJSON(`/claude/messages/batches/${batchId}`),
+      batchResults: (batchId) => getJSON(`/claude/messages/batches/${batchId}/results`)
+    },
+
+    async chatGemini({ model = 'gemini-3.5-flash', contents, generationConfig } = {}) {
+      // Legacy generateContent-Pfad -- laeuft weiter, aber ohne neue Features
+      // (Search-Grounding, Code-Execution, TTS). Dafuer: geminiInteraction() unten.
+      const data = await postJSON(`/gemini/models/${model}/generateContent`, { contents, ...(generationConfig && { generationConfig }) });
+      return data.candidates?.[0]?.content?.parts?.[0]?.text ?? data;
+    },
+
+    // Interactions API (seit Juni 2026 GA, empfohlen fuer alles Neue).
+    // tools: [{type:'google_search'}] / [{type:'code_execution'}] / Function-Declarations.
+    async geminiInteraction({ model = 'gemini-3.5-flash', input, tools, systemInstruction, generationConfig, responseFormat, previousInteractionId, onDelta } = {}) {
+      const body = {
+        model,
+        input,
+        ...(tools && { tools }),
+        ...(systemInstruction && { system_instruction: systemInstruction }),
+        ...(generationConfig && { generation_config: generationConfig }),
+        ...(responseFormat && { response_format: responseFormat }),
+        ...(previousInteractionId && { previous_interaction_id: previousInteractionId })
+      };
+      // Rueckgabeform ist bewusst in beiden Modi gleich ({text, citations, raw}), damit
+      // Aufrufer nicht zwischen String (Stream) und Objekt (non-Stream) unterscheiden muessen.
+      if (onDelta) {
+        const { text, interactionId } = await streamGeminiInteraction(body, onDelta);
+        // Streaming liefert nur Text-Deltas -- volle Steps (Code-Execution, Zitate,
+        // Function-Calls) per Follow-up-GET nachladen, falls eine Interaction-ID da ist.
+        if (interactionId) {
+          try {
+            const full = await getJSON(`/gemini/interactions/${interactionId}`);
+            return extractGeminiOutput(full);
+          } catch (_) { /* Follow-up-GET optional -- Text haben wir so oder so schon */ }
+        }
+        return { text, citations: [], id: interactionId, raw: { steps: [] } };
+      }
+      const data = await postJSON('/gemini/interactions', body);
+      return extractGeminiOutput(data);
+    },
+
+    // Kurzform mit Google-Search-Grounding. Gibt { text, citations, raw } zurueck --
+    // citations sind echte URLs aus der Google-Suche, nicht vom Modell erfunden.
+    async geminiSearch(prompt, model) {
+      const data = await postJSON('/gemini/search', { prompt, model });
+      return extractGeminiOutput(data);
+    },
+
+    // Kurzform mit Python-Code-Execution-Tool
+    async geminiCodeExecution(prompt, model) {
+      const data = await postJSON('/gemini/code-execution', { prompt, model });
+      return extractGeminiOutput(data);
+    },
+
+    // Text-to-Speech (Gemini TTS-Modelle). Gibt eine abspielbare Blob-URL zurueck,
+    // Server liefert rohe PCM-Bytes (24kHz, mono, 16-bit) -- kein WAV-Header,
+    // daher hier in einen minimalen WAV-Container verpackt, damit <audio> es abspielen kann.
+    async geminiSpeech(input, { model, voice, speakers } = {}) {
+      const res = await fetch(BASE + '/gemini/speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input, model, voice, speakers })
+      });
+      if (!res.ok) throw new Error('Gemini TTS request failed');
+      const pcm = await res.arrayBuffer();
+      const wavBlob = pcmToWav(pcm, { sampleRate: 24000, numChannels: 1, bitsPerSample: 16 });
+      return URL.createObjectURL(wavBlob);
+    },
+
+    // Veo Videogenerierung: Long-Running-Operation (Start + Polling), keine Sofort-Antwort.
+    async geminiVeoGenerate({ prompt, model, aspectRatio, durationSeconds, resolution, image } = {}) {
+      return postJSON('/gemini/veo/generate', { prompt, model, aspectRatio, durationSeconds, resolution, image });
+    },
+    async geminiVeoOperation(operationName) {
+      return getJSON(`/gemini/veo/operations/${operationName}`);
+    },
+
+    // Laedt das fertige Veo-Video ueber den Server (der den Key hat) und gibt
+    // eine abspielbare Blob-URL zurueck.
+    async geminiVeoDownload(videoUri) {
+      const res = await fetch(BASE + '/gemini/veo/download?uri=' + encodeURIComponent(videoUri));
+      if (!res.ok) throw new Error('Video-Download fehlgeschlagen');
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    },
+
+    // Pollt eine Veo-Operation bis fertig und liefert die abspielbare Video-URL.
+    // onProgress(attempt) optional fuer eine Fortschrittsanzeige im UI.
+    async geminiVeoWaitForVideo(operationName, { onProgress, maxAttempts = 30, intervalMs = 10000 } = {}) {
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const op = await this.geminiVeoOperation(operationName);
+        if (onProgress) onProgress(attempt, op);
+        if (op.done) {
+          const videoUri = op.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri;
+          if (!videoUri) throw new Error('Kein Video in der fertigen Operation gefunden');
+          return this.geminiVeoDownload(videoUri);
+        }
+        await new Promise((r) => setTimeout(r, intervalMs));
+      }
+      throw new Error('Timeout beim Warten auf das Video (Veo braucht manchmal >5 Minuten)');
+    },
+
+    // Batch API: viele Prompts in einem async Job verarbeiten (50% guenstiger als
+    // einzelne Interactive-Calls, dauert je nach Groesse Sekunden bis zu 24h).
+    // prompts: Array von Strings. Jeder Eintrag bekommt eine "key"-Metadata, damit
+    // die Ergebnisse spaeter wieder ihrem Prompt zugeordnet werden koennen.
+    async geminiBatchCreate(prompts, { model = 'gemini-3.5-flash', displayName = 'batch-job' } = {}) {
+      const requests = prompts.map((text, i) => ({
+        request: { contents: [{ parts: [{ text }] }] },
+        metadata: { key: `request-${i}` }
+      }));
+      return postJSON(`/gemini/models/${model}/batchGenerateContent`, {
+        batch: { display_name: displayName, input_config: { requests: { requests } } }
+      });
+    },
+    async geminiBatchStatus(batchName) {
+      return getJSON(`/gemini/batches/${batchName}`);
+    },
+    // Pollt einen Batch-Job bis fertig. onProgress(attempt, job) optional fuer
+    // eine Fortschrittsanzeige. Gibt die Liste der inlinedResponses zurueck.
+    async geminiBatchWait(batchName, { onProgress, maxAttempts = 30, intervalMs = 5000 } = {}) {
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const job = await this.geminiBatchStatus(batchName);
+        if (onProgress) onProgress(attempt, job);
+        if (job.done) {
+          if (job.error) throw new Error(job.error.message || 'Batch-Job fehlgeschlagen');
+          return job.response?.inlinedResponses?.inlinedResponses || [];
+        }
+        await new Promise((r) => setTimeout(r, intervalMs));
+      }
+      throw new Error('Timeout beim Warten auf den Batch-Job');
+    },
+
+    // ---------- Images ----------
+    async generateImageOpenAI({ prompt, model, size, quality, n } = {}) {
+      return postJSON('/api/images/generate', { prompt, model, size, quality, n });
+    },
+
+    // Nano-Banana-Bildgenerierung ueber die Interactions API (ersetzt das alte,
+    // nie verifizierte imagen-4-Endpoint). Extrahiert defensiv sowohl aus dem
+    // dokumentierten output_image-Kurzfeld als auch aus den rohen steps, falls
+    // Google das Kurzfeld in der REST-Antwort (anders als im SDK) nicht mitschickt.
+    // previousInteractionId: Antwort einer vorherigen generateImageGemini()-Antwort
+    // (data.id) mitgeben, um DASSELBE Bild konversationell weiterzubearbeiten.
+    async generateImageGemini({ prompt, model, aspectRatio, imageSize, referenceImages, previousInteractionId } = {}) {
+      const data = await postJSON('/gemini/images/generate', { prompt, model, aspectRatio, imageSize, referenceImages, previousInteractionId });
+      if (!data.output_image?.data) {
+        const imageStep = (data.steps || []).find((s) => s.content?.some((c) => c.type === 'image'));
+        if (imageStep) {
+          const imagePart = imageStep.content.find((c) => c.type === 'image');
+          data.output_image = { data: imagePart.data, mime_type: imagePart.mime_type };
+        }
+      }
+      data.id = data.id || data.name;
+      return data;
+    },
+
+    async generateImageLeonardo(body) {
+      return postJSON('/leonardo/generations', body);
+    },
+
+    async getLeonardoGeneration(generationId) {
+      return getJSON(`/leonardo/generations/${generationId}`);
+    },
+
+    async improveLeonardoPrompt(prompt, promptInstructions) {
+      return postJSON('/leonardo/prompt/improve', { prompt, promptInstructions });
+    },
+
+    async randomLeonardoPrompt() {
+      return postJSON('/leonardo/prompt/random', {});
+    },
+
+    // ---------- Audio ----------
+    async transcribeAudio(file, opts = {}) {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (opts.model) formData.append('model', opts.model);
+      if (opts.language) formData.append('language', opts.language);
+      return postForm('/api/audio/transcriptions', formData);
+    },
+
+    async ttsSpeech(input, { voice, model, response_format } = {}) {
+      const res = await fetch(BASE + '/api/audio/speech', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input, voice, model, response_format })
+      });
+      if (!res.ok) throw new Error('TTS request failed');
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    },
+
+    // ---------- Mistral (Codestral/Pixtral/Voxtral/Devstral/Agents/Libraries) ----------
+    // chatMistral() oben deckt normalen + multimodalen (Pixtral) Chat schon ab --
+    // hier nur die Faehigkeiten, die eigene Endpunkte brauchen.
+    mistral: {
+      models: () => getJSON('/mistral/models'),
+      // Codestral Fill-in-the-Middle: prompt = Code VOR der Cursorposition,
+      // suffix = Code NACH der Cursorposition (optional).
+      fim: ({ prompt, suffix, model, max_tokens, temperature } = {}) =>
+        postJSON('/mistral/fim/completions', { prompt, suffix, model, max_tokens, temperature }),
+      // OCR (Pixtral-basiert): entweder ein Bild als data:-URI oder eine echte Dokument-URL.
+      ocr: ({ imageDataUrl, documentUrl, model, pages } = {}) =>
+        postJSON('/mistral/ocr', {
+          model: model || 'mistral-ocr-latest',
+          document: documentUrl
+            ? { type: 'document_url', document_url: documentUrl }
+            : { type: 'image_url', image_url: imageDataUrl },
+          ...(pages && { pages })
+        }),
+      // Voxtral-Transkription -- multipart/form-data, kein JSON-Body.
+      transcribe: (file, { model, language, prompt } = {}) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('model', model || 'voxtral-mini-2507');
+        if (language) formData.append('language', language);
+        if (prompt) formData.append('prompt', prompt);
+        return postForm('/mistral/audio/transcriptions', formData);
+      },
+      moderate: (input, model) => postJSON('/mistral/moderations', { input, model }),
+      agentsList: () => getJSON('/mistral/agents'),
+      agentCreate: (body) => postJSON('/mistral/agents', body),
+      librariesList: () => getJSON('/mistral/libraries'),
+      libraryCreate: (body) => postJSON('/mistral/libraries', body)
+    },
+
+    // ---------- EOD Historical Data ----------
+    eod: {
+      historical: (symbol, params) => getJSON(`/eod/historical/${symbol}`, params),
+      realtime: (symbol) => getJSON(`/eod/realtime/${symbol}`),
+      intraday: (symbol, interval) => getJSON(`/eod/intraday/${symbol}`, interval ? { interval } : undefined),
+      fundamentals: (symbol) => getJSON(`/eod/fundamentals/${symbol}`),
+      search: (query) => getJSON(`/eod/search/${encodeURIComponent(query)}`),
+      news: (params) => getJSON('/eod/news', params),
+      dividends: (symbol) => getJSON(`/eod/dividends/${symbol}`)
+    },
+
+    // ---------- YouTube Data API v3 ----------
+    youtube: {
+      search: (q, params) => getJSON('/youtube/search', { q, ...params }),
+      trending: (params) => getJSON('/youtube/trending', params),
+      videos: (ids) => getJSON('/youtube/videos', { ids: Array.isArray(ids) ? ids.join(',') : ids }),
+      // Oeffentliche Kanal-Statistiken ueber die normale Data API v3 (kein OAuth).
+      // Fuer PRIVATE Analytics des eigenen Kanals (Watch-Time, Traffic-Quellen,
+      // Umsatz) braeuchte es stattdessen die YouTube Analytics/Reporting API mit
+      // Google-OAuth-Login -- bewusst nicht gebaut, das ist ein deutlich groesserer
+      // Schritt (Consent-Screen, Refresh-Tokens) und war fuer "meistgesehene Videos
+      // anzeigen" nicht noetig.
+      channelResolve: (handle) => getJSON('/youtube/channel/resolve', { handle }),
+      channelVideos: (channelId, params) => getJSON('/youtube/channel/videos', { channelId, ...params })
+    },
+
+    // ---------- Wikipedia (kein Key noetig, komplett oeffentliche REST-API) ----------
+    wikipedia: {
+      search: (q, params) => getJSON('/wikipedia/search', { q, ...params }),
+      summary: (title, params) => getJSON(`/wikipedia/summary/${encodeURIComponent(title)}`, params),
+      random: (params) => getJSON('/wikipedia/random', params)
+    },
+
+    // ---------- Google Maps Platform (Geocoding + Places API New) ----------
+    // Nur Geocoding/Places laufen ueber diesen Proxy -- die Maps JavaScript API
+    // (fuer die interaktive Karte selbst) hat keinen Server-Weg, die laedt das
+    // eigene Script-Tag direkt mit einem clientseitig HTTP-Referrer-eingeschraenkten
+    // Key (siehe loadGoogleMapsScript() im jeweiligen Prototyp).
+    googlemaps: {
+      // Liefert den Maps-JS-Key automatisch, falls der Server ihn als Secret gesetzt
+      // hat -- Prototypen sollten das zuerst versuchen und nur bei null auf die
+      // manuelle localStorage-Key-Eingabe zurueckfallen.
+      config: () => getJSON('/googlemaps/config'),
+      geocode: (address) => getJSON('/googlemaps/geocode', { address }),
+      reverseGeocode: (lat, lng) => getJSON('/googlemaps/geocode/reverse', { lat, lng }),
+      placesSearch: (query, fields) => postJSON('/googlemaps/places/search', { query, fields }),
+      placesDetails: (placeId, fields) => getJSON(`/googlemaps/places/details/${encodeURIComponent(placeId)}`, fields ? { fields } : undefined),
+      placesAutocomplete: (input, sessionToken) => postJSON('/googlemaps/places/autocomplete', { input, sessionToken }),
+      // Routes API v2: origin/destination als {lat,lng}, travelMode 'DRIVE'|'BICYCLE'|'WALK'.
+      computeRoute: (origin, destination, travelMode) => postJSON('/googlemaps/routes', { origin, destination, travelMode }),
+      // Liefert einen Blob statt JSON (echtes PNG) -- fuer "Karte exportieren"-Buttons,
+      // die das Bild direkt als Datei speichern wollen (URL.createObjectURL(blob)).
+      async staticMapBlob({ center, zoom, size, maptype, markers } = {}) {
+        const qs = new URLSearchParams({
+          center, zoom: zoom || '12', size: size || '640x400', maptype: maptype || 'roadmap',
+          ...(markers && { markers: JSON.stringify(markers) })
+        });
+        const res = await fetch(BASE + '/googlemaps/staticmap?' + qs.toString());
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw Object.assign(new Error('Static Map request failed'), { status: res.status, data: err });
+        }
+        return res.blob();
+      }
+    },
+
+    // ---------- RapidAPI ----------
+    rapidapi: {
+      jobsSearch: (body) => postJSON('/rapidapi/jobs/search', body),
+      yahooPrice: (symbol) => getJSON(`/rapidapi/yahoo/price/${symbol}`),
+      yahooNews: (symbol) => getJSON(`/rapidapi/yahoo/news/${symbol}`),
+      // Generischer Durchreicher fuer beliebige *.rapidapi.com-Microservices
+      // (Mail-Sender, Translator, Dad-Jokes, ...) -- Host wird serverseitig validiert.
+      raw: (host, endpoint, params, method) => postJSON('/rapidapi/raw', { host, endpoint, params, method })
+    }
+  };
+
+  global.API = API;
+})(window);
+
+</script>
+  <script>
+    const marketData = {
+      "DAX": "ADS.XETRA, AIR.XETRA, ALV.XETRA, BAS.XETRA, BAYN.XETRA, BEI.XETRA, BMW.XETRA, BNR.XETRA, CBK.XETRA, CON.XETRA, 1COV.XETRA, DTG.XETRA, DBK.XETRA, DB1.XETRA, DTE.XETRA, DHL.XETRA, EOAN.XETRA, FRE.XETRA, HNR1.XETRA, HEI.XETRA, HEN3.XETRA, IFX.XETRA, MBG.XETRA, MRK.XETRA, MTX.XETRA, MUV2.XETRA, RHM.XETRA, RWE.XETRA, SAP.XETRA, SRT3.XETRA, SIE.XETRA, ENR.XETRA, SHL.XETRA, SY1.XETRA, VOW3.XETRA, VNA.XETRA, ZAL.XETRA",
+      "DOW JONES": "MMM.US,AXP.US,AMGN.US,AAPL,BA,CAT,CVX,CSCO,KO,DOW,GS,HD,HON,IBM,INTC,JNJ,JPM,MCD,MRK,MSFT,NKE,PG,CRM,TRV,UNH,VZ,V,WBA,WMT,DIS",
+      "NASDAQ 100": "ATVI.US, ADBE.US, AMD.US, ALXN.US, ALGN.US, GOOGL.US, GOOG.US, AMZN.US, AAL.US, AMGN.US, ADI.US, ANSS.US, AAPL.US, AMAT.US, ASML.US",
+      "CRYPTO": "ETH-USD.cc,BTC-USD.cc,YFI-USD.cc,LTC-USD.cc",
+      "FOREX": "EUR.FOREX,EURRUB.FOREX, USDEUR.FOREX, USDJPY.FOREX, USDGBP.FOREX",
+      "STOXX 50": "AI.XETRA, AIR.XETRA, ALV.XETRA, ASML.XETRA, CS.XETRA, BNP.XETRA",
+      "US BANKS": "JPM.US, BAC.US, WFC.US, C.US, GS.US, MS.US, USB.US",
+      "US OIL": "XOM.US, CVX.US, COP.US, SLB.US, EOG.US, OXY.US",
+      "US INSURANCE": "BRK-A.US, BRK-B.US, MET.US, TRV.US, ALL.US",
+      "EU OIL": "RDSA.XETRA, RDSB.XETRA, BP.XETRA, TTE.XETRA",
+      "EU INSURANCE": "ALV.XETRA, AXA.XETRA, ZURN.XETRA, MUV2.XETRA",
+      "MDAX": "DRI.XETRA, ARL.XETRA, AIR.XETRA, AOX.XETRA",
+      "TECDAX": "AIXA.XETRA, BC8.XETRA, COK.XETRA, AFX.XETRA"
+    };
+
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    // Load theme from localStorage
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+
+    function updateSymbols() {
+      const market = document.getElementById('marketCategory').value;
+      const symbolSelect = document.getElementById('symbolSelect');
+      symbolSelect.innerHTML = '<option value="">Choose symbol...</option>';
+
+      if (market && marketData[market]) {
+        const symbols = marketData[market].split(',').map(s => s.trim());
+        symbols.forEach(symbol => {
+          const option = document.createElement('option');
+          option.value = symbol;
+          option.textContent = symbol;
+          symbolSelect.appendChild(option);
+        });
+      }
+    }
+
+    function isoDaysAgo(days) {
+      const d = new Date();
+      d.setDate(d.getDate() - days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    async function getMonthlyAnalysis(stockSymbol) {
+      const today = new Date();
+      let lastMonth = today.getMonth();
+      const year = (lastMonth === 0) ? today.getFullYear() - 1 : today.getFullYear();
+      lastMonth = (lastMonth === 0) ? 11 : lastMonth - 1;
+
+      const lastDayLastMonth = new Date(year, lastMonth + 1, 0);
+      while (lastDayLastMonth.getDay() !== 5) {
+        lastDayLastMonth.setDate(lastDayLastMonth.getDate() - 1);
+      }
+
+      const month = String(lastDayLastMonth.getMonth() + 1).padStart(2, '0');
+      const day = String(lastDayLastMonth.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+
+      try {
+        const monthlyData = await API.eod.historical(stockSymbol, { from: formattedDate, to: formattedDate });
+        monthlyData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const lastMonthClose = monthlyData.length ? monthlyData[0].close : null;
+
+        if (!lastMonthClose) throw new Error("No monthly data available");
+
+        const currentData = await API.eod.historical(stockSymbol, { from: isoDaysAgo(10) });
+        currentData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const latestClose = currentData.length ? currentData[0].close : null;
+
+        if (!latestClose) throw new Error("No current data available");
+
+        const position = latestClose > lastMonthClose ? "LONG" : "SHORT";
+
+        return {
+          symbol: stockSymbol,
+          recommendation: position,
+          price: latestClose.toFixed(2),
+          target: position === "LONG" ? (latestClose * 1.20).toFixed(2) : (latestClose * 0.80).toFixed(2),
+          stop: position === "LONG" ? (latestClose * 0.90).toFixed(2) : (latestClose * 1.10).toFixed(2),
+          timestamp: new Date().getTime() / 1000,
+          size: "10%"
+        };
+      } catch (error) {
+        console.error('Error fetching monthly analysis:', error);
+        throw error;
+      }
+    }
+
+    async function getSpreadAnalysis(stockSymbol) {
+      try {
+        let data = await API.eod.historical(stockSymbol, { from: isoDaysAgo(14) });
+
+        if (data && data.length >= 3) {
+          data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+          const latestClose = data[0].close;
+          const latestCloseDate = data[0].date;
+          const thirdLatestClose = data[2].close;
+
+          const spread = latestClose / thirdLatestClose;
+          const position = spread > 1 ? "LONG" : "SHORT";
+
+          return {
+            symbol: stockSymbol,
+            recommendation: position,
+            price: latestClose.toFixed(2),
+            target: position === "LONG" ? (latestClose * 1.04).toFixed(2) : (latestClose * 0.96).toFixed(2),
+            stop: position === "LONG" ? (latestClose * 0.98).toFixed(2) : (latestClose * 1.02).toFixed(2),
+            timestamp: new Date(latestCloseDate).getTime() / 1000,
+            size: "50%"
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching stock data:', error);
+        throw error;
+      }
+    }
+
+    async function getStockInfo(stockSymbol) {
+      try {
+        const data = await API.eod.realtime(stockSymbol);
+
+        const highestPrice = data.high;
+        const lowestPrice = data.low;
+        const realtimePrice = data.close;
+        const averagePrice = (highestPrice + lowestPrice) / 2;
+
+        let recommendation = 'Neutral';
+        let trailingStop = '';
+        let target = '';
+
+        if (realtimePrice > averagePrice) {
+          recommendation = 'LONG';
+          trailingStop = (realtimePrice * 0.99).toFixed(2);
+          target = (realtimePrice * 1.01).toFixed(2);
+        } else if (realtimePrice < averagePrice) {
+          recommendation = 'SHORT';
+          trailingStop = (realtimePrice * 1.01).toFixed(2);
+          target = (realtimePrice * 0.99).toFixed(2);
+        }
+
+        return {
+          symbol: stockSymbol,
+          recommendation,
+          price: realtimePrice.toFixed(2),
+          target,
+          stop: trailingStop,
+          timestamp: data.timestamp,
+          size: "100%"
+        };
+      } catch (error) {
+        console.error('Error fetching stock data:', error);
+        throw error;
+      }
+    }
+
+    async function getWeeklySMAAnalysis(stockSymbol) {
+      try {
+        let data = await API.eod.historical(stockSymbol, { from: isoDaysAgo(12) });
+
+        if (data && data.length >= 5) {
+          data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+          const sma1 = (data[0].close + data[1].close + data[2].close) / 3;
+          const sma3 = (data[2].close + data[3].close + data[4].close) / 3;
+
+          const spread = sma1 / sma3;
+          const position = spread > 1 ? "LONG" : "SHORT";
+          const latestClose = data[0].close;
+
+          return {
+            symbol: stockSymbol,
+            recommendation: position,
+            price: latestClose.toFixed(2),
+            target: position === "LONG" ? (latestClose * 1.08).toFixed(2) : (latestClose * 0.92).toFixed(2),
+            stop: position === "LONG" ? (latestClose * 0.96).toFixed(2) : (latestClose * 1.04).toFixed(2),
+            timestamp: new Date(data[0].date).getTime() / 1000,
+            size: "25%"
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching SMA analysis information:', error);
+        throw error;
+      }
+    }
+
+    // ==================== NEU: KI-Analyse pro Signal-Karte ====================
+    // Erste Version fragte das LLM nur mit Entry/Ziel/Stop -- das ergab bloss eine
+    // Prosa-Wiederholung der ohnehin sichtbaren Prozentdifferenz ("Ziel bedeutet X%
+    // Gewinn, Stop bedeutet Y% Verlust"), keine echte Analyse. Fix: zusaetzlich
+    // objektive technische Kennzahlen aus den letzten ~20 Handelstagen berechnen
+    // (Trend, Volatilitaet, Position im Hoch/Tief-Band -- der "algorithmische" Teil)
+    // und dem LLM als Kontext geben, mit expliziter Anweisung, NICHT die Ziel/Stop-
+    // Arithmetik nochmal zu wiederholen, sondern das Signal anhand dieser Kennzahlen
+    // einzuordnen (der "intelligente" Teil).
+    function computeTechnicalContext(history) {
+      if (!history || history.length < 3) return null;
+      const sorted = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+      const closes = sorted.map(d => d.close);
+      const highs = sorted.map(d => d.high ?? d.close);
+      const lows = sorted.map(d => d.low ?? d.close);
+      const first = closes[0];
+      const last = closes[closes.length - 1];
+      const trendPct = ((last - first) / first) * 100;
+      const periodHigh = Math.max(...highs);
+      const periodLow = Math.min(...lows);
+      const distFromHighPct = ((last - periodHigh) / periodHigh) * 100;
+      const distFromLowPct = ((last - periodLow) / periodLow) * 100;
+      const dailyRanges = sorted.map(d => (((d.high ?? d.close) - (d.low ?? d.close)) / d.close) * 100);
+      const avgDailyRangePct = dailyRanges.reduce((a, b) => a + b, 0) / dailyRanges.length;
+      const trendLabel = trendPct > 2 ? 'Aufwärtstrend' : trendPct < -2 ? 'Abwärtstrend' : 'Seitwärtsbewegung';
+      return {
+        days: sorted.length,
+        trendPct: trendPct.toFixed(1),
+        trendLabel,
+        periodHigh: periodHigh.toFixed(2),
+        periodLow: periodLow.toFixed(2),
+        distFromHighPct: distFromHighPct.toFixed(1),
+        distFromLowPct: distFromLowPct.toFixed(1),
+        avgDailyRangePct: avgDailyRangePct.toFixed(1)
+      };
+    }
+
+    async function runAIAnalysis(btn, data) {
+      const panel = btn.closest('.comic-panel');
+      const resultDiv = panel.querySelector('.ai-analyse-result');
+      btn.disabled = true;
+      btn.textContent = '⏳ Analysiere...';
+      resultDiv.style.display = 'block';
+      resultDiv.textContent = 'Lade technische Daten...';
+
+      let context = null;
+      try {
+        const history = await API.eod.historical(data.symbol, { from: isoDaysAgo(20) });
+        context = computeTechnicalContext(history);
+      } catch (error) {
+        console.warn('Konnte historische Daten für KI-Analyse nicht laden:', error);
+      }
+
+      resultDiv.textContent = 'KI denkt nach...';
+
+      const contextBlock = context
+        ? `Objektive technische Kennzahlen (letzte ${context.days} Handelstage):
+- Trend: ${context.trendLabel} (${context.trendPct}% über den Zeitraum)
+- Handelsspanne: Hoch ${context.periodHigh}, Tief ${context.periodLow}
+- Aktueller Kurs liegt ${context.distFromHighPct}% unter dem Periodenhoch und ${context.distFromLowPct}% über dem Periodentief
+- Durchschnittliche Tagesvolatilität: ${context.avgDailyRangePct}%`
+        : 'Keine historischen Kennzahlen verfügbar (nur aktueller Kurs bekannt).';
+
+      const prompt = `Signal (regelbasiert generiert, nicht von dir bewertet):
+Symbol: ${data.symbol}
+Empfehlung: ${data.recommendation}
+Aktueller Kurs: ${data.price}
+Ziel: ${data.target} | Stop: ${data.stop}
+
+${contextBlock}
+
+Bewerte das Signal anhand der technischen Kennzahlen oben. Ordne es in Trend und Volatilität ein, nenne EIN konkretes Warnsignal (z.B. Nähe zum Periodenhoch/-tief, hohe Volatilität, Signal gegen den Trend), das gegen dieses Signal sprechen könnte, und EINEN Kontextfaktor, der dafür spricht. Maximal 3 Sätze.
+
+WICHTIG: Wiederhole NICHT einfach die Prozentdifferenz zwischen aktuellem Kurs und Ziel/Stop (steht schon im UI) — das ist reine Arithmetik, keine Analyse. Nutze stattdessen die technischen Kennzahlen oben.`;
+
+      try {
+        const text = await API.chatOpenAI({
+          messages: [
+            { role: 'system', content: 'Du bist ein nüchterner technischer Analyst. Du bewertest Trend, Volatilität und Positionierung im Kursverlauf — keine bloße Neuberechnung von Prozentdifferenzen, die schon im UI sichtbar sind.' },
+            { role: 'user', content: prompt }
+          ],
+          model: 'gpt-4o-mini',
+          max_tokens: 260
+        });
+        resultDiv.textContent = text;
+        btn.textContent = '🔄 Neu analysieren';
+      } catch (error) {
+        console.error('AI analysis error:', error);
+        resultDiv.textContent = 'KI-Analyse fehlgeschlagen: ' + (error.data?.error?.message || error.message || error);
+        btn.textContent = '🤖 KI-Analyse';
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function fetchStockData() {
+      const manualSymbol = document.getElementById('manualSymbol').value;
+      const selectedSymbol = document.getElementById('symbolSelect').value;
+      const analysisMethod = document.getElementById('analysisMethod').value;
+      const symbolToFetch = manualSymbol.trim() || selectedSymbol;
+
+      if (!symbolToFetch) {
+        alert('Please select or enter a symbol');
+        return;
+      }
+
+      const container = document.getElementById("stockInfoContainer");
+      container.innerHTML = '<div class="w-full text-center py-8"><div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>';
+
+      try {
+        const symbols = manualSymbol.trim()
+          ? manualSymbol.split(',').map(s => s.trim()).filter(Boolean)
+          : [symbolToFetch];
+
+        container.innerHTML = '';
+
+        for (const symbol of symbols) {
+          try {
+            let data;
+            switch (analysisMethod) {
+              case "realtime":
+                data = await getStockInfo(symbol);
+                break;
+              case "daily":
+                data = await getSpreadAnalysis(symbol);
+                break;
+              case "weekly":
+                data = await getWeeklySMAAnalysis(symbol);
+                break;
+              case "monthly":
+                data = await getMonthlyAnalysis(symbol);
+                break;
+            }
+
+            if (!data) continue;
+
+            const comicImages = Array.from({ length: 26 }, (_, i) =>
+              `https://babybounce500.github.io/KUNST3/${i + 1}.jpg`
+            );
+            const randomImage = comicImages[Math.floor(Math.random() * comicImages.length)];
+
+            const date = new Date(data.timestamp * 1000);
+            const formattedDate = date.toLocaleDateString('de-DE');
+            const formattedTime = date.toLocaleTimeString('de-DE');
+
+            const comicHTML = `
+              <div class="comic-panel w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 p-4">
+                <div class="relative min-h-[560px] md:h-[680px] rounded-xl overflow-hidden shadow-lg bg-white dark:bg-gray-900 transition-transform">
+                  <div class="h-1/2 md:h-[45%] overflow-hidden">
+                    <img src="${randomImage}" alt="Comic for ${data.symbol}" class="w-full h-full object-cover">
+                  </div>
+                  <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 p-4 md:p-6 border-t border-gray-200 dark:border-gray-700 overflow-y-auto" style="max-height: 55%;">
+                    <div class="flex justify-between items-center mb-4">
+                      <div>
+                        <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">${data.symbol}</h3>
+                        <div class="text-xs md:text-sm font-mono text-gray-600 dark:text-gray-400 mt-1">
+                          ${formattedDate} | ${formattedTime}
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full ${data.recommendation === 'LONG' ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'}">
+                        ${data.recommendation === 'LONG'
+                          ? '<svg class="w-5 h-5 md:w-6 md:h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>'
+                          : '<svg class="w-5 h-5 md:w-6 md:h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>'}
+                      </div>
+                    </div>
+
+                    <div class="space-y-2 md:space-y-3 font-mono text-sm md:text-base">
+                      <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                        <span class="text-gray-900 dark:text-white">ENTRY</span>
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold ${data.recommendation === 'LONG' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">
+                            ${data.recommendation} ${data.price}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="flex justify-between items-center bg-blue-50 dark:bg-blue-950 p-2 rounded">
+                        <span class="text-gray-900 dark:text-white">TARGET</span>
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold text-blue-600 dark:text-blue-400">${data.target}</span>
+                        </div>
+                      </div>
+
+                      <div class="flex justify-between items-center bg-orange-50 dark:bg-orange-950 p-2 rounded">
+                        <span class="text-gray-900 dark:text-white">STOP</span>
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold text-orange-600 dark:text-orange-400">${data.stop}</span>
+                        </div>
+                      </div>
+
+                      <div class="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                        <span class="text-gray-900 dark:text-white">SIZE</span>
+                        <span class="font-bold text-gray-900 dark:text-white">${data.size}</span>
+                      </div>
+                    </div>
+
+                    <button class="ai-analyse-btn w-full mt-3 px-3 py-2 text-white rounded-md text-sm font-semibold flex items-center justify-center gap-2">
+                      🤖 KI-Analyse
+                    </button>
+                    <div class="ai-analyse-result mt-2 text-xs md:text-sm text-gray-700 dark:text-gray-300" style="display:none;"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', comicHTML);
+            const insertedPanel = container.lastElementChild;
+            const analyseBtn = insertedPanel.querySelector('.ai-analyse-btn');
+            analyseBtn.addEventListener('click', () => runAIAnalysis(analyseBtn, data));
+          } catch (error) {
+            console.error(`Error processing ${symbol}:`, error);
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        container.innerHTML = '<div class="w-full text-center py-8 text-red-600">Error loading data. Please try again.</div>';
+      }
+    }
+
+    function downloadCSV() {
+      const container = document.getElementById("stockInfoContainer");
+      if (!container) return;
+
+      const trades = Array.from(container.querySelectorAll('.comic-panel')).map(panel => {
+        const symbol = panel.querySelector('h3')?.textContent?.trim() || '';
+        const entryText = panel.querySelector('.bg-gray-100 .font-bold, .bg-gray-800 .font-bold')?.textContent?.trim() || '';
+        const target = panel.querySelector('.bg-blue-50 .font-bold, .bg-blue-950 .font-bold')?.textContent?.trim() || '';
+        const stop = panel.querySelector('.bg-orange-50 .font-bold, .bg-orange-950 .font-bold')?.textContent?.trim() || '';
+        const sizeElements = panel.querySelectorAll('.border-t .font-bold');
+        const size = sizeElements[sizeElements.length - 1]?.textContent?.trim() || '';
+
+        return { symbol, entry: entryText, target, stop, size };
+      });
+
+      const csvContent = [
+        ['Symbol', 'Entry', 'Target', 'Stop', 'Size'],
+        ...trades.map(trade => [trade.symbol, trade.entry, trade.target, trade.stop, trade.size])
+      ].map(row => row.join(',')).join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'broker_trades.csv';
+      link.click();
+    }
+
+    function downloadTXT() {
+      const container = document.getElementById("stockInfoContainer");
+      if (!container) return;
+
+      const trades = Array.from(container.querySelectorAll('.comic-panel')).map(panel => {
+        const symbol = panel.querySelector('h3')?.textContent?.trim() || '';
+        const entryText = panel.querySelector('.bg-gray-100 .font-bold, .bg-gray-800 .font-bold')?.textContent?.trim() || '';
+        const target = panel.querySelector('.bg-blue-50 .font-bold, .bg-blue-950 .font-bold')?.textContent?.trim() || '';
+        const stop = panel.querySelector('.bg-orange-50 .font-bold, .bg-orange-950 .font-bold')?.textContent?.trim() || '';
+        const sizeElements = panel.querySelectorAll('.border-t .font-bold');
+        const size = sizeElements[sizeElements.length - 1]?.textContent?.trim() || '';
+
+        return `
+Trade Signal for ${symbol}
+------------------------
+Entry: ${entryText}
+Target: ${target}
+Stop: ${stop}
+Size: ${size}`;
+      }).join('\n\n');
+
+      const blob = new Blob([trades], { type: 'text/plain;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'broker_trades.txt';
+      link.click();
+    }
+
+    // Enter key support for manual symbol input
+    document.getElementById('manualSymbol').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        fetchStockData();
+      }
+    });
+  </script>
+</body>
+</html>
