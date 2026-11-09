@@ -1032,15 +1032,42 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
       midpoint:  { n: 38956, avgRet: 0.1925, medianRet: -1.3634, winRate: 42.93, sharpeLike: 0.582, olderSharpe: 0.852, newerSharpe: 0.328, robustness: 'fading' },
       weeklySma: { n: 38779, avgRet: 0.1779, medianRet: -1.4129, winRate: 42.56, sharpeLike: 0.533, olderSharpe: 0.753, newerSharpe: 0.33,  robustness: 'fading' }
     };
-    const VALIDATED_STOP_PCT = 4; // stop4pct_10d, identisch für alle 4 Signale
-    // Validiertes Target: Entry * (1 +/- historischer avgRet der stop4pct_10d-Regel),
-    // statt eines frei erfundenen Round-Number-Prozentsatzes.
+    const VALIDATED_STOP_PCT = 4; // stop4pct_10d -- the actual VALIDATED mechanism, kept as-is.
+    // (A sigma-normalized stop was considered instead, but rejected: the whole Smart-Target
+    // finding below is that a FLAT stop's GBM touch-probability VARIES with each stock's own
+    // vol -- and that variation is exactly what correlates with the edge. Normalizing the stop
+    // to a constant sigma-distance would erase that variation, i.e. test a different, unvalidated
+    // mechanism. So: stop stays flat 4%, target becomes BUCKET-aware (see below) -- that's the
+    // part that's actually backed by data broken out this way.)
     function validatedTargetStop(price, direction, statsKey) {
       const stats = BACKTEST_STATS[statsKey];
       const sign = direction === 'LONG' ? 1 : -1;
       const target = price * (1 + sign * (stats.avgRet / 100));
       const stop = price * (1 - sign * (VALIDATED_STOP_PCT / 100));
       return { target: target.toFixed(2), stop: stop.toFixed(2), stats };
+    }
+
+    // Per-Vola-Bucket avgRet (aus genitus-midpoint-terminal/data/broker-ai-signals-backtest-result.json,
+    // d.logics.<signal>.volFilter.<bucket>.avgRet) -- der blended Wert in BACKTEST_STATS oben mischt
+    // alle 3 Buckets zusammen und verwässert damit genau den Effekt, den wir gefunden haben.
+    const BACKTEST_STATS_BY_BUCKET = {
+      monthly:   { far_lowP: -0.2037, mid_P: 0.1676, near_highP: 0.6901 },
+      spread:    { far_lowP: -0.1332, mid_P: 0.2087, near_highP: 0.4653 },
+      midpoint:  { far_lowP: -0.0443, mid_P: 0.1821, near_highP: 0.4395 },
+      weeklySma: { far_lowP: -0.2102, mid_P: 0.2251, near_highP: 0.3741 }
+    };
+    // Smart Stop/Target: Stop bleibt die validierte flache -4%-Regel; Target nutzt jetzt den
+    // tatsächlich für DIESES Vola-Regime gemessenen avgRet statt des verwässerten Signal-Durchschnitts.
+    // Im far_lowP-Regime ist dieser Wert NEGATIV (kein Edge) -- wird explizit als "kein Trade
+    // empfohlen" markiert, statt einen irreführenden positiven Zielkurs vorzutäuschen.
+    function smartStopTarget(price, direction, statsKey, bucket) {
+      const stats = BACKTEST_STATS[statsKey];
+      const bucketAvgRet = (BACKTEST_STATS_BY_BUCKET[statsKey] && bucket) ? BACKTEST_STATS_BY_BUCKET[statsKey][bucket] : stats.avgRet;
+      const sign = direction === 'LONG' ? 1 : -1;
+      const noEdge = bucket === 'far_lowP';
+      const target = price * (1 + sign * (bucketAvgRet / 100));
+      const stop = price * (1 - sign * (VALIDATED_STOP_PCT / 100));
+      return { target: target.toFixed(2), stop: stop.toFixed(2), stats, bucketAvgRet, noEdge };
     }
 
     // ==================== SMART-TARGET VOLA-FILTER ====================
@@ -1134,8 +1161,8 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
         if (!latestClose) throw new Error("No current data available");
 
         const position = latestClose > lastMonthClose ? "LONG" : "SHORT";
-        const vts = validatedTargetStop(latestClose, position, 'monthly');
         const volRegime = await getVolRegime(stockSymbol, latestClose, position);
+        const vts = smartStopTarget(latestClose, position, 'monthly', volRegime?.bucket);
 
         return {
           symbol: stockSymbol,
@@ -1144,6 +1171,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           target: vts.target,
           stop: vts.stop,
           backtest: vts.stats,
+          noEdge: vts.noEdge,
           volRegime,
           timestamp: new Date().getTime() / 1000,
           size: "10%"
@@ -1167,8 +1195,8 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
 
           const spread = latestClose / thirdLatestClose;
           const position = spread > 1 ? "LONG" : "SHORT";
-          const vts = validatedTargetStop(latestClose, position, 'spread');
           const volRegime = await getVolRegime(stockSymbol, latestClose, position);
+          const vts = smartStopTarget(latestClose, position, 'spread', volRegime?.bucket);
 
           return {
             symbol: stockSymbol,
@@ -1177,6 +1205,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
             target: vts.target,
             stop: vts.stop,
             backtest: vts.stats,
+            noEdge: vts.noEdge,
             volRegime,
             timestamp: new Date(latestCloseDate).getTime() / 1000,
             size: "50%"
@@ -1202,17 +1231,18 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
         let target = '';
         let backtest = null;
         let volRegime = null;
+        let noEdge = false;
 
         if (realtimePrice > averagePrice) {
           recommendation = 'LONG';
-          const vts = validatedTargetStop(realtimePrice, 'LONG', 'midpoint');
-          target = vts.target; trailingStop = vts.stop; backtest = vts.stats;
           volRegime = await getVolRegime(stockSymbol, realtimePrice, 'LONG');
+          const vts = smartStopTarget(realtimePrice, 'LONG', 'midpoint', volRegime?.bucket);
+          target = vts.target; trailingStop = vts.stop; backtest = vts.stats; noEdge = vts.noEdge;
         } else if (realtimePrice < averagePrice) {
           recommendation = 'SHORT';
-          const vts = validatedTargetStop(realtimePrice, 'SHORT', 'midpoint');
-          target = vts.target; trailingStop = vts.stop; backtest = vts.stats;
           volRegime = await getVolRegime(stockSymbol, realtimePrice, 'SHORT');
+          const vts = smartStopTarget(realtimePrice, 'SHORT', 'midpoint', volRegime?.bucket);
+          target = vts.target; trailingStop = vts.stop; backtest = vts.stats; noEdge = vts.noEdge;
         }
 
         return {
@@ -1222,6 +1252,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           target,
           stop: trailingStop,
           backtest,
+          noEdge,
           volRegime,
           timestamp: data.timestamp,
           size: "100%"
@@ -1245,8 +1276,8 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           const spread = sma1 / sma3;
           const position = spread > 1 ? "LONG" : "SHORT";
           const latestClose = data[0].close;
-          const vts = validatedTargetStop(latestClose, position, 'weeklySma');
           const volRegime = await getVolRegime(stockSymbol, latestClose, position);
+          const vts = smartStopTarget(latestClose, position, 'weeklySma', volRegime?.bucket);
 
           return {
             symbol: stockSymbol,
@@ -1255,6 +1286,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
             target: vts.target,
             stop: vts.stop,
             backtest: vts.stats,
+            noEdge: vts.noEdge,
             volRegime,
             timestamp: new Date(data[0].date).getTime() / 1000,
             size: "25%"
@@ -1433,6 +1465,10 @@ WICHTIG: Wiederhole NICHT einfach die Prozentdifferenz zwischen aktuellem Kurs u
                     </div>
 
                     <div class="space-y-2 md:space-y-3 font-mono text-sm md:text-base">
+                      ${data.noEdge ? `
+                      <div class="bg-red-100 dark:bg-red-900/40 border border-red-400 dark:border-red-700 text-red-800 dark:text-red-300 text-xs md:text-sm font-bold p-2 rounded text-center">
+                        ⛔ KEIN TRADE EMPFOHLEN -- ruhiges Vola-Regime, laut Backtest kein Edge
+                      </div>` : ''}
                       <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-800 p-2 rounded">
                         <span class="text-gray-900 dark:text-white">ENTRY</span>
                         <div class="flex items-center gap-2">
@@ -1442,10 +1478,10 @@ WICHTIG: Wiederhole NICHT einfach die Prozentdifferenz zwischen aktuellem Kurs u
                         </div>
                       </div>
 
-                      <div class="flex justify-between items-center bg-blue-50 dark:bg-blue-950 p-2 rounded">
-                        <span class="text-gray-900 dark:text-white">TARGET</span>
+                      <div class="flex justify-between items-center ${data.noEdge ? 'bg-gray-100 dark:bg-gray-800 opacity-60' : 'bg-blue-50 dark:bg-blue-950'} p-2 rounded">
+                        <span class="text-gray-900 dark:text-white">TARGET${data.noEdge ? ' (unplausibel)' : ''}</span>
                         <div class="flex items-center gap-2">
-                          <span class="font-bold text-blue-600 dark:text-blue-400">${data.target}</span>
+                          <span class="font-bold ${data.noEdge ? 'text-gray-500' : 'text-blue-600 dark:text-blue-400'}">${data.target}</span>
                         </div>
                       </div>
 

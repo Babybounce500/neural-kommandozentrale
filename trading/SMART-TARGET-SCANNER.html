@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="de" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMART TARGET SCANNER — Vola-Regime-Filter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: {
+        border: "hsl(214.3 31.8% 91.4%)", background: "hsl(0 0% 100%)", foreground: "hsl(222.2 84% 4.9%)",
+        primary: { DEFAULT: "hsl(221.2 83.2% 53.3%)", foreground: "hsl(210 40% 98%)" }
+      } } }
+    }
+  </script>
+  <style>
+    .dark {
+      --background: 222.2 84% 4.9%; --foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+    }
+    body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); }
+    .row-far_lowP   { background: rgba(239,68,68,0.06); }
+    .row-mid_P      { background: rgba(245,158,11,0.06); }
+    .row-near_highP { background: rgba(16,185,129,0.08); }
+    .dark .row-far_lowP   { background: rgba(239,68,68,0.12); }
+    .dark .row-mid_P      { background: rgba(245,158,11,0.12); }
+    .dark .row-near_highP { background: rgba(16,185,129,0.16); }
+    th { cursor: pointer; user-select: none; }
+    th:hover { text-decoration: underline; }
+    .chip { cursor: pointer; transition: opacity .15s; }
+    .chip.inactive { opacity: 0.4; }
+    @media(max-width:768px){
+      html,body{overflow-x:hidden;max-width:100%}
+      input,select,button{font-size:16px!important}
+      table{display:block;overflow-x:auto}
+    }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+
+  <header class="bg-white dark:bg-gray-900 shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-lg md:text-xl font-bold"><i class="fa-solid fa-radar text-primary mr-2"></i>SMART TARGET SCANNER</h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">GBM First-Passage · Vola-Regime-Filter · "Heisse" vs. "Ruhige" Titel</p>
+      </div>
+      <button onclick="document.documentElement.classList.toggle('dark')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <i class="fa-solid fa-circle-half-stroke text-lg"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-4 mb-4 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+      <i class="fa-solid fa-circle-info mr-1 text-primary"></i>
+      Backtest-Fund (<a href="broker-ai-trade-signals.html" class="text-primary underline">Broker-AI-Signals</a>,
+      Methodik wie im <a href="probability-cone-scanner.html" class="text-primary underline">Target-Scanner</a>):
+      Setups, bei denen ein -4%-Stop GBM-rechnerisch "weit weg" liegt (ruhiger Titel, niedriges P(Touch)), haben
+      im Schnitt <b class="text-red-500">keinen Edge</b>. Setups mit "nahem" Stop (volatiler Titel, hohes
+      P(Touch)) liefern trotz höherer Stop-Rate die <b class="text-emerald-600">beste risikoadjustierte
+      Performance</b>. Dieser Scanner sortiert einen ganzen Markt nach genau diesem Kriterium.
+    </div>
+
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow p-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400">Markt-Kategorie</label>
+          <select id="marketCategory" onchange="updateSymbolCount()" class="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"></select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400">Stop-Distanz (%)</label>
+          <input id="stopPct" type="number" value="4" min="0.5" step="0.5" class="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 dark:text-gray-400">Horizont (Handelstage)</label>
+          <input id="horizonDays" type="number" value="10" min="1" step="1" class="w-full h-10 px-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
+        </div>
+        <div class="flex items-end">
+          <button id="scanBtn" onclick="startScan()" class="w-full h-10 bg-primary text-white rounded-md text-sm font-semibold hover:opacity-90">
+            <i class="fa-solid fa-magnifying-glass mr-1"></i>SCAN STARTEN
+          </button>
+        </div>
+      </div>
+      <div id="symbolCount" class="text-xs text-gray-400 mt-2"></div>
+    </div>
+
+    <div id="progressWrap" class="hidden mb-4">
+      <div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div id="progressBar" class="h-full bg-primary transition-all duration-300" style="width:0%"></div>
+      </div>
+      <div id="progressText" class="text-xs text-gray-400 mt-1"></div>
+    </div>
+
+    <div class="flex gap-2 mb-3 flex-wrap">
+      <span onclick="setFilter('all')" data-filter="all" class="chip px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-200 dark:bg-gray-700">Alle</span>
+      <span onclick="setFilter('far_lowP')" data-filter="far_lowP" class="chip px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">🔴 Ruhig (kein Edge)</span>
+      <span onclick="setFilter('mid_P')" data-filter="mid_P" class="chip px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">🟡 Mittel</span>
+      <span onclick="setFilter('near_highP')" data-filter="near_highP" class="chip px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">🟢 Heiss (bester Edge)</span>
+    </div>
+
+    <div id="resultsWrap" class="bg-white dark:bg-gray-900 rounded-lg shadow overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="border-b border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
+          <tr>
+            <th onclick="sortBy('symbol')" class="text-left p-3">Symbol</th>
+            <th onclick="sortBy('price')" class="text-right p-3">Kurs</th>
+            <th onclick="sortBy('sigma')" class="text-right p-3">σ (ann.)</th>
+            <th onclick="sortBy('mu')" class="text-right p-3">Drift μ</th>
+            <th onclick="sortBy('stopLevel')" class="text-right p-3">Stop-Level</th>
+            <th onclick="sortBy('pTouch')" class="text-right p-3">P(Touch) ↓</th>
+            <th class="text-left p-3">Regime</th>
+          </tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+      <div id="emptyState" class="text-center text-gray-400 text-sm py-10">Noch kein Scan durchgeführt.</div>
+    </div>
+
+    <p class="text-xs text-gray-400 mt-4">Keine Anlageberatung. P(Touch) = First-Passage-Wahrscheinlichkeit (Reflection Principle) auf Basis historischer Drift/Volatilität -- keine Garantie für zukünftiges Verhalten.</p>
+  </main>
+
+<script>
+  // === CONFIG / API (identisch zu den Schwester-Dateien) ===
+  window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
+  const BASE = window.API_BASE_URL;
+  async function getJSON(path, params) {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    const res = await fetch(BASE + path + qs);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    return res.json();
+  }
+  const API = { eod: { historical: (s, p) => getJSON(`/eod/historical/${s}`, p) } };
+  function isoDaysAgo(n) { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+
+  const EOD_CACHE_TTL_MS = 3 * 60 * 1000;
+  async function fetchCached(symbol) {
+    const key = 'stcache:' + symbol;
+    try {
+      const hit = sessionStorage.getItem(key);
+      if (hit) { const parsed = JSON.parse(hit); if (Date.now() - parsed.t < EOD_CACHE_TTL_MS) return parsed.data; }
+    } catch (e) {}
+    const data = await API.eod.historical(symbol, { from: isoDaysAgo(400) });
+    try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), data })); } catch (e) {}
+    return data;
+  }
+
+  // === GBM / FIRST-PASSAGE MATH (1:1 aus probability-cone-scanner.html) ===
+  function normCDF(x) {
+    const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+    const sign = x < 0 ? -1 : 1;
+    const z = Math.abs(x) / Math.sqrt(2);
+    const t = 1 / (1 + p * z);
+    const erf = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-z * z);
+    return 0.5 * (1 + sign * erf);
+  }
+  function estimateParams(prices) {
+    const logReturns = [];
+    for (let i = 1; i < prices.length; i++) if (prices[i] > 0 && prices[i-1] > 0) logReturns.push(Math.log(prices[i] / prices[i-1]));
+    const n = logReturns.length;
+    if (n < 20) return null;
+    const mean = logReturns.reduce((a, b) => a + b, 0) / n;
+    const variance = logReturns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (n - 1);
+    const sigma = Math.sqrt(variance * 252);
+    const mu = mean * 252 + 0.5 * sigma * sigma;
+    return { sigma, mu };
+  }
+  function probHitTarget(S, K, mu, sigma, T) {
+    if (S === K) return 1.0;
+    if (sigma <= 0 || T <= 0) return 0.0;
+    const v = mu - 0.5 * sigma * sigma;
+    const b = Math.abs(Math.log(K / S));
+    const sigmaSqrtT = sigma * Math.sqrt(T);
+    const d1 = (-b + v * T) / sigmaSqrtT;
+    const d2 = (-b - v * T) / sigmaSqrtT;
+    const pTouch = normCDF(d1) + Math.exp((2 * v * b) / (sigma * sigma)) * normCDF(d2);
+    return Math.min(Math.max(pTouch, 0), 1);
+  }
+  function volBucketOf(p) { return p < 0.40 ? 'far_lowP' : p < 0.70 ? 'mid_P' : 'near_highP'; }
+  const BUCKET_LABEL = { far_lowP: '🔴 Ruhig', mid_P: '🟡 Mittel', near_highP: '🟢 Heiss' };
+
+  // === MARKET DATA (gleiches Set wie ath-options-engine.html / markov-ml-options-lab.html) ===
+  const marketData = {
+    "DAX": "ADS.XETRA, AIR.XETRA, ALV.XETRA, BAS.XETRA, BAYN.XETRA, BEI.XETRA, BMW.XETRA, BNR.XETRA, CBK.XETRA, CON.XETRA, 1COV.XETRA, DTG.XETRA, DBK.XETRA, DB1.XETRA, DTE.XETRA, DHL.XETRA, EOAN.XETRA, FRE.XETRA, HNR1.XETRA, HEI.XETRA, HEN3.XETRA, IFX.XETRA, MBG.XETRA, MRK.XETRA, MTX.XETRA, MUV2.XETRA, RHM.XETRA, RWE.XETRA, SAP.XETRA, SRT3.XETRA, SIE.XETRA, ENR.XETRA, SHL.XETRA, SY1.XETRA, VOW3.XETRA, VNA.XETRA, ZAL.XETRA",
+    "DOW JONES": "MMM.US,AXP.US,AMGN.US,AAPL.US,BA.US,CAT.US,CVX.US,CSCO.US,KO.US,DOW.US,GS.US,HD.US,HON.US,IBM.US,INTC.US,JNJ.US,JPM.US,MCD.US,MRK.US,MSFT.US,NKE.US,PG.US,CRM.US,TRV.US,UNH.US,VZ.US,V.US,WBA.US,WMT.US,DIS.US",
+    "NASDAQ 100": "NVDA.US, GOOGL.US, AMZN.US, META.US, TSLA.US, AVGO.US, COST.US, NFLX.US, AMD.US, ADBE.US, AAPL.US, MSFT.US, QCOM.US, TXN.US, AMGN.US, INTU.US, AMAT.US, BKNG.US, GILD.US, ADI.US",
+    "S&P 500 (Auswahl)": "SPY.US, AAPL.US, MSFT.US, NVDA.US, AMZN.US, GOOGL.US, META.US, BRK-B.US, JPM.US, V.US, UNH.US, XOM.US, PG.US, HD.US, CVX.US",
+    "CRYPTO": "BTC-USD.CC, ETH-USD.CC, SOL-USD.CC, XRP-USD.CC, ADA-USD.CC, DOGE-USD.CC",
+    "FOREX": "EURUSD.FOREX, GBPUSD.FOREX, USDJPY.FOREX, USDCHF.FOREX, EURGBP.FOREX",
+    "ETF (US)": "SPY.US, QQQ.US, VTI.US, IWM.US, GLD.US, XLE.US, XLF.US",
+    "UK BLUECHIPS": "HSBA.LSE, BP.LSE, ULVR.LSE, AZN.LSE, GSK.LSE",
+    "SCHWEIZ": "NESN.SW, ROG.SW, NOVN.SW, UBSG.SW"
+  };
+
+  function initMarketSelect() {
+    const sel = document.getElementById('marketCategory');
+    sel.innerHTML = Object.keys(marketData).map(k => `<option value="${k}">${k}</option>`).join('');
+    updateSymbolCount();
+  }
+  function updateSymbolCount() {
+    const market = document.getElementById('marketCategory').value;
+    const syms = (marketData[market] || '').split(',').map(s => s.trim()).filter(Boolean);
+    document.getElementById('symbolCount').textContent = syms.length + ' Symbole in dieser Kategorie';
+  }
+
+  let results = [];
+  let sortKey = 'pTouch';
+  let sortDir = -1;
+  let activeFilter = 'all';
+  let shouldStop = false;
+
+  async function scanOne(symbol, stopPct, horizonDays) {
+    try {
+      const hist = await fetchCached(symbol);
+      const candles = (Array.isArray(hist) ? hist : []).filter(c => c && c.close > 0).sort((a,b) => new Date(a.date)-new Date(b.date));
+      if (candles.length < 20) return null;
+      const closes = candles.map(c => c.close);
+      const price = closes[closes.length - 1];
+      const params = estimateParams(closes);
+      if (!params) return null;
+      const T = horizonDays / 252;
+      const stopUp = price * (1 + stopPct / 100), stopDown = price * (1 - stopPct / 100);
+      // Richtungsneutral: nimmt die NÄHERE der beiden Stop-Seiten (konservativ -- was auch immer
+      // die Live-Signal-Richtung ist, der naehere Level ist der relevante "ist der Stop in Reichweite"-Fall).
+      const pTouchUp = probHitTarget(price, stopUp, params.mu, params.sigma, T);
+      const pTouchDown = probHitTarget(price, stopDown, params.mu, params.sigma, T);
+      const pTouch = Math.max(pTouchUp, pTouchDown);
+      const stopLevel = pTouchUp >= pTouchDown ? stopUp : stopDown;
+      return {
+        symbol, price, sigma: params.sigma, mu: params.mu, stopLevel, pTouch,
+        bucket: volBucketOf(pTouch)
+      };
+    } catch (e) {
+      console.error(symbol, 'scan failed:', e.message);
+      return null;
+    }
+  }
+
+  async function startScan() {
+    const market = document.getElementById('marketCategory').value;
+    const symbols = (marketData[market] || '').split(',').map(s => s.trim()).filter(Boolean);
+    const stopPct = parseFloat(document.getElementById('stopPct').value) || 4;
+    const horizonDays = parseInt(document.getElementById('horizonDays').value) || 10;
+
+    shouldStop = false;
+    results = [];
+    document.getElementById('scanBtn').disabled = true;
+    document.getElementById('progressWrap').classList.remove('hidden');
+    document.getElementById('emptyState').classList.add('hidden');
+
+    const CHUNK_SIZE = 7;
+    for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
+      if (shouldStop) break;
+      const batch = symbols.slice(i, i + CHUNK_SIZE);
+      const batchResults = await Promise.all(batch.map(s => scanOne(s, stopPct, horizonDays)));
+      results.push(...batchResults.filter(Boolean));
+      const done = Math.min(i + CHUNK_SIZE, symbols.length);
+      document.getElementById('progressBar').style.width = (done / symbols.length * 100) + '%';
+      document.getElementById('progressText').textContent = `${done} / ${symbols.length} gescannt...`;
+      render();
+    }
+
+    document.getElementById('scanBtn').disabled = false;
+    document.getElementById('progressText').textContent = `Fertig: ${results.length} / ${symbols.length} Symbole erfolgreich gescannt.`;
+  }
+
+  function setFilter(f) {
+    activeFilter = f;
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('inactive', c.dataset.filter !== f && f !== 'all' ? c.dataset.filter !== f : false));
+    document.querySelectorAll('.chip').forEach(c => { if (f === 'all') c.classList.remove('inactive'); else c.classList.toggle('inactive', c.dataset.filter !== f); });
+    render();
+  }
+
+  function sortBy(key) {
+    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = -1; }
+    render();
+  }
+
+  function render() {
+    let rows = activeFilter === 'all' ? results : results.filter(r => r.bucket === activeFilter);
+    rows = rows.slice().sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : a[sortKey] < b[sortKey] ? -1 : 0) * sortDir);
+
+    const tbody = document.getElementById('resultsBody');
+    tbody.innerHTML = rows.map(r => `
+      <tr class="row-${r.bucket} border-b border-gray-100 dark:border-gray-800">
+        <td class="p-3 font-semibold">${r.symbol}</td>
+        <td class="p-3 text-right">${r.price.toFixed(2)}</td>
+        <td class="p-3 text-right">${(r.sigma*100).toFixed(1)}%</td>
+        <td class="p-3 text-right">${(r.mu*100).toFixed(1)}%</td>
+        <td class="p-3 text-right">${r.stopLevel.toFixed(2)}</td>
+        <td class="p-3 text-right font-bold">${(r.pTouch*100).toFixed(0)}%</td>
+        <td class="p-3">${BUCKET_LABEL[r.bucket]}</td>
+      </tr>`).join('');
+
+    document.getElementById('emptyState').classList.toggle('hidden', results.length > 0);
+    if (results.length > 0 && rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400 text-sm">Keine Symbole in diesem Filter.</td></tr>`;
+    }
+  }
+
+  initMarketSelect();
+</script>
+</body>
+</html>
