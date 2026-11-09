@@ -1043,6 +1043,68 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
       return { target: target.toFixed(2), stop: stop.toFixed(2), stats };
     }
 
+    // ==================== SMART-TARGET VOLA-FILTER ====================
+    // Backtest-Fund (genitus-midpoint-terminal/scripts/broker-ai-smart-target-diagnosis.js):
+    // die Performance aller 4 Signale hängt stark davon ab, wie "nah" der eigene -4%-Stop
+    // GBM-rechnerisch am aktuellen Kurs liegt (First-Passage/Reflection-Principle, exakt wie
+    // im Target-Scanner). "Ruhige" Setups (P(Touch)<40%) verlieren im Schnitt, "volatile"
+    // Setups (P(Touch)>=70%) liefern trotz 60% Stop-Rate die beste risikoadjustierte
+    // Performance -- klarer, konsistenter Gradient, kein Robustheits-Artefakt. Hier live
+    // nachgerechnet und als Badge angezeigt, nicht nur im Backtest-Report.
+    function normCDF(x) {
+      const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+      const sign = x < 0 ? -1 : 1;
+      const z = Math.abs(x) / Math.sqrt(2);
+      const t = 1 / (1 + p * z);
+      const erf = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-z * z);
+      return 0.5 * (1 + sign * erf);
+    }
+    function estimateSigmaMu(prices) {
+      const logReturns = [];
+      for (let i = 1; i < prices.length; i++) {
+        if (prices[i] > 0 && prices[i - 1] > 0) logReturns.push(Math.log(prices[i] / prices[i - 1]));
+      }
+      const n = logReturns.length;
+      if (n < 20) return null;
+      const mean = logReturns.reduce((a, b) => a + b, 0) / n;
+      const variance = logReturns.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (n - 1);
+      const sigma = Math.sqrt(variance * 252);
+      const mu = mean * 252 + 0.5 * sigma * sigma;
+      return { sigma, mu };
+    }
+    function probHitTarget(S, K, mu, sigma, T) {
+      if (S === K) return 1.0;
+      if (sigma <= 0 || T <= 0) return 0.0;
+      const v = mu - 0.5 * sigma * sigma;
+      const b = Math.abs(Math.log(K / S));
+      const sigmaSqrtT = sigma * Math.sqrt(T);
+      const d1 = (-b + v * T) / sigmaSqrtT;
+      const d2 = (-b - v * T) / sigmaSqrtT;
+      const pTouch = normCDF(d1) + Math.exp((2 * v * b) / (sigma * sigma)) * normCDF(d2);
+      return Math.min(Math.max(pTouch, 0), 1);
+    }
+    function volBucketOf(p) { return p < 0.40 ? 'far_lowP' : p < 0.70 ? 'mid_P' : 'near_highP'; }
+    const VOL_BUCKET_LABEL = {
+      far_lowP:   '🔴 Ruhiges Regime -- laut Backtest KEIN Edge',
+      mid_P:      '🟡 Mittleres Regime -- moderater Edge',
+      near_highP: '🟢 Volatiles Regime -- beste risikoadjustierte Performance im Backtest'
+    };
+    async function getVolRegime(stockSymbol, price, direction) {
+      try {
+        const hist = await API.eod.historical(stockSymbol, { from: isoDaysAgo(400) });
+        const closes = (Array.isArray(hist) ? hist : []).map(h => h.close).filter(c => c > 0);
+        if (closes.length < 20) return null;
+        const params = estimateSigmaMu(closes);
+        if (!params) return null;
+        const stopLevel = direction === 'LONG' ? price * (1 - VALIDATED_STOP_PCT / 100) : price * (1 + VALIDATED_STOP_PCT / 100);
+        const pTouchStop = probHitTarget(price, stopLevel, params.mu, params.sigma, 10 / 252);
+        return { pTouchStop, sigma: params.sigma, bucket: volBucketOf(pTouchStop) };
+      } catch (e) {
+        console.error('getVolRegime failed:', e);
+        return null;
+      }
+    }
+
     async function getMonthlyAnalysis(stockSymbol) {
       const today = new Date();
       let lastMonth = today.getMonth();
@@ -1073,6 +1135,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
 
         const position = latestClose > lastMonthClose ? "LONG" : "SHORT";
         const vts = validatedTargetStop(latestClose, position, 'monthly');
+        const volRegime = await getVolRegime(stockSymbol, latestClose, position);
 
         return {
           symbol: stockSymbol,
@@ -1081,6 +1144,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           target: vts.target,
           stop: vts.stop,
           backtest: vts.stats,
+          volRegime,
           timestamp: new Date().getTime() / 1000,
           size: "10%"
         };
@@ -1104,6 +1168,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           const spread = latestClose / thirdLatestClose;
           const position = spread > 1 ? "LONG" : "SHORT";
           const vts = validatedTargetStop(latestClose, position, 'spread');
+          const volRegime = await getVolRegime(stockSymbol, latestClose, position);
 
           return {
             symbol: stockSymbol,
@@ -1112,6 +1177,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
             target: vts.target,
             stop: vts.stop,
             backtest: vts.stats,
+            volRegime,
             timestamp: new Date(latestCloseDate).getTime() / 1000,
             size: "50%"
           };
@@ -1135,15 +1201,18 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
         let trailingStop = '';
         let target = '';
         let backtest = null;
+        let volRegime = null;
 
         if (realtimePrice > averagePrice) {
           recommendation = 'LONG';
           const vts = validatedTargetStop(realtimePrice, 'LONG', 'midpoint');
           target = vts.target; trailingStop = vts.stop; backtest = vts.stats;
+          volRegime = await getVolRegime(stockSymbol, realtimePrice, 'LONG');
         } else if (realtimePrice < averagePrice) {
           recommendation = 'SHORT';
           const vts = validatedTargetStop(realtimePrice, 'SHORT', 'midpoint');
           target = vts.target; trailingStop = vts.stop; backtest = vts.stats;
+          volRegime = await getVolRegime(stockSymbol, realtimePrice, 'SHORT');
         }
 
         return {
@@ -1153,6 +1222,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           target,
           stop: trailingStop,
           backtest,
+          volRegime,
           timestamp: data.timestamp,
           size: "100%"
         };
@@ -1176,6 +1246,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           const position = spread > 1 ? "LONG" : "SHORT";
           const latestClose = data[0].close;
           const vts = validatedTargetStop(latestClose, position, 'weeklySma');
+          const volRegime = await getVolRegime(stockSymbol, latestClose, position);
 
           return {
             symbol: stockSymbol,
@@ -1184,6 +1255,7 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
             target: vts.target,
             stop: vts.stop,
             backtest: vts.stats,
+            volRegime,
             timestamp: new Date(data[0].date).getTime() / 1000,
             size: "25%"
           };
@@ -1398,6 +1470,11 @@ WICHTIG: Wiederhole NICHT einfach die Prozentdifferenz zwischen aktuellem Kurs u
                               ? '📈 Edge verstärkt sich in neuerer Hälfte'
                               : '✅ Robust über beide Zeithälften'
                         }</div>
+                      </div>` : ''}
+                      ${data.volRegime ? `
+                      <div class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2 mt-1">
+                        <div>🎯 Smart-Target-Filter: P(Touch -4%-Stop in 10d) = ${(data.volRegime.pTouchStop*100).toFixed(0)}% (σ=${(data.volRegime.sigma*100).toFixed(1)}%)</div>
+                        <div class="mt-0.5">${VOL_BUCKET_LABEL[data.volRegime.bucket]}</div>
                       </div>` : ''}
                     </div>
 
