@@ -5591,6 +5591,13 @@ async function ai_doRsi(symbol) {
     } catch(e) { ai_log('error', `RSI Fehler [${sym}]: ${e.message}`); }
 }
 
+/* ai_log() sets innerHTML directly (only translating \n -> <br>), so raw article
+   text must be escaped first -- real news content regularly contains "<"/">"/"&"
+   (e.g. "beat estimates by <5%"), which would otherwise be parsed as broken HTML. */
+function ai_escapeHtml(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 async function ai_doNews(symbol) {
     const sym = symbol.toUpperCase();
     ai_log('system', '📰 News → ' + sym + '...');
@@ -5598,15 +5605,35 @@ async function ai_doNews(symbol) {
         const r = await fetch(`${AI_BOT_URL}/eod/news?s=${sym}&offset=0&limit=5&fmt=json`);
         const data = await r.json();
         if (!Array.isArray(data)||!data.length) throw new Error('Keine News');
+        // The API returns the full article body (n.content, often several thousand
+        // characters) plus a real VADER-style sentiment score (n.sentiment.pos/neg/neu)
+        // -- previously only an 80-char title was shown and sentiment was a crude
+        // keyword count over the (unused) full text. Now: all 5 articles, a real excerpt
+        // of each (not just the headline), and the API's own sentiment aggregated --
+        // user asked for as much of the original article content as possible so the
+        // chat/RAG context has real substance, not just headlines.
         let out = `NEWS ${sym} (${data.length} Artikel)\n`;
-        data.slice(0,4).forEach(n => {
+        let sumPos = 0, sumNeg = 0, sentCount = 0;
+        data.forEach(n => {
             const d = new Date(n.date||n.publishedAt||'').toLocaleDateString('de-DE');
-            out += `• [${d}] ${(n.title||n.headline||'').substring(0,80)}\n`;
+            const title = ai_escapeHtml((n.title||n.headline||'').trim());
+            const body = (n.content||n.summary||'').replace(/\s+/g,' ').trim();
+            const excerpt = ai_escapeHtml(body.slice(0, 450)) + (body.length > 450 ? ' …' : '');
+            out += `\n• [${d}] ${title}\n  ${excerpt}\n`;
+            if (n.sentiment && typeof n.sentiment.pos === 'number') {
+                sumPos += n.sentiment.pos; sumNeg += n.sentiment.neg || 0; sentCount++;
+            }
         });
-        const txt = data.map(n=>(n.title||'')+(n.summary||'')+(n.content||'')).join(' ').toLowerCase();
-        const pos = ['strong','beat','surge','gain','positive','record','growth','bullish'].filter(w=>txt.includes(w)).length;
-        const neg = ['fail','weak','loss','drop','miss','cut','warn','decline','bearish'].filter(w=>txt.includes(w)).length;
-        out += `\nSentiment: ${pos>neg?'🟢 POSITIV':neg>pos?'🔴 NEGATIV':'⚪ NEUTRAL'} (pos=${pos} neg=${neg})`;
+        if (sentCount) {
+            const avgDiff = (sumPos - sumNeg) / sentCount;
+            const label = avgDiff > 0.04 ? '🟢 POSITIV' : avgDiff < -0.04 ? '🔴 NEGATIV' : '⚪ NEUTRAL';
+            out += `\nSentiment (API-Score, Ø pos-neg=${avgDiff.toFixed(3)}): ${label}`;
+        } else {
+            const txt = data.map(n=>(n.title||'')+(n.content||'')).join(' ').toLowerCase();
+            const pos = ['strong','beat','surge','gain','positive','record','growth','bullish'].filter(w=>txt.includes(w)).length;
+            const neg = ['fail','weak','loss','drop','miss','cut','warn','decline','bearish'].filter(w=>txt.includes(w)).length;
+            out += `\nSentiment (Keyword-Fallback, keine API-Scores verfügbar): ${pos>neg?'🟢 POSITIV':neg>pos?'🔴 NEGATIV':'⚪ NEUTRAL'} (pos=${pos} neg=${neg})`;
+        }
         ai_log('system', out);
         ai_pushAnalysis(out, 'NEWS');
     } catch(e) { ai_log('error', `News Fehler [${sym}]: ${e.message}`); }
