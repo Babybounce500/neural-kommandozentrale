@@ -311,6 +311,11 @@
             .quick-deck-row { padding: 5px 8px; }
             .qd-chip { font-size: 10px; padding: 4px 8px; }
         }
+        /* Collapsible Quick Deck (baskets + module launchers) -- user asked to be able
+           to hide this when not needed, same as the RAG panel. Instant toggle (no height
+           transition) since this sits inside the sticky header, where an animated height
+           change fights with the browser's sticky-offset recalculation mid-transition. */
+        #quickDeckWrap.qd-collapsed { display: none; }
         @media (max-width: 400px) {
             /* symbol text input hides here (see .cz-sym-wrap below) -- baskets become the ONLY
                way to push symbols on very small phones, so keep this row visible and usable. */
@@ -878,8 +883,13 @@
         </div>
         <span class="cz-status" id="czStatusDot" title="Pipeline Status" aria-hidden="true"></span>
         <span class="tab-count-badge" aria-label="22 Module">22</span>
+        <button class="tbtn-theme" id="qdToggleBtn" onclick="qd_toggleDeck()" title="Basket-/Modul-Leiste ein-/ausklappen" aria-label="Quick Deck ein-/ausklappen">
+            <span id="qdToggleIcon" aria-hidden="true">🧺▾</span>
+        </button>
     </nav>
 
+    <!-- QUICK DECK: baskets + module launchers, collapsible as one unit (see qd_toggleDeck) -->
+    <div id="quickDeckWrap">
     <!-- QUICK DECK ROW 1: Symbol-Baskets — click = bulk-push symbols into the active module, no typing -->
     <div class="quick-deck-row" id="basketDeckRow" role="toolbar" aria-label="Symbol-Baskets">
         <span class="qd-label" aria-hidden="true">🧺</span>
@@ -891,6 +901,7 @@
         <span class="qd-label" aria-hidden="true">⚡</span>
         <div class="qd-chips" id="moduleChips"></div>
     </div>
+    </div><!-- /quickDeckWrap -->
 
     </div><!-- /sticky-header-group -->
 
@@ -4999,6 +5010,25 @@ function qd_renderModuleChips() {
 }
 
 document.addEventListener('DOMContentLoaded', () => { qd_renderBasketChips(); qd_renderModuleChips(); });
+
+/* Collapsible Quick Deck -- persisted so the choice survives a reload. */
+function qd_toggleDeck() {
+    const wrap = document.getElementById('quickDeckWrap');
+    const icon = document.getElementById('qdToggleIcon');
+    if (!wrap) return;
+    const collapsed = wrap.classList.toggle('qd-collapsed');
+    if (icon) icon.textContent = collapsed ? '🧺▸' : '🧺▾';
+    try { localStorage.setItem('cz_qdCollapsed', collapsed ? '1' : '0'); } catch(e) {}
+}
+document.addEventListener('DOMContentLoaded', () => {
+    let saved = '0';
+    try { saved = localStorage.getItem('cz_qdCollapsed') || '0'; } catch(e) {}
+    if (saved === '1') {
+        document.getElementById('quickDeckWrap')?.classList.add('qd-collapsed');
+        const icon = document.getElementById('qdToggleIcon');
+        if (icon) icon.textContent = '🧺▸';
+    }
+});
 
 /* ══════════════════════════════════════════════════════════════════════
    LIGHT / DARK THEME TOGGLE
