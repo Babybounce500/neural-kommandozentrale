@@ -5237,6 +5237,29 @@ function czDispatch(tab, syms) {
         return;
     }
 
+    /* ── AI Analyst: never blindly overwrite the chat input ──────────────
+       Without this branch, basket/symbol dispatch fell through to the
+       generic "fill the first text input" fallback below, which is the
+       chat box -- wiping out a command the user had already half-typed
+       (e.g. clicked the "pivot" pill, got "pivot " prefilled, then
+       pressed a basket chip to pick symbols) and replacing it with a raw
+       comma list. User-reported. Now: if a single-symbol command is
+       pending (prefilled, no symbol typed yet), run that exact command
+       across every basket symbol (same as the 🧺 batch button). Otherwise
+       leave the chat input untouched -- the basket is still loaded into
+       the top symbol bar for later use, just doesn't clobber the chat. */
+    if (tab === 'ai-analyst') {
+        const inp = document.getElementById('ai_input');
+        const pending = (inp?.value || '').trim().toLowerCase();
+        if (AI_SYMBOL_CMDS.includes(pending)) {
+            if (inp) inp.value = '';
+            ai_quickRunBasket(pending);
+        }
+        /* else: intentionally do nothing -- chat input (free text or empty) stays
+           untouched; czSymbolRun()'s own toast already confirms the symbols loaded. */
+        return;
+    }
+
     /* ── fallback: fill any text input in the active section ─────────── */
     const sec = document.getElementById('section-' + tab);
     if (!sec) return;
