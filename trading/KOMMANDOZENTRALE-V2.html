@@ -151,14 +151,67 @@
         .tab-section { display: none; }
         .tab-section.active { display: block; }
 
-        /* ── BURGER NAV BAR ──────────────────────────────────────────────── */
+        /* ── STICKY HEADER GROUP (nav + quick-deck baskets/modules) ─────────── */
         /* sticky: the nav was scrolling out of view inside long modules, leaving no way back
-           to the menu (or to the chat) without scrolling all the way back up -- user-reported. */
+           to the menu (or to the chat) without scrolling all the way back up -- user-reported.
+           Wraps nav + both quick-deck rows so the whole cluster stays reachable together. */
+        .sticky-header-group {
+            position: sticky; top: 0; z-index: 500; margin-bottom: 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+        }
         .tab-nav-bar {
             display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;
             background: var(--bg-inner); border: 2px solid var(--border);
-            padding: 8px 14px; border-radius: 4px; margin-bottom: 14px;
-            position: sticky; top: 0; z-index: 500; box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+            padding: 8px 14px; border-radius: 4px 4px 0 0;
+        }
+        /* ── QUICK DECK: clickable symbol-baskets + module launchers, no keyboard needed ───── */
+        .quick-deck-row {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--bg-main); border: 2px solid var(--border); border-top: none;
+            padding: 6px 14px;
+        }
+        .quick-deck-row:last-of-type { border-radius: 0 0 4px 4px; }
+        .qd-label { flex-shrink: 0; font-size: 13px; opacity: 0.7; }
+        .qd-chips {
+            display: flex; gap: 5px; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden;
+            scrollbar-width: thin; padding-bottom: 2px; -webkit-overflow-scrolling: touch;
+        }
+        .qd-chip {
+            flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            color: var(--white) !important; font-family: monospace; font-size: 10.5px;
+            padding: 5px 10px; border-radius: 12px; cursor: pointer; white-space: nowrap;
+            transition: background 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent;
+        }
+        .qd-chip:hover, .qd-chip:focus-visible { border-color: var(--cyan); background: rgba(0,229,255,0.08); }
+        .qd-chip.qd-chip-active { border-color: var(--cyan); color: var(--cyan) !important; }
+        .qd-chip-mod { border-color: rgba(57,255,20,0.3); }
+        .qd-chip-mod:hover { border-color: #39ff14; background: rgba(57,255,20,0.08); }
+        .qd-chip-add { border-style: dashed; color: var(--gold) !important; border-color: rgba(255,193,7,0.4); }
+        .qd-chip-del {
+            margin-left: 2px; opacity: 0.5; font-weight: bold; padding: 0 2px; border-radius: 50%;
+        }
+        .qd-chip-del:hover { opacity: 1; color: var(--red-bright) !important; }
+        .qd-add-form {
+            flex-shrink: 0; display: flex; gap: 4px; align-items: center;
+            background: rgba(0,0,0,0.3); border: 1px dashed var(--gold); border-radius: 12px; padding: 3px 6px;
+        }
+        .qd-add-form input {
+            background: #000; border: 1px solid var(--border); color: var(--white) !important;
+            font-family: monospace; font-size: 10.5px; padding: 3px 6px; border-radius: 8px; outline: none;
+        }
+        .qd-add-form input:focus { border-color: var(--cyan); }
+        #qd_newName { width: 70px; }
+        #qd_newSyms { width: 150px; }
+        @media (max-width: 640px) {
+            .quick-deck-row { padding: 5px 8px; }
+            .qd-chip { font-size: 10px; padding: 4px 8px; }
+        }
+        @media (max-width: 400px) {
+            /* symbol text input hides here (see .cz-sym-wrap below) -- baskets become the ONLY
+               way to push symbols on very small phones, so keep this row visible and usable. */
+            .qd-label { display: none; }
+            #qd_newSyms { width: 90px; }
         }
         .tbtn-chat {
             display: flex; align-items: center; gap: 6px; flex-shrink: 0;
@@ -727,6 +780,9 @@
     <!-- diagnostic kept hidden for logDebug() JS compatibility -->
     <div id="diagnosticConsole" aria-hidden="true" style="display:none"></div>
 
+    <!-- STICKY HEADER GROUP: nav bar + quick-deck (baskets/modules) all stay reachable while scrolling -->
+    <div class="sticky-header-group" id="stickyHeaderGroup">
+
     <!-- BURGER NAV BAR -->
     <nav class="tab-nav-bar" role="navigation" aria-label="Module-Navigation">
         <button class="tbtn-burger" id="tabBurger" onclick="toggleTabMenu()"
@@ -753,6 +809,20 @@
         <span class="cz-status" id="czStatusDot" title="Pipeline Status" aria-hidden="true"></span>
         <span class="tab-count-badge" aria-label="22 Module">22</span>
     </nav>
+
+    <!-- QUICK DECK ROW 1: Symbol-Baskets — click = bulk-push symbols into the active module, no typing -->
+    <div class="quick-deck-row" id="basketDeckRow" role="toolbar" aria-label="Symbol-Baskets">
+        <span class="qd-label" aria-hidden="true">🧺</span>
+        <div class="qd-chips" id="basketChips"></div>
+    </div>
+
+    <!-- QUICK DECK ROW 2: pinned module launchers — click = switch tab + re-run current symbols immediately -->
+    <div class="quick-deck-row" id="moduleDeckRow" role="toolbar" aria-label="Quick-Module-Start">
+        <span class="qd-label" aria-hidden="true">⚡</span>
+        <div class="qd-chips" id="moduleChips"></div>
+    </div>
+
+    </div><!-- /sticky-header-group -->
 
     <!-- MENU OVERLAY -->
     <div class="tmenu-overlay" id="tabMenuOverlay" onclick="closeTabMenu()" aria-hidden="true"></div>
@@ -5545,6 +5615,116 @@ function czSymbolRun() {
     const label = mi ? mi.textContent.trim().replace(/^[\s\S]{1,2}\s/, '') : tab;
     czToast('▶ ' + syms.slice(0, 3).join(' · ') + (syms.length > 3 ? ' +' + (syms.length - 3) : '') + '  →  ' + label);
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   QUICK DECK — clickable symbol-baskets + pinned module launchers.
+   Baskets reuse MARKET_CLUSTERS (already-defined 22 index/market symbol
+   lists) for the built-ins, plus user-defined custom baskets persisted in
+   localStorage (per-browser, no backend). Click a basket -> fills the
+   global symbol input and immediately dispatches to whatever module tab
+   is currently active (bulk symbol push, no typing). Click a module chip
+   -> switches tab and re-dispatches the current symbol input, so basket
+   + module together form a true "click, click, done" workflow.
+══════════════════════════════════════════════════════════════════════ */
+const QD_BUILTIN_IDS = ['dow30','nasdaq','dax','ftse','cac40','crypto'];
+const QD_CUSTOM_KEY = 'cz_customBaskets';
+const QD_PINNED_MODULES = [
+    { tab:'denarius',       label:'🔬 Denarius' },
+    { tab:'gbonds',         label:'🏛️ G-Bonds' },
+    { tab:'hedging',        label:'🛡️ Hedging' },
+    { tab:'argentum-daily', label:'📊 Argentum' },
+    { tab:'bodyslam',       label:'💥 Body Slam' },
+    { tab:'volumina',       label:'🌊 Volumina' },
+];
+
+function qd_loadCustomBaskets() {
+    try { return JSON.parse(localStorage.getItem(QD_CUSTOM_KEY)) || []; }
+    catch(e) { return []; }
+}
+function qd_saveCustomBaskets(list) {
+    try { localStorage.setItem(QD_CUSTOM_KEY, JSON.stringify(list)); } catch(e) {}
+}
+
+function qd_runBasket(symbols) {
+    const inp = document.getElementById('czSymInput');
+    if (!inp || !symbols.length) return;
+    inp.value = symbols.join(', ');
+    czSymbolRun();
+}
+
+function qd_renderBasketChips() {
+    const wrap = document.getElementById('basketChips');
+    if (!wrap) return;
+    const custom = qd_loadCustomBaskets();
+    let html = '';
+    QD_BUILTIN_IDS.forEach(id => {
+        const c = getCluster(id);
+        if (!c) return;
+        html += `<span class="qd-chip" title="${c.symbols.length} Symbole" onclick='qd_runBasket(${JSON.stringify(c.symbols)})'>${c.label.replace(/^\S+\s/,'')}</span>`;
+    });
+    custom.forEach((b, i) => {
+        html += `<span class="qd-chip" title="${b.symbols.length} Symbole">` +
+                `<span onclick='qd_runBasket(${JSON.stringify(b.symbols)})'>🧺 ${b.name}</span>` +
+                `<span class="qd-chip-del" onclick="qd_deleteBasket(${i})" title="Löschen" aria-label="Basket löschen">✕</span>` +
+                `</span>`;
+    });
+    html += `<span class="qd-chip qd-chip-add" id="qd_addBtn" onclick="qd_openAddForm()">➕ Basket</span>`;
+    wrap.innerHTML = html;
+}
+
+function qd_openAddForm() {
+    const wrap = document.getElementById('basketChips');
+    const addBtn = document.getElementById('qd_addBtn');
+    if (!wrap || !addBtn) return;
+    const form = document.createElement('span');
+    form.className = 'qd-add-form';
+    form.innerHTML =
+        `<input id="qd_newName" placeholder="Name" maxlength="20">` +
+        `<input id="qd_newSyms" placeholder="AAPL,MSFT,..." maxlength="300">` +
+        `<span class="qd-chip" style="padding:3px 8px;" onclick="qd_saveNewBasket()">✓</span>` +
+        `<span class="qd-chip" style="padding:3px 8px;" onclick="qd_renderBasketChips()">✕</span>`;
+    addBtn.replaceWith(form);
+    document.getElementById('qd_newName').focus();
+    const submitOnEnter = (e) => { if (e.key === 'Enter') qd_saveNewBasket(); };
+    document.getElementById('qd_newName').addEventListener('keydown', submitOnEnter);
+    document.getElementById('qd_newSyms').addEventListener('keydown', submitOnEnter);
+}
+
+function qd_saveNewBasket() {
+    const nameEl = document.getElementById('qd_newName');
+    const symsEl = document.getElementById('qd_newSyms');
+    const name = (nameEl?.value || '').trim();
+    const symbols = (symsEl?.value || '').split(',').map(s => czNorm(s.trim())).filter(Boolean);
+    if (!name || !symbols.length) { qd_renderBasketChips(); return; }
+    const custom = qd_loadCustomBaskets();
+    custom.push({ name, symbols });
+    qd_saveCustomBaskets(custom);
+    qd_renderBasketChips();
+    czToast('🧺 Basket "' + name + '" gespeichert (' + symbols.length + ' Symbole)');
+}
+
+function qd_deleteBasket(index) {
+    const custom = qd_loadCustomBaskets();
+    custom.splice(index, 1);
+    qd_saveCustomBaskets(custom);
+    qd_renderBasketChips();
+}
+
+function qd_runModule(tab) {
+    selectTab(tab);
+    const inp = document.getElementById('czSymInput');
+    if (inp && inp.value.trim()) czSymbolRun();
+}
+
+function qd_renderModuleChips() {
+    const wrap = document.getElementById('moduleChips');
+    if (!wrap) return;
+    wrap.innerHTML = QD_PINNED_MODULES.map(m =>
+        `<span class="qd-chip qd-chip-mod" onclick="qd_runModule('${m.tab}')">${m.label}</span>`
+    ).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => { qd_renderBasketChips(); qd_renderModuleChips(); });
 
 /* ── symbol normalizer: "AAPL" → "AAPL.US", "DAX.INDX" stays ─────── */
 function czNorm(s) {
