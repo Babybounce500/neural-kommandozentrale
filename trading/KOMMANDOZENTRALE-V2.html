@@ -77,10 +77,10 @@
             --bg-main:    #f4f5f9;
             --bg-panel:   #ffffff;
             --bg-inner:   #eceef5;
-            --gold:       #a9780a;
-            --cyan:       #0088a0;
-            --green:      #1e8e3e;
-            --green-bright:#009966;
+            --gold:       #8a6d00;
+            --cyan:       #007a90;
+            --green:      #187233;
+            --green-bright:#007a50;
             --red:        #c0392b;
             --red-bright: #d6002a;
             --magenta:    #a600a6;
@@ -126,6 +126,26 @@
         }
         :root[data-theme="light"] .ai-rag-col {
             background: #fafbfd !important;
+        }
+        /* Chat message bubbles: these hardcode neon dark-mode colors (pure white/yellow/
+           green text) that have near-zero contrast once the page background flips to
+           white. Re-themed with darker, WCAG-readable equivalents of the same color
+           family so each message type keeps its meaning (user/system/assistant/error/
+           success) but stays easy to read in light mode. User-reported (screenshot). */
+        :root[data-theme="light"] .ai-msg-user {
+            color: #15151f !important; background: rgba(0,0,0,0.045) !important; border-left-color: #15151f !important;
+        }
+        :root[data-theme="light"] .ai-msg-assistant {
+            color: #0a7a2e !important; background: rgba(10,122,46,0.06) !important; border-left-color: #0a7a2e !important;
+        }
+        :root[data-theme="light"] .ai-msg-success {
+            color: #8a6d00 !important; background: rgba(138,109,0,0.08) !important; border-left-color: #8a6d00 !important;
+        }
+        :root[data-theme="light"] .ai-msg-system {
+            background: rgba(0,136,160,0.06) !important;
+        }
+        :root[data-theme="light"] .ai-msg-error {
+            background: rgba(214,0,42,0.06) !important;
         }
         /* Smooth cross-fade on toggle -- scoped to the main surfaces, not a universal
            selector, so existing per-component hover transitions aren't disturbed. */
