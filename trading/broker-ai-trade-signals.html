@@ -1056,18 +1056,37 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
       midpoint:  { far_lowP: -0.0443, mid_P: 0.1821, near_highP: 0.4395 },
       weeklySma: { far_lowP: -0.2102, mid_P: 0.2251, near_highP: 0.3741 }
     };
-    // Smart Stop/Target: Stop bleibt die validierte flache -4%-Regel; Target nutzt jetzt den
-    // tatsächlich für DIESES Vola-Regime gemessenen avgRet statt des verwässerten Signal-Durchschnitts.
-    // Im far_lowP-Regime ist dieser Wert NEGATIV (kein Edge) -- wird explizit als "kein Trade
-    // empfohlen" markiert, statt einen irreführenden positiven Zielkurs vorzutäuschen.
+    // Ø-Größe der tatsächlichen GEWINNER-Trades pro Bucket (aus demselben Backtest-Result-JSON,
+    // volFilter.<bucket>.avgWin) -- NICHT der Durchschnitt über alle Trades. Der alte Code nutzte
+    // avgRet (0.17-0.69%) als "Target"-Preis gegen einen festen 4%-Stop -- das erzeugte ein
+    // irreführendes 1:20-Chance/Risiko, weil avgRet ein über die ganze Haltedauer gemittelter
+    // Erwartungswert ist, kein Kurslevel. avgWin ist ein echtes, im Backtest tatsächlich
+    // erreichtes Limit (trifft ca. in winRateBuckets% der Fälle zu).
+    const BACKTEST_WIN_BY_BUCKET = {
+      monthly:   { far_lowP: 3.3155, mid_P: 4.9328, near_highP: 9.0082 },
+      spread:    { far_lowP: 3.3216, mid_P: 4.9752, near_highP: 8.6058 },
+      midpoint:  { far_lowP: 3.3611, mid_P: 4.9094, near_highP: 8.5697 },
+      weeklySma: { far_lowP: 3.3123, mid_P: 4.9551, near_highP: 8.7193 }
+    };
+    const BACKTEST_WINRATE_BY_BUCKET = {
+      monthly:   { far_lowP: 44.85, mid_P: 42.83, near_highP: 34.91 },
+      spread:    { far_lowP: 45.42, mid_P: 43.11, near_highP: 34.19 },
+      midpoint:  { far_lowP: 46.48, mid_P: 43.26, near_highP: 34.16 },
+      weeklySma: { far_lowP: 44.6,  mid_P: 43.42, near_highP: 33.13 }
+    };
+    // Smart Stop/Target: Stop bleibt die validierte flache -4%-Regel; Target ist jetzt ein echtes
+    // Limit (Ø-Gewinner-Trade dieses Vola-Regimes), kein Zeitdurchschnitt mehr. Im far_lowP-Regime
+    // ist avgRet NEGATIV (kein Edge) -- wird explizit als "kein Trade empfohlen" markiert.
     function smartStopTarget(price, direction, statsKey, bucket) {
       const stats = BACKTEST_STATS[statsKey];
       const bucketAvgRet = (BACKTEST_STATS_BY_BUCKET[statsKey] && bucket) ? BACKTEST_STATS_BY_BUCKET[statsKey][bucket] : stats.avgRet;
+      const winPct = (BACKTEST_WIN_BY_BUCKET[statsKey] && bucket) ? BACKTEST_WIN_BY_BUCKET[statsKey][bucket] : VALIDATED_STOP_PCT;
+      const hitRate = (BACKTEST_WINRATE_BY_BUCKET[statsKey] && bucket) ? BACKTEST_WINRATE_BY_BUCKET[statsKey][bucket] : stats.winRate;
       const sign = direction === 'LONG' ? 1 : -1;
       const noEdge = bucket === 'far_lowP';
-      const target = price * (1 + sign * (bucketAvgRet / 100));
+      const target = price * (1 + sign * (winPct / 100));
       const stop = price * (1 - sign * (VALIDATED_STOP_PCT / 100));
-      return { target: target.toFixed(2), stop: stop.toFixed(2), stats, bucketAvgRet, noEdge };
+      return { target: target.toFixed(2), stop: stop.toFixed(2), stats, winPct, hitRate, bucketAvgRet, noEdge };
     }
 
     // ==================== SMART-TARGET VOLA-FILTER ====================
@@ -1170,6 +1189,8 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           price: latestClose.toFixed(2),
           target: vts.target,
           stop: vts.stop,
+          winPct: vts.winPct,
+          hitRate: vts.hitRate,
           backtest: vts.stats,
           noEdge: vts.noEdge,
           volRegime,
@@ -1204,6 +1225,8 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
             price: latestClose.toFixed(2),
             target: vts.target,
             stop: vts.stop,
+            winPct: vts.winPct,
+            hitRate: vts.hitRate,
             backtest: vts.stats,
             noEdge: vts.noEdge,
             volRegime,
@@ -1229,6 +1252,8 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
         let recommendation = 'Neutral';
         let trailingStop = '';
         let target = '';
+        let winPct = null;
+        let hitRate = null;
         let backtest = null;
         let volRegime = null;
         let noEdge = false;
@@ -1237,12 +1262,12 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           recommendation = 'LONG';
           volRegime = await getVolRegime(stockSymbol, realtimePrice, 'LONG');
           const vts = smartStopTarget(realtimePrice, 'LONG', 'midpoint', volRegime?.bucket);
-          target = vts.target; trailingStop = vts.stop; backtest = vts.stats; noEdge = vts.noEdge;
+          target = vts.target; trailingStop = vts.stop; winPct = vts.winPct; hitRate = vts.hitRate; backtest = vts.stats; noEdge = vts.noEdge;
         } else if (realtimePrice < averagePrice) {
           recommendation = 'SHORT';
           volRegime = await getVolRegime(stockSymbol, realtimePrice, 'SHORT');
           const vts = smartStopTarget(realtimePrice, 'SHORT', 'midpoint', volRegime?.bucket);
-          target = vts.target; trailingStop = vts.stop; backtest = vts.stats; noEdge = vts.noEdge;
+          target = vts.target; trailingStop = vts.stop; winPct = vts.winPct; hitRate = vts.hitRate; backtest = vts.stats; noEdge = vts.noEdge;
         }
 
         return {
@@ -1251,6 +1276,8 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
           price: realtimePrice.toFixed(2),
           target,
           stop: trailingStop,
+          winPct,
+          hitRate,
           backtest,
           noEdge,
           volRegime,
@@ -1285,6 +1312,8 @@ window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
             price: latestClose.toFixed(2),
             target: vts.target,
             stop: vts.stop,
+            winPct: vts.winPct,
+            hitRate: vts.hitRate,
             backtest: vts.stats,
             noEdge: vts.noEdge,
             volRegime,
@@ -1479,18 +1508,20 @@ WICHTIG: Wiederhole NICHT einfach die Prozentdifferenz zwischen aktuellem Kurs u
                       </div>
 
                       <div class="flex justify-between items-center ${data.noEdge ? 'bg-gray-100 dark:bg-gray-800 opacity-60' : 'bg-blue-50 dark:bg-blue-950'} p-2 rounded">
-                        <span class="text-gray-900 dark:text-white">TARGET${data.noEdge ? ' (unplausibel)' : ''}</span>
+                        <span class="text-gray-900 dark:text-white">TARGET (Limit)${data.noEdge ? ' (unplausibel)' : ''}</span>
                         <div class="flex items-center gap-2">
                           <span class="font-bold ${data.noEdge ? 'text-gray-500' : 'text-blue-600 dark:text-blue-400'}">${data.target}</span>
                         </div>
                       </div>
 
                       <div class="flex justify-between items-center bg-orange-50 dark:bg-orange-950 p-2 rounded">
-                        <span class="text-gray-900 dark:text-white">STOP</span>
+                        <span class="text-gray-900 dark:text-white">STOP (-4%, hart)</span>
                         <div class="flex items-center gap-2">
                           <span class="font-bold text-orange-600 dark:text-orange-400">${data.stop}</span>
                         </div>
                       </div>
+
+                      <div class="text-[10px] text-gray-400 dark:text-gray-500 px-1 -mt-1">🎯 Echtes Limit: Ø-Größe der tatsächlichen <b>Gewinner</b>-Trades in diesem Bucket (±${data.winPct != null ? data.winPct.toFixed(2) : '?'}%), trifft ca. in ${data.hitRate}% der Fälle. R:R ≈ ${data.winPct != null ? (data.winPct/4).toFixed(1) : '?'}:1 gegen den festen 4%-Stop, max. 10 Handelstage.</div>
 
                       <div class="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                         <span class="text-gray-900 dark:text-white">SIZE</span>

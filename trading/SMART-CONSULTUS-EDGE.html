@@ -54,7 +54,7 @@
     <p class="text-xs text-gray-400 mt-4">Keine Anlageberatung. Smart Stop/Target und Vola-Bucket basieren auf historischer Drift/Volatilität -- keine Garantie für zukünftiges Verhalten.</p>
   </main>
 <script>
-  const BACKTEST = { n: 2532, avgRet: 0.3458, winRate: 32.58, sharpeLike: 0.739, bestBucket: 'near_highP', robust: true, buckets: { far_lowP: null, mid_P: 0.245, near_highP: 0.3458 } };
+  const BACKTEST = { n: 2532, avgRet: 0.3458, winRate: 32.58, sharpeLike: 0.739, bestBucket: 'near_highP', robust: true, buckets: { far_lowP: null, mid_P: 0.245, near_highP: 0.3458 }, winBuckets: { far_lowP: 3.2176, mid_P: 4.9117, near_highP: 8.7672 }, winRateBuckets: { far_lowP: 44.86, mid_P: 43.84, near_highP: 32.58 } };
 
   window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
   const BASE = window.API_BASE_URL;
@@ -103,12 +103,18 @@
       return { pTouchStop, sigma: params.sigma, bucket: volBucketOf(pTouchStop) };
     } catch (e) { console.error('getVolRegime failed', e); return null; }
   }
+  // Echtes Limit statt Erwartungswert: Target = Entry +/- Ø-Groesse der tatsaechlichen GEWINNER-Trades
+  // in diesem Bucket (winBuckets), nicht der Durchschnitt ueber ALLE Trades (der war nur 0.17-0.69%
+  // gross und erzeugte ein absurdes 1:20-Chance/Risiko gegen den festen 4%-Stop). Stop bleibt hart -4%.
   function smartStopTarget(price, direction, bucket) {
     const sign = direction==='LONG'?1:-1;
-    const bucketAvgRet = BACKTEST.buckets[bucket] != null ? BACKTEST.buckets[bucket] : BACKTEST.avgRet;
-    const target = price*(1+sign*(bucketAvgRet/100));
+    const bucketAvgRet = BACKTEST.buckets[bucket] != null ? BACKTEST.buckets[bucket] : null;
+    const noEdge = bucketAvgRet == null || bucketAvgRet < 0;
+    const winPct = (BACKTEST.winBuckets && BACKTEST.winBuckets[bucket] != null) ? BACKTEST.winBuckets[bucket] : STOP_PCT;
+    const hitRate = (BACKTEST.winRateBuckets && BACKTEST.winRateBuckets[bucket] != null) ? BACKTEST.winRateBuckets[bucket] : BACKTEST.winRate;
+    const target = price*(1+sign*(winPct/100));
     const stop = price*(1-sign*(STOP_PCT/100));
-    return { target: target.toFixed(2), stop: stop.toFixed(2), bucketAvgRet, noEdge: BACKTEST.buckets[bucket] != null && bucketAvgRet < 0 };
+    return { target: target.toFixed(2), stop: stop.toFixed(2), winPct, hitRate, bucketAvgRet, noEdge };
   }
 
 
@@ -126,9 +132,10 @@ function renderCard(sym, price, direction, vts, volRegime) {
     ${noEdge ? '<div class="bg-red-100 dark:bg-red-900/40 border border-red-400 text-red-800 dark:text-red-300 text-xs font-bold p-2 rounded text-center mb-2">⛔ KEIN TRADE EMPFOHLEN -- ausserhalb des validierten Vola-Buckets</div>' : ''}
     <div class="font-mono text-sm space-y-1.5">
       <div class="flex justify-between bg-gray-100 dark:bg-gray-800 p-1.5 rounded"><span>ENTRY</span><span class="font-bold">${price.toFixed(2)}</span></div>
-      <div class="flex justify-between ${noEdge?'bg-gray-100 dark:bg-gray-800 opacity-60':'bg-blue-50 dark:bg-blue-950'} p-1.5 rounded"><span>SMART TARGET</span><span class="font-bold ${noEdge?'text-gray-500':'text-blue-600 dark:text-blue-400'}">${vts.target}</span></div>
-      <div class="flex justify-between bg-orange-50 dark:bg-orange-950 p-1.5 rounded"><span>SMART STOP (-4%)</span><span class="font-bold text-orange-600 dark:text-orange-400">${vts.stop}</span></div>
+      <div class="flex justify-between ${noEdge?'bg-gray-100 dark:bg-gray-800 opacity-60':'bg-blue-50 dark:bg-blue-950'} p-1.5 rounded"><span>SMART TARGET (Limit)</span><span class="font-bold ${noEdge?'text-gray-500':'text-blue-600 dark:text-blue-400'}">${vts.target}</span></div>
+      <div class="flex justify-between bg-orange-50 dark:bg-orange-950 p-1.5 rounded"><span>SMART STOP (-4%, hart)</span><span class="font-bold text-orange-600 dark:text-orange-400">${vts.stop}</span></div>
     </div>
+    <div class="text-[10px] text-gray-400 dark:text-gray-500 mt-1 px-1">🎯 Echtes Limit: Ø-Größe der tatsächlichen <b>Gewinner</b>-Trades in diesem Bucket (±${vts.winPct.toFixed(2)}%), nicht der Durchschnitt über alle Trades. Trifft ca. in ${vts.hitRate}% der Fälle (sonst meist Stop). R:R ≈ ${(vts.winPct/STOP_PCT).toFixed(1)}:1 gegen den festen ${STOP_PCT}%-Stop, max. ${HOLD_DAYS} Handelstage Haltedauer.</div>
     ${volRegime ? `
     <div class="text-[11px] text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
       <div>🎯 P(Touch Stop in ${HOLD_DAYS}d) = ${(volRegime.pTouchStop*100).toFixed(0)}% (σ=${(volRegime.sigma*100).toFixed(1)}%)</div>
