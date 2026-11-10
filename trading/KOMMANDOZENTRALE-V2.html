@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUANTUM INFRARED ENGINE v22.0 // MEGA COMMANDO ZENTRALE</title>
+    <script>
+        /* Applied before first paint to avoid a flash of the wrong theme on reload. */
+        (function(){
+            var t = 'dark';
+            try { t = localStorage.getItem('cz_theme') || 'dark'; } catch(e) {}
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,6 +57,78 @@
             /* Font families for Bond Alert module */
             --font-cyber: 'Orbitron', monospace;
             --font-data:  'Rajdhani', 'Courier New', monospace;
+        }
+
+        /* ── LIGHT MODE ─────────────────────────────────────────────────────── */
+        /* Variable names (--white, --bg-main, ...) keep their dark-theme names even
+           here for minimal risk: every component below already reads these vars, so
+           overriding just the values re-themes the whole chrome without touching the
+           ~1500 call sites that use them. --white specifically means "primary text
+           color", not literally white -- it resolves to near-black here. */
+        :root[data-theme="light"] {
+            --bg-main:    #f4f5f9;
+            --bg-panel:   #ffffff;
+            --bg-inner:   #eceef5;
+            --gold:       #a9780a;
+            --cyan:       #0088a0;
+            --green:      #1e8e3e;
+            --green-bright:#009966;
+            --red:        #c0392b;
+            --red-bright: #d6002a;
+            --magenta:    #a600a6;
+            --white:      #15151f;
+            --gray-text:  #46475a;
+            --border:     #d3d6e2;
+
+            --bs-body-color:            #15151f;
+            --bs-body-color-rgb:        21,21,31;
+            --bs-body-bg:               #f4f5f9;
+            --bs-card-color:            #15151f;
+            --bs-card-bg:               #ffffff;
+            --bs-card-cap-bg:           #eceef5;
+            --bs-border-color:          #d3d6e2;
+            --bs-border-color-translucent: rgba(211,214,226,0.6);
+            --bs-secondary-color:       #46475a;
+            --bs-emphasis-color:        #15151f;
+            --bs-link-color:            #0088a0;
+            --bs-link-hover-color:      #006b80;
+        }
+        /* Components with hardcoded pure-black surfaces (inputs/search fields/chat
+           history) -- these don't read the theme vars at all, so they need direct
+           light-mode overrides or they'd stay black-on-white. */
+        :root[data-theme="light"] .form-control-custom,
+        :root[data-theme="light"] .ex-search-input,
+        :root[data-theme="light"] #section-gbonds .gb-search,
+        :root[data-theme="light"] #section-bondalert .ba-search,
+        :root[data-theme="light"] #section-fxquant .fq-search,
+        :root[data-theme="light"] #section-etfmgr .em-search,
+        :root[data-theme="light"] #section-fundsmgr .fm-search,
+        :root[data-theme="light"] .gm-verdict-box,
+        :root[data-theme="light"] .gm-tf-row,
+        :root[data-theme="light"] .ai-chat-history,
+        :root[data-theme="light"] .cu-chat-box {
+            background: #ffffff !important; border-color: #d3d6e2 !important;
+        }
+        :root[data-theme="light"] #ai_input,
+        :root[data-theme="light"] #cu_input {
+            background: #ffffff !important; border-color: #c2c5d6 !important; color: #15151f !important;
+        }
+        :root[data-theme="light"] .ai-cmd-pill,
+        :root[data-theme="light"] .ai-cmd-batch {
+            background: #eef0f5 !important; border-color: #d3d6e2 !important;
+        }
+        :root[data-theme="light"] .ai-rag-entry {
+            background: #eef0f5 !important;
+        }
+        :root[data-theme="light"] .ai-rag-col {
+            background: #fafbfd !important;
+        }
+        /* Smooth cross-fade on toggle -- scoped to the main surfaces, not a universal
+           selector, so existing per-component hover transitions aren't disturbed. */
+        body, .card-custom, .card-header-custom, .sticky-header-group, .tab-nav-bar,
+        .quick-deck-row, .qd-chip, .ai-chat-history, #ai_input, .form-control-custom,
+        .result-card, .ai-rag-entry, .ai-cmd-pill, .ai-cmd-batch, .ai-rag-col {
+            transition: background-color .25s ease, color .25s ease, border-color .25s ease;
         }
 
         /* Hard reset for ALL elements — prevents any unexpected color leakage */
@@ -221,6 +301,13 @@
             border-radius: 2px; transition: background 0.15s; white-space: nowrap;
         }
         .tbtn-chat:hover, .tbtn-chat:focus-visible { background: rgba(57,255,20,0.18); }
+        .tbtn-theme {
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            color: var(--gold) !important; font-size: 15px; line-height: 1; cursor: pointer;
+            padding: 7px 10px; border-radius: 2px; transition: background 0.15s;
+        }
+        .tbtn-theme:hover, .tbtn-theme:focus-visible { background: rgba(241,196,15,0.12); }
         .tbtn-burger {
             display: flex; align-items: center; gap: 7px; flex-shrink: 0;
             background: rgba(0,229,255,0.08); border: 1px solid #00e5ff;
@@ -720,7 +807,7 @@
     .ai-model-btn { padding:4px 10px;border:1px solid #2a2a2a;background:transparent;color:#444;font-size:10px;font-family:var(--font-cyber);cursor:pointer;border-radius:3px;transition:all .15s;letter-spacing:.5px; }
     .ai-model-btn:hover { border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 6px rgba(0,229,255,0.2); }
     .ai-model-btn.active { border-color:#39ff14;color:#39ff14;background:rgba(57,255,20,0.08);box-shadow:0 0 8px rgba(57,255,20,0.2); }
-    .ai-cmd-pill { display:inline-block;padding:4px 9px;border:1px solid #1a1a2a;border-radius:3px;font-size:10px;font-family:'Fira Code','Courier New',monospace;cursor:pointer;color:#666;background:#0a0a0f;transition:all .15s; }
+    .ai-cmd-pill { display:inline-block;padding:4px 9px;border:1px solid #1a1a2a;border-radius:3px;font-size:10px;font-family:'Fira Code','Courier New',monospace;cursor:pointer;color:var(--gray-text);background:#0a0a0f;transition:all .15s; }
     .ai-cmd-pill:hover { border-color:#39ff14;color:#39ff14;background:rgba(57,255,20,0.06);box-shadow:0 0 6px rgba(57,255,20,0.25); }
     /* command + basket-batch pairs: click the command to prefill+type a symbol yourself, click the
        🧺 to run that same command across every symbol currently loaded in the basket input instead */
@@ -728,7 +815,7 @@
     .ai-cmd-group .ai-cmd-pill { border-radius: 3px 0 0 3px; border-right: none; }
     .ai-cmd-batch {
         display:inline-flex; align-items:center; padding:4px 7px; border:1px solid #1a1a2a; border-left:1px solid #2a2a3a;
-        border-radius:0 3px 3px 0; font-size:10px; cursor:pointer; color:#555; background:#0a0a0f; transition:all .15s;
+        border-radius:0 3px 3px 0; font-size:10px; cursor:pointer; color:var(--gray-text); background:#0a0a0f; transition:all .15s;
     }
     .ai-cmd-batch:hover { border-color:#ffc107; color:#ffc107; background:rgba(255,193,7,0.08); }
     #ai_input { background:#000!important;border:2px solid #2a2a2a!important;color:#fff!important;font-family:'Fira Code','Courier New',monospace!important;font-size:13px!important;padding:10px 14px!important;min-height:44px!important;border-radius:3px!important; }
@@ -736,7 +823,31 @@
     #ai_input:focus { border-color:#39ff14!important;box-shadow:0 0 14px rgba(57,255,20,0.35)!important;outline:none!important; }
     .ai-rag-entry { background:rgba(0,0,0,0.5);border-left:2px solid rgba(0,229,255,0.4);padding:6px 8px;margin-bottom:6px; }
     .ai-rag-label { color:var(--cyan);font-size:9px;font-family:var(--font-cyber);letter-spacing:1px;margin-bottom:3px; }
-    .ai-rag-text  { color:#7a7a9a;font-size:10px;line-height:1.4; }
+    .ai-rag-text  { color:var(--gray-text);font-size:10px;line-height:1.4; }
+
+    /* ai-analyst layout: own flex container (not Bootstrap's grid) so the RAG column
+       can be collapsed/expanded by just toggling a class, independent of breakpoints. */
+    .ai-analyst-layout { display:flex; align-items:stretch; }
+    .ai-chat-col { flex: 1 1 auto; min-width: 0; }
+    .ai-rag-col {
+        flex: 0 0 260px; padding: 10px 12px; background: rgba(0,0,0,0.2);
+        border-left: 1px solid rgba(57,255,20,0.07); transition: flex-basis .2s ease, padding .2s ease;
+        overflow: hidden;
+    }
+    .ai-rag-col.collapsed { flex-basis: 40px; padding: 10px 6px; }
+    .ai-rag-col.collapsed .ai-rag-header-text, .ai-rag-col.collapsed .ai-rag-body { display: none; }
+    .ai-rag-header {
+        display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+        font-family: var(--font-cyber); font-size: 10px; color: #39ff14; letter-spacing: 1px;
+        text-transform: uppercase; text-shadow: 0 0 8px rgba(57,255,20,0.3); white-space: nowrap;
+    }
+    .ai-rag-col.collapsed .ai-rag-header { flex-direction: column; gap: 6px; }
+    @media (max-width: 900px) {
+        .ai-analyst-layout { flex-direction: column; }
+        .ai-rag-col { flex: 0 0 auto; width: 100%; border-left: none; border-top: 1px solid rgba(57,255,20,0.07); }
+        .ai-rag-col.collapsed { flex-basis: auto; }
+        .ai-rag-col.collapsed .ai-rag-header { flex-direction: row; }
+    }
     .ai-cmd-row   { display:flex;justify-content:space-between;align-items:center;gap:12px;background:#111;border:1px solid #1a1a1a;padding:10px 14px;margin-bottom:4px;border-radius:4px;cursor:pointer;transition:all .15s; }
     .ai-cmd-row:hover { background:#0a1a0a;border-color:#39ff14;box-shadow:0 0 10px rgba(57,255,20,0.18); }
     /* ─── Module 23: Computer Use ───────────────────────────────────── */
@@ -803,6 +914,9 @@
         <button class="tbtn-chat" id="tabChatShortcut" onclick="selectTab('ai-analyst')" title="Direkt zurück zum AI-Analyst-Chat">
             <span class="tbtn-icon" aria-hidden="true">💬</span>
             <span>CHAT</span>
+        </button>
+        <button class="tbtn-theme" id="themeToggleBtn" onclick="cz_toggleTheme()" title="Hell-/Dunkelmodus umschalten" aria-label="Theme wechseln">
+            <span id="themeToggleIcon" aria-hidden="true">☀️</span>
         </button>
         <div class="tab-crumb" aria-live="polite" aria-atomic="true">
             <span class="tab-crumb-dot" aria-hidden="true"></span>
@@ -2185,9 +2299,9 @@
                 <span id="ai_ragBadge" style="font-size:10px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:var(--cyan);padding:2px 8px;border-radius:3px;font-family:var(--font-cyber);">0 CTX</span>
             </div>
             <div class="card-body p-0">
-                <div class="row g-0">
+                <div class="ai-analyst-layout" id="aiAnalystLayout">
                     <!-- Chat column -->
-                    <div class="col-lg-8" style="display:flex;flex-direction:column;padding:12px;border-right:1px solid rgba(255,255,255,0.05);">
+                    <div class="ai-chat-col" style="display:flex;flex-direction:column;padding:12px;border-right:1px solid rgba(255,255,255,0.05);">
                         <!-- Model selector -->
                         <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
                             <span style="font-size:9px;color:var(--gray-text);font-family:var(--font-cyber);">MODEL:</span>
@@ -2204,7 +2318,7 @@
                         <div id="ai_chatBox" class="ai-chat-history"></div>
                         <!-- Quick command pills: click = prefill command, type symbol yourself.
                              🧺 = run this command across every symbol in the basket input instead. -->
-                        <div style="padding:8px 0 2px;display:flex;flex-wrap:wrap;gap:4px;font-size:9px;color:#555;">↙ Befehl anklicken = selbst Symbol eintippen · 🧺 = auf ganzen geladenen Basket anwenden</div>
+                        <div style="padding:8px 0 2px;display:flex;flex-wrap:wrap;gap:4px;font-size:9px;color:var(--gray-text);">↙ Befehl anklicken = selbst Symbol eintippen · 🧺 = auf ganzen geladenen Basket anwenden</div>
                         <div style="padding:2px 0 6px;display:flex;flex-wrap:wrap;gap:5px;">
                             <span class="ai-cmd-group"><span class="ai-cmd-pill" onclick="ai_quickRun('rsi')">📈 rsi</span><span class="ai-cmd-batch" onclick="ai_quickRunBasket('rsi')" title="rsi auf ganzen Basket anwenden">🧺</span></span>
                             <span class="ai-cmd-group"><span class="ai-cmd-pill" onclick="ai_quickRun('news')">📰 news</span><span class="ai-cmd-batch" onclick="ai_quickRunBasket('news')" title="news auf ganzen Basket anwenden">🧺</span></span>
@@ -2216,6 +2330,7 @@
                             <span class="ai-cmd-pill" onclick="ai_quickRun('alert')">🚨 alert</span>
                             <span class="ai-cmd-pill" onclick="ai_quickRun('macro')">🏦 macro</span>
                             <span class="ai-cmd-pill" onclick="ai_quickRun('fx')">💱 fx</span>
+                            <span class="ai-cmd-pill" style="border-color:rgba(255,193,7,0.3);" onclick="ai_quickRun('full')" title="Alle 6 Analysen für EIN Symbol nacheinander -- komplett im RAG-Kontext">🧬 full</span>
                         </div>
                         <!-- Input bar -->
                         <div style="display:flex;gap:6px;align-items:stretch;">
@@ -2227,11 +2342,16 @@
                             <button class="btn-pipeline" onclick="ai_execute()" style="white-space:nowrap;min-width:80px;font-size:12px;font-family:var(--font-cyber);letter-spacing:1px;">▶ RUN</button>
                         </div>
                     </div>
-                    <!-- RAG context panel -->
-                    <div class="col-lg-4" style="padding:12px;background:rgba(0,0,0,0.2);border-left:1px solid rgba(57,255,20,0.07);">
-                        <div style="font-family:var(--font-cyber);font-size:10px;color:#39ff14;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;text-shadow:0 0 8px rgba(57,255,20,0.3);">📚 RAG Context Store</div>
-                        <div style="font-size:9px;color:#3a3a5a;margin-bottom:10px;line-height:1.4;font-family:monospace;">Finance-Outputs → AI-Kontext-Injection</div>
-                        <div id="ai_ragPanel" style="max-height:420px;overflow-y:auto;"></div>
+                    <!-- RAG context panel: collapsed by default so the chat gets the space; expand on demand -->
+                    <div class="ai-rag-col collapsed" id="aiRagCol">
+                        <div class="ai-rag-header" onclick="ai_toggleRagPanel()" title="RAG-Kontext ein-/ausklappen">
+                            <span class="ai-rag-header-label"><span aria-hidden="true">📚</span> <span class="ai-rag-header-text">RAG Context Store</span></span>
+                            <span id="ai_ragToggleIcon" aria-hidden="true">◂</span>
+                        </div>
+                        <div class="ai-rag-body">
+                            <div style="font-size:9px;color:var(--gray-text);margin-bottom:10px;line-height:1.4;font-family:monospace;">Finance-Outputs → AI-Kontext-Injection</div>
+                            <div id="ai_ragPanel" style="max-height:420px;overflow-y:auto;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -5738,6 +5858,28 @@ function qd_renderModuleChips() {
 
 document.addEventListener('DOMContentLoaded', () => { qd_renderBasketChips(); qd_renderModuleChips(); });
 
+/* ══════════════════════════════════════════════════════════════════════
+   LIGHT / DARK THEME TOGGLE
+   The actual theme attribute is already set by a tiny inline script in
+   <head> (runs before first paint, reads the same localStorage key) so
+   there's no flash-of-wrong-theme on reload. This just wires the button.
+══════════════════════════════════════════════════════════════════════ */
+function cz_applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = document.getElementById('themeToggleIcon');
+    if (icon) icon.textContent = theme === 'light' ? '🌙' : '☀️';
+    try { localStorage.setItem('cz_theme', theme); } catch(e) {}
+}
+function cz_toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    cz_applyTheme(cur === 'light' ? 'dark' : 'light');
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    const icon = document.getElementById('themeToggleIcon');
+    if (icon) icon.textContent = cur === 'light' ? '🌙' : '☀️';
+});
+
 /* ── symbol normalizer: "AAPL" → "AAPL.US", "DAX.INDX" stays ─────── */
 function czNorm(s) {
     s = (s || '').trim().toUpperCase();
@@ -5958,7 +6100,7 @@ const AI_SYSTEM_PROMPT = `Du bist DANIEL.AI, ein Senior Finanzmarkt-Experte und 
 
 function ai_init() {
     ai_updateRagPanel();
-    ai_log('system', '🤖 <strong>DANIEL.AI v1.0</strong> — RAG-Enhanced Finance Intelligence aktiv.<br>Finance-Befehle: <em>rsi [sym] | news [sym] | pivot [sym] | heikin [sym] | hedge [sym] | broker [sym] | macro | regime | alert | fx [amt] [from] [to]</em><br>Oder frei chatten. Ergebnisse aus <em>Denarius, G-Bonds und Hedging v18.1</em> fließen automatisch als RAG-Kontext ein (Testphase -- weitere Module folgen).');
+    ai_log('system', '🤖 <strong>DANIEL.AI v1.0</strong> — RAG-Enhanced Finance Intelligence aktiv.<br>Finance-Befehle: <em>rsi [sym] | news [sym] | pivot [sym] | heikin [sym] | hedge [sym] | broker [sym] | macro | regime | alert | fx [amt] [from] [to] | full [sym]</em><br><em>full [sym]</em> holt alle 6 Analysen für ein einzelnes Symbol auf einmal, komplett als RAG-Kontext nutzbar. Jeder Befehl: Pille anklicken = Symbol selbst eintippen, 🧺 = auf ganzen Basket anwenden.<br>Oder frei chatten. Ergebnisse aus <em>Denarius, G-Bonds und Hedging v18.1</em> fließen automatisch als RAG-Kontext ein (Testphase -- weitere Module folgen).');
 }
 
 function ai_scrollChat() {
@@ -6010,7 +6152,7 @@ function ai_updateRagPanel() {
     if (!panel) return;
     const analyses = ai_chatHistory.filter(m=>m._isAnalysis).slice(-15);
     if (!analyses.length) {
-        panel.innerHTML = '<div style="color:#2a2a4a;font-size:10px;padding:4px;font-family:monospace;">— leer —<br>Finance-Befehl ausführen.</div>';
+        panel.innerHTML = '<div style="color:var(--gray-text);font-size:10px;padding:4px;font-family:monospace;">— leer —<br>Finance-Befehl ausführen.</div>';
         return;
     }
     panel.innerHTML = [...analyses].reverse().map(a =>
@@ -6019,6 +6161,16 @@ function ai_updateRagPanel() {
         '<div class="ai-rag-text">' + (a.content||'').replace(/\n/g,'<br>').substring(0,220) + '</div>' +
         '</div>'
     ).join('');
+}
+
+/* RAG panel starts collapsed (see .collapsed on #aiRagCol in the markup) to keep the
+   chat column as wide as possible -- user-reported it was crowding the chat out. */
+function ai_toggleRagPanel() {
+    const col = document.getElementById('aiRagCol');
+    const icon = document.getElementById('ai_ragToggleIcon');
+    if (!col) return;
+    const collapsed = col.classList.toggle('collapsed');
+    if (icon) icon.textContent = collapsed ? '◂' : '▸';
 }
 
 function ai_getConvMessages() {
@@ -6060,6 +6212,12 @@ function ai_clearRag() {
    applied to. regime/alert/macro take no symbol at all; fx takes amount+currencies, not a symbol. */
 const AI_SYMBOL_CMDS = ['rsi','news','pivot','heikin','hedge','broker'];
 const AI_NOSYM_CMDS  = { regime:'regime', alert:'alert', macro:'macro' };
+/* Shared dispatch table for the 6 single-symbol commands, referenced by both the
+   whole-basket batch runner and the "full" one-symbol-deep-dive command below.
+   Function declarations are hoisted, so referencing them here (before their textual
+   definition further down) is safe -- nothing in this object is called until a user
+   action fires after the whole script has parsed. */
+const AI_SYMBOL_FNS = { rsi:(s)=>ai_doRsi(s), news:(s)=>ai_doNews(s), pivot:(s)=>ai_doPivot(s), heikin:(s)=>ai_doHeikin(s), hedge:(s)=>ai_doHedge(s), broker:(s)=>ai_doBroker(s) };
 
 /* Click a command pill: for no-symbol commands, run immediately (nothing to fill in). For
    symbol-commands, just PREFILL "<cmd> " and focus the input -- the user types the symbol
@@ -6087,8 +6245,7 @@ async function ai_quickRunBasket(cmd) {
     const raw = (document.getElementById('czSymInput')?.value || '').trim();
     const syms = raw.split(',').map(s => czNorm(s.trim())).filter(Boolean);
     if (!syms.length) { czToast('⚠️ Erst einen Basket laden oder Symbol(e) eingeben.'); return; }
-    const fns = { rsi:ai_doRsi, news:ai_doNews, pivot:ai_doPivot, heikin:ai_doHeikin, hedge:ai_doHedge, broker:ai_doBroker };
-    const fn = fns[cmd];
+    const fn = AI_SYMBOL_FNS[cmd];
     if (!fn) return;
     selectTab('ai-analyst');
     ai_log('system', `🧺 Wende "${cmd}" auf ${syms.length} Basket-Symbol(e) an: ${syms.slice(0,5).join(', ')}${syms.length>5?' …':''}`);
@@ -6096,6 +6253,20 @@ async function ai_quickRunBasket(cmd) {
         await fn(s);
         await new Promise(r => setTimeout(r, 400));
     }
+}
+
+/* "full <symbol>" -- user-requested general command: runs EVERY single-symbol analysis
+   (rsi, news, pivot, heikin, hedge, broker) for ONE stock in sequence, so the chat/RAG
+   context ends up with a complete cross-sectional profile of that symbol to reason over,
+   without the user having to run 6 separate commands by hand. */
+async function ai_doFull(symbol) {
+    const sym = czNorm(symbol);
+    ai_log('system', `🧬 Vollanalyse ${sym}: rsi, news, pivot, heikin, hedge, broker ...`);
+    for (const cmd of AI_SYMBOL_CMDS) {
+        await AI_SYMBOL_FNS[cmd](sym);
+        await new Promise(r => setTimeout(r, 400));
+    }
+    ai_log('system', `✅ Vollanalyse ${sym} abgeschlossen -- alle 6 Ergebnisse stehen jetzt im RAG-Kontext.`);
 }
 
 async function ai_execute() {
@@ -6118,6 +6289,7 @@ async function ai_execute() {
         case 'regime': return ai_doRegime();
         case 'alert':  return ai_doAlert();
         case 'fx':     return ai_doFx(args || '1000 USD EUR');
+        case 'full':   return ai_doFull(args || 'AAPL.US');
         default:
             if (ai_model === 'claude')  return ai_doClaude(raw);
             if (ai_model === 'mistral') return ai_doMistral(raw);
@@ -6491,11 +6663,12 @@ const AI_COMMANDS = [
     { cmd:'regime', args:'',                   cat:'🌡️ Regime',    help:'SPY / QQQ / DIA vs SMA200 — Bull / Bear Marktregime' },
     { cmd:'alert',  args:'',                   cat:'🚨 Risk',       help:'VXX / GLD / TLT Echtzeit — Risk-On / Risk-Off Detektor' },
     { cmd:'fx',     args:'[amt] [from] [to]',  cat:'💱 FX',         help:'Währungsumrechnung live via open.er-api.com' },
+    { cmd:'full',   args:'[symbol]',           cat:'🧬 Deep-Dive',  help:'Alle 6 Analysen (rsi/news/pivot/heikin/hedge/broker) für EIN Symbol -- komplett als RAG-Kontext nutzbar' },
 ];
 
 const AI_CMD_DEFAULTS = {
     rsi:'rsi ', pivot:'pivot ', heikin:'heikin ', hedge:'hedge ', broker:'broker ',
-    news:'news ', macro:'macro', regime:'regime', alert:'alert', fx:'fx 1000 USD EUR'
+    news:'news ', macro:'macro', regime:'regime', alert:'alert', fx:'fx 1000 USD EUR', full:'full '
 };
 
 function ai_openCmdModal() {
@@ -6546,7 +6719,7 @@ function ai_selectCmd(cmd) {
     const inp = document.getElementById('ai_input');
     if (!inp) return;
     const sym = ((document.getElementById('czSymInput')?.value || '').trim().split(',')[0]?.trim()) || 'SPY.US';
-    const needsSym = ['rsi','pivot','heikin','hedge','broker','news'].includes(cmd);
+    const needsSym = ['rsi','pivot','heikin','hedge','broker','news','full'].includes(cmd);
     inp.value = (AI_CMD_DEFAULTS[cmd] || cmd) + (needsSym ? sym : '');
     inp.focus();
     /* place cursor at end */
