@@ -379,7 +379,11 @@
         .tmenu-item {
             width: 100%; text-align: left; background: transparent; border: none;
             border-bottom: 1px solid rgba(255,255,255,0.04);
-            color: var(--white) !important; padding: 11px 20px;
+            /* hardcoded, not var(--white): this panel is always dark regardless of
+               site theme (see .tmenu-panel background above) -- var(--white) flips to
+               near-black in light mode, which made the text unreadable against the
+               panel's own always-dark background. User-reported. */
+            color: #ffffff !important; padding: 11px 20px;
             cursor: pointer; font-family: var(--font-cyber); font-size: 11px;
             display: flex; align-items: center; gap: 6px; letter-spacing: 0.3px;
             -webkit-tap-highlight-color: transparent; transition: background 0.12s;
