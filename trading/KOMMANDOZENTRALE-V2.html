@@ -466,6 +466,7 @@
             .conf-bar-wrap { grid-column: span 1; }
             .tbtn-burger { font-size: 10px; padding: 7px 11px; }
             #tabActiveName { font-size: 11px; }
+            .ai-cmd-pill, .ai-cmd-batch { font-size: 9px; padding: 3px 6px; }
         }
 
         /* ── ACCESSIBILITY ──────────────────────────────────────────────────── */
@@ -721,6 +722,15 @@
     .ai-model-btn.active { border-color:#39ff14;color:#39ff14;background:rgba(57,255,20,0.08);box-shadow:0 0 8px rgba(57,255,20,0.2); }
     .ai-cmd-pill { display:inline-block;padding:4px 9px;border:1px solid #1a1a2a;border-radius:3px;font-size:10px;font-family:'Fira Code','Courier New',monospace;cursor:pointer;color:#666;background:#0a0a0f;transition:all .15s; }
     .ai-cmd-pill:hover { border-color:#39ff14;color:#39ff14;background:rgba(57,255,20,0.06);box-shadow:0 0 6px rgba(57,255,20,0.25); }
+    /* command + basket-batch pairs: click the command to prefill+type a symbol yourself, click the
+       🧺 to run that same command across every symbol currently loaded in the basket input instead */
+    .ai-cmd-group { display:inline-flex; }
+    .ai-cmd-group .ai-cmd-pill { border-radius: 3px 0 0 3px; border-right: none; }
+    .ai-cmd-batch {
+        display:inline-flex; align-items:center; padding:4px 7px; border:1px solid #1a1a2a; border-left:1px solid #2a2a3a;
+        border-radius:0 3px 3px 0; font-size:10px; cursor:pointer; color:#555; background:#0a0a0f; transition:all .15s;
+    }
+    .ai-cmd-batch:hover { border-color:#ffc107; color:#ffc107; background:rgba(255,193,7,0.08); }
     #ai_input { background:#000!important;border:2px solid #2a2a2a!important;color:#fff!important;font-family:'Fira Code','Courier New',monospace!important;font-size:13px!important;padding:10px 14px!important;min-height:44px!important;border-radius:3px!important; }
     #ai_input::placeholder { color:#3a3a4a!important; }
     #ai_input:focus { border-color:#39ff14!important;box-shadow:0 0 14px rgba(57,255,20,0.35)!important;outline:none!important; }
@@ -2192,14 +2202,16 @@
                         </div>
                         <!-- Chat history -->
                         <div id="ai_chatBox" class="ai-chat-history"></div>
-                        <!-- Quick command pills -->
-                        <div style="padding:8px 0 6px;display:flex;flex-wrap:wrap;gap:4px;">
-                            <span class="ai-cmd-pill" onclick="ai_quickRun('rsi')">📈 rsi</span>
-                            <span class="ai-cmd-pill" onclick="ai_quickRun('news')">📰 news</span>
-                            <span class="ai-cmd-pill" onclick="ai_quickRun('pivot')">📐 pivot</span>
-                            <span class="ai-cmd-pill" onclick="ai_quickRun('heikin')">🕯️ heikin</span>
-                            <span class="ai-cmd-pill" onclick="ai_quickRun('hedge')">🛡️ hedge</span>
-                            <span class="ai-cmd-pill" onclick="ai_quickRun('broker')">🎯 broker</span>
+                        <!-- Quick command pills: click = prefill command, type symbol yourself.
+                             🧺 = run this command across every symbol in the basket input instead. -->
+                        <div style="padding:8px 0 2px;display:flex;flex-wrap:wrap;gap:4px;font-size:9px;color:#555;">↙ Befehl anklicken = selbst Symbol eintippen · 🧺 = auf ganzen geladenen Basket anwenden</div>
+                        <div style="padding:2px 0 6px;display:flex;flex-wrap:wrap;gap:5px;">
+                            <span class="ai-cmd-group"><span class="ai-cmd-pill" onclick="ai_quickRun('rsi')">📈 rsi</span><span class="ai-cmd-batch" onclick="ai_quickRunBasket('rsi')" title="rsi auf ganzen Basket anwenden">🧺</span></span>
+                            <span class="ai-cmd-group"><span class="ai-cmd-pill" onclick="ai_quickRun('news')">📰 news</span><span class="ai-cmd-batch" onclick="ai_quickRunBasket('news')" title="news auf ganzen Basket anwenden">🧺</span></span>
+                            <span class="ai-cmd-group"><span class="ai-cmd-pill" onclick="ai_quickRun('pivot')">📐 pivot</span><span class="ai-cmd-batch" onclick="ai_quickRunBasket('pivot')" title="pivot auf ganzen Basket anwenden">🧺</span></span>
+                            <span class="ai-cmd-group"><span class="ai-cmd-pill" onclick="ai_quickRun('heikin')">🕯️ heikin</span><span class="ai-cmd-batch" onclick="ai_quickRunBasket('heikin')" title="heikin auf ganzen Basket anwenden">🧺</span></span>
+                            <span class="ai-cmd-group"><span class="ai-cmd-pill" onclick="ai_quickRun('hedge')">🛡️ hedge</span><span class="ai-cmd-batch" onclick="ai_quickRunBasket('hedge')" title="hedge auf ganzen Basket anwenden">🧺</span></span>
+                            <span class="ai-cmd-group"><span class="ai-cmd-pill" onclick="ai_quickRun('broker')">🎯 broker</span><span class="ai-cmd-batch" onclick="ai_quickRunBasket('broker')" title="broker auf ganzen Basket anwenden">🧺</span></span>
                             <span class="ai-cmd-pill" onclick="ai_quickRun('regime')">🌡️ regime</span>
                             <span class="ai-cmd-pill" onclick="ai_quickRun('alert')">🚨 alert</span>
                             <span class="ai-cmd-pill" onclick="ai_quickRun('macro')">🏦 macro</span>
@@ -6044,13 +6056,46 @@ function ai_clearRag() {
     ai_log('system', '↺ RAG Context geleert.');
 }
 
+/* Commands that take exactly one symbol argument -- these are the ones a whole basket can be
+   applied to. regime/alert/macro take no symbol at all; fx takes amount+currencies, not a symbol. */
+const AI_SYMBOL_CMDS = ['rsi','news','pivot','heikin','hedge','broker'];
+const AI_NOSYM_CMDS  = { regime:'regime', alert:'alert', macro:'macro' };
+
+/* Click a command pill: for no-symbol commands, run immediately (nothing to fill in). For
+   symbol-commands, just PREFILL "<cmd> " and focus the input -- the user types the symbol
+   themselves. Previously this silently grabbed the first symbol of whatever basket was loaded
+   and auto-ran, throwing away the rest of a multi-symbol basket -- user-reported as "weak". */
 function ai_quickRun(cmd) {
+    if (AI_NOSYM_CMDS[cmd]) {
+        const inp = document.getElementById('ai_input');
+        if (inp) inp.value = AI_NOSYM_CMDS[cmd];
+        ai_execute();
+        return;
+    }
     const inp = document.getElementById('ai_input');
-    const sym = (document.getElementById('czSymInput')?.value||'').trim().split(',')[0]?.trim() || 'SPY.US';
-    const map = { rsi:`rsi ${sym}`, news:`news ${sym}`, pivot:`pivot ${sym}`, heikin:`heikin ${sym}`,
-                  hedge:`hedge ${sym}`, broker:`broker ${sym}`, regime:'regime', alert:'alert', macro:'macro', fx:'fx 1000 USD EUR' };
-    if (inp) inp.value = map[cmd] || cmd;
-    ai_execute();
+    if (!inp) return;
+    inp.value = cmd === 'fx' ? 'fx 1000 USD EUR' : (cmd + ' ');
+    inp.focus();
+    if (inp.setSelectionRange) inp.setSelectionRange(inp.value.length, inp.value.length);
+}
+
+/* Apply a symbol-command to EVERY symbol currently loaded in the global basket input (czSymInput),
+   not just the first one. Runs sequentially with a short delay (same convention as the cluster-scan
+   modules elsewhere in this app) so each result lands as its own chat bubble + RAG entry. */
+async function ai_quickRunBasket(cmd) {
+    if (!AI_SYMBOL_CMDS.includes(cmd)) return;
+    const raw = (document.getElementById('czSymInput')?.value || '').trim();
+    const syms = raw.split(',').map(s => czNorm(s.trim())).filter(Boolean);
+    if (!syms.length) { czToast('⚠️ Erst einen Basket laden oder Symbol(e) eingeben.'); return; }
+    const fns = { rsi:ai_doRsi, news:ai_doNews, pivot:ai_doPivot, heikin:ai_doHeikin, hedge:ai_doHedge, broker:ai_doBroker };
+    const fn = fns[cmd];
+    if (!fn) return;
+    selectTab('ai-analyst');
+    ai_log('system', `🧺 Wende "${cmd}" auf ${syms.length} Basket-Symbol(e) an: ${syms.slice(0,5).join(', ')}${syms.length>5?' …':''}`);
+    for (const s of syms) {
+        await fn(s);
+        await new Promise(r => setTimeout(r, 400));
+    }
 }
 
 async function ai_execute() {
