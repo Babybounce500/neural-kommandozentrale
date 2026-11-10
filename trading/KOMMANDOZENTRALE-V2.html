@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QUANTUM INFRARED ENGINE v22.0 // MEGA COMMANDO ZENTRALE</title>
+    <meta name="description" content="22-Modul Trading-Intelligence-Plattform: Scanner, Hedging, Fixed-Income/FX, Portfolio-Tools, AI-Analyst-Chat und Iframe-Bot.">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <meta name="theme-color" content="#0c0c0e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kommandozentrale">
     <script>
         /* Applied before first paint to avoid a flash of the wrong theme on reload. */
         (function(){
@@ -716,7 +724,7 @@
         /* ── ETF MANAGER (em_) ────────────────────────────────────────────── */
         #section-etfmgr .em-layout { display: grid; grid-template-columns: 1fr; gap: 16px; }
         @media (min-width: 1024px) { #section-etfmgr .em-layout { grid-template-columns: 280px 1fr; } }
-        #section-etfmgr .em-box, #section-fundsmgr .fm-box, #section-rohstoffe .rs-box { background: var(--bg-inner); border: 1px solid var(--border); padding: 14px; }
+        #section-etfmgr .em-box, #section-fundsmgr .fm-box { background: var(--bg-inner); border: 1px solid var(--border); padding: 14px; }
         #section-etfmgr .em-search, #section-fundsmgr .fm-search { width: 100%; background: #000; border: 1px solid var(--border); color: var(--white) !important; padding: 7px 10px; font-size: 11px; margin: 8px 0; font-family: monospace; border-radius: 2px; }
         #section-etfmgr .em-fund-list, #section-fundsmgr .fm-fund-list { max-height: 430px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
         .em-fund-item, .fm-fund-item { padding: 8px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(86,20,148,0.25); cursor: pointer; font-size: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--white) !important; }
@@ -798,7 +806,7 @@
     /* ─── Module 24: Neural Alpha Squad ─────────────────────────────── */
     #section-alpha-squad .card-custom { border-color:rgba(138,43,226,0.25);margin-bottom:0; }
     #section-alpha-squad .card-header-custom { text-shadow:0 0 10px rgba(138,43,226,0.4);padding:6px 14px; }
-    #as_iframe { width:100%;height:calc(100vh - 115px);min-height:500px;border:none;border-radius:0 0 4px 4px;display:block; }
+    #as_iframe, #ib_iframe { width:100%;height:calc(100vh - 115px);min-height:500px;border:none;border-radius:0 0 4px 4px;display:block; }
     /* .cu-q-btn kept: reused by Alpha Squad's Reload/Pop-out buttons after Computer Use was removed */
     .cu-q-btn { background:#0a0a14;border:1px solid #222;color:#888;font-size:10px;padding:4px 9px;border-radius:3px;cursor:pointer;font-family:var(--font-cyber);transition:all .12s; }
     .cu-q-btn:hover { border-color:#00e5ff;color:#00e5ff; }
@@ -829,6 +837,9 @@
         <button class="tbtn-theme" id="themeToggleBtn" onclick="cz_toggleTheme()" title="Hell-/Dunkelmodus umschalten" aria-label="Theme wechseln">
             <span id="themeToggleIcon" aria-hidden="true">☀️</span>
         </button>
+        <button class="tbtn-theme" id="pwaInstallBtn" onclick="cz_installPwa()" title="Als App installieren" aria-label="Als App installieren" style="display:none;color:var(--green-bright) !important;">
+            <span aria-hidden="true">📲</span>
+        </button>
         <div class="tab-crumb" aria-live="polite" aria-atomic="true">
             <span class="tab-crumb-dot" aria-hidden="true"></span>
             <span id="tabActiveName">🤖 AI Analyst</span>
@@ -842,7 +853,7 @@
             <button class="cz-sym-btn" onclick="czSymbolRun()" aria-label="Symbol laden">▶ RUN</button>
         </div>
         <span class="cz-status" id="czStatusDot" title="Pipeline Status" aria-hidden="true"></span>
-        <span class="tab-count-badge" aria-label="21 Module">21</span>
+        <span class="tab-count-badge" aria-label="22 Module">22</span>
     </nav>
 
     <!-- QUICK DECK ROW 1: Symbol-Baskets — click = bulk-push symbols into the active module, no typing -->
@@ -897,6 +908,7 @@
             <button class="tmenu-item"              data-tab="fundsmgr"          data-label="🏦 Funds Manager"        onclick="selectTab('fundsmgr')">🏦 Funds Manager</button>
             <div class="tmenu-cat">🤖 AI &amp; Intelligence</div>
             <button class="tmenu-item tmenu-active" data-tab="ai-analyst"        data-label="🤖 AI Analyst"           onclick="selectTab('ai-analyst')">🤖 AI Analyst</button>
+            <button class="tmenu-item"              data-tab="iframe-bot"        data-label="💬 Iframe-Bot"           onclick="selectTab('iframe-bot')">💬 Iframe-Bot</button>
             <button class="tmenu-item"              data-tab="alpha-squad"       data-label="🧠 Neural Alpha Squad"    onclick="selectTab('alpha-squad')">🧠 Alpha Squad</button>
         </div>
     </div>
@@ -2123,6 +2135,20 @@
     </div>
 </div>
 
+    <!-- ════════════════════════════════════ SECTION 23: IFRAME-BOT (alternativer Chat) -->
+    <div class="tab-section" id="section-iframe-bot">
+        <div class="card card-custom">
+            <div class="card-header-custom" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                <span style="font-family:var(--font-cyber);letter-spacing:1px;">💬 IFRAME-BOT — Alternativer KI-Chat mit Tool-Steuerung</span>
+                <div style="display:flex;gap:6px;">
+                    <button class="cu-q-btn" onclick="document.getElementById('ib_iframe').src='IFRAME-BOT-V2.html'" title="Reload">↺ Reload</button>
+                    <button class="cu-q-btn" onclick="window.open('IFRAME-BOT-V2.html','_blank')" title="In neuem Tab öffnen">⤢ Pop-out</button>
+                </div>
+            </div>
+            <iframe id="ib_iframe" src="about:blank"></iframe>
+        </div>
+    </div>
+
     <!-- ════════════════════════════════════ SECTION 24: NEURAL ALPHA SQUAD -->
     <div class="tab-section" id="section-alpha-squad">
         <div class="card card-custom">
@@ -2197,6 +2223,7 @@ function showTab(name, btn) {
     if (name === 'etfmgr'      && !em_initialized) { em_initialized = true; em_init(); }
     if (name === 'fundsmgr'    && !fm_initialized) { fm_initialized = true; fm_init(); }
     if (name === 'ai-analyst'  && !ai_initialized)  { ai_initialized = true; ai_init(); }
+    if (name === 'iframe-bot'   && !ib_initialized) { ib_initialized = true; document.getElementById('ib_iframe').src = 'IFRAME-BOT-V2.html'; }
     if (name === 'alpha-squad'  && !as_initialized) { as_initialized = true; document.getElementById('as_iframe').src = 'SUB-AGENTS.html'; }
 }
 
@@ -4971,6 +4998,34 @@ document.addEventListener('DOMContentLoaded', () => {
     if (icon) icon.textContent = cur === 'light' ? '🌙' : '☀️';
 });
 
+/* ══════════════════════════════════════════════════════════════════════
+   PWA: installable app (manifest.json + sw.js, see same directory)
+══════════════════════════════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+let cz_deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    cz_deferredInstallPrompt = e;
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+    cz_deferredInstallPrompt = null;
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'none';
+    czToast('✅ Als App installiert');
+});
+async function cz_installPwa() {
+    if (!cz_deferredInstallPrompt) return;
+    cz_deferredInstallPrompt.prompt();
+    await cz_deferredInstallPrompt.userChoice;
+    cz_deferredInstallPrompt = null;
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'none';
+}
+
 /* ── symbol normalizer: "AAPL" → "AAPL.US", "DAX.INDX" stays ─────── */
 function czNorm(s) {
     s = (s || '').trim().toUpperCase();
@@ -5164,6 +5219,9 @@ function czDispatch(tab, syms) {
     const inp = sec.querySelector('input[type="text"], input:not([type])');
     if (inp) { inp.value = syms.join(','); inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change')); inp.focus(); }
 }
+
+/* ─── MODULE 23: IFRAME-BOT (alternative chat, embeds IFRAME-BOT-V2.html) ── */
+let ib_initialized = false;
 
 /* ─── MODULE 24: NEURAL ALPHA SQUAD ─────────────────────────────────── */
 /* (was declared alongside the now-removed Rohstoffe/Global-Macro/Computer-Use
