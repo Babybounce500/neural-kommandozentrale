@@ -882,7 +882,7 @@
             <button class="cz-sym-btn" onclick="czSymbolRun()" aria-label="Symbol laden">▶ RUN</button>
         </div>
         <span class="cz-status" id="czStatusDot" title="Pipeline Status" aria-hidden="true"></span>
-        <span class="tab-count-badge" aria-label="22 Module">22</span>
+        <span class="tab-count-badge" aria-label="23 Module">23</span>
         <button class="tbtn-theme" id="qdToggleBtn" onclick="qd_toggleDeck()" title="Basket-/Modul-Leiste ein-/ausklappen" aria-label="Quick Deck ein-/ausklappen">
             <span id="qdToggleIcon" aria-hidden="true">🧺▾</span>
         </button>
@@ -920,6 +920,7 @@
             <button class="tmenu-item"              data-tab="spread"            data-label="⚙️ Spread &amp; Core"   onclick="selectTab('spread')">⚙️ Spread &amp; Core</button>
             <button class="tmenu-item"              data-tab="argentum-daily"    data-label="📊 Argentum Daily"       onclick="selectTab('argentum-daily')">📊 Argentum Daily</button>
             <button class="tmenu-item"              data-tab="argentum-intraday" data-label="⚡ Intraday Alpha"       onclick="selectTab('argentum-intraday')">⚡ Intraday Alpha</button>
+            <button class="tmenu-item"              data-tab="markov-intraday"   data-label="🎲 Intraday Markov"      onclick="selectTab('markov-intraday')">🎲 Intraday Markov</button>
             <button class="tmenu-item"              data-tab="bodyslam"          data-label="💥 Body Slam"            onclick="selectTab('bodyslam')">💥 Body Slam</button>
             <button class="tmenu-item"              data-tab="hiddensmash"       data-label="👻 Hidden Smash"         onclick="selectTab('hiddensmash')">👻 Hidden Smash</button>
             <div class="tmenu-cat">📈 Strategy</div>
@@ -1111,6 +1112,43 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 2B: INTRADAY MARKOV -->
+    <div class="tab-section" id="section-markov-intraday">
+        <div class="card card-custom">
+            <div class="card-header-custom">🎲 Intraday Markov — Hourly Chain Forecast (Momentum, Power Hour, Entropy)</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Symbol</label>
+                        <input type="text" id="mkv_ticker" class="form-control-custom" value="SPY.US">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn-pipeline-cyan" onclick="mkv_run()">CHAIN SCAN</button>
+                    </div>
+                </div>
+                <div id="mkv_status" class="mt-2" style="font-size:11px; color:var(--gold);">Scan starten um stündliche Markov-Ketten zu laden.</div>
+                <div class="mt-3" style="overflow-x:auto; border:1px solid var(--border); border-radius:4px; background:var(--bg-inner); padding:8px;">
+                    <canvas id="mkv_chart" width="600" height="140"></canvas>
+                </div>
+                <div class="section-grid-header mt-3">⚡ MOMENTUM CHAINING, POWER HOUR &amp; ENTROPY</div>
+                <div class="result-grid" id="mkv_widgets">
+                    <div style="color:var(--gray-text); text-align:center; padding:30px; grid-column:1/-1;">Scan starten um stündliche Markov-Ketten zu laden.</div>
+                </div>
+                <div class="section-grid-header mt-3">⏱ HOURLY SEASONALITY MATRIX (EST)</div>
+                <div class="analysis-table-wrap">
+                    <table class="analysis-table">
+                        <thead><tr><th>Session</th><th>Ø Return</th><th>Win-Rate</th></tr></thead>
+                        <tbody id="mkv_seasTbody">
+                            <tr><td colspan="3" style="text-align:center; color:var(--gray-text); padding:24px;">—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-2" style="font-size:10px; color:var(--gray-text);">Datenquelle: Yahoo-Finance-Proxy (<code>open-bb.replit.app</code>) — die regulären EOD-Proxies liefern auf <code>/eod/intraday</code> aktuell 403/500 (verifiziert), daher Fallback. State = stündliche Candle-Richtung (Open→Close), 1st-order, US-Handelszeiten.</div>
             </div>
         </div>
     </div>
@@ -2257,6 +2295,7 @@ function showTab(name, btn) {
     if (name === 'fxquant'     && !fq_initialized) { fq_initialized = true; fq_loadAll(); }
     if (name === 'etfmgr'      && !em_initialized) { em_initialized = true; em_init(); }
     if (name === 'fundsmgr'    && !fm_initialized) { fm_initialized = true; fm_init(); }
+    if (name === 'markov-intraday' && !mkv_initialized) { mkv_initialized = true; mkv_init(); }
     if (name === 'ai-analyst'  && !ai_initialized)  { ai_initialized = true; ai_init(); }
     if (name === 'iframe-bot'   && !ib_initialized) { ib_initialized = true; document.getElementById('ib_iframe').src = 'IFRAME-BOT-V2.html'; }
     if (name === 'alpha-squad'  && !as_initialized) { as_initialized = true; document.getElementById('as_iframe').src = 'SUB-AGENTS.html'; }
@@ -2325,6 +2364,181 @@ function exportTableCSV(tableId, filename) {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv.join('\n')], {type:'text/csv'}));
     a.download = filename; a.click();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 2B — INTRADAY MARKOV (hourly chain forecast)
+   Ported from MARKOV-TRADING/MARKOV/INTRADAY-SHANNON.html. Uses its own
+   Yahoo-Finance proxy (open-bb.replit.app) because the regular EOD proxies'
+   /eod/intraday endpoint currently 500s (theserver-open-ai) / 403s
+   (gemini-os) on every symbol+interval combo tested — verified live before
+   wiring this up, not a guess.
+══════════════════════════════════════════════════════════════════════ */
+let mkv_initialized = false;
+const MKV_PROXY = 'https://open-bb.replit.app/api';
+const MKV_PHASE_LABELS = {
+    '09:30': 'Opening Bell', '10:30': 'Post-Open Drive', '11:30': 'Institutional Run',
+    '12:30': 'Lunch Midday', '13:30': 'Early Afternoon', '14:30': 'Pre-Power Hour', '15:30': 'Power Hour'
+};
+
+function mkv_init() {
+    const el = document.getElementById('mkv_ticker');
+    if (el) el.addEventListener('keypress', e => { if (e.key === 'Enter') mkv_run(); });
+    mkv_run();
+}
+
+async function mkv_run() {
+    const raw = (document.getElementById('mkv_ticker').value || 'SPY.US').trim().toUpperCase();
+    const ticker = raw.replace(/\.US$/, '');
+    const statusEl = document.getElementById('mkv_status');
+    statusEl.style.color = 'var(--gold)';
+    statusEl.textContent = `Lade stündliche Candles für ${raw} (1h-Intervall, Fallback-Proxy)...`;
+    try {
+        const url = `${MKV_PROXY}/yahoo/chart/${ticker}?range=10d&interval=1h&cb=${Date.now()}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const result = data?.chart?.result?.[0];
+        if (!result) throw new Error('Keine Intraday-Daten erhalten.');
+        const quotes = result.indicators.quote[0];
+        const timestamps = result.timestamp;
+        if (!timestamps) throw new Error('Ungültige Zeitstempel.');
+
+        const chartCandles = [];
+        const hourlyStats = {};
+        const ordered = [];
+        const sessions = {};
+
+        for (let i = 0; i < timestamps.length; i++) {
+            const o = quotes.open[i], h = quotes.high[i], l = quotes.low[i], c = quotes.close[i];
+            if (o == null || h == null || l == null || c == null) continue;
+            chartCandles.push({ open: o, high: h, low: l, close: c });
+            const est = new Date(new Date(timestamps[i] * 1000).toLocaleString('en-US', { timeZone: 'America/New_York' }));
+            const dateKey = est.toISOString().split('T')[0];
+            const hourKey = `${String(est.getHours()).padStart(2, '0')}:${String(est.getMinutes()).padStart(2, '0')}`;
+            const pct = ((c - o) / o) * 100;
+            (hourlyStats[hourKey] ||= []).push(pct);
+            ordered.push({ dateKey, hourKey, pct });
+            const sess = (sessions[dateKey] ||= { hours: {}, firstOpen: o, lastClose: c });
+            sess.hours[hourKey] = { open: o, close: c, pct };
+            sess.lastClose = c;
+        }
+
+        if (!chartCandles.length) throw new Error('Keine vollständigen Candles im Antwort-Set.');
+
+        mkv_renderChart(chartCandles.slice(-40));
+        mkv_renderWidgets(ordered, sessions);
+        mkv_renderSeasonality(hourlyStats);
+
+        const daySpan = Object.keys(sessions).length;
+        statusEl.style.color = 'var(--green-bright)';
+        statusEl.textContent = `${raw}: ${chartCandles.length} Stunden-Candles über ${daySpan} Handelstage geladen (1h, EST-Sessions).`;
+    } catch (e) {
+        statusEl.style.color = 'var(--red-bright)';
+        statusEl.textContent = `Fehler: ${e.message}`;
+    }
+}
+
+function mkv_renderChart(candles) {
+    const canvas = document.getElementById('mkv_chart');
+    if (!candles.length) return;
+    canvas.width = Math.max(600, 12 + candles.length * 26);
+    drawCandleMatrix(canvas, candles);
+}
+
+function mkv_renderWidgets(ordered, sessions) {
+    const wrap = document.getElementById('mkv_widgets');
+    const cards = [];
+
+    /* 1) Hour-to-hour momentum chaining + Shannon entropy chaos filter */
+    const chainCounts = {};
+    for (let k = 0; k < ordered.length - 1; k++) {
+        const cur = ordered[k], next = ordered[k + 1];
+        if (cur.dateKey !== next.dateKey) continue;
+        if (!MKV_PHASE_LABELS[cur.hourKey]) continue;
+        const key = `${cur.hourKey}→${next.hourKey}`;
+        const d = (chainCounts[key] ||= { total: 0, hit: 0 });
+        if (cur.pct > 0) {
+            d.total++;
+            if (next.pct > 0) d.hit++;
+        }
+    }
+    let chainRows = '', entropySum = 0, entropyN = 0;
+    Object.keys(chainCounts).sort().forEach(key => {
+        const d = chainCounts[key];
+        if (!d.total) return;
+        const p = d.hit / d.total;
+        const entropy = (p > 0 && p < 1) ? -(p * Math.log2(p) + (1 - p) * Math.log2(1 - p)) : 0;
+        entropySum += entropy; entropyN++;
+        const cls = p >= 0.58 ? 'val-up' : p <= 0.42 ? 'val-down' : 'val-white';
+        chainRows += `<div class="result-metric"><span class="result-label">${key} (n=${d.total})</span><span class="${cls}">${(p * 100).toFixed(0)}% WR</span></div>`;
+    });
+    const avgEntropy = entropyN ? entropySum / entropyN : null;
+    cards.push(`<div class="result-card" style="border-left-color:var(--cyan);">
+        <div class="result-info" style="width:100%;">
+            <div class="result-header"><span class="result-symbol">Momentum Chaining</span><span class="sig-badge badge-go">MARKOV</span></div>
+            <div class="result-metrics" style="grid-template-columns:1fr;">${chainRows || '<div class="result-metric"><span class="result-label">Zu wenig Overlap-Daten.</span></div>'}</div>
+            ${avgEntropy != null ? `<div class="result-metric" style="margin-top:6px; border-top:1px solid var(--border); padding-top:6px;"><span class="result-label">Shannon Entropy (Chaos-Filter)</span><span class="${avgEntropy < 0.75 ? 'val-up' : 'val-gold'}">${avgEntropy.toFixed(2)} ${avgEntropy < 0.75 ? '(Muster)' : '(Rauschen)'}</span></div>` : ''}
+        </div>
+    </div>`);
+
+    /* 2) Power Hour reversal predictor */
+    let totalDays = 0, reversals = 0;
+    Object.values(sessions).forEach(s => {
+        const open0930 = s.hours['09:30']?.open, close1330 = s.hours['13:30']?.close, ph = s.hours['15:30'];
+        if (open0930 == null || close1330 == null || !ph) return;
+        totalDays++;
+        const early = close1330 - open0930, late = ph.close - ph.open;
+        if ((early > 0 && late < 0) || (early < 0 && late > 0)) reversals++;
+    });
+    const reversalRate = totalDays ? (reversals / totalDays) * 100 : 0;
+    cards.push(`<div class="result-card" style="border-left-color:var(--gold);">
+        <div class="result-info" style="width:100%;">
+            <div class="result-header"><span class="result-symbol">Power Hour Reversal</span><span class="sig-badge badge-go">MARKOV</span></div>
+            <div class="result-metrics">
+                <div class="result-metric"><span class="result-label">Handelstage</span><span class="val-white">${totalDays}</span></div>
+                <div class="result-metric"><span class="result-label">Reversal-Rate</span><span class="val-down">${reversalRate.toFixed(0)}%</span></div>
+                <div class="result-metric" style="grid-column:span 2;"><span class="result-label">Trend-Fortsetzung</span><span class="val-up">${(100 - reversalRate).toFixed(0)}%</span></div>
+            </div>
+        </div>
+    </div>`);
+
+    /* 3) Overnight vs. intraday drift split */
+    const dateKeys = Object.keys(sessions).sort();
+    let overnight = 0, intraday = 0, activeDays = 0;
+    for (let m = 1; m < dateKeys.length; m++) {
+        const prev = sessions[dateKeys[m - 1]], cur = sessions[dateKeys[m]];
+        if (prev?.lastClose == null || cur?.firstOpen == null || cur?.lastClose == null) continue;
+        activeDays++;
+        overnight += ((cur.firstOpen - prev.lastClose) / prev.lastClose) * 100;
+        intraday  += ((cur.lastClose - cur.firstOpen) / cur.firstOpen) * 100;
+    }
+    cards.push(`<div class="result-card" style="border-left-color:var(--green-bright);">
+        <div class="result-info" style="width:100%;">
+            <div class="result-header"><span class="result-symbol">Overnight vs. Intraday</span><span class="sig-badge badge-go">MARKOV</span></div>
+            <div class="result-metrics">
+                <div class="result-metric"><span class="result-label">Cum. Overnight Drift</span><span class="${overnight >= 0 ? 'val-up' : 'val-down'}">${overnight >= 0 ? '+' : ''}${overnight.toFixed(2)}%</span></div>
+                <div class="result-metric"><span class="result-label">Cum. Intraday Core</span><span class="${intraday >= 0 ? 'val-up' : 'val-down'}">${intraday >= 0 ? '+' : ''}${intraday.toFixed(2)}%</span></div>
+                <div class="result-metric" style="grid-column:span 2;"><span class="result-label">Dominanter Kanal (${activeDays} Tage)</span><span class="val-gold">${Math.abs(overnight) > Math.abs(intraday) ? 'OVERNIGHT' : 'INTRADAY'}</span></div>
+            </div>
+        </div>
+    </div>`);
+
+    wrap.innerHTML = cards.join('');
+}
+
+function mkv_renderSeasonality(hourlyStats) {
+    const tbody = document.getElementById('mkv_seasTbody');
+    const keys = Object.keys(hourlyStats).filter(k => MKV_PHASE_LABELS[k]).sort();
+    if (!keys.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--gray-text); padding:24px;">Keine Daten.</td></tr>'; return; }
+    tbody.innerHTML = keys.map(k => {
+        const arr = hourlyStats[k];
+        const avg = arr.reduce((a, b) => a + b, 0) / arr.length;
+        const wins = arr.filter(v => v > 0).length;
+        const wr = (wins / arr.length) * 100;
+        return `<tr><td>${k} — ${MKV_PHASE_LABELS[k]}</td><td class="${avg >= 0 ? 'val-up' : 'val-down'}">${avg >= 0 ? '+' : ''}${avg.toFixed(3)}%</td><td class="${wr >= 55 ? 'val-up' : wr <= 45 ? 'val-down' : 'val-white'}">${wr.toFixed(0)}%</td></tr>`;
+    }).join('');
 }
 
 
@@ -5129,6 +5343,14 @@ function czDispatch(tab, syms) {
     if (tab === 'argentum-intraday') {
         czInjectCluster(normed); czSetSel('ai_cluster', '__cz__');
         ai_executeScan();
+        return;
+    }
+
+    /* ── Intraday Markov (single-symbol hourly chain scan) ──────────── */
+    if (tab === 'markov-intraday') {
+        const el = document.getElementById('mkv_ticker');
+        if (el) el.value = n0;
+        mkv_run();
         return;
     }
 
