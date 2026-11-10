@@ -6073,13 +6073,18 @@ async function ai_doRegime() {
     ai_log('system', '🌡️ Markt-Regime SPY/QQQ/DIA vs SMA200...');
     try {
         const syms = ['SPY.US','QQQ.US','DIA.US'];
+        // 220 calendar days back only yields ~152 trading-day closes (weekends/holidays) -- always
+        // short of the 200 needed for SMA200, so every call fell into the "N/A" branch below and the
+        // fallback text wrongly claimed "BEAR-REGIME" for missing data. 320 calendar days reliably
+        // covers 200+ trading days with holiday buffer.
         const all = await Promise.all(syms.map(s =>
-            fetch(`${AI_BOT_URL}/eod/historical/${s}?from=${ai_dateN(-220)}&to=${ai_dateN(0)}&period=d&fmt=json`).then(r=>r.json())
+            fetch(`${AI_BOT_URL}/eod/historical/${s}?from=${ai_dateN(-320)}&to=${ai_dateN(0)}&period=d&fmt=json`).then(r=>r.json())
         ));
-        let out = 'MARKT-REGIME\n', bulls = 0;
+        let out = 'MARKT-REGIME\n', bulls = 0, valid = 0;
         syms.forEach((s,i) => {
             const d = all[i];
             if (!Array.isArray(d)||d.length<200) { out+=`${s}: ⚠️ N/A\n`; return; }
+            valid++;
             const cl = d.map(x=>x.close);
             const sma = cl.slice(-200).reduce((a,b)=>a+b,0)/200;
             const last = cl[cl.length-1];
@@ -6087,8 +6092,9 @@ async function ai_doRegime() {
             if (last>sma) bulls++;
             out += `${s}: ${last.toFixed(2)} / SMA200 ${sma.toFixed(2)} (${pct>=0?'+':''}${pct.toFixed(2)}%) ${last>sma?'🟢 BULL':'🔴 BEAR'}\n`;
         });
-        out += `\n${bulls===3?'🚀 FULL BULL — Alle Indizes über SMA200':bulls===2?'📈 BULL-BIAS — 2/3 über SMA200':bulls===1?'⚠️ GEMISCHT — Fragiles Marktumfeld':'🛑 BEAR-REGIME — Alle Indizes unter SMA200'}`;
-        ai_log(bulls>=2?'success':'error', out);
+        // Honesty fix: "0 bulls" used to mean both "all bearish" AND "no data at all" -- now distinguished.
+        out += `\n${valid===0?'⚠️ KEINE DATEN VERFÜGBAR — Regime-Check fehlgeschlagen':bulls===valid?'🚀 FULL BULL — Alle Indizes über SMA200':bulls>valid/2?'📈 BULL-BIAS — Mehrheit über SMA200':bulls>0?'⚠️ GEMISCHT — Fragiles Marktumfeld':'🛑 BEAR-REGIME — Alle verfügbaren Indizes unter SMA200'}`;
+        ai_log(valid===0?'error':bulls>=2?'success':'error', out);
         ai_pushAnalysis(out, 'REGIME');
     } catch(e) { ai_log('error', `Regime Fehler: ${e.message}`); }
 }
