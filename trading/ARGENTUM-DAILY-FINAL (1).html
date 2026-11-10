@@ -137,8 +137,8 @@
 </script>
 
 <script>
-const ST_BACKTEST = { n: 16920, avgRet: 0.1749, winRate: 42.88, sharpeLike: 0.545, bestBucket: 'mid_P', status: 'validated', buckets: { far_lowP: null, mid_P: 0.1749, near_highP: null }, winBuckets: { far_lowP: null, mid_P: 4.9624, near_highP: null }, winRateBuckets: { far_lowP: 46.87, mid_P: 42.88, near_highP: 33.06 } };
-document.getElementById('st_intro').innerHTML = "Backtest-validiert (siehe <a href=\"https://babybounce500.github.io/genitus-midpoint-terminal/smart-target-master-report.html\" target=\"_blank\">Master-Report</a>): Der stärkste Bucket von Argentum ist \"mid_P\", Sharpe 0.545, robust über beide Zeithälften (aber schwächt leicht ab -- siehe Report).";
+const ST_BACKTEST = { n: 16920, avgRet: 0.1749, winRate: 42.88, sharpeLike: 0.545, bestBucket: 'mid_P', status: 'warning', buckets: { far_lowP: null, mid_P: 0.1749, near_highP: null }, winBuckets: { far_lowP: null, mid_P: 4.9624, near_highP: null }, winRateBuckets: { far_lowP: 46.87, mid_P: 42.88, near_highP: 33.06 } };
+document.getElementById('st_intro').innerHTML = "Geprüft (siehe <a href=\"https://babybounce500.github.io/genitus-midpoint-terminal/smart-target-master-report.html\" target=\"_blank\">Master-Report</a>): Der stärkste Bucket von Argentum ist \"mid_P\", Sharpe 0.545, aber NICHT robust -- Sharpe fällt von 0.79 (ältere Hälfte) auf 0.33 (neuere Hälfte), unter die 50%-Schwelle. Reale Zahlen, aber Edge schwächt sich deutlich ab.";
 
 // Echtes Limit statt Erwartungswert: Target = Entry +/- Oe-Groesse der tatsaechlichen GEWINNER-Trades
 // in diesem Bucket (winBuckets), nicht der ueber alle Trades gemittelte avgRet (der war 0.02-0.58%
