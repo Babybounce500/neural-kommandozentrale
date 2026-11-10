@@ -3068,6 +3068,12 @@ function dn_harmonize() {
         card.innerHTML=`<canvas class="result-candle" width="100" height="100"></canvas><div class="result-info"><div class="result-header"><div><span class="result-symbol">${r.sym}</span> <span class="result-ts">${d}</span></div><span class="sig-badge ${isL?'badge-long':'badge-short'}">${r.signal}</span></div><div class="result-metrics"><div class="result-metric"><span class="result-label">Price:</span><span class="val-white">$${r.price.toFixed(r.dec)}</span></div><div class="result-metric"><span class="result-label">Spread:</span><span class="${r.spread>=1?'val-up':'val-down'}">${r.spread.toFixed(4)}</span></div><div class="result-metric"><span class="result-label">Δ vs T-2:</span><span class="${r.delta>=0?'val-up':'val-down'}">${r.delta>=0?'+':''}${r.delta.toFixed(r.dec)}</span></div><div class="result-metric"><span class="result-label">Volatility:</span><span class="val-white">${r.vol.toFixed(2)}%</span></div><div class="result-metric"><span class="result-label">Vol Trend:</span><span class="${r.vT>=0?'val-up':'val-down'}">${r.vT>=0?'▲':'▼'} ${Math.abs(r.vT).toFixed(1)}%</span></div><div class="conf-bar-wrap"><div style="display:flex;justify-content:space-between;font-size:10px;"><span class="result-label">Confidence (v6.5 Hard-Lock):</span><span class="val-gold">${r.conf}%</span></div><div class="conf-bar-track"><div class="conf-bar-fill" style="width:${r.conf}%"></div></div></div></div></div>`;
         cont.appendChild(card); drawCandleMatrix(card.querySelector('canvas'),r.candles);
     });
+    // Push a concise summary into the AI-Analyst chat's RAG context so results from this module
+    // are actually available to the chat, not just sitting in this tab (see czPushToRAG bridge).
+    if (typeof czPushToRAG === 'function' && processed.length) {
+        const top = processed.slice(0, 5).map(r => `${r.sym} ${r.signal} conf=${r.conf}% price=${r.price.toFixed(r.dec)}`).join(' | ');
+        czPushToRAG(`DENARIUS-Scan (${processed.length} Signale): ${top}`, 'DENARIUS');
+    }
 }
 
 function dn_exportHTML() {
@@ -3157,6 +3163,10 @@ async function hg_execute() {
     });
     dump.textContent=dumpTxt;
     status.style.display='none';
+    if (typeof czPushToRAG === 'function') {
+        const syms = dataset.map(d => `${d.code} ${parseFloat(d.change_p||0)>=0?'+':''}${parseFloat(d.change_p||0).toFixed(2)}%`).join(', ');
+        czPushToRAG(`Hedging-Check (${isCrisis?'KRISE 0.75% Risk':'STABIL 1.00% Risk'}, Budget/Position $${allowedRisk.toFixed(2)}): ${syms}`, 'HEDGING');
+    }
 }
 
 
@@ -3686,6 +3696,9 @@ function gb_calcMetrics(data) {
         const mean = logR.reduce((a,b)=>a+b,0)/logR.length;
         const vol = Math.sqrt(logR.reduce((a,b)=>a+Math.pow(b-mean,2),0)/logR.length) * Math.sqrt(252) * 100;
         document.getElementById('gb_mVol').innerHTML = `${vol.toFixed(2)}<span style="font-size:11px;color:var(--gray-text);">%</span>`;
+    }
+    if (typeof czPushToRAG === 'function') {
+        czPushToRAG(`G-Bonds ${gb_selectedTicker}: Yield ${cur.toFixed(2)}% (${data[data.length-1].date}), Spread ${spreadBps}bps vs US10Y, ModDuration ${modDur.toFixed(2)}`, 'GBONDS');
     }
 }
 
@@ -5753,7 +5766,7 @@ const AI_SYSTEM_PROMPT = `Du bist DANIEL.AI, ein Senior Finanzmarkt-Experte und 
 
 function ai_init() {
     ai_updateRagPanel();
-    ai_log('system', '🤖 <strong>DANIEL.AI v1.0</strong> — RAG-Enhanced Finance Intelligence aktiv.<br>Finance-Befehle: <em>rsi [sym] | news [sym] | pivot [sym] | heikin [sym] | hedge [sym] | broker [sym] | macro | regime | alert | fx [amt] [from] [to]</em><br>Oder frei chatten — Marktdaten aus Finance-Modulen werden automatisch als RAG-Kontext gespeichert.');
+    ai_log('system', '🤖 <strong>DANIEL.AI v1.0</strong> — RAG-Enhanced Finance Intelligence aktiv.<br>Finance-Befehle: <em>rsi [sym] | news [sym] | pivot [sym] | heikin [sym] | hedge [sym] | broker [sym] | macro | regime | alert | fx [amt] [from] [to]</em><br>Oder frei chatten. Ergebnisse aus <em>Denarius, G-Bonds und Hedging v18.1</em> fließen automatisch als RAG-Kontext ein (Testphase -- weitere Module folgen).');
 }
 
 function ai_scrollChat() {
