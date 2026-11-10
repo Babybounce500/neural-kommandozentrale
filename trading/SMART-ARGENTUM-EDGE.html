@@ -54,7 +54,7 @@
     <p class="text-xs text-gray-400 mt-4">Keine Anlageberatung. Smart Stop/Target und Vola-Bucket basieren auf historischer Drift/Volatilität -- keine Garantie für zukünftiges Verhalten.</p>
   </main>
 <script>
-  const BACKTEST = { n: 16920, avgRet: 0.1749, winRate: 42.88, sharpeLike: 0.545, bestBucket: 'mid_P', robust: true, buckets: { far_lowP: null, mid_P: 0.1749, near_highP: null }, winBuckets: { far_lowP: null, mid_P: 4.9624, near_highP: null }, winRateBuckets: { far_lowP: 46.87, mid_P: 42.88, near_highP: 33.06 } };
+  const BACKTEST = { n: 16920, avgRet: 0.1749, winRate: 42.88, sharpeLike: 0.545, bestBucket: 'mid_P', robust: false, buckets: { far_lowP: null, mid_P: 0.1749, near_highP: null }, winBuckets: { far_lowP: null, mid_P: 4.9624, near_highP: null }, winRateBuckets: { far_lowP: 46.87, mid_P: 42.88, near_highP: 33.06 } };
 
   window.API_BASE_URL = 'https://glow-up-gemini.replit.app';
   const BASE = window.API_BASE_URL;
