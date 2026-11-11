@@ -882,7 +882,7 @@
             <button class="cz-sym-btn" onclick="czSymbolRun()" aria-label="Symbol laden">▶ RUN</button>
         </div>
         <span class="cz-status" id="czStatusDot" title="Pipeline Status" aria-hidden="true"></span>
-        <span class="tab-count-badge" aria-label="23 Module">23</span>
+        <span class="tab-count-badge" aria-label="24 Module">24</span>
         <button class="tbtn-theme" id="qdToggleBtn" onclick="qd_toggleDeck()" title="Basket-/Modul-Leiste ein-/ausklappen" aria-label="Quick Deck ein-/ausklappen">
             <span id="qdToggleIcon" aria-hidden="true">🧺▾</span>
         </button>
@@ -928,6 +928,7 @@
             <button class="tmenu-item"              data-tab="consultus-weekly"  data-label="📅 Consultus Weekly"     onclick="selectTab('consultus-weekly')">📅 Consultus Weekly</button>
             <button class="tmenu-item"              data-tab="corpus-parvus"     data-label="🗜️ Corpus Parvus"      onclick="selectTab('corpus-parvus')">🗜️ Corpus Parvus</button>
             <button class="tmenu-item"              data-tab="denarius"          data-label="🔬 Denarius Matrix"      onclick="selectTab('denarius')">🔬 Denarius Matrix</button>
+            <button class="tmenu-item"              data-tab="heikin-narrow"     data-label="📏 Heikin Narrow"        onclick="selectTab('heikin-narrow')">📏 Heikin Narrow</button>
             <div class="tmenu-cat">🛡️ Risk &amp; Hedging</div>
             <button class="tmenu-item"              data-tab="hedging"           data-label="🛡️ Hedging v18.1"      onclick="selectTab('hedging')">🛡️ Hedging v18.1</button>
             <button class="tmenu-item"              data-tab="volumina"          data-label="🌊 Volumina"             onclick="selectTab('volumina')">🌊 Volumina</button>
@@ -1134,6 +1135,10 @@
                 <div id="mkv_status" class="mt-2" style="font-size:11px; color:var(--gold);">Scan starten um stündliche Markov-Ketten zu laden.</div>
                 <div class="mt-3" style="overflow-x:auto; border:1px solid var(--border); border-radius:4px; background:var(--bg-inner); padding:8px;">
                     <canvas id="mkv_chart" width="600" height="140"></canvas>
+                </div>
+                <div class="section-grid-header mt-3">📏 VALIDIERTES SETUP (Heikin-Ashi NR4 + Umkehr, Backtest-bestätigt)</div>
+                <div class="result-grid" id="mkv_setup">
+                    <div style="color:var(--gray-text); text-align:center; padding:20px; grid-column:1/-1;">Scan starten.</div>
                 </div>
                 <div class="section-grid-header mt-3">⚡ MOMENTUM CHAINING, POWER HOUR &amp; ENTROPY</div>
                 <div class="result-grid" id="mkv_widgets">
@@ -1391,6 +1396,54 @@
                         <div id="dn_shortGrid"></div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════ SECTION 8B: HEIKIN NARROW -->
+    <div class="tab-section" id="section-heikin-narrow">
+        <div class="card card-custom">
+            <div class="card-header-custom">📏 Heikin Narrow — "Nicht einsteigen wenn der Markt heiß ist" (Backtest: Sharpe-ähnlich 0.74-0.88, robust)</div>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Asset Cluster</label>
+                        <select id="hn_cluster" class="form-control-custom"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">NR-Fenster</label>
+                        <select id="hn_nrWindow" class="form-control-custom">
+                            <option value="7" selected>NR7 (Sharpe 0.879, n=6.218)</option>
+                            <option value="4">NR4 (Sharpe 0.739, n=10.877, mehr Signale)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-uppercase" style="color:var(--gray-text); font-size:11px;">Delay (ms)</label>
+                        <input type="number" id="hn_delay" class="form-control-custom" value="2000" min="500">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn-pipeline-cyan" onclick="hn_startScan()">CLUSTER SCAN</button>
+                    </div>
+                </div>
+                <div id="hn_progressSection" class="module-progress mt-3">
+                    <div class="progress-info">
+                        <div id="hn_progressText">Berechne Heikin-Ashi Narrow-Range...</div>
+                        <div>Scanned: <span id="hn_statusMsg" style="color:var(--cyan)">0/0</span></div>
+                    </div>
+                    <div class="progress-track"><div id="hn_progressFill" class="progress-fill">0%</div></div>
+                </div>
+                <div class="dn-columns mt-3">
+                    <div>
+                        <div class="dn-col-header long">▲ LONG (letzte HA-Kerze eng + grün)</div>
+                        <div id="hn_longGrid"></div>
+                    </div>
+                    <div>
+                        <div class="dn-col-header short">▼ SHORT (letzte HA-Kerze eng + rot)</div>
+                        <div id="hn_shortGrid"></div>
+                    </div>
+                </div>
+                <div class="mt-2" style="font-size:10px; color:var(--gray-text);">Backtest (52 Titel, 3 Jahre, 2-Perioden-robust): Entry zur nächsten Eröffnung in Richtung der engen HA-Kerze, Exit nach 10 Tagen oder -4%-Stop. Referenzkurs unten = letzter Schluss (Entry am nächsten echten Open kann leicht abweichen). <a href="https://babybounce500.github.io/genitus-midpoint-terminal/heikin-narrow-backtest.html" target="_blank" rel="noopener" style="color:var(--cyan);">Vollständiger Backtest-Report ↗</a></div>
             </div>
         </div>
     </div>
@@ -2428,6 +2481,7 @@ async function mkv_run() {
         if (!chartCandles.length) throw new Error('Keine vollständigen Candles im Antwort-Set.');
 
         mkv_renderChart(chartCandles.slice(-40));
+        mkv_renderSetup(chartCandles, ordered);
         mkv_renderWidgets(ordered, sessions);
         mkv_renderSeasonality(hourlyStats);
 
@@ -2445,6 +2499,55 @@ function mkv_renderChart(candles) {
     if (!candles.length) return;
     canvas.width = Math.max(600, 12 + candles.length * 26);
     drawCandleMatrix(canvas, candles);
+}
+
+/* Validated setup, from the Heikin-Narrow backtest's Hourly/NR4/Umkehr result (sharpe-like
+   0.587, 60.7% win rate, robust, 29,299 pooled trades, 52 symbols): entry only when the most
+   recent hourly bar is an HA narrow-range day (NR4), direction = REVERSAL of that bar's own
+   color. Exit rule deliberately NOT automated here -- the validated exit confirms the trigger
+   bar first, then acts at the NEXT bar's open (see backtest report), which needs a live
+   follow-up scan, not a single-shot computation; shown as guidance text instead. */
+function mkv_heikinAshi(bars) {
+    const ha = [];
+    for (let i = 0; i < bars.length; i++) {
+        const b = bars[i];
+        const haClose = (b.open + b.high + b.low + b.close) / 4;
+        const haOpen  = i === 0 ? (b.open + b.close) / 2 : (ha[i-1].haOpen + ha[i-1].haClose) / 2;
+        const haHigh  = Math.max(b.high, haOpen, haClose);
+        const haLow   = Math.min(b.low, haOpen, haClose);
+        ha.push({ haOpen, haHigh, haLow, haClose, range: haHigh - haLow, dir: haClose >= haOpen ? 'G' : 'R' });
+    }
+    return ha;
+}
+
+function mkv_renderSetup(chartCandles, ordered) {
+    const wrap = document.getElementById('mkv_setup');
+    const sessionBars = chartCandles.filter((_, i) => MKV_PHASE_LABELS[ordered[i].hourKey]);
+    if (sessionBars.length < 4) {
+        wrap.innerHTML = '<div style="color:var(--gray-text); text-align:center; padding:20px; grid-column:1/-1;">Zu wenig Daten für NR4-Check.</div>';
+        return;
+    }
+    const ha = mkv_heikinAshi(sessionBars);
+    const lastIdx = ha.length - 1;
+    const win = ha.slice(Math.max(0, lastIdx - 3), lastIdx + 1);
+    const minRange = Math.min(...win.map(b => b.range));
+    const isNarrow = ha[lastIdx].range === minRange;
+    if (!isNarrow) {
+        wrap.innerHTML = `<div class="result-card" style="border-left-color:var(--gray-text);"><div class="result-info" style="width:100%;">
+            <div class="result-header"><span class="result-symbol">Kein Setup</span><span class="sig-badge" style="color:var(--gray-text); border-color:var(--gray-text);">NR4</span></div>
+            <div class="result-metrics" style="grid-template-columns:1fr;"><div class="result-metric"><span class="result-label">Letzte Stunden-Kerze ist nicht eng genug (NR4) -- kein validiertes Setup aktiv.</span></div></div>
+        </div></div>`;
+        return;
+    }
+    const isShort = ha[lastIdx].dir === 'G'; // validated rule: trade the REVERSAL of the narrow bar's own color
+    wrap.innerHTML = `<div class="result-card" style="border-left-color:${isShort?'var(--red-bright)':'var(--green-bright)'};"><div class="result-info" style="width:100%;">
+        <div class="result-header"><span class="result-symbol">Setup aktiv (NR4)</span><span class="sig-badge badge-go">${isShort?'SHORT':'LONG'}</span></div>
+        <div class="result-metrics" style="grid-template-columns:1fr;">
+            <div class="result-metric"><span class="result-label">Richtung (Umkehr der engen Kerze, validiert)</span><span class="${isShort?'val-down':'val-up'}">${isShort?'SHORT':'LONG'}</span></div>
+            <div class="result-metric"><span class="result-label">Exit-Regel</span><span class="val-gold">Erste starke HA-Kerze in ${isShort?'SHORT':'LONG'}-Richtung abwarten (nicht diese!), dann zum NÄCHSTEN Open glattstellen</span></div>
+            <div class="result-metric" style="margin-top:6px; border-top:1px solid var(--border); padding-top:6px;"><span class="result-label">Backtest (52 Titel, Stündlich, NR4)</span><span class="val-white">Sharpe-ähnlich 0.587 · 60.7% Trefferquote · robust über beide Zeithälften</span></div>
+        </div>
+    </div></div>`;
 }
 
 function mkv_renderWidgets(ordered, sessions) {
@@ -3121,6 +3224,94 @@ function dn_exportHTML() {
 
 
 /* ══════════════════════════════════════════════════════════════════════
+   SECTION 8B — HEIKIN NARROW (validated backtest: genitus-midpoint-terminal/
+   heikin-narrow-backtest.html -- Daily NR7 continuation + 10d/-4% stop,
+   sharpe-like 0.879, robust over both time halves, 6,218 pooled trades
+   across 52 symbols; NR4 variant sharpe-like 0.739, more signals).
+   Heikin-Ashi is a signal filter only -- all displayed prices are real
+   market prices, never the synthetic HA price (not tradable).
+══════════════════════════════════════════════════════════════════════ */
+let hn_sigs = [], hn_scan = false;
+
+function hn_heikinAshi(bars) {
+    const ha = [];
+    for (let i = 0; i < bars.length; i++) {
+        const b = bars[i];
+        const haClose = (b.open + b.high + b.low + b.close) / 4;
+        const haOpen  = i === 0 ? (b.open + b.close) / 2 : (ha[i-1].haOpen + ha[i-1].haClose) / 2;
+        const haHigh  = Math.max(b.high, haOpen, haClose);
+        const haLow   = Math.min(b.low, haOpen, haClose);
+        ha.push({ haOpen, haHigh, haLow, haClose, range: haHigh - haLow, dir: haClose >= haOpen ? 'G' : 'R' });
+    }
+    return ha;
+}
+
+async function hn_startScan() {
+    if (hn_scan) return;
+    const clusterKey = document.getElementById('hn_cluster').value;
+    const delay = parseInt(document.getElementById('hn_delay').value) || 2000;
+    hn_scan = true; hn_sigs = [];
+    document.getElementById('hn_longGrid').innerHTML = '';
+    document.getElementById('hn_shortGrid').innerHTML = '';
+    document.getElementById('hn_progressSection').classList.add('active');
+    const syms = getCluster(clusterKey).symbols;
+    for (let i = 0; i < syms.length; i++) {
+        const sym = syms[i], pct = Math.round(i / syms.length * 100);
+        document.getElementById('hn_progressText').textContent = `HEIKIN-ASHI NARROW-RANGE // ${sym}...`;
+        document.getElementById('hn_progressFill').style.width = pct + '%';
+        document.getElementById('hn_progressFill').textContent = pct + '%';
+        document.getElementById('hn_statusMsg').textContent = `${i}/${syms.length}`;
+        await hn_analyze(sym);
+        await new Promise(r => setTimeout(r, delay));
+    }
+    document.getElementById('hn_progressSection').classList.remove('active');
+    hn_scan = false; hn_renderSigs();
+}
+
+async function hn_analyze(sym) {
+    try {
+        const raw = await fetchHistorical(sym);
+        const asc = raw.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+        const nrN = parseInt(document.getElementById('hn_nrWindow').value) || 7;
+        if (asc.length < nrN + 5) return;
+        const bars = asc.map(d => ({ date: d.date, open: parseFloat(d.open), high: parseFloat(d.high), low: parseFloat(d.low), close: parseFloat(d.close) }))
+                         .filter(b => [b.open,b.high,b.low,b.close].every(Number.isFinite));
+        if (bars.length < nrN + 5) return;
+        const ha = hn_heikinAshi(bars);
+        const lastIdx = ha.length - 1;
+        const window = ha.slice(lastIdx - nrN + 1, lastIdx + 1);
+        const minRange = Math.min(...window.map(b => b.range));
+        if (ha[lastIdx].range !== minRange) return; // most recent close is not a narrow-range HA day -- no signal
+        const isLong = ha[lastIdx].dir === 'G';
+        const lastBar = bars[lastIdx];
+        const ref = lastBar.close;
+        const stopPrice = isLong ? ref * 0.96 : ref * 1.04;
+        const dec = ref < 2 ? 4 : 2;
+        hn_sigs.push({ sym, date: lastBar.date, isLong, ref, stopPrice, dec, nrN,
+            candles: bars.slice(-3).map(b => ({ open:b.open, high:b.high, low:b.low, close:b.close })) });
+    } catch (e) {}
+}
+
+function hn_renderSigs() {
+    const longGrid = document.getElementById('hn_longGrid'), shortGrid = document.getElementById('hn_shortGrid');
+    const longSigs = hn_sigs.filter(s => s.isLong), shortSigs = hn_sigs.filter(s => !s.isLong);
+    longGrid.innerHTML = longSigs.length ? '' : '<div style="color:var(--gray-text); text-align:center; padding:20px;">Keine Long-Signale.</div>';
+    shortGrid.innerHTML = shortSigs.length ? '' : '<div style="color:var(--gray-text); text-align:center; padding:20px;">Keine Short-Signale.</div>';
+    hn_sigs.forEach(s => {
+        const d = new Date(s.date).toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit'});
+        const card = document.createElement('div'); card.className = 'result-card'; card.style.borderLeftColor = s.isLong ? 'var(--green-bright)' : 'var(--red-bright)';
+        card.innerHTML = `<canvas class="result-candle" width="100" height="100"></canvas><div class="result-info"><div class="result-header"><div><span class="result-symbol">${s.sym}</span> <span class="result-ts">NR${s.nrN}: ${d}</span></div><span class="sig-badge badge-go">${s.isLong?'LONG':'SHORT'}</span></div><div class="result-metrics"><div class="result-metric"><span class="result-label">Ref-Kurs (letzter Schluss):</span><span class="val-white">$${s.ref.toFixed(s.dec)}</span></div><div class="result-metric"><span class="result-label">-4%-Stop:</span><span class="val-down">$${s.stopPrice.toFixed(s.dec)}</span></div><div class="result-metric" style="grid-column:span 2;"><span class="result-label">Regel:</span><span class="val-gold">Entry nächster Open · Exit 10 Tage oder -4%-Stop</span></div></div></div>`;
+        (s.isLong ? longGrid : shortGrid).appendChild(card);
+        drawCandleMatrix(card.querySelector('canvas'), s.candles);
+    });
+    if (typeof czPushToRAG === 'function' && hn_sigs.length) {
+        const top = hn_sigs.slice(0,8).map(s => `${s.sym} ${s.isLong?'LONG':'SHORT'} ref=${s.ref.toFixed(s.dec)}`).join(' | ');
+        czPushToRAG(`HEIKIN-NARROW-Scan (${hn_sigs.length} Signale, NR${hn_sigs[0]?.nrN||7}): ${top}`, 'HEIKIN-NARROW');
+    }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
    SECTION 9 — NEURAL HEDGING v18.1 (Dynamic Cluster Bracket Matrix)
 ══════════════════════════════════════════════════════════════════════ */
 async function hg_execute() {
@@ -3369,7 +3560,7 @@ function pv_downloadReport() {
 const ALL_CLUSTER_SELECTS = [
     'ag_cluster','ai_cluster','bs_cluster','hs_cluster',
     'cd_cluster','cw_cluster','cp_cluster','dn_cluster',
-    'vl_cluster','pv_cluster'
+    'vl_cluster','pv_cluster','hn_cluster'
 ];
 
 function sym_loadEditor() {
@@ -5397,6 +5588,13 @@ function czDispatch(tab, syms) {
         czInjectCluster(normed); czSetSel('dn_cluster', '__cz__');
         dn_scan = false; dn_raw = [];
         dn_startScan();
+        return;
+    }
+
+    /* ── Heikin Narrow (per-symbol HA narrow-range scan) ─────────────── */
+    if (tab === 'heikin-narrow') {
+        czInjectCluster(normed); czSetSel('hn_cluster', '__cz__');
+        hn_startScan();
         return;
     }
 
